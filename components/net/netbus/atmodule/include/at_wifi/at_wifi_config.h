@@ -64,8 +64,8 @@ typedef struct {
 } wifi_sta_info;
 
 typedef struct {
-    char ssid[32];
-    char pwd[64];
+    char ssid[33];
+    char pwd[65];
     uint8_t channel;
     uint8_t ecn;
     uint8_t max_conn;
