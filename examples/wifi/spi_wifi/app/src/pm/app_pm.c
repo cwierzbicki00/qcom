@@ -202,6 +202,12 @@ void set_dtim_config(int dtim)
     wifi_mgmr_sta_ps_enter();
 }
 
+void clear_dtim_config(void)
+{
+    wifi_mgmr_sta_ps_exit();
+}
+
+
 static void cmd_tickless(int argc, char **argv)
 {
     if ((argc > 1) && (argv[1] != NULL)) {

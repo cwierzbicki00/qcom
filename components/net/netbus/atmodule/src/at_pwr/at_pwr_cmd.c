@@ -72,6 +72,15 @@ static int at_dtim_cmd(int argc, const char **argv)
     return AT_RESULT_CODE_OK;
 }
 
+static int clear_dtim_cmd(int argc, const char **argv)
+{
+    void clear_dtim_config(void);
+    clear_dtim_config();
+
+    return AT_RESULT_CODE_OK;
+}
+
+
 static int at_wkio_cmd(int argc, const char **argv)
 {
     int wkio;
@@ -164,6 +173,7 @@ static int at_twt_sleep_cmd(int argc, const char **argv)
 static const at_cmd_struct at_pwr_cmd[] = {
     {"+PWR", NULL, NULL, at_pwr_cmd_pwrmode, NULL, 1, 3},
     {"+SLWKDTIM", NULL, NULL, at_dtim_cmd, NULL, 1, 1},
+    {"+SLCLDTIM", NULL, NULL, NULL, clear_dtim_cmd, 0, 0},
     {"+SLWKIO", NULL, NULL, at_wkio_cmd, NULL, 2, 2},
     {"+DEWKIO", NULL, NULL, at_dewkio_cmd, NULL, 1, 1},
     {"+SLWKTIMER", NULL, NULL, at_wakeup_timer_cmd, NULL, 2, 2},
