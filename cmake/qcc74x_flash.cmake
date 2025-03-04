@@ -50,9 +50,20 @@ if(CONFIG_FW_POST_PROC_CUSTOM)
 list(APPEND QCC74x_FW_POST_PROC_CONFIG ${CONFIG_FW_POST_PROC_CUSTOM})
 endif()
 
+set(combine_cmds)
+
+foreach(item ${CONFIG_POST_BUILDS})
+    if("${item}" STREQUAL "CONCAT_WITH_LP_FW")
+    list(APPEND combine_cmds COMMAND ${CMAKE} -E echo "[lp_fw] concate with lp fw bin"
+                                COMMAND ${QCC74x_SDK_BASE}/tools/lpfw/patch_lpfw${TOOL_SUFFIX} ${BIN_FILE} ${QCC74x_SDK_BASE}/tools/lpfw/bin/${CHIP}_lp_fw.bin)
+    endif()
+endforeach()
+
+list(APPEND combine_cmds COMMAND ${QCC74x_FW_POST_PROC} ${QCC74x_FW_POST_PROC_CONFIG})
+
 add_custom_target(combine
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        COMMAND ${QCC74x_FW_POST_PROC} ${QCC74x_FW_POST_PROC_CONFIG})
+        ${combine_cmds})
 
 file(GLOB OLD_MFG_BIN "${QCC74x_SDK_BASE}/bsp/board/${BOARD}/config/mfg*.bin")
 file(GLOB DTS_FILES "${QCC74x_SDK_BASE}/bsp/board/${BOARD}/config/*.dts")
@@ -69,11 +80,6 @@ foreach(item ${CONFIG_POST_BUILDS})
                             COMMAND ${CMAKE} -E remove_directory mfg_release
                             COMMAND ${CMAKE} -E copy_directory ${QCC74x_SDK_BASE}/tools/qcc74x_tools mfg_release
                             COMMAND ${CMAKE} -E copy ${BIN_FILE} ${PARTITION_BIN_FILES} ${BOOT2_BIN_FILES} ${DTS_FILES} ${INI_FILES} mfg_release)
-    endif()
-
-    if("${item}" STREQUAL "CONCAT_WITH_LP_FW")
-    list(APPEND post_build_cmds COMMAND ${CMAKE} -E echo "[lp_fw] concate with lp fw bin"
-                                COMMAND ${QCC74x_SDK_BASE}/tools/lpfw/patch_lpfw${TOOL_SUFFIX} ${BIN_FILE} ${QCC74x_SDK_BASE}/tools/lpfw/bin/${CHIP}_lp_fw.bin)
     endif()
 
     if("${item}" STREQUAL "GENERATE_ROMFS")
