@@ -36,6 +36,8 @@ enum {
 	BT_DEV_PUB_KEY_BUSY,
 
 	BT_DEV_ADVERTISING,
+	BT_DEV_ADVERTISING2,
+	BT_DEV_ADVERTISING2_SETTING,
 	BT_DEV_ADVERTISING_NAME,
 	BT_DEV_ADVERTISING_CONNECTABLE,
 	BT_DEV_KEEP_ADVERTISING,
@@ -308,6 +310,8 @@ int bt_le_set_conn_window(u8_t percentage);
 
 int bt_le_enh_tx_test(u8_t tx_ch, u8_t test_data_len, u8_t pkt_payload, u8_t phy);
 int bt_le_enh_rx_test(u8_t rx_ch, u8_t phy, u8_t mod_index);
+int bt_ble_tx_test_cmd(u8_t tx_ch,u8_t  data_len,u8_t  pkt_payload);
+int bt_ble_rx_test_cmd(u8_t rx_ch);
 int bt_le_test_end(void);
 
 #if defined(QCC74x_HOST_ASSISTANT)

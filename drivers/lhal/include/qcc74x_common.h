@@ -11,6 +11,15 @@ extern "C" {
 /**
  * @brief
  *
+ * @param [in] str1
+ * @param [in] str2
+ * @return int
+ */
+int arch_strcmp(const char *str1, const char *str2);
+
+/**
+ * @brief
+ *
  * @param [in] dst
  * @param [in] src
  * @param [in] n
@@ -84,12 +93,22 @@ void arch_delay_ms(uint32_t cnt);
 
 /**
  * @brief
- * 
+ *
  * @param [in] in
  * @param [in] len
  * @return [in] uint16_t
  */
 uint16_t qcc74x_soft_crc16(void *in, uint32_t len);
+
+/**
+ * @brief
+ *
+ * @param [in] initial
+ * @param [in] in
+ * @param [in] len
+ * @return [in] uint32_t
+ */
+uint32_t  qcc74x_soft_crc32_ex(uint32_t initial, void *in, uint32_t len);
 
 /**
  * @brief
@@ -100,7 +119,7 @@ uint16_t qcc74x_soft_crc16(void *in, uint32_t len);
  */
 uint32_t qcc74x_soft_crc32(void *in, uint32_t len);
 
-#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undefL)
+#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
 #define qcc74x_check_cache_addr(addr)  (false)
 #define qcc74x_get_no_cache_addr(addr) (addr)
 #else
@@ -121,12 +140,21 @@ typedef struct
     uint32_t commit_id;    /* app build commit id pointer */
     uint32_t rsvd0;        /* rsvd0 */
     uint32_t rsvd1;        /* rsvd1 */
-} qcc74xverinf_t;
+} qcc74x_verinf_t;
 
 int32_t qcc74x_get_app_version_from_efuse(uint8_t *version);
 int32_t qcc74x_set_app_version_to_efuse(uint8_t version);
 int32_t qcc74x_get_boot2_version_from_efuse(uint8_t *version);
 int32_t qcc74x_set_boot2_version_to_efuse(uint8_t version);
+int32_t qcc74x_get_boot2_info_from_flash(qcc74x_verinf_t *version);
+
+static inline __attribute__((always_inline)) void qcc74x_lhal_assert_func(const char *file, uint32_t line, const char *function, const char *string)
+{
+    //printf("Assertion failed:%s\r\nfunction:%s\r\nfile:%s\r\nline:%d\r\n", string, function, file, line);
+    __asm__ volatile ("ebreak");
+    while (1)
+        ;
+}
 
 #ifdef __cplusplus
 }

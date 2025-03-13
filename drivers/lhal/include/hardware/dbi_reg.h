@@ -154,10 +154,17 @@
 #define DBI_FIFO_FORMAT_MASK        (0x7 << DBI_FIFO_FORMAT_SHIFT)
 
 /* 0x84 : dbi_fifo_config_1 */
+#if defined(QCC74x_undef)
+#define DBI_TX_FIFO_CNT_SHIFT       (0U)
+#define DBI_TX_FIFO_CNT_MASK        (0x1f << DBI_TX_FIFO_CNT_SHIFT)
+#define DBI_TX_FIFO_TH_SHIFT        (16U)
+#define DBI_TX_FIFO_TH_MASK         (0xf << DBI_TX_FIFO_TH_SHIFT)
+#else
 #define DBI_TX_FIFO_CNT_SHIFT       (0U)
 #define DBI_TX_FIFO_CNT_MASK        (0xf << DBI_TX_FIFO_CNT_SHIFT)
 #define DBI_TX_FIFO_TH_SHIFT        (16U)
 #define DBI_TX_FIFO_TH_MASK         (0x7 << DBI_TX_FIFO_TH_SHIFT)
+#endif
 
 /* 0x88 : dbi_fifo_wdata */
 #define DBI_FIFO_WDATA_SHIFT        (0U)

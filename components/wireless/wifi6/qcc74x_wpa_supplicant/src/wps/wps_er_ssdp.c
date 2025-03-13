@@ -9,7 +9,7 @@
 #include "includes.h"
 
 #include "common.h"
-#include "uuid.h"
+#include "wpa_uuid.h"
 #include "eloop.h"
 #include "wps_i.h"
 #include "wps_upnp.h"

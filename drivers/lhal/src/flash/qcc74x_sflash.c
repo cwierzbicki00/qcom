@@ -11,11 +11,11 @@
 
 #if defined(QCC74x_undef) || defined(QCC74x_undef)
 #define QCC74x_SF_CTRL_BUF_BASE ((uint32_t)0x4000B700)
-#elif defined(QCC74x_undefL)
-#define QCC74x_SF_CTRL_BUF_BASE ((uint32_t)0x4000B600)
-#elif defined(QCC74x_undefP) || defined(QCC74x_undef) || defined(QCC743)
-#define QCC74x_SF_CTRL_BUF_BASE ((uint32_t)0x2000b600)
 #elif defined(QCC74x_undef)
+#define QCC74x_SF_CTRL_BUF_BASE ((uint32_t)0x4000B600)
+#elif defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC743) || defined(QCC74x_undef)
+#define QCC74x_SF_CTRL_BUF_BASE ((uint32_t)0x2000b600)
+#elif defined(QCC74x_undef) || defined(QCC74x_undef)
 #define QCC74x_SF_CTRL_BUF_BASE ((uint32_t)0x20082600)
 #endif
 
@@ -64,8 +64,16 @@
  * @return None
  *
 *******************************************************************************/
+#ifdef romapi_qcc74x_sflash_init
 __WEAK
-#if defined(QCC74x_undef) || defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undefP)
+void ATTR_TCM_SECTION qcc74x_sflash_init(const struct sf_ctrl_cfg_type *p_sf_ctrl_cfg,
+                                       const struct sf_ctrl_bank2_cfg *p_bank2_cfg)
+{
+    return romapi_qcc74x_sflash_init(p_sf_ctrl_cfg, p_bank2_cfg);
+}
+#else
+__WEAK
+#if defined(QCC74x_undef) || defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
 void ATTR_TCM_SECTION qcc74x_sflash_init(const struct sf_ctrl_cfg_type *p_sf_ctrl_cfg,
                                        const struct sf_ctrl_bank2_cfg *p_bank2_cfg)
 {
@@ -114,6 +122,7 @@ void ATTR_TCM_SECTION qcc74x_sflash_init(const struct sf_ctrl_cfg_type *p_sf_ctr
         qcc74x_sf_ctrl_enable(p_sf_ctrl_cfg);
     }
 }
+#endif
 
 /****************************************************************************/ /**
  * @brief  Set serial flash control interface SPI or QPI mode
@@ -126,9 +135,13 @@ void ATTR_TCM_SECTION qcc74x_sflash_init(const struct sf_ctrl_cfg_type *p_sf_ctr
 __WEAK
 int ATTR_TCM_SECTION qcc74x_sflash_set_spi_mode(uint8_t mode)
 {
+#ifdef romapi_qcc74x_sflash_set_spi_mode
+    return romapi_qcc74x_sflash_set_spi_mode(mode);
+#else
     int stat = 0;
 
     return stat;
+#endif
 }
 
 /****************************************************************************/ /**
@@ -392,7 +405,7 @@ int ATTR_TCM_SECTION qcc74x_sflash_write_enable(spi_flash_cfg_type *flash_cfg)
 }
 
 /****************************************************************************/ /**
- * @brief  Enable flash flash controller QSPI interface
+ * @brief  Enable flash controller QSPI interface
  *
  * @param  flash_cfg: Serial flash parameter configuration pointer
  *
@@ -1381,7 +1394,7 @@ int ATTR_TCM_SECTION qcc74x_sflash_set_xip_cfg(spi_flash_cfg_type *flash_cfg, ui
                                              uint8_t cont_read, uint32_t addr, uint32_t len, uint8_t bank)
 {
 #ifdef romapi_qcc74x_sflash_set_xip_cfg
-    romapi_qcc74x_sflash_set_xip_cfg(flash_cfg, io_mode, cont_read, addr, len, bank);
+    return romapi_qcc74x_sflash_set_xip_cfg(flash_cfg, io_mode, cont_read, addr, len, bank);
 #else
     uint8_t cmd = 0, dummy_clks = 0;
     struct sf_ctrl_cmd_cfg_type flash_cmd;
@@ -1529,6 +1542,10 @@ int ATTR_TCM_SECTION qcc74x_sflash_xip_read_enable(spi_flash_cfg_type *flash_cfg
 __WEAK
 void ATTR_TCM_SECTION qcc74x_sflash_xip_read_disable(void)
 {
+#ifdef romapi_qcc74x_sflash_xip_read_disable
+    return romapi_qcc74x_sflash_xip_read_disable();
+#else
+#endif
 }
 
 /****************************************************************************/ /**

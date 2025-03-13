@@ -14,6 +14,8 @@
 extern "C" {
 #endif
 
+#include "at_wifi_config.h"
+
 #define AT_WIFI_ENC_OPEN     0
 #define AT_WIFI_ENC_WPA_PSK  2
 #define AT_WIFI_ENC_WPA2_PSK 3
@@ -47,6 +49,10 @@ int at_wifi_sniffer_stop(void);
 int at_wifi_state_get(void);
 
 int at_wifi_hostname_set(char *hostname);
+
+int at_wifi_mode_set(uint8_t ap_or_sta, wifi_proto proto);
+
+wifi_proto at_wifi_mode_get(uint8_t ap_or_sta);
 
 #ifdef __cplusplus
 }

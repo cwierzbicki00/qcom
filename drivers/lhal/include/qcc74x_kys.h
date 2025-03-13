@@ -25,7 +25,7 @@ struct qcc74x_kys_config_s {
 #endif
 
 /* keyscan interrupt clear */
-#if defined(QCC74x_undefL)
+#if defined(QCC74x_undef)
 #define KEYSCAN_INT_CLR_DONE  (0x1 << 7)
 #define KEYSCAN_INT_CLR_FIFO  (0x1 << 8)
 #define KEYSCAN_INT_CLR_GHOST (0x1 << 12)
@@ -49,7 +49,7 @@ void qcc74x_kys_disable(struct qcc74x_device_s *dev);
 void qcc74x_kys_int_enable(struct qcc74x_device_s *dev, uint32_t flag, bool enable);
 void qcc74x_kys_int_clear(struct qcc74x_device_s *dev, uint32_t flag);
 uint32_t qcc74x_kys_get_int_status(struct qcc74x_device_s *dev);
-#if defined(QCC74x_undefL)
+#if defined(QCC74x_undef)
 void qcc74x_kys_get_fifo_info(struct qcc74x_device_s *dev, uint8_t *fifo_head, uint8_t *fifo_tail, uint8_t *fifo_valid_cnt);
 #endif
 uint8_t qcc74x_kys_read_keyvalue(struct qcc74x_device_s *dev, uint8_t index);

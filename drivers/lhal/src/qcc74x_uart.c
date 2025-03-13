@@ -81,7 +81,9 @@ void qcc74x_uart_init(struct qcc74x_device_s *dev, const struct qcc74x_uart_conf
         tx_cfg &= ~UART_CR_UTX_CTS_EN;
     }
 
+#if !defined(QCC74x_undef) && !defined(QCC74x_undef)
     rx_cfg &= ~UART_CR_URX_DEG_EN;
+#endif
 
     /* Write back */
     putreg32(tx_cfg, reg_base + UART_UTX_CONFIG_OFFSET);
@@ -97,6 +99,9 @@ void qcc74x_uart_init(struct qcc74x_device_s *dev, const struct qcc74x_uart_conf
     putreg32(regval, reg_base + UART_SW_MODE_OFFSET);
 #endif
     regval = getreg32(reg_base + UART_DATA_CONFIG_OFFSET);
+#if defined(QCC74x_undef) || defined(QCC74x_undef)
+    regval &= ~UART_CR_URX_DEG_EN;
+#endif
     regval &= ~UART_CR_UART_BIT_INV;
     putreg32(regval, reg_base + UART_DATA_CONFIG_OFFSET);
 
@@ -268,7 +273,7 @@ ATTR_TCM_SECTION int qcc74x_uart_getchar(struct qcc74x_device_s *dev)
 ATTR_TCM_SECTION int qcc74x_uart_put(struct qcc74x_device_s *dev, uint8_t *data, uint32_t len)
 {
 #ifdef romapi_qcc74x_uart_put
-    return romapi_qcc74x_uart_put(dev, config);
+    return romapi_qcc74x_uart_put(dev, data, len);
 #else
     int ret;
     for (uint32_t i = 0; i < len; i++) {
@@ -283,6 +288,9 @@ ATTR_TCM_SECTION int qcc74x_uart_put(struct qcc74x_device_s *dev, uint8_t *data,
 
 ATTR_TCM_SECTION int qcc74x_uart_put_block(struct qcc74x_device_s *dev, uint8_t *data, uint32_t len)
 {
+#ifdef romapi_qcc74x_uart_put_block
+    return romapi_qcc74x_uart_put_block(dev, data, len);
+#else
     int ret;
     uint32_t timeoutCnt = UART_TX_TIMEOUT_COUNT;
     for (uint32_t i = 0; i < len; i++) {
@@ -299,6 +307,7 @@ ATTR_TCM_SECTION int qcc74x_uart_put_block(struct qcc74x_device_s *dev, uint8_t 
         }
     }
     return 0;
+#endif
 }
 
 ATTR_TCM_SECTION int qcc74x_uart_get(struct qcc74x_device_s *dev, uint8_t *data, uint32_t len)
@@ -322,6 +331,9 @@ ATTR_TCM_SECTION int qcc74x_uart_get(struct qcc74x_device_s *dev, uint8_t *data,
 
 int qcc74x_uart_wait_tx_done(struct qcc74x_device_s *dev)
 {
+#ifdef romapi_qcc74x_uart_wait_tx_done
+    return qcc74x_uart_wait_tx_done(dev);
+#else
     uint64_t start_time;
 
     start_time = qcc74x_mtimer_get_time_ms();
@@ -338,6 +350,7 @@ int qcc74x_uart_wait_tx_done(struct qcc74x_device_s *dev)
         }
     }
     return 0;
+#endif
 }
 
 bool qcc74x_uart_txready(struct qcc74x_device_s *dev)
@@ -622,11 +635,13 @@ int qcc74x_uart_feature_control(struct qcc74x_device_s *dev, int cmd, size_t arg
 #if !defined(QCC74x_undef) && !defined(QCC74x_undef)
                 rx_tmp &= ~UART_CR_URX_AD5_MASK;
 #endif
-            } else {
+            } else if (arg == UART_AUTO_BAUD_START) {
                 tmp |= UART_CR_URX_ABR_EN;
 #if !defined(QCC74x_undef) && !defined(QCC74x_undef)
                 rx_tmp &= ~UART_CR_URX_ADS_MASK;
 #endif
+            } else if (arg == UART_AUTO_BAUD_CLOSE) {
+                tmp &= ~UART_CR_URX_ABR_EN;
             }
 
             putreg32(tmp, reg_base + UART_URX_CONFIG_OFFSET);
@@ -676,14 +691,22 @@ int qcc74x_uart_feature_control(struct qcc74x_device_s *dev, int cmd, size_t arg
             break;
 #endif
         case UART_CMD_SET_DEGLITCH_CNT:
+#if defined(QCC74x_undef) || defined(QCC74x_undef)
+            rx_tmp = getreg32(reg_base + UART_DATA_CONFIG_OFFSET);
+#else
             rx_tmp = getreg32(reg_base + UART_URX_CONFIG_OFFSET);
+#endif
             rx_tmp &= ~UART_CR_URX_DEG_CNT_MASK;
             rx_tmp &= ~UART_CR_URX_DEG_EN;
             if (arg) {
                 rx_tmp |= (arg << UART_CR_URX_DEG_CNT_SHIFT) & UART_CR_URX_DEG_CNT_MASK;
                 rx_tmp |= UART_CR_URX_DEG_EN;
             }
+#if defined(QCC74x_undef) || defined(QCC74x_undef)
+            putreg32(rx_tmp, reg_base + UART_DATA_CONFIG_OFFSET);
+#else
             putreg32(rx_tmp, reg_base + UART_URX_CONFIG_OFFSET);
+#endif
             break;
 #if !defined(QCC74x_undef) && !defined(QCC74x_undef)
         case UART_CMD_SET_TX_RS485_EN:
@@ -743,7 +766,7 @@ int qcc74x_uart_feature_control(struct qcc74x_device_s *dev, int cmd, size_t arg
             }
 #endif
             break;
-#if !defined(QCC74x_undefL)
+#if !defined(QCC74x_undef)
         case UART_CMD_IR_CONFIG: {
             struct qcc74x_uart_ir_config_s *ir_config = (struct qcc74x_uart_ir_config_s *)arg;
             tx_tmp = getreg32(reg_base + UART_UTX_CONFIG_OFFSET);
@@ -874,6 +897,24 @@ int qcc74x_uart_feature_control(struct qcc74x_device_s *dev, int cmd, size_t arg
             rx_tmp |= (arg << UART_RX_FIFO_TH_SHIFT) & UART_RX_FIFO_TH_MASK;
             putreg32(rx_tmp, reg_base + UART_FIFO_CONFIG_1_OFFSET);
             break;
+#if defined(QCC74x_undef)
+        case UART_CMD_READ_HW_VERSION:
+            tmp = getreg32(reg_base + UART_HW_VERSION_OFFSET);
+            ret = (tmp & UART_HW_VERSION_MASK) >> UART_HW_VERSION_SHIFT;
+            break;
+
+        case UART_CMD_READ_SW_USAGE:
+            tmp = getreg32(reg_base + UART_SW_USAGE_OFFSET);
+            ret = (tmp & UART_SW_USAGE_MASK) >> UART_SW_USAGE_SHIFT;
+            break;
+
+        case UART_CMD_WRITE_SW_USAGE:
+            tmp = getreg32(reg_base + UART_SW_USAGE_OFFSET);
+            tmp &= ~UART_SW_USAGE_MASK;
+            tmp |= ((arg << UART_SW_USAGE_SHIFT) & UART_SW_USAGE_MASK);
+            putreg32(tmp, reg_base + UART_SW_USAGE_OFFSET);
+            break;
+#endif
         default:
             ret = -EPERM;
             break;

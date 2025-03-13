@@ -49,6 +49,12 @@
 #define TIMER_GPIO_LAT2_OFFSET  (0xC8) /* GPIO Latch Value2 */
 #define TIMER_TCDR_FORCE_OFFSET (0xCC) /* Timer Division Force */
 #endif
+#if defined(QCC74x_undef)
+#define TIMER_GPIO_LAT3_OFFSET  (0xD0) /* GPIO Latch Value3 */
+#define TIMER_GPIO_LAT4_OFFSET  (0xD4) /* GPIO Latch Value4 */
+#define TIMER_HW_VERSION_OFFSET (0xF0) /* Timer Hardware Version */
+#define TIMER_SW_USAGE_OFFSET   (0xF0) /* Timer Software Usage */
+#endif
 
 /* Register Bitfield definitions *****************************************************/
 
@@ -117,11 +123,20 @@
 #define TIMER_TIER0_0 (1 << 0U)
 #define TIMER_TIER0_1 (1 << 1U)
 #define TIMER_TIER0_2 (1 << 2U)
+#if defined(QCC74x_undef)
+#define TIMER_GPIO_LAT_IRQ_EN   (1 << 3U)
+#define TIMER0_DMA_REQ_EN_SHIFT (4U)
+#define TIMER0_DMA_REQ_EN_MASK  (0x7 << TIMER0_DMA_REQ_EN_SHIFT)
+#endif
 
 /* 0x48 : Timer1 Match Interrupt Enable */
 #define TIMER_TIER1_0 (1 << 0U)
 #define TIMER_TIER1_1 (1 << 1U)
 #define TIMER_TIER1_2 (1 << 2U)
+#if defined(QCC74x_undef)
+#define TIMER1_DMA_REQ_EN_SHIFT (4U)
+#define TIMER1_DMA_REQ_EN_MASK  (0x7 << TIMER0_DMA_REQ_EN_SHIFT)
+#endif
 
 /* 0x50 : Timer0 Pre-Load Value */
 #define TIMER_TPLVR0_SHIFT (0U)
@@ -159,6 +174,9 @@
 #define TIMER_TCLR0_0 (1 << 0U)
 #define TIMER_TCLR0_1 (1 << 1U)
 #define TIMER_TCLR0_2 (1 << 2U)
+#if defined(QCC74x_undef)
+#define TIMER_GPIO_LAT_IRQ_CLR (1 << 3U)
+#endif
 
 /* 0x7C : Timer1 Interrupt Clear */
 #define TIMER_TCLR1_0 (1 << 0U)
@@ -231,6 +249,9 @@
 #define TIMER0_GPIO_INV    (1 << 5U)
 #define TIMER1_GPIO_INV    (1 << 6U)
 #define TIMER_WDT_GPIO_INV (1 << 7U)
+#if defined(QCC74x_undef)
+#define TIMER_GPIO_LAT_DET_MODE (1 << 8U)
+#endif
 #define TIMER_GPIO_LAT_OK  (1 << 31U)
 
 /* 0xC4 : GPIO Latch Value1 */
@@ -245,6 +266,22 @@
 #define TIMER_TCDR0_FORCE (1 << 1U)
 #define TIMER_TCDR1_FORCE (1 << 2U)
 #define TIMER_WCDR_FORCE  (1 << 4U)
+#endif
+
+#if defined(QCC74x_undef)
+/* 0xD0 : GPIO Latch Value3 */
+#define TIMER_GPIO_LAT3_SHIFT (0U)
+#define TIMER_GPIO_LAT3_MASK  (0xffffffff << TIMER_GPIO_LAT3_SHIFT)
+
+/* 0xD4 : GPIO Latch Value4 */
+#define TIMER_GPIO_LAT4_SHIFT (0U)
+#define TIMER_GPIO_LAT4_MASK  (0xffffffff << TIMER_GPIO_LAT4_SHIFT)
+
+/* 0xF0 : Timer Version */
+#define TIMER_SW_USAGE_SHIFT   (0U)
+#define TIMER_SW_USAGE_MASK    (0xffffff << TIMER_SW_USAGE_SHIFT)
+#define TIMER_HW_VERSION_SHIFT (24U)
+#define TIMER_HW_VERSION_MASK  (0xff << TIMER_HW_VERSION_SHIFT)
 #endif
 
 #endif /* __HARDWARE_TIMER_H__ */

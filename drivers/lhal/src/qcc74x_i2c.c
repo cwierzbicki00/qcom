@@ -10,15 +10,20 @@
         (field)[3] = (uint8_t)((value) >> 24); \
     } while (0)
 
-static void qcc74x_i2c_addr_config(struct qcc74x_device_s *dev, uint16_t slaveaddr, uint32_t subaddr, uint8_t subaddr_size, bool is_addr_10bit)
+__UNUSED static void qcc74x_i2c_addr_config(struct qcc74x_device_s *dev, uint16_t slaveaddr, uint8_t *subaddr, uint8_t subaddr_size, bool is_addr_10bit)
 {
     uint32_t regval;
     uint32_t reg_base;
+    uint32_t subaddr_offset;
+    uint8_t subaddr_idx;
 
     reg_base = dev->reg_base;
 
+#if defined(QCC74x_undef)
+    regval = getreg32(reg_base + I2C_CONFIG_1_OFFSET);
+#else
     regval = getreg32(reg_base + I2C_CONFIG_OFFSET);
-
+#endif
     if (subaddr_size > 0) {
         regval |= I2C_CR_I2C_SUB_ADDR_EN;
         regval &= ~I2C_CR_I2C_SUB_ADDR_BC_MASK;
@@ -26,7 +31,39 @@ static void qcc74x_i2c_addr_config(struct qcc74x_device_s *dev, uint16_t slavead
     } else {
         regval &= ~I2C_CR_I2C_SUB_ADDR_EN;
     }
+#if defined(QCC74x_undef)
+    putreg32(regval, reg_base + I2C_CONFIG_1_OFFSET);
+#else
+    putreg32(regval, reg_base + I2C_CONFIG_OFFSET);
+#endif
 
+    subaddr_idx = 0;
+    while (subaddr_idx < subaddr_size) {
+        subaddr_offset = subaddr_idx & ~3;
+        if (subaddr_idx + 1 >= subaddr_size) {
+            regval = subaddr[subaddr_idx];
+            putreg32(regval, reg_base + I2C_SUB_ADDR_OFFSET + subaddr_offset);
+            break;
+        } else if (subaddr_idx + 2 >= subaddr_size) {
+            regval = subaddr[subaddr_idx] | (subaddr[subaddr_idx + 1] << 8);
+            putreg32(regval, reg_base + I2C_SUB_ADDR_OFFSET + subaddr_offset);
+            break;
+        } else if (subaddr_idx + 3 >= subaddr_size) {
+            regval = subaddr[subaddr_idx] | (subaddr[subaddr_idx + 1] << 8) | (subaddr[subaddr_idx + 2] << 16);
+            putreg32(regval, reg_base + I2C_SUB_ADDR_OFFSET + subaddr_offset);
+            break;
+        } else if (subaddr_idx + 4 >= subaddr_size) {
+            regval = subaddr[subaddr_idx] | (subaddr[subaddr_idx + 1] << 8) | (subaddr[subaddr_idx + 2] << 16) | (subaddr[subaddr_idx + 3] << 24);
+            putreg32(regval, reg_base + I2C_SUB_ADDR_OFFSET + subaddr_offset);
+            break;
+        } else {
+            regval = subaddr[subaddr_idx] | (subaddr[subaddr_idx + 1] << 8) | (subaddr[subaddr_idx + 2] << 16) | (subaddr[subaddr_idx + 3] << 24);
+            putreg32(regval, reg_base + I2C_SUB_ADDR_OFFSET + subaddr_offset);
+            subaddr_idx += 4;
+        }
+    }
+
+    regval = getreg32(reg_base + I2C_CONFIG_OFFSET);
     regval &= ~I2C_CR_I2C_SLV_ADDR_MASK;
     regval |= (slaveaddr << I2C_CR_I2C_SLV_ADDR_SHIFT);
 #if !defined(QCC74x_undef) && !defined(QCC74x_undef)
@@ -36,7 +73,6 @@ static void qcc74x_i2c_addr_config(struct qcc74x_device_s *dev, uint16_t slavead
         regval &= ~I2C_CR_I2C_10B_ADDR_EN;
     }
 #endif
-    putreg32(subaddr, reg_base + I2C_SUB_ADDR_OFFSET);
     putreg32(regval, reg_base + I2C_CONFIG_OFFSET);
 }
 
@@ -64,13 +100,21 @@ static inline void qcc74x_i2c_set_datalen(struct qcc74x_device_s *dev, uint16_t 
 
     reg_base = dev->reg_base;
 
+#if defined(QCC74x_undef)
+    regval = getreg32(reg_base + I2C_PKT_LEN_OFFSET);
+#else
     regval = getreg32(reg_base + I2C_CONFIG_OFFSET);
+#endif
     regval &= ~I2C_CR_I2C_PKT_LEN_MASK;
     regval |= ((data_len - 1) << I2C_CR_I2C_PKT_LEN_SHIFT) & I2C_CR_I2C_PKT_LEN_MASK;
+#if defined(QCC74x_undef)
+    putreg32(regval, reg_base + I2C_PKT_LEN_OFFSET);
+#else
     putreg32(regval, reg_base + I2C_CONFIG_OFFSET);
+#endif
 }
 
-static void qcc74x_i2c_set_frequence(struct qcc74x_device_s *dev, uint32_t freq)
+__UNUSED static void qcc74x_i2c_set_frequence(struct qcc74x_device_s *dev, uint32_t freq)
 {
     uint32_t regval;
     uint32_t reg_base;
@@ -235,7 +279,7 @@ static inline bool qcc74x_i2c_isenable(struct qcc74x_device_s *dev)
     return false;
 }
 
-static int qcc74x_i2c_write_bytes(struct qcc74x_device_s *dev, uint8_t *data, uint32_t len)
+__UNUSED static int qcc74x_i2c_write_bytes(struct qcc74x_device_s *dev, uint8_t *data, uint32_t len)
 {
     uint32_t reg_base;
     uint32_t temp = 0;
@@ -290,7 +334,7 @@ static int qcc74x_i2c_write_bytes(struct qcc74x_device_s *dev, uint8_t *data, ui
     return 0;
 }
 
-static int qcc74x_i2c_read_bytes(struct qcc74x_device_s *dev, uint8_t *data, uint32_t len)
+__UNUSED static int qcc74x_i2c_read_bytes(struct qcc74x_device_s *dev, uint8_t *data, uint32_t len)
 {
     uint32_t reg_base;
     uint32_t temp = 0;
@@ -435,7 +479,6 @@ int qcc74x_i2c_transfer(struct qcc74x_device_s *dev, struct qcc74x_i2c_msg_s *ms
 #ifdef romapi_qcc74x_i2c_transfer
     return romapi_qcc74x_i2c_transfer(dev, msgs, count);
 #else
-    uint16_t subaddr = 0;
     uint16_t subaddr_size = 0;
     bool is_addr_10bit = false;
     int ret = 0;
@@ -453,20 +496,18 @@ int qcc74x_i2c_transfer(struct qcc74x_device_s *dev, struct qcc74x_i2c_msg_s *ms
             is_addr_10bit = false;
         }
         if (msgs[i].flags & I2C_M_NOSTOP) {
-            subaddr = 0;
-            for (uint8_t j = 0; j < msgs[i].length; j++) {
-                subaddr += msgs[i].buffer[j] << (j * 8);
-            }
             subaddr_size = msgs[i].length;
-            qcc74x_i2c_addr_config(dev, msgs[i].addr, subaddr, subaddr_size, is_addr_10bit);
+            qcc74x_i2c_addr_config(dev, msgs[i].addr, msgs[i].buffer, subaddr_size, is_addr_10bit);
             i++;
         } else {
-            subaddr = 0;
             subaddr_size = 0;
-            qcc74x_i2c_addr_config(dev, msgs[i].addr, subaddr, subaddr_size, is_addr_10bit);
+            qcc74x_i2c_addr_config(dev, msgs[i].addr, msgs[i].buffer, subaddr_size, is_addr_10bit);
         }
-
+#if defined(QCC74x_undef)
+        if (msgs[i].length > 1024) {
+#else
         if (msgs[i].length > 256) {
+#endif
             return -EINVAL;
         }
         qcc74x_i2c_set_datalen(dev, msgs[i].length);
@@ -538,7 +579,7 @@ uint32_t qcc74x_i2c_get_intstatus(struct qcc74x_device_s *dev)
     uint32_t reg_base;
 
     reg_base = dev->reg_base;
-    return (getreg32(reg_base + I2C_INT_STS_OFFSET) & 0xff);
+    return (getreg32(reg_base + I2C_INT_STS_OFFSET) & 0x7f);
 #endif
 }
 
@@ -625,6 +666,28 @@ int qcc74x_i2c_feature_control(struct qcc74x_device_s *dev, int cmd, size_t arg)
             timing->stop_phase2 = (regval & I2C_CR_I2C_PRD_P_PH_2_MASK) >> I2C_CR_I2C_PRD_P_PH_2_SHIFT;
             timing->stop_phase3 = (regval & I2C_CR_I2C_PRD_P_PH_3_MASK) >> I2C_CR_I2C_PRD_P_PH_3_SHIFT;
             break;
+#if defined(QCC74x_undef)
+        case I2C_CMD_SET_TIMEOUT_VALUE:
+            regval = getreg32(reg_base + I2C_FIFO_CONFIG_0_OFFSET);
+            regval &= ~I2C_CR_I2C_M_TO_POP_VALUE_MASK;
+            regval |= ((arg << I2C_CR_I2C_M_TO_POP_VALUE_SHIFT) & I2C_CR_I2C_M_TO_POP_VALUE_MASK);
+            putreg32(regval, reg_base + I2C_FIFO_CONFIG_0_OFFSET);
+            break;
+        case I2C_CMD_READ_HW_VERSION:
+            regval = getreg32(reg_base + I2C_HW_VERSION_OFFSET);
+            ret = (regval & I2C_HW_VERSION_MASK) >> I2C_HW_VERSION_SHIFT;
+            break;
+        case I2C_CMD_READ_SW_USAGE:
+            regval = getreg32(reg_base + I2C_SW_USAGE_OFFSET);
+            ret = (regval & I2C_SW_USAGE_MASK) >> I2C_SW_USAGE_SHIFT;
+            break;
+        case I2C_CMD_WRITE_SW_USAGE:
+            regval = getreg32(reg_base + I2C_SW_USAGE_OFFSET);
+            regval &= ~I2C_SW_USAGE_MASK;
+            regval |= ((arg << I2C_SW_USAGE_SHIFT) & I2C_SW_USAGE_MASK);
+            putreg32(regval, reg_base + I2C_SW_USAGE_OFFSET);
+            break;
+#endif
         default:
             ret = -EPERM;
             break;

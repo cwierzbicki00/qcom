@@ -45,7 +45,49 @@
 #define QCC74x_EXTFLASH_DATA11_GPIO GPIO_PIN_19
 #define QCC74x_EXTFLASH_DATA21_GPIO GPIO_PIN_18
 #define QCC74x_EXTFLASH_DATA31_GPIO GPIO_PIN_14
-#elif defined(QCC74x_undef) || defined(QCC74x_undefP)
+#elif defined(QCC74x_undef)
+/* Flash option sf2 */
+/* Flash CLK */
+#define QCC74x_EXTFLASH_CLK0_GPIO      GPIO_PIN_39
+/* FLASH CS */
+#define QCC74x_EXTFLASH_CS0_GPIO       GPIO_PIN_34
+/* FLASH DATA */
+#define QCC74x_EXTFLASH_DATA00_GPIO    GPIO_PIN_35
+#define QCC74x_EXTFLASH_DATA10_GPIO    GPIO_PIN_36
+#define QCC74x_EXTFLASH_DATA20_GPIO    GPIO_PIN_37
+#define QCC74x_EXTFLASH_DATA30_GPIO    GPIO_PIN_38
+/* Flash option sf3 */
+/* Flash CLK */
+#define QCC74x_EXTFLASH_CLK1_GPIO      GPIO_PIN_48
+/* FLASH CS */
+#define QCC74x_EXTFLASH_CS1_GPIO       GPIO_PIN_43
+/* FLASH DATA */
+#define QCC74x_EXTFLASH_DATA01_GPIO    GPIO_PIN_44
+#define QCC74x_EXTFLASH_DATA11_GPIO    GPIO_PIN_45
+#define QCC74x_EXTFLASH_DATA21_GPIO    GPIO_PIN_46
+#define QCC74x_EXTFLASH_DATA31_GPIO    GPIO_PIN_47
+#elif defined(QCC74x_undef)
+/* Flash option sf2 */
+/* Flash CLK */
+#define QCC74x_EXTFLASH_CLK0_GPIO      GPIO_PIN_10
+/* FLASH CS */
+#define QCC74x_EXTFLASH_CS0_GPIO       GPIO_PIN_6
+/* FLASH DATA */
+#define QCC74x_EXTFLASH_DATA00_GPIO    GPIO_PIN_9
+#define QCC74x_EXTFLASH_DATA10_GPIO    GPIO_PIN_7
+#define QCC74x_EXTFLASH_DATA20_GPIO    GPIO_PIN_8
+#define QCC74x_EXTFLASH_DATA30_GPIO    GPIO_PIN_11
+/* Flash option sf3 */
+/* Flash CLK */
+#define QCC74x_EXTFLASH_CLK1_GPIO      GPIO_PIN_25
+/* FLASH CS */
+#define QCC74x_EXTFLASH_CS1_GPIO       GPIO_PIN_29
+/* FLASH DATA */
+#define QCC74x_EXTFLASH_DATA01_GPIO    GPIO_PIN_26
+#define QCC74x_EXTFLASH_DATA11_GPIO    GPIO_PIN_28
+#define QCC74x_EXTFLASH_DATA21_GPIO    GPIO_PIN_27
+#define QCC74x_EXTFLASH_DATA31_GPIO    GPIO_PIN_24
+#elif defined(QCC74x_undef) || defined(QCC74x_undef)
 /* Flash option sf2 */
 /* Flash CLK */
 #define QCC74x_EXTFLASH_CLK0_GPIO   GPIO_PIN_34
@@ -56,7 +98,7 @@
 #define QCC74x_EXTFLASH_DATA10_GPIO GPIO_PIN_37
 #define QCC74x_EXTFLASH_DATA20_GPIO GPIO_PIN_38
 #define QCC74x_EXTFLASH_DATA30_GPIO GPIO_PIN_39
-#elif defined(QCC74x_undefL)
+#elif defined(QCC74x_undef)
 /* Flash option */
 /* Flash CLK */
 #define QCC74x_EXTFLASH_CLK0_GPIO   GPIO_PIN_27
@@ -148,7 +190,7 @@ int qcc74x_sf_cfg_get_flash_cfg_need_lock(uint32_t flash_id, spi_flash_cfg_type 
                                         uint8_t group, uint8_t bank);
 int qcc74x_sf_cfg_get_flash_cfg_need_lock_ext(uint32_t flash_id, spi_flash_cfg_type *p_flash_cfg,
                                             uint8_t group, uint8_t bank);
-#if defined(QCC74x_undefL) || defined(QCC74x_undef)
+#if defined(QCC74x_undef) || defined(QCC74x_undef)
 void qcc74x_sf_cfg_init_internal_flash_gpio(void);
 #endif
 #if defined(QCC74x_undef)
@@ -164,7 +206,7 @@ uint32_t qcc74x_sf_cfg_flash_identify(uint8_t call_from_flash, uint8_t flash_pin
                                     spi_flash_cfg_type *p_flash_cfg, uint8_t group, uint8_t bank);
 uint32_t qcc74x_sf_cfg_flash_identify_ext(uint8_t callfromflash, uint8_t flash_pin_cfg, uint8_t restore_default,
                                         spi_flash_cfg_type *p_flash_cfg, uint8_t group, uint8_t bank);
-#if defined(QCC74x_undef) || defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undefP)
+#if defined(QCC74x_undef) || defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
 int qcc74x_sf_cfg_flash_init(uint8_t sel, const struct sf_ctrl_cfg_type *p_sfctrl_cfg,
                            const struct sf_ctrl_bank2_cfg *p_bank2_cfg);
 #ifdef QCC74x_SF_CTRL_SBUS2_ENABLE

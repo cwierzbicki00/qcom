@@ -10,7 +10,7 @@
 
 #include "common.h"
 #include "eloop.h"
-#include "uuid.h"
+#include "wpa_uuid.h"
 #include "crypto/random.h"
 #include "crypto/dh_group5.h"
 #include "common/ieee802_11_defs.h"
@@ -1215,7 +1215,7 @@ int wpas_wps_start_pbc(struct wpa_supplicant *wpa_s, const u8 *bssid,
 	eloop_register_timeout(WPS_PBC_WALK_TIME, 0, wpas_wps_timeout,
 			       wpa_s, NULL);
 	wpas_wps_reassoc(wpa_s, ssid, bssid, 0);
-	return 0;
+	return (int)ssid->id;
 }
 
 

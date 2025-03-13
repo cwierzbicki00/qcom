@@ -9,7 +9,7 @@
 #include "includes.h"
 
 #include "common.h"
-#include "utils/uuid.h"
+#include "utils/wpa_uuid.h"
 #include "utils/ip_addr.h"
 #include "common/ieee802_1x_defs.h"
 #include "common/sae.h"
@@ -2566,6 +2566,8 @@ static const struct parse_data ssid_fields[] = {
 	{ INT(group_rekey) },
 	{ STR(bgscan) },
 	{ INT_RANGE(ignore_broadcast_ssid, 0, 2) },
+	{ INT_RANGE(bcn_mode, 0, 5) },
+	{ INT_RANGE(bcn_timer, 1, 3600) },
 #ifdef CONFIG_P2P
 	{ FUNC(go_p2p_dev_addr) },
 	{ FUNC(p2p_client_list) },

@@ -52,13 +52,13 @@
   * @}
   */
 
-#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undefL)
+#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
 /** @defgroup DMA_PERIPHERAL_REGBASE dma peripheral data register address definition
   * @{
   */
 #define DMA_ADDR_UART0_TDR (0x4000A000 + 0x88)
 #define DMA_ADDR_UART0_RDR (0x4000A000 + 0x8C)
-#if !defined(QCC74x_undefL)
+#if !defined(QCC74x_undef)
 #define DMA_ADDR_UART1_TDR (0x4000A100 + 0x88)
 #define DMA_ADDR_UART1_RDR (0x4000A100 + 0x8C)
 #endif
@@ -66,15 +66,15 @@
 #define DMA_ADDR_I2C0_RDR (0x4000A300 + 0x8C)
 #define DMA_ADDR_SPI0_TDR (0x4000A200 + 0x88)
 #define DMA_ADDR_SPI0_RDR (0x4000A200 + 0x8C)
-#if !defined(QCC74x_undefL)
+#if !defined(QCC74x_undef)
 #define DMA_ADDR_I2S_TDR (0x4000AA00 + 0x88)
 #define DMA_ADDR_I2S_RDR (0x4000AA00 + 0x8C)
 #endif
 #define DMA_ADDR_ADC_RDR (0x40002000 + 0x04)
-#if !defined(QCC74x_undefL)
+#if !defined(QCC74x_undef)
 #define DMA_ADDR_DAC_TDR (0x40002000 + 0x48)
 #endif
-#if defined(QCC74x_undefL)
+#if defined(QCC74x_undef)
 #define DMA_ADDR_IR_TDR    (0x4000A600 + 0x88)
 #define DMA_ADDR_AUADC_RDR (0x4000AD00 + 0x88)
 #endif
@@ -88,26 +88,26 @@
 #define DMA_REQUEST_NONE     0x00000000
 #define DMA_REQUEST_UART0_RX 0x00000000
 #define DMA_REQUEST_UART0_TX 0x00000001
-#if !defined(QCC74x_undefL)
+#if !defined(QCC74x_undef)
 #define DMA_REQUEST_UART1_RX 0x00000002
 #define DMA_REQUEST_UART1_TX 0x00000003
 #endif
 #define DMA_REQUEST_I2C0_RX 0x00000006
 #define DMA_REQUEST_I2C0_TX 0x00000007
-#if defined(QCC74x_undefL)
+#if defined(QCC74x_undef)
 #define DMA_REQUEST_IR_TX 0x00000008
 #endif
 #define DMA_REQUEST_SPI0_RX 0x0000000A
 #define DMA_REQUEST_SPI0_TX 0x0000000B
-#if defined(QCC74x_undefL)
+#if defined(QCC74x_undef)
 #define DMA_REQUEST_AUADC_RX 0x0000000D
 #endif
-#if !defined(QCC74x_undefL)
+#if !defined(QCC74x_undef)
 #define DMA_REQUEST_I2S_RX 0x00000014
 #define DMA_REQUEST_I2S_TX 0x00000015
 #endif
 #define DMA_REQUEST_ADC 0x00000016
-#if !defined(QCC74x_undefL)
+#if !defined(QCC74x_undef)
 #define DMA_REQUEST_DAC 0x00000017
 #endif
 /**
@@ -158,12 +158,73 @@
 #define DMA_REQUEST_I2S_TX   0x00000011
 #define DMA_REQUEST_ADC      0x00000016
 #define DMA_REQUEST_DAC      0x00000017
-
 /**
   * @}
   */
 
-#elif defined(QCC74x_undef) || defined(QCC74x_undefP)
+#elif defined(QCC74x_undef)
+/** @defgroup DMA_PERIPHERAL_REGBASE dma peripheral data register address definition
+  * @{
+  */
+#define DMA_ADDR_UART0_TDR      (0x2000A000 + 0x88)
+#define DMA_ADDR_UART0_RDR      (0x2000A000 + 0x8C)
+#define DMA_ADDR_UART1_TDR      (0x2000A100 + 0x88)
+#define DMA_ADDR_UART1_RDR      (0x2000A100 + 0x8C)
+#define DMA_ADDR_UART2_TDR      (0x2000AD00 + 0x88)
+#define DMA_ADDR_UART2_RDR      (0x2000AD00 + 0x8C)
+#define DMA_ADDR_I2C0_TDR       (0x2000A300 + 0x88)
+#define DMA_ADDR_I2C0_RDR       (0x2000A300 + 0x8C)
+#define DMA_ADDR_WO_TDR         (0x20000000 + 0xB04)
+#define DMA_ADDR_SPI0_TDR       (0x2000A200 + 0x88)
+#define DMA_ADDR_SPI0_RDR       (0x2000A200 + 0x8C)
+#define DMA_ADDR_AUDAC_TDR      (0x20055000 + 0x94)
+#define DMA_ADDR_I2C1_TDR       (0x2000A900 + 0x88)
+#define DMA_ADDR_I2C1_RDR       (0x2000A900 + 0x8C)
+#define DMA_ADDR_I2S_TDR        (0x2000AB00 + 0x88)
+#define DMA_ADDR_I2S_RDR        (0x2000AB00 + 0x8C)
+#define DMA_ADDR_DBI_TDR        (0x2000A800 + 0x88)
+#define DMA_ADDR_AUADC_RDR      (0x2000AC00 + 0x88)
+#define DMA_ADDR_ADC_RDR        (0x20002000 + 0x04)
+#define DMA_ADDR_ADC_INJECT_RDR (0x20002400 + 0x04)
+#define DMA_ADDR_SPI1_TDR       (0x2000AE00 + 0x88)
+#define DMA_ADDR_SPI1_RDR       (0x2000AE00 + 0x8C)
+/**
+  * @}
+  */
+
+/** @defgroup DMA_PERIPHERAL_REQUEST dma peripheral request definition
+  * @{
+  */
+#define DMA_REQUEST_NONE       0x00000000
+#define DMA_REQUEST_UART0_RX   0x00000000
+#define DMA_REQUEST_UART0_TX   0x00000001
+#define DMA_REQUEST_UART1_RX   0x00000002
+#define DMA_REQUEST_UART1_TX   0x00000003
+#define DMA_REQUEST_UART2_RX   0x0000001C
+#define DMA_REQUEST_UART2_TX   0x0000001D
+#define DMA_REQUEST_I2C0_RX    0x00000006
+#define DMA_REQUEST_I2C0_TX    0x00000007
+#define DMA_REQUEST_TIMER0     0x00000008
+#define DMA_REQUEST_WO         0x00000009
+#define DMA_REQUEST_SPI0_RX    0x0000000A
+#define DMA_REQUEST_SPI0_TX    0x0000000B
+#define DMA_REQUEST_AUDAC_TX   0x0000000D
+#define DMA_REQUEST_I2C1_RX    0x0000000E
+#define DMA_REQUEST_I2C1_TX    0x0000000F
+#define DMA_REQUEST_I2S_RX     0x00000010
+#define DMA_REQUEST_I2S_TX     0x00000011
+#define DMA_REQUEST_TIMER1     0x00000013
+#define DMA_REQUEST_DBI_TX     0x00000014
+#define DMA_REQUEST_AUADC_RX   0x00000015
+#define DMA_REQUEST_ADC        0x00000016
+#define DMA_REQUEST_ADC_INJECT 0x00000017
+#define DMA_REQUEST_SPI1_RX    0x0000001E
+#define DMA_REQUEST_SPI1_TX    0x0000001F
+/**
+  * @}
+  */
+
+#elif defined(QCC74x_undef) || defined(QCC74x_undef)
 /** @defgroup DMA_PERIPHERAL_REGBASE dma peripheral data register address definition
   * @{
   */
@@ -251,6 +312,7 @@
 #define DMA_ADDR_I2C1_RDR    (0x20015000 + 0x8C)
 #define DMA_ADDR_SPI0_TDR    (0x20018000 + 0x88)
 #define DMA_ADDR_SPI0_RDR    (0x20018000 + 0x8C)
+#define DMA_ADDR_DBI_TDR     (0x2001D000 + 0x88)
 #define DMA_ADDR_I2S_TDR     (0x2001E000 + 0x88)
 #define DMA_ADDR_I2S_RDR     (0x2001E000 + 0x8C)
 #define DMA_ADDR_ADC_RDR     (0x20002000 + 0x04)
@@ -277,13 +339,114 @@
 #define DMA_REQUEST_SPI0_TX  0x0000000B
 #define DMA_REQUEST_I2S_RX   0x00000010
 #define DMA_REQUEST_I2S_TX   0x00000011
+#define DMA_REQUEST_DBI_TX   0x00000014
 #define DMA_REQUEST_ADC      0x00000016
 #define DMA_REQUEST_DAC      0x00000017
 /**
   * @}
   */
 
+#elif defined(QCC74x_undef)
+/** @defgroup DMA_PERIPHERAL_REGBASE dma peripheral data register address definition
+  * @{
+  */
+#define DMA_ADDR_WO_TDR      (0x20000000 + 0xB04)
+#define DMA_ADDR_ADC0_RDR    (0x20002000 + 0x10)
+#define DMA_ADDR_ADC1_RDR    (0x20002000 + 0x44)
+#define DMA_ADDR_DAC_TDR     (0x20002000 + 0x48)
+#define DMA_ADDR_UART0_TDR   (0x20010000 + 0x88)
+#define DMA_ADDR_UART0_RDR   (0x20010000 + 0x8C)
+#define DMA_ADDR_UART1_TDR   (0x20011000 + 0x88)
+#define DMA_ADDR_UART1_RDR   (0x20011000 + 0x8C)
+#define DMA_ADDR_UART2_TDR   (0x20012000 + 0x88)
+#define DMA_ADDR_UART2_RDR   (0x20012000 + 0x8C)
+#define DMA_ADDR_I2C0_TDR    (0x20014000 + 0x88)
+#define DMA_ADDR_I2C0_RDR    (0x20014000 + 0x8C)
+#define DMA_ADDR_I2C1_TDR    (0x20015000 + 0x88)
+#define DMA_ADDR_I2C1_RDR    (0x20015000 + 0x8C)
+#define DMA_ADDR_SPI0_TDR    (0x20018000 + 0x88)
+#define DMA_ADDR_SPI0_RDR    (0x20018000 + 0x8C)
+#define DMA_ADDR_IR_TDR      (0x2001B000 + 0x88)
+#define DMA_ADDR_DBI_TDR     (0x2001D000 + 0x88)
+#define DMA_ADDR_I2S_TDR     (0x2001E000 + 0x88)
+#define DMA_ADDR_I2S_RDR     (0x2001E000 + 0x8C)
+#define DMA_ADDR_PEC_SM0_TDR (0x2001F000 + 0x10)
+#define DMA_ADDR_PEC_SM1_TDR (0x2001F000 + 0x14)
+#define DMA_ADDR_PEC_SM2_TDR (0x2001F000 + 0x18)
+#define DMA_ADDR_PEC_SM3_TDR (0x2001F000 + 0x1C)
+#define DMA_ADDR_PEC_SM0_RDR (0x2001F000 + 0x20)
+#define DMA_ADDR_PEC_SM1_RDR (0x2001F000 + 0x24)
+#define DMA_ADDR_PEC_SM2_RDR (0x2001F000 + 0x28)
+#define DMA_ADDR_PEC_SM3_RDR (0x2001F000 + 0x2C)
+
+#define DMA2_ADDR_I2C2_TDR   (0x00082000 + 0x88)
+#define DMA2_ADDR_I2C2_RDR   (0x00082000 + 0x8C)
+#define DMA2_ADDR_UART3_TDR  (0x00084000 + 0x88)
+#define DMA2_ADDR_UART3_RDR  (0x00084000 + 0x8C)
+#define DMA2_ADDR_SPI1_TDR   (0x00085000 + 0x88)
+#define DMA2_ADDR_SPI1_RDR   (0x00085000 + 0x8C)
+/**
+  * @}
+  */
+
+/** @defgroup DMA_PERIPHERAL_REQUEST dma peripheral request definition
+  * @{
+  */
+#define DMA_REQUEST_NONE       0x00000000
+#define DMA_REQUEST_UART0_RX   0x00000000
+#define DMA_REQUEST_UART0_TX   0x00000001
+#define DMA_REQUEST_UART1_RX   0x00000002
+#define DMA_REQUEST_UART1_TX   0x00000003
+#define DMA_REQUEST_UART2_RX   0x00000004
+#define DMA_REQUEST_UART2_TX   0x00000005
+#define DMA_REQUEST_I2C0_RX    0x00000006
+#define DMA_REQUEST_I2C0_TX    0x00000007
+#define DMA_REQUEST_IR_TX      0x00000008
+#define DMA_REQUEST_WO         0x00000009
+#define DMA_REQUEST_SPI0_RX    0x0000000A
+#define DMA_REQUEST_SPI0_TX    0x0000000B
+#define DMA_REQUEST_AUDAC_TX   0x0000000D
+#define DMA_REQUEST_I2C1_RX    0x0000000E
+#define DMA_REQUEST_I2C1_TX    0x0000000F
+#define DMA_REQUEST_I2S_RX     0x00000010
+#define DMA_REQUEST_I2S_TX     0x00000011
+#define DMA_REQUEST_ADC0       0x00000012
+#define DMA_REQUEST_ADC1       0x00000013
+#define DMA_REQUEST_DBI_TX     0x00000014
+#define DMA_REQUEST_AUADC_RX   0x00000015
+#define DMA_REQUEST_DAC        0x00000017
+#define DMA_REQUEST_PEC_SM0_RX 0x00000018
+#define DMA_REQUEST_PEC_SM1_RX 0x00000019
+#define DMA_REQUEST_PEC_SM2_RX 0x0000001A
+#define DMA_REQUEST_PEC_SM3_RX 0x0000001B
+#define DMA_REQUEST_PEC_SM0_TX 0x0000001C
+#define DMA_REQUEST_PEC_SM1_TX 0x0000001D
+#define DMA_REQUEST_PEC_SM2_TX 0x0000001E
+#define DMA_REQUEST_PEC_SM3_TX 0x0000001F
+
+#define DMA2_REQUEST_I2C2_TX   0x00000000
+#define DMA2_REQUEST_I2C2_RX   0x00000001
+#define DMA2_REQUEST_UART3_TX  0x00000002
+#define DMA2_REQUEST_UART3_RX  0x00000003
+#define DMA2_REQUEST_SPI1_TX   0x00000004
+#define DMA2_REQUEST_SPI1_RX   0x00000005
+/**
+  * @}
+  */
+
 #endif
+
+/** @defgroup DMA_LLI_MUTEX dma lli mutex definition
+  * @{
+  */
+#if defined(QCC74x_undef)
+#define DMA_LLI_MUTEX_UNAVAILABLE   (0)
+#define DMA_LLI_MUTEX_NOT_LAST_NODE (1)
+#define DMA_LLI_MUTEX_LAST_NODE     (2)
+#endif
+/**
+  * @}
+  */
 
 /** @defgroup DMA_CMD dma feature control cmd definition
   * @{
@@ -297,6 +460,13 @@
 #define DMA_CMD_GET_LLI_DSTADDR       (0x07)
 #define DMA_CMD_GET_LLI_CONTROL       (0x08)
 #define DMA_CMD_GET_LLI_COUNT         (0x09)
+#if defined(QCC74x_undef)
+#define DMA_CMD_SET_LLI_MUTEX         (0x0a)
+#define DMA_CMD_GET_LLI_MUTEX_STATUS  (0x0b)
+#define DMA_CMD_READ_HW_VERSION       (0x0c)
+#define DMA_CMD_READ_SW_USAGE         (0x0d)
+#define DMA_CMD_WRITE_SW_USAGE        (0x0e)
+#endif
 /**
   * @}
   */
@@ -472,6 +642,22 @@ void qcc74x_dma_channel_irq_detach(struct qcc74x_device_s *dev);
 int qcc74x_dma_channel_lli_reload(struct qcc74x_device_s *dev,
                                 struct qcc74x_dma_channel_lli_pool_s *lli_pool, uint32_t max_lli_count,
                                 struct qcc74x_dma_channel_lli_transfer_s *transfer, uint32_t count);
+
+#if defined(QCC74x_undef)
+/**
+ * @brief Insert dma channel lli node.
+ *
+ * @param [in] dev device handle
+ * @param [in] lli_pool pointer to lli pool
+ * @param [in] max_lli_count lli pool size
+ * @param [in] transfer pointer to transfer structure
+ * @param [in] count transfer count.
+ * @return A negated errno value on failure, otherwise means number of used lli.
+ */
+int qcc74x_dma_channel_lli_insert(struct qcc74x_device_s *dev,
+                                struct qcc74x_dma_channel_lli_pool_s *lli_pool, uint32_t max_lli_count,
+                                struct qcc74x_dma_channel_lli_transfer_s *transfer, uint32_t count);
+#endif
 
 /**
  * @brief Enable lli continueous mode.

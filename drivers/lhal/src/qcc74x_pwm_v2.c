@@ -41,6 +41,15 @@ void qcc74x_pwm_v2_init(struct qcc74x_device_s *dev, const struct qcc74x_pwm_v2_
         regval |= (2 << PWM_REG_CLK_SEL_SHIFT);
     } else {
     }
+#if defined(QCC74x_undef)
+    if (config->counter_mode == PWM_COUNTER_MODE_CENTER_ALIGNED) {
+        regval |= PWM_CENTER_ALIGNED_EN;
+    } else {
+        regval &= ~PWM_CENTER_ALIGNED_EN;
+    }
+    regval &= ~PWM_UPDATE_GENERATE;
+    regval &= ~PWM_UPDATE_DISABLE;
+#endif
     regval &= ~PWM_CLK_DIV_MASK;
     regval |= (uint32_t)config->clk_div << PWM_CLK_DIV_SHIFT;
     putreg32(regval, reg_base + PWM_MC0_CONFIG0_OFFSET);
@@ -446,6 +455,43 @@ int qcc74x_pwm_v2_feature_control(struct qcc74x_device_s *dev, int cmd, size_t a
             regval |= (arg << PWM_ADC_TRG_SRC_SHIFT);
             putreg32(regval, reg_base + PWM_MC0_CONFIG0_OFFSET);
             break;
+
+#if defined(QCC74x_undef)
+        case PWM_CMD_UPDATE_DISABLE:
+            regval = getreg32(reg_base + PWM_MC0_CONFIG0_OFFSET);
+            regval |= PWM_UPDATE_DISABLE;
+            putreg32(regval, reg_base + PWM_MC0_CONFIG0_OFFSET);
+            break;
+
+        case PWM_CMD_UPDATE_ENABLE:
+            regval = getreg32(reg_base + PWM_MC0_CONFIG0_OFFSET);
+            regval &= ~PWM_UPDATE_DISABLE;
+            putreg32(regval, reg_base + PWM_MC0_CONFIG0_OFFSET);
+            break;
+
+        case PWM_CMD_UPDATE_GENERATE:
+            regval = getreg32(reg_base + PWM_MC0_CONFIG0_OFFSET);
+            regval |= PWM_UPDATE_GENERATE;
+            putreg32(regval, reg_base + PWM_MC0_CONFIG0_OFFSET);
+            break;
+
+        case PWM_CMD_READ_HW_VERSION:
+            regval = getreg32(reg_base + PWM_HW_VERSION_OFFSET);
+            ret = (regval & PWM_HW_VERSION_MASK) >> PWM_HW_VERSION_SHIFT;
+            break;
+
+        case PWM_CMD_READ_SW_USAGE:
+            regval = getreg32(reg_base + PWM_SW_USAGE_OFFSET);
+            ret = (regval & PWM_SW_USAGE_MASK) >> PWM_SW_USAGE_SHIFT;
+            break;
+
+        case PWM_CMD_WRITE_SW_USAGE:
+            regval = getreg32(reg_base + PWM_SW_USAGE_OFFSET);
+            regval &= ~PWM_SW_USAGE_MASK;
+            regval |= ((arg << PWM_SW_USAGE_SHIFT) & PWM_SW_USAGE_MASK);
+            putreg32(regval, reg_base + PWM_SW_USAGE_OFFSET);
+            break;
+#endif
 
         default:
             ret = -EPERM;

@@ -17,18 +17,18 @@
 
 /* MEM_SIZE: the size of the heap memory. If the application will send
 a lot of data that needs to be copied, this should be set high. */
-#define MEM_SIZE (15 * 1024)
+#define MEM_SIZE (32 * 1024)
 
 /* MEMP_NUM_PBUF: the number of memp struct pbufs. If the application
    sends a lot of data out of ROM (or other static memory), this
    should be set high. */
-#define MEMP_NUM_PBUF 10
+#define MEMP_NUM_PBUF 20
 /* MEMP_NUM_UDP_PCB: the number of UDP protocol control blocks. One
    per active UDP "connection". */
 #define MEMP_NUM_UDP_PCB 6
 /* MEMP_NUM_TCP_PCB: the number of simulatenously active TCP
    connections. */
-#define MEMP_NUM_TCP_PCB 10
+#define MEMP_NUM_TCP_PCB 6
 /* MEMP_NUM_TCP_PCB_LISTEN: the number of listening TCP
    connections. */
 #define MEMP_NUM_TCP_PCB_LISTEN 5
@@ -51,25 +51,24 @@ a lot of data that needs to be copied, this should be set high. */
 #define TCP_MSS (1500 - 40) /* TCP_MSS = (Ethernet MTU - IP header size - TCP header size) */
 
 /* TCP sender buffer space (bytes). */
-#define TCP_SND_BUF (4 * TCP_MSS)
+#define TCP_SND_BUF (16 * TCP_MSS)
 
 /*  TCP_SND_QUEUELEN: TCP sender buffer space (pbufs). This must be at least
   as much as (2 * TCP_SND_BUF/TCP_MSS) for things to work. */
-
-#define TCP_SND_QUEUELEN (2 * TCP_SND_BUF / TCP_MSS)
+#define TCP_SND_QUEUELEN (8 * TCP_SND_BUF / TCP_MSS)
 
 /* MEMP_NUM_TCP_SEG: the number of simultaneously queued TCP
    segments. */
 #define MEMP_NUM_TCP_SEG TCP_SND_QUEUELEN
 
 /* TCP receive window. */
-#define TCP_WND (2 * TCP_MSS)
+#define TCP_WND (8 * TCP_MSS)
 
 /* ---------- Pbuf options ---------- */
 /* PBUF_POOL_SIZE: the number of buffers in the pbuf pool.
    @ note: used to allocate Tx pbufs only
    mix pbuf size is (TCP_WND / TCP_MSS)  */
-#define PBUF_POOL_SIZE (TCP_WND / TCP_MSS)
+#define PBUF_POOL_SIZE (2 * TCP_WND / TCP_MSS)
 
 /* PBUF_POOL_BUFSIZE: the size of each pbuf in the pbuf pool. */
 #define PBUF_POOL_BUFSIZE 1524
@@ -215,22 +214,25 @@ extern int *__errno(void);
    ---------------------------------
 */
 
-#define osPriorityIdle        0 //< priority: idle (lowest)
-#define osPriorityLow         1 //< priority: low
-#define osPriorityBelowNormal 2 //< priority: below normal
-#define osPriorityNormal      3 //< priority: normal (default)
-#define osPriorityAboveNormal 4 //< priority: above normal
-#define osPriorityHigh        5 //< priority: high
-#define osPriorityRealtime    6 //< priority: realtime (highest)
+#define osPriorityIdle        2  //< priority: idle (lowest)
+#define osPriorityLow         5  //< priority: low
+#define osPriorityBelowNormal 10 //< priority: below normal
+#define osPriorityNormal      15 //< priority: normal (default)
+#define osPriorityAboveNormal 20 //< priority: above normal
+#define osPriorityHigh        25 //< priority: high
+#define osPriorityRealtime    29 //< priority: realtime (highest)
 
 #define TCPIP_THREAD_NAME         "TCP/IP"
 #define TCPIP_THREAD_STACKSIZE    1024
-#define TCPIP_MBOX_SIZE           50
-#define DEFAULT_UDP_RECVMBOX_SIZE 100
-#define DEFAULT_TCP_RECVMBOX_SIZE 100
-#define DEFAULT_ACCEPTMBOX_SIZE   100
+#define TCPIP_MBOX_SIZE           200
+#define DEFAULT_UDP_RECVMBOX_SIZE 200
+#define DEFAULT_TCP_RECVMBOX_SIZE 200
+#define DEFAULT_ACCEPTMBOX_SIZE   200
 #define DEFAULT_THREAD_STACKSIZE  512
 #define TCPIP_THREAD_PRIO         osPriorityHigh
+
+/* no wifi ram */
+#define LWIP_DECLARE_MEMORY_ALIGNED(variable_name, size) u8_t variable_name[LWIP_MEM_ALIGN_BUFFER(size)]
 
 #endif /* LWIP_HDR_LWIPOPTS_H__ */
 

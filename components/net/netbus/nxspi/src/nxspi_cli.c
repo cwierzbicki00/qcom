@@ -6,6 +6,9 @@
 #include <timers.h>
 #include <mem.h>
 
+#include "qcc74x_clock.h"
+#include "qcc74x_mtimer.h"
+#include "qcc74x_timer.h"
 #include <qcc74x_gpio.h>
 #include <qcc74x_core.h>
 #include <nxspi.h>
@@ -568,6 +571,9 @@ int cmd_nx(int argc, char *argv[])
     int _bdreceived(void);
     printf("bdreveived:%d\r\n", _bdreceived());
 
+    printf("use:%lu us, start:%llu, end:%llu\r\n",
+            g_nxspi.cfg_usetime, g_nxspi.cfg_starttime, g_nxspi.cfg_endtime);
+    printf("time start:%d, isr:%d\r\n", g_nxspi.time_start_cnt, g_nxspi.time_isr_cnt);
 #if 0
     NX_LOGP("tfsize_after_start   :%d\r\n", g_nxspi.tfsize_after_start);
     NX_LOGP("tfsize_received_hd   :%d\r\n", g_nxspi.tfsize_received_hd);

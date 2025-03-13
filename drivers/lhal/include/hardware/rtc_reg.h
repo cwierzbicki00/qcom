@@ -21,7 +21,7 @@
 #if defined(QCC74x_undef) || defined(QCC74x_undef)
 #define HBN_RTC_CTL_MASK             (0x3f << HBN_RTC_CTL_SHIFT)
 #define HBN_RTC_DLY_OPTION           (1 << 24U)
-#elif  defined(QCC74x_undef) || defined(QCC74x_undefP) || defined(QCC743) || defined(QCC74x_undefL) || defined(QCC74x_undef)
+#elif  defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
 #define HBN_RTC_CTL_MASK             (0x7 << HBN_RTC_CTL_SHIFT)
 #define HBN_RTC_DLY_OPTION           (1 << 4U)
 #endif

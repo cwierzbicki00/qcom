@@ -475,6 +475,7 @@ typedef struct
 #define HBN_LDO18IO_POWER_DLY_FLAG     (0x52)
 #define HBN_XTAL_FLAG_VALUE            (0x8)
 #define HBN_FLASH_POWER_DLY_FLAG       (0x6)
+#define HBN_RESET_REASON_FLAG          (0x9)
 #define HBN_GPIO_KEEP_FLAG             (0x2)
 #define PDS_GPIO_KEEP_FLAG             (0x2)
 
@@ -612,8 +613,12 @@ QCC74x_Err_Type HBN_Set_Ldo18io_Power_Delay_Config(uint16_t pwrOffDly, uint16_t 
 QCC74x_Err_Type HBN_Set_Xtal_Type(uint8_t xtalType);
 QCC74x_Err_Type HBN_Get_Xtal_Type(uint8_t *xtalType);
 QCC74x_Err_Type HBN_Get_Xtal_Value(uint32_t *xtalVal);
+#if 0
 QCC74x_Err_Type HBN_Set_Flash_Power_Delay(uint8_t flashPwrDly);
+#endif
 QCC74x_Err_Type HBN_Get_Flash_Power_Delay(uint8_t *flashPwrDly);
+QCC74x_Err_Type HBN_Set_Reset_Reason(uint16_t rstReason);
+QCC74x_Err_Type HBN_Get_Reset_Reason(uint16_t *rstReason);
 QCC74x_Err_Type HBN_Set_Gpio_Keep(uint8_t gpioKeep);
 QCC74x_Err_Type HBN_Get_Gpio_Keep(uint8_t *gpioKeep);
 QCC74x_Err_Type HBN_Clear_Gpio_Keep(uint8_t gpioKeep);

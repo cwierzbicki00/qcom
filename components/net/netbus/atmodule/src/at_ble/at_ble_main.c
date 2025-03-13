@@ -43,7 +43,7 @@
 
 #if defined(CONFIG_DYNAMIC_GATTS)
 #include "dynamic_gatts.h"
-#include "uuid.h"
+#include "bt_uuid.h"
 #endif
 
 #if defined(CONFIG_BT_SMP)
@@ -81,7 +81,7 @@ static struct bt_conn *g_ble_tp_conn = NULL;
 static int g_ble_tx_power = -255;
 
 
-#define MAX_BLE_CONN 1
+#define MAX_BLE_CONN 2
 #define BLE_CONN_STATE_CONNCTING 1
 #define BLE_CONN_STATE_CONNECTED 2
 #define BLE_CONN_STATE_DISCONNECTED 3
@@ -285,23 +285,23 @@ static void ble_add_service(void)
 
 static void ble_connected(struct bt_conn *conn, u8_t err)
 {
-
     if(err || conn->type != BT_CONN_TYPE_LE)
     {
         return;
     }
     AT_BLE_PRINTF("%s conn: 0x%x\r\n",__func__, conn);
-    struct bt_conn_info info[CONFIG_BT_MAX_CONN];
-    int link_num = bt_conn_get_remote_dev_info(info);
-    if (link_num > 0) {
-            ble_conn_data_set(0, (uint8_t *)info[0].le.remote->a.val, info[0].le.remote->type, conn, 0, 0, info[0].le.interval, BLE_CONN_STATE_CONNECTED);
-    }
     if (g_ble_role == BLE_CLIENT) {
         struct ble_conn_data *conn_data = ble_conn_data_get_by_conn(conn);
         if (!conn_data)
             return;
         conn_data->state = BLE_CONN_STATE_CONNECTED;
+        
     } else if (g_ble_role == BLE_SERVER) {
+        struct bt_conn_info info[CONFIG_BT_MAX_CONN];
+        int link_num = bt_conn_get_remote_dev_info(info);
+        if (link_num > 0) {
+                ble_conn_data_set(0, (uint8_t *)info[0].le.remote->a.val, info[0].le.remote->type, conn, 0, 0, info[0].le.interval, BLE_CONN_STATE_CONNECTED);
+        }
         g_ble_tp_conn = conn;
         at_response_string("+BLE:CONNECTED:%d,\"%02x:%02x:%02x:%02x:%02x:%02x\"\r\n",
                         0,
@@ -338,6 +338,8 @@ static void ble_disconnected(struct bt_conn *conn, u8_t reason)
         return;
 
     conn_data->state = BLE_CONN_STATE_DISCONNECTED;
+    conn_data->conn  = NULL;
+    conn_data->valid = 0;
     at_response_string("+BLE:DISCONNECTED:%d,\"%02x:%02x:%02x:%02x:%02x:%02x\"\r\n",
             conn_data->idx,
             conn_data->addr[5],
@@ -439,6 +441,10 @@ static void bt_enable_cb(int err)
 
 static void ble_notification_all_cb(struct bt_conn *conn, u16_t handle,const void *data, u16_t length)
 {
+    struct ble_conn_data *conn_data = ble_conn_data_get_by_conn(conn);
+    if (!conn_data)
+        return;
+
     char *rdata = (char *)pvPortMalloc(32 + length);
     int data_len = 0;
     if (!rdata) {
@@ -446,7 +452,7 @@ static void ble_notification_all_cb(struct bt_conn *conn, u16_t handle,const voi
         return;
     }
     memset(rdata,0,(32 + length));
-    data_len = sprintf(rdata, "+BLE:NOTIDATA:%d,",length);
+    data_len = sprintf(rdata, "+BLE:%d,NOTIDATA:%d,",conn_data->idx,length);
     memcpy(rdata + data_len, data, length);
     data_len += length;
     memcpy(rdata + data_len, "\r\n", 2);
@@ -650,7 +656,7 @@ static void at_ble_foreach_bond_info_cb(const struct bt_bond_info *info, void *u
 
     bt_addr_le_to_str(&info->addr, addr, sizeof(addr));
     keys = bt_keys_find(BT_KEYS_ALL, 0, &info->addr);
-	at_response_string("+BLE:BONDADDR %s LTK:%s\r\n",addr,bt_hex(keys->ltk.val,BT_SMP_MAX_ENC_KEY_SIZE));
+	at_response_string("+BLESECGETLTKLIST: BONDADDR %s LTK:%s\r\n",addr,bt_hex(keys->ltk.val,BT_SMP_MAX_ENC_KEY_SIZE));
 }
 
 void at_ble_get_ltk_list(void)
@@ -1072,6 +1078,28 @@ int at_ble_is_valid_conn_idx(int idx)
     return 1;
 }
 
+int at_ble_get_idx_by_conn(struct bt_conn *conn)
+{
+    for (int i = 0; i < BLE_CONN_MAX_NUM; i++) 
+    {
+        
+        struct ble_conn_data *conn_data = ble_conn_data_get_by_idx(i);
+
+	if(conn_data == NULL)
+		continue;
+
+        if (conn_data->conn != NULL)
+        {
+            if(conn==conn_data->conn)
+            {
+                return i;
+            }
+        }    
+    
+    }
+    return -1;
+}
+
 int at_ble_is_connected(int idx)
 {
     struct ble_conn_data *conn_data = ble_conn_data_get_by_idx(idx);
@@ -1084,6 +1112,7 @@ int at_ble_is_connected(int idx)
         return 0;
 }
 
+
 int at_ble_conn(int idx, uint8_t *addr, int addr_type, int timeout)
 {
     bt_addr_le_t ble_addr;
@@ -1094,6 +1123,12 @@ int at_ble_conn(int idx, uint8_t *addr, int addr_type, int timeout)
         .latency = 0,
         .timeout = 400,
     };
+    
+    if (at_ble_is_connected(idx))
+    {
+        return 0;
+    }
+
     int ret = 0;
     uint64_t start_time = at_current_ms_get();
 
@@ -1106,7 +1141,7 @@ int at_ble_conn(int idx, uint8_t *addr, int addr_type, int timeout)
     if (!conn) {
         AT_BLE_PRINTF("Connection failed\r\n");
     } else {
-        ble_conn_data_set(idx, addr, addr_type, conn, param.interval_min, param.interval_max, 0, BLE_CONN_STATE_CONNCTING);
+        ble_conn_data_set(idx, ble_addr.a.val, addr_type, conn, param.interval_min, param.interval_max, 0, BLE_CONN_STATE_CONNCTING);
         if(conn->state == BT_CONN_CONNECTED) {
             AT_BLE_PRINTF("Le link with this peer device has existed\r\n");
             return 1;
@@ -1128,9 +1163,20 @@ int at_ble_conn(int idx, uint8_t *addr, int addr_type, int timeout)
 
                 vTaskDelay(50);
             }
+
         }
     }
+    if(ret == 0)
+    {
+        struct ble_conn_data *conn_data = ble_conn_data_get_by_conn(conn);
 
+        conn_data->state = BLE_CONN_STATE_DISCONNECTED;
+        conn_data->conn  = NULL;
+        conn_data->valid = 0;
+        bt_conn_disconnect(conn, BT_HCI_ERR_REMOTE_USER_TERM_CONN);
+        
+    }
+    
     return ret;
 }
 
@@ -1199,16 +1245,12 @@ int at_ble_disconn(int idx)
     if (!conn_data)
         return 0;
     
-    ble_addr.type = conn_data->addr_type;
-    memcpy(ble_addr.a.val,conn_data->addr,6);
-    conn = bt_conn_lookup_addr_le(idx, &ble_addr);
-
-    if(!conn){
+    if(!conn_data->conn){
         AT_BLE_PRINTF("Not connected\r\n");
         return 0;
     }
 
-    if (bt_conn_disconnect(conn, BT_HCI_ERR_REMOTE_USER_TERM_CONN)) {
+    if (bt_conn_disconnect(conn_data->conn, BT_HCI_ERR_REMOTE_USER_TERM_CONN)) {
         AT_BLE_PRINTF("Disconnection failed\r\n");
     } else {
         AT_BLE_PRINTF("Disconnect successfully\r\n");
@@ -1243,10 +1285,14 @@ int at_ble_conn_update_datalen(int idx, int data_len, int time)
 static void exchange_func(struct bt_conn *conn, u8_t err,
 			  struct bt_gatt_exchange_params *params)
 {
+    struct ble_conn_data *conn_data = ble_conn_data_get_by_conn(conn);
+    if (!conn_data)
+        return;
+
 	AT_BLE_PRINTF("Exchange %s MTU Size =%d \r\n", err == 0U ? "successful" : "failed", bt_gatt_get_mtu(conn));
     if(err == 0U)
     {
-        at_response_string("+BLE:MTUSIZE:%d\r\n",bt_gatt_get_mtu(conn));
+        at_response_string("+BLE:%d,MTUSIZE:%d\r\n",conn_data->idx,bt_gatt_get_mtu(conn));
     }
 }
 
@@ -1596,6 +1642,7 @@ struct ble_disc_char
 
 struct ble_discover_data
 {
+    uint8_t conn_idx;
     uint8_t valid;
     char uuid[37];
     uint16_t start_handle;
@@ -1615,13 +1662,14 @@ static void ble_disc_srv_clean(void)
     g_ble_disc_srv = NULL;
 }
 
-static int ble_disc_srv_set(char *uuid, uint16_t start_handle, uint16_t end_handle, uint8_t type)
+static int ble_disc_srv_set(int idx,char *uuid, uint16_t start_handle, uint16_t end_handle, uint8_t type)
 {
     int i;
 
     for (i = 0; i < BLE_GATTC_SRV_MAX_NUM; i++) {
         if (g_ble_disc_srv[i].valid == 0) {
             g_ble_disc_srv[i].valid = 1;
+            g_ble_disc_srv[i].conn_idx = idx;
             strcpy(g_ble_disc_srv[i].uuid, uuid);
             g_ble_disc_srv[i].start_handle = start_handle;
             g_ble_disc_srv[i].end_handle = end_handle;
@@ -1703,9 +1751,11 @@ static u8_t ble_discover_func(struct bt_conn *conn, const struct bt_gatt_attr *a
                 gatt_service = attr->user_data;
                 bt_uuid_to_str(gatt_service->uuid, str, sizeof(str));
                 AT_BLE_PRINTF("Service %s found: start handle %x, end_handle %x\r\n", str, attr->handle, gatt_service->end_handle);
-
-                if (!ble_disc_srv_set(str, attr->handle, gatt_service->end_handle, g_ble_discover_type))
-                    AT_BLE_PRINTF("Service num exceeds %d\r\n", BLE_GATTC_SRV_MAX_NUM);
+                if(at_ble_get_idx_by_conn(conn)>=0)
+                {
+                    if (!ble_disc_srv_set(at_ble_get_idx_by_conn(conn),str, attr->handle, gatt_service->end_handle, g_ble_discover_type))
+                        AT_BLE_PRINTF("Service num exceeds %d\r\n", BLE_GATTC_SRV_MAX_NUM);
+                }
                 break;
             case BT_GATT_DISCOVER_CHARACTERISTIC:
                 gatt_chrc = attr->user_data;
@@ -1741,9 +1791,13 @@ int at_ble_gattc_service_discover(int idx, int timeout)
     conn_data = ble_conn_data_get_by_idx(idx);
     if (conn_data == NULL || conn_data->state != BLE_CONN_STATE_CONNECTED)
         return 0;
-
-    memset(g_ble_disc_srv, 0, sizeof(struct ble_discover_data)*BLE_GATTC_SRV_MAX_NUM);
-
+    for(int i = 0;i<BLE_GATTC_SRV_MAX_NUM;i++)
+    {
+        if(g_ble_disc_srv[i].conn_idx == idx)
+        {
+            memset(&g_ble_disc_srv[i], 0, sizeof(struct ble_discover_data));
+        }    
+    }
     g_ble_discover_finish = 0;
     g_ble_discover_type = 1; //discover primary services
 
@@ -1791,7 +1845,7 @@ int at_ble_gattc_service_discover(int idx, int timeout)
     }
 
     for (i = 0; i < BLE_GATTC_SRV_MAX_NUM; i++) {
-        if (g_ble_disc_srv[i].valid) {
+        if (g_ble_disc_srv[i].valid && g_ble_disc_srv[i].conn_idx == idx) {
             at_response_string("+BLE:SRV:%d,%d,%s,%d,%d,%d\r\n", idx, i + 1, g_ble_disc_srv[i].uuid, g_ble_disc_srv[i].type,g_ble_disc_srv[i].start_handle,g_ble_disc_srv[i].end_handle);
         }
     }
@@ -1836,7 +1890,7 @@ int at_ble_gattc_service_char_discover(int idx, int srv_idx, int timeout)
 
                 for (i = 0; i < BLE_GATTC_CHAR_MAX_NUM; i++) {
                     if (discover_data->disc_char[i].valid) {
-                        at_response_string("+BLE:SRVCHAR:%d,%d,%d,%s,0x%02x,%d,%d\r\n", idx, srv_idx, i + 1, discover_data->disc_char[i].uuid, discover_data->disc_char[i].char_props,discover_data->disc_char[i].char_handle,discover_data->disc_char[i].char_value_handle);
+                        at_response_string("+BLE:SRVCHAR:%d,%d,%d,%s,0x%02x,%d,%d\r\n", discover_data->conn_idx, srv_idx, i + 1, discover_data->disc_char[i].uuid, discover_data->disc_char[i].char_props,discover_data->disc_char[i].char_handle,discover_data->disc_char[i].char_value_handle);
                     }
                 }
 
@@ -2059,7 +2113,10 @@ int at_ble_gattc_service_read(int idx, int srv_idx, int char_idx, int timeout)
 
 static void at_bt_gatt_mtu_changed_cb(struct bt_conn *conn, int mtu)
 {
-    at_response_string("+BLE:MTUSIZE:%d\r\n",bt_gatt_get_mtu(conn));
+    struct ble_conn_data *conn_data = ble_conn_data_get_by_conn(conn);
+    if (!conn_data)
+        return;
+    at_response_string("+BLE:%d,MTUSIZE:%d\r\n",conn_data->idx,bt_gatt_get_mtu(conn));
 }
 
 #if defined(CONFIG_BT_BAS_SERVER)

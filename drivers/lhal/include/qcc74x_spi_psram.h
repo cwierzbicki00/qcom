@@ -55,7 +55,7 @@ struct spi_psram_cfg_type {
     uint8_t write_cmd;                    /*!< Psram write command */
     uint8_t quad_write_cmd;               /*!< Psram quad write command */
     uint16_t page_size;                   /*!< Psram page size */
-#if defined(QCC74x_undefL)
+#if defined(QCC74x_undef)
     uint8_t burst_toggle_en;              /*!< Psram burst toggle mode enable */
 #endif
     uint8_t ctrl_mode;                    /*!< Psram ctrl mode */

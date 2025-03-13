@@ -631,6 +631,10 @@ struct wpa_ssid {
 	 */
 	int ignore_broadcast_ssid;
 
+    int bcn_mode;
+
+    int bcn_timer;
+
 	/**
 	 * freq_list - Array of allowed frequencies or %NULL for all
 	 *

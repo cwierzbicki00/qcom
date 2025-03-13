@@ -69,21 +69,26 @@ XXXX
 
 ```
 
-### MDNS ping test
+### MDNS test
 
-In qcc743 Device,
+1. In your PC, install tools by 'apt install avahi-utils', then publish a service.
+```bash
+avahi-publish-service "linux_host" _http._tcp 80
+```
+
+2. In qcc743 Device,
 ```bash
 qxx74x />wifi_sta_connect QCC74x_TEST 12345678
 ```
-Wait GOT_IP event, type command 'mdns_start lwip'.
+Wait GOT_IP event, type command 'mdns_start', this command will search _http._tcp service for 5s and publish a 2333 port service for 5s.
+During first 5s, you can see search result. And during next 5s, you need search qcc743 device through avahi-browse command in your PC.
 
-In your PC,
+3. In your PC,
 ```bash
-Enable 'MulticastDNS=yes' in file /etc/systemd/resolved.conf.
-sudo systemd-resolve --set-mdns=yes --interface=enp3s0
-sudo systemctl restart systemd-resolved.service
-ping lwip.local
+avahi-browse -vcr _http._tcp
 ```
+You can got a respond of mdns_searcher.local, this servcie port is 2333.
+
 
 ### NAT ping test
 

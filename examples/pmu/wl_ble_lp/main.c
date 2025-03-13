@@ -30,6 +30,10 @@
 #include "board_rf.h"
 #include "shell.h"
 
+#include "qcc74x_mtd.h"
+#include "easyflash.h"
+#include "app_clock_manager.h"
+
 #define DBG_TAG "MAIN"
 #include "log.h"
 
@@ -350,6 +354,7 @@ static void cmd_tickless(int argc, char **argv)
         lpfw_cfg.dtim_origin = 10;
     }
 
+    qcc74x_lp_fw_bcn_loss_cfg_dtim_default(lpfw_cfg.dtim_origin);
     printf("sta_ps %ld\r\n", wifi_mgmr_sta_ps_enter());
     enable_tickless = 1;
 }
@@ -482,11 +487,78 @@ static void cmd_io_dbg(int argc, char **argv)
     }
 }
 
+static void cmd_set_clock_source(int argc, char **argv)
+{
+    uint8_t source;
+
+    // Check argument count
+    if (argc != 2) {
+        printf("Usage: set_clock_source <source>\r\n");
+        printf("  1: Internal RC oscillator\r\n");
+        printf("  2: External passive crystal\r\n");
+        printf("  3: External active crystal\r\n");
+        return;
+    }
+
+    // Parse source value from argument
+    source = (uint8_t)atoi(argv[1]);
+
+    // Validate source value
+    if (source < 1 || source > 3) {
+        printf("Error: Invalid clock source value. Must be 1, 2, or 3.\r\n");
+        return;
+    }
+
+    // Call the API function to set clock source
+    int ret = app_set_clock_source(source);
+    if (ret == 0) {
+        printf("Clock source updated to %d.\r\n", source);
+        // The system should reboot automatically after this
+    } else {
+        printf("Failed to set clock source, error code: %d\r\n", ret);
+    }
+}
+
+static void cmd_get_clock_source(int argc, char **argv)
+{
+    uint8_t source;
+    int ret;
+
+    // Call the API function to get current clock source
+    ret = app_get_clock_source(&source);
+
+    if (ret == 0) {
+        printf("Current clock source: %d (", source);
+
+        // Print descriptive name of the clock source
+        switch (source) {
+            case 1:
+                printf("Internal RC oscillator");
+                break;
+            case 2:
+                printf("External passive crystal");
+                break;
+            case 3:
+                printf("External active crystal");
+                break;
+            default:
+                printf("Unknown");
+                break;
+        }
+        printf(")\r\n");
+    } else {
+        printf("Failed to get clock source, error code: %d\r\n", ret);
+        printf("Using default source: Internal RC oscillator\r\n");
+    }
+}
+
 SHELL_CMD_EXPORT_ALIAS(cmd_tickless, tickless, cmd tickless);
 SHELL_CMD_EXPORT_ALIAS(cmd_wifi_lp, wifi_lp_test, wifi low power test);
 SHELL_CMD_EXPORT_ALIAS(test_tcp_keepalive, lpfw_tcp_keepalive, tcp keepalive test);
 SHELL_CMD_EXPORT_ALIAS(cmd_hbn_test, hbn_test, hbn test);
 SHELL_CMD_EXPORT_ALIAS(cmd_io_dbg, io_debug, cmd io_debug);
+SHELL_CMD_EXPORT_ALIAS(cmd_set_clock_source, set_clock_source, Set system clock source (1:RC, 2:Passive XTAL, 3:Active XTAL));
+SHELL_CMD_EXPORT_ALIAS(cmd_get_clock_source, get_clock_source, Get current system clock source);
 #endif
 
 /**********************************************************
@@ -504,238 +576,6 @@ static void proc_hellow_entry(void *pvParameters)
     vTaskDelete(NULL);
 }
 #endif
-
-static TaskHandle_t rc32k_coarse_trim_task_hd = NULL;
-static TaskHandle_t xtal32k_check_entry_task_hd = NULL;
-
-/**********************************************************
-    rc32k coarse trim task func
- **********************************************************/
-static void rc32k_coarse_trim_task(void *pvParameters)
-{
-    uint32_t retry_cnt = 0;
-    uint64_t timeout_start;
-
-    uint64_t rtc_cnt, rtc_record_us, rtc_now_us;
-    uint64_t mtimer_record_us, mtimer_now_us;
-
-    uint32_t rtc_us, mtimer_us;
-    int error_ppm;
-
-    printf("rc32k_coarse_trim task enable, freq_mtimer must be 1MHz!\r\n");
-    timeout_start = qcc74x_mtimer_get_time_us();
-
-    vTaskDelay(20);
-
-    while(1){
-        retry_cnt += 1;
-
-        /* disable irq */
-        __disable_irq();
-
-        mtimer_record_us = qcc74x_mtimer_get_time_us();
-        HBN_Get_RTC_Timer_Val((uint32_t *)&rtc_cnt, (uint32_t *)&rtc_cnt + 1);
-
-        /* enable irq */
-        __enable_irq();
-
-        rtc_record_us = QCC74x_PDS_CNT_TO_US(rtc_cnt);
-
-        /* delay */
-        vTaskDelay(50);
-
-        /* disable irq */
-        __disable_irq();
-
-        mtimer_now_us = qcc74x_mtimer_get_time_us();
-        HBN_Get_RTC_Timer_Val((uint32_t *)&rtc_cnt, (uint32_t *)&rtc_cnt + 1);
-
-        /* enable irq */
-        __enable_irq();
-
-        rtc_now_us = QCC74x_PDS_CNT_TO_US(rtc_cnt);
-
-        /* calculate */
-        rtc_us = (uint32_t)(rtc_now_us - rtc_record_us);
-        mtimer_us = (uint32_t)(mtimer_now_us - mtimer_record_us);
-        /* call coarse_adj */
-        error_ppm = qcc74x_lp_rtc_rc32k_coarse_adj(mtimer_us, rtc_us);
-
-        printf("rc32k_coarse_trim: mtimer_us:%d, rtc_us:%d\r\n", mtimer_us, rtc_us);
-
-        if(error_ppm > 2000 || error_ppm < -2000){
-            /*  */
-            printf("rc32k_coarse_trim: retry_cnt:%d, ppm:%d, continue...\r\n", retry_cnt, error_ppm);
-            vTaskDelay(5);
-        }else{
-            /* finish */
-            printf("rc32k_coarse_trim: retry_cnt:%d, ppm:%d, finish!\r\n", retry_cnt, error_ppm);
-            break;
-        }
-    }
-
-    printf("rc32k coarse trim success!, total time:%dms\r\n", (int)(qcc74x_mtimer_get_time_us() - timeout_start) / 1000);
-
-    /* coarse_adj success */
-    if(xtal32k_check_entry_task_hd){
-        /* resume xtal32k_check task */
-        printf("rc32k_coarse_trim: Resume xtal32k_check task!\r\n");
-        xTaskNotifyGive(xtal32k_check_entry_task_hd);
-    }else{
-        /* set qcc74x_lp 32k clock ready */
-        printf("rc32k_coarse_trim: set lp_32k ready!\r\n");
-        qcc74x_lp_set_32k_clock_ready(1);
-    }
-
-    printf("rc32k_coarse_trim: rc32k code:%d\r\n", iot2lp_para->rc32k_fr_ext);
-
-    printf("rc32k_coarse task: vTaskDelete\r\n");
-    vTaskDelete(NULL);
-}
-
-/**********************************************************
-    xtal32k check task func
- **********************************************************/
-static void xtal32k_check_entry_task(void *pvParameters)
-{
-    uint32_t xtal32_regulator_flag = 0;
-
-    uint64_t timeout_start;
-
-    uint32_t retry_cnt = 0;
-
-    uint64_t rtc_cnt, rtc_record_us, rtc_now_us;
-    uint64_t mtimer_record_us, mtimer_now_us;
-
-    uint32_t rtc_us, mtimer_us;
-    int32_t diff_us;
-
-    uint32_t success_flag = 0;
-
-    vTaskDelay(10);
-    printf("xtal32k_check_entry task enable, freq_mtimer must be 1MHz!\r\n");
-
-    GLB_GPIO_Cfg_Type gpioCfg = {
-        .gpioPin = GLB_GPIO_PIN_0,
-        .gpioFun = GPIO_FUN_ANALOG,
-        .gpioMode = GPIO_MODE_ANALOG,
-        .pullType = GPIO_PULL_NONE,
-        .drive = 1,
-        .smtCtrl = 1
-    };
-    gpioCfg.gpioPin = 16;
-    GLB_GPIO_Init(&gpioCfg);
-    gpioCfg.gpioPin = 17;
-    GLB_GPIO_Init(&gpioCfg);
-
-    /* power on */
-    HBN_Set_Xtal_32K_Inverter_Amplify_Strength(3);
-    HBN_Power_On_Xtal_32K();
-
-    timeout_start = qcc74x_mtimer_get_time_us();
-
-    printf("xtal32k_check: delay 100 ms\r\n");
-    vTaskDelay(500);
-
-    if(rc32k_coarse_trim_task_hd){
-        printf("xtal32k_check: wait rc32k_coarse_trim finish\r\n");
-        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-    }
-
-    printf("xtal32k_check: start check\r\n");
-
-    HBN_32K_Sel(1);
-    vTaskDelay(2);
-
-    while(1){
-        retry_cnt += 1;
-
-        /* disable irq */
-        __disable_irq();
-
-        mtimer_record_us = qcc74x_mtimer_get_time_us();
-        HBN_Get_RTC_Timer_Val((uint32_t *)&rtc_cnt, (uint32_t *)&rtc_cnt + 1);
-
-        /* enable irq */
-        __enable_irq();
-
-        rtc_record_us = QCC74x_PDS_CNT_TO_US(rtc_cnt);
-
-        /* delay */
-        vTaskDelay(10);
-
-         /* disable irq */
-        __disable_irq();
-
-        mtimer_now_us = qcc74x_mtimer_get_time_us();
-        HBN_Get_RTC_Timer_Val((uint32_t *)&rtc_cnt, (uint32_t *)&rtc_cnt + 1);
-
-        /* enable irq */
-        __enable_irq();
-
-        rtc_now_us = QCC74x_PDS_CNT_TO_US(rtc_cnt);
-
-        /* calculate */
-        rtc_us = (uint32_t)(rtc_now_us - rtc_record_us);
-        mtimer_us = (uint32_t)(mtimer_now_us - mtimer_record_us);
-        diff_us = rtc_us - mtimer_us;
-
-        printf("xtal32k_check: mtimer_us:%d, rtc_us:%d\r\n", mtimer_us, rtc_us);
-
-        if(diff_us < -100 || diff_us > 100){
-            /* continue */
-            printf("xtal32k_check: retry_cnt:%d, diff_us:%d, continue...\r\n", retry_cnt, diff_us);
-            vTaskDelay(10);
-        }else{
-            /* finish */
-            printf("xtal32k_check: retry_cnt:%d, diff_us:%d, finish!\r\n", retry_cnt, diff_us);
-            success_flag = 1;
-            break;
-        }
-
-        /* 1sec, set xtal regulator */
-        if((xtal32_regulator_flag == 0) && (qcc74x_mtimer_get_time_us() - timeout_start > 1000*1000)){
-            printf("xtal32K_check: reset xtal32k regulator\r\n");
-            xtal32_regulator_flag = 1;
-
-            HBN_32K_Sel(0);
-            HBN_Power_Off_Xtal_32K();
-
-            vTaskDelay(10);
-
-            HBN_Set_Xtal_32K_Regulator(3);
-            HBN_Power_On_Xtal_32K();
-            HBN_32K_Sel(1);
-        }
-
-        if(qcc74x_mtimer_get_time_us() - timeout_start > 3 * 1000 * 1000){
-            success_flag = 0;
-            break;
-        }
-    }
-
-    if(success_flag){
-        printf("xtal32k_check: success!, total time:%dms\r\n", (int)(qcc74x_mtimer_get_time_us() - timeout_start) / 1000);
-
-        /* GPIO17 no pull */
-        *((volatile uint32_t *)0x2000F014) &= ~(1 << 16);
-
-        printf("select xtal32k\r\n");
-
-    }else{
-        printf("xtal32k_check: failure!, total time:%dms\r\n", (int)(qcc74x_mtimer_get_time_us() - timeout_start) / 1000);
-        printf("xtal32k_check: select rc32k, and xtal32k poweroff \r\n");
-        HBN_32K_Sel(0);
-        HBN_Power_Off_Xtal_32K();
-    }
-
-    /* */
-    printf("xtal32k_check: set lp_32k ready!\r\n");
-    qcc74x_lp_set_32k_clock_ready(1);
-
-    printf("xtal32k_check task: vTaskDelete\r\n");
-    vTaskDelete(NULL);
-}
 
 void tcpip_init_done(void *arg)
 {
@@ -760,9 +600,8 @@ int main(void)
     HBN_Enable_RTC_Counter();
     pm_rc32k_auto_cal_init();
 
-    //qcc74x_mtd_init();
-    /* ble stack need easyflash kv */
-    //easyflash_init();
+    qcc74x_mtd_init();
+    easyflash_init();
 
 #ifdef LP_APP
 #if defined(CFG_QCC74x_WIFI_PS_ENABLE) || defined(CFG_WIFI_PDS_RESUME)
@@ -770,31 +609,19 @@ int main(void)
 #endif
     qcc74x_lp_sys_callback_register(lp_enter, NULL, lp_exit, NULL);
 #endif
+    app_set_clock_source(CLOCK_SOURCE_PASSIVE);
+    app_clock_init();
+
     if (0 != rfparam_init(0, NULL, 0)) {
         printf("PHY RF init failed!\r\n");
         return 0;
     }
-
-#if 1
-    /* coarse trim rc32k */
-    puts("[OS] Create rc32k_coarse_trim task...\r\n");
-    xTaskCreate(rc32k_coarse_trim_task, (char*)"rc32k_coarse_trim", 512, NULL, 11, &rc32k_coarse_trim_task_hd);
-#endif
-
-#if 1
-    /* auto check xtal32k, only test */
-    puts("[OS] Create xtal32k_check_entry task...\r\n");
-    xTaskCreate(xtal32k_check_entry_task, (char*)"xtal32k_check_entry", 512, NULL, 10, &xtal32k_check_entry_task_hd);
-#endif
 
 #if 0
     printf("[OS] Starting proc_hellow_entry task...\r\n");
     xTaskCreate(proc_hellow_entry, (char*)"hellow", 512, NULL, 10, NULL);
 #endif
 
-#if 0
- xTaskCreate(usage_task, (char *)"usage_task", 512, NULL, configMAX_PRIORITIES - 6, &usage_handle);
-#endif
     xTaskCreate(app_start_task, (char *)"app_start", 1024, NULL, 15, &app_start_handle);
 
     vTaskStartScheduler();

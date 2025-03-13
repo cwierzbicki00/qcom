@@ -12,7 +12,7 @@
 
 #include "common.h"
 #include "base64.h"
-#include "uuid.h"
+#include "wpa_uuid.h"
 #include "httpread.h"
 #include "http_server.h"
 #include "wps_i.h"

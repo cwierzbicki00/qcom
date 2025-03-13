@@ -26,7 +26,7 @@
 #endif /* CONFIG_BT_GATT_CACHING */
 #include <hci_host.h>
 #include <bluetooth.h>
-#include <uuid.h>
+#include <bt_uuid.h>
 #include <gatt.h>
 #include <hci_driver.h>
 #if defined(QCC74x_BLE)
@@ -1204,6 +1204,11 @@ static void db_changed(void)
 		}
 	}
 #endif
+}
+
+struct bt_gatt_attr *bt_gatt_find_attr(uint16_t handle)
+{
+    return find_attr(handle);
 }
 
 int bt_gatt_service_register(struct bt_gatt_service *svc)

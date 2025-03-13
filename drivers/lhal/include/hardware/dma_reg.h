@@ -15,12 +15,28 @@
 #define DMA_RAWINTTCSTATUS_OFFSET    (0x14) /* DMA_RawIntTCStatus */
 #define DMA_RAWINTERRORSTATUS_OFFSET (0x18) /* DMA_RawIntErrorStatus */
 #define DMA_ENBLDCHNS_OFFSET         (0x1C) /* DMA_EnbldChns */
+#if defined(QCC74x_undef)
+#define DMA_SOFTBREQ_0_OFFSET        (0x20) /* DMA_SoftBReq_0 */
+#define DMA_SOFTBREQ_1_OFFSET        (0x24) /* DMA_SoftBReq_1 */
+#define DMA_SOFTSREQ_0_OFFSET        (0x28) /* DMA_SoftSReq_0 */
+#define DMA_SOFTSREQ_1_OFFSET        (0x2C) /* DMA_SoftSReq_1 */
+#define DMA_SOFTLBREQ_0_OFFSET       (0x30) /* DMA_SoftLBReq_0 */
+#define DMA_SOFTLBREQ_1_OFFSET       (0x34) /* DMA_SoftLBReq_1 */
+#define DMA_SOFTLSREQ_0_OFFSET       (0x38) /* DMA_SoftLSReq_0 */
+#define DMA_SOFTLSREQ_1_OFFSET       (0x3C) /* DMA_SoftLSReq_1 */
+#define DMA_TOP_CONFIG_OFFSET        (0x40) /* DMA_Top_Config */
+#define DMA_SYNC_0_OFFSET            (0x44) /* DMA_Sync_0 */
+#define DMA_SYNC_1_OFFSET            (0x48) /* DMA_Sync_1 */
+#define DMA_HW_VERSION_OFFSET        (0xFC) /* DMA_HW_Version */
+#define DMA_SW_USAGE_OFFSET          (0xFC) /* DMA_SW_Usage */
+#else
 #define DMA_SOFTBREQ_OFFSET          (0x20) /* DMA_SoftBReq */
 #define DMA_SOFTSREQ_OFFSET          (0x24) /* DMA_SoftSReq */
 #define DMA_SOFTLBREQ_OFFSET         (0x28) /* DMA_SoftLBReq */
 #define DMA_SOFTLSREQ_OFFSET         (0x2C) /* DMA_SoftLSReq */
 #define DMA_TOP_CONFIG_OFFSET        (0x30) /* DMA_Top_Config */
 #define DMA_SYNC_OFFSET              (0x34) /* DMA_Sync */
+#endif
 
 #define DMA_CxSRCADDR_OFFSET (0x00) /* DMA_CxSrcAddr */
 #define DMA_CxDSTADDR_OFFSET (0x04) /* DMA_CxDstAddr */
@@ -62,6 +78,58 @@
 #define DMA_ENABLEDCHANNELS_SHIFT (0U)
 #define DMA_ENABLEDCHANNELS_MASK  (0xff << DMA_ENABLEDCHANNELS_SHIFT)
 
+#if defined(QCC74x_undef)
+/* 0x20 : DMA_SoftBReq */
+#define DMA_SOFTBREQ_0_SHIFT (0U)
+#define DMA_SOFTBREQ_0_MASK  (0xffffffff << DMA_SOFTBREQ_0_SHIFT)
+
+/* 0x24 : DMA_SoftBReq */
+#define DMA_SOFTBREQ_1_SHIFT (0U)
+#define DMA_SOFTBREQ_1_MASK  (0xffffffff << DMA_SOFTBREQ_1_SHIFT)
+
+/* 0x28 : DMA_SoftSReq */
+#define DMA_SOFTSREQ_0_SHIFT (0U)
+#define DMA_SOFTSREQ_0_MASK  (0xffffffff << DMA_SOFTSREQ_0_SHIFT)
+
+/* 0x2C : DMA_SoftSReq */
+#define DMA_SOFTSREQ_1_SHIFT (0U)
+#define DMA_SOFTSREQ_1_MASK  (0xffffffff << DMA_SOFTSREQ_1_SHIFT)
+
+/* 0x30 : DMA_SoftLBReq */
+#define DMA_SOFTLBREQ_0_SHIFT (0U)
+#define DMA_SOFTLBREQ_0_MASK  (0xffffffff << DMA_SOFTLBREQ_0_SHIFT)
+
+/* 0x34 : DMA_SoftLBReq */
+#define DMA_SOFTLBREQ_1_SHIFT (0U)
+#define DMA_SOFTLBREQ_1_MASK  (0xffffffff << DMA_SOFTLBREQ_1_SHIFT)
+
+/* 0x38 : DMA_SoftLSReq */
+#define DMA_SOFTLSREQ_0_SHIFT (0U)
+#define DMA_SOFTLSREQ_0_MASK  (0xffffffff << DMA_SOFTLSREQ_0_SHIFT)
+
+/* 0x3C : DMA_SoftLSReq */
+#define DMA_SOFTLSREQ_1_SHIFT (0U)
+#define DMA_SOFTLSREQ_1_MASK  (0xffffffff << DMA_SOFTLSREQ_1_SHIFT)
+
+/* 0x40 : DMA_Top_Config */
+#define DMA_E (1 << 0U)
+#define DMA_M (1 << 1U)
+
+/* 0x44 : DMA_Sync0 */
+#define DMA_SYNC0_SHIFT (0U)
+#define DMA_SYNC0_MASK  (0xffffffff << DMA_SYNC_SHIFT)
+
+/* 0x48 : DMA_Sync1 */
+#define DMA_SYNC1_SHIFT (0U)
+#define DMA_SYNC1_MASK  (0xffffffff << DMA_SYNC_SHIFT)
+
+/* 0xFC : DMA_Version */
+#define DMA_SW_USAGE_SHIFT   (0U)
+#define DMA_SW_USAGE_MASK    (0xffffff << DMA_SW_USAGE_SHIFT)
+#define DMA_HW_VERSION_SHIFT (24U)
+#define DMA_HW_VERSION_MASK  (0xff << DMA_HW_VERSION_SHIFT)
+
+#else
 /* 0x20 : DMA_SoftBReq */
 #define DMA_SOFTBREQ_SHIFT (0U)
 #define DMA_SOFTBREQ_MASK  (0xffffffff << DMA_SOFTBREQ_SHIFT)
@@ -85,6 +153,7 @@
 /* 0x34 : DMA_Sync */
 #define DMA_SYNC_SHIFT (0U)
 #define DMA_SYNC_MASK  (0xffffffff << DMA_SYNC_SHIFT)
+#endif
 
 /* 0x100 : DMA_CxSrcAddr */
 #define DMA_SRCADDR_SHIFT (0U)
@@ -121,6 +190,9 @@
 #else
 #define DMA_SWIDTH_MASK        (0x3 << DMA_SWIDTH_SHIFT)
 #endif
+#if defined(QCC74x_undef)
+#define DMA_LLI_VALID          (1 << 20U)
+#endif
 #define DMA_DWIDTH_SHIFT       (21U)
 #if defined(QCC74x_undef)
 #define DMA_DWIDTH_MASK        (0x7 << DMA_DWIDTH_SHIFT)
@@ -137,6 +209,23 @@
 #define DMA_I                  (1 << 31U)
 
 /* 0x110 : DMA_CxConfig */
+#if defined(QCC74x_undef)
+#define DMA_E                   (1 << 0U)
+#define DMA_SRCPERIPHERAL_SHIFT (1U)
+#define DMA_SRCPERIPHERAL_MASK  (0x3f << DMA_SRCPERIPHERAL_SHIFT)
+#define DMA_DSTPERIPHERAL_SHIFT (7U)
+#define DMA_DSTPERIPHERAL_MASK  (0x3f << DMA_DSTPERIPHERAL_SHIFT)
+#define DMA_FLOWCNTRL_SHIFT     (13U)
+#define DMA_FLOWCNTRL_MASK      (0x7 << DMA_FLOWCNTRL_SHIFT)
+#define DMA_IE                  (1 << 16U)
+#define DMA_ITC                 (1 << 17U)
+#define DMA_L                   (1 << 18U)
+#define DMA_A                   (1 << 19U)
+#define DMA_H                   (1 << 20U)
+#define DMA_LLI_MUTEX           (1 << 21U)
+#define DMA_LLICOUNTER_SHIFT    (22U)
+#define DMA_LLICOUNTER_MASK     (0x3ff << DMA_LLICOUNTER_SHIFT)
+#else
 #define DMA_E                   (1 << 0U)
 #define DMA_SRCPERIPHERAL_SHIFT (1U)
 #define DMA_SRCPERIPHERAL_MASK  (0x1f << DMA_SRCPERIPHERAL_SHIFT)
@@ -151,5 +240,6 @@
 #define DMA_H                   (1 << 18U)
 #define DMA_LLICOUNTER_SHIFT    (20U)
 #define DMA_LLICOUNTER_MASK     (0x3ff << DMA_LLICOUNTER_SHIFT)
+#endif
 
 #endif /* __HARDWARE_DMA_H__ */

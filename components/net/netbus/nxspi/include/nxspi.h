@@ -20,6 +20,10 @@
 
 #define GPIO_TIME_ENABLE (0)// debug
 
+#define NXSPI_GPIO_SAFYBLIND        (70+5) // from soc hw + 5(for time)
+#define NXSPI_GPIO_SAFYEMPIRICAL    (5)  //According to the empirical values obtained from actual tests
+#define NXSPI_GPIO_SAFYDELAY        (NXSPI_GPIO_SAFYBLIND - NXSPI_GPIO_SAFYEMPIRICAL)
+
 /* start TimerOut */
 #define NXSPI_START_TIMEOUT     (1000)
 
@@ -116,6 +120,10 @@ typedef struct _nxspi_desc {
     QueueHandle_t upvq;  // up valid queue
     QueueHandle_t upfq;  // up free queue
 
+    uint64_t cfg_starttime;
+    uint64_t cfg_endtime;
+    uint32_t cfg_usetime;
+    struct qcc74x_device_s *timer0;
     TimerHandle_t timer; // for start->complete timeout
     TaskHandle_t task_hdl;
 
@@ -151,6 +159,10 @@ typedef struct _nxspi_desc {
     uint32_t dst_after_start;
     uint32_t dst_received_hd;
     uint32_t dst_complete;
+
+    uint32_t time_start_cnt;
+    uint32_t time_isr_cnt;
+    uint32_t time_lastcfg;
 #if GPIO_TIME_ENABLE
     nx_stats_t stats;
 #endif

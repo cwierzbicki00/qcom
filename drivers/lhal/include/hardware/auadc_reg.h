@@ -1,4 +1,3 @@
-
 #ifndef __AUADC_REG_H__
 #define __AUADC_REG_H__
 

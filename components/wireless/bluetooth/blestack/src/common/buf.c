@@ -25,17 +25,20 @@
 #if defined(QCC74x_DYNAMIC_ALLOC_MEM)
 #include "qcc74x_port.h"
 #endif
+#if !defined(CONFIG_BT_HOST_HCI_TL)
 #include "qcc74x_hci_wrapper.h"
 #endif
+#endif
+
 
 //#if (QCC74x_STATIC_ALLOC_MEM)
 #include "l2cap.h"
 #include <gatt.h>
 #include <conn.h>
 #include "conn_internal.h"
+#include "l2cap_internal.h"
 #include "att_internal.h"
 //#endif
-#include "l2cap_internal.h"
 
 #if defined(CONFIG_NET_BUF_LOG)
 #define NET_BUF_DBG(fmt, ...) LOG_DBG("(%p) " fmt, k_current_get(), \
@@ -815,11 +818,13 @@ void net_buf_unref(struct net_buf *buf)
 		buf = frags;
 
 	#if defined(QCC74x_BLE)
+       #if !defined(CONFIG_BT_HOST_HCI_TL)
 		if (pool == &hci_rx_pool)
 		{
 			qcc74x_trigger_queued_msg();
 			return;
 		}
+       #endif
 	#endif
 	}
 }

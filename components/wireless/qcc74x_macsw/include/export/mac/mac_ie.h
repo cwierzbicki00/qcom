@@ -613,5 +613,16 @@ uint32_t mac_vsie_find(uint32_t addr,
                               uint16_t *len);
 
 
+/**
+ ****************************************************************************************
+ * @brief Check if wps pbc is active
+ * @param[in] addr Address of the variable part of the management frame body to look
+ * for the IE into.
+ * @param[in] buflen Length of the frame body variable part.
+ *
+ * @return 0 if wps pbc is inactive, otherwise active
+ ****************************************************************************************
+ */
+bool mac_ie_wps_pbc_check(uint32_t addr, uint16_t buflen);
 /// @}
 #endif // _MAC_IE_H_

@@ -514,10 +514,7 @@ void net_iperf_tcp_close(struct fhost_iperf_stream *stream)
     tcp_recv(info->pcb, NULL);
     tcp_poll(info->pcb, NULL, 0);
     tcp_err(info->pcb, NULL);
-    if (tcp_close(info->pcb) != ERR_OK)
-    {
-        tcp_abort(info->pcb);
-    }
+    tcp_abort(info->pcb);
 
     //Print final stats
     iperf_current_time(&report->end_time);

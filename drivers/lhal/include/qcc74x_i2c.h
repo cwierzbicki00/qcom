@@ -58,6 +58,9 @@
 #define I2C_INTSTS_NACK    (1 << 3) /* NACK interrupt */
 #define I2C_INTSTS_ARB     (1 << 4) /* Arbitration lost interrupt */
 #define I2C_INTSTS_FER     (1 << 5) /* TX/RX FIFO error interrupt */
+#if defined(QCC74x_undef)
+#define I2C_INTSTS_TIMEOUT (1 << 6) /* Timeout interrupt */
+#endif
 /**
  * @}
  */
@@ -66,6 +69,9 @@
   * @{
   */
 #define I2C_INTCLR_END  (1 << 0) /* Transfer end interrupt */
+#if defined(QCC74x_undef)
+#define I2C_INTCLR_TIMEOUT (1 << 2) /* Timeout interrupt */
+#endif
 #define I2C_INTCLR_NACK (1 << 3) /* NACK interrupt */
 #define I2C_INTCLR_ARB  (1 << 4) /* Arbitration lost interrupt */
 /**
@@ -81,6 +87,9 @@
 #define I2C_INTEN_NACK    (1 << 3) /* NACK interrupt */
 #define I2C_INTEN_ARB     (1 << 4) /* Arbitration lost interrupt */
 #define I2C_INTEN_FER     (1 << 5) /* TX/RX FIFO error interrupt */
+#if defined(QCC74x_undef)
+#define I2C_INTEN_TIMEOUT (1 << 6) /* Timeout interrupt */
+#endif
 /**
  * @}
  */
@@ -92,6 +101,12 @@
 #define I2C_CMD_SET_DEGLITCH_CNT (0x02) /* 0 for disable deglitch, others for deglitch count */
 #define I2C_CMD_SET_TIMING       (0x03) /* Set I2C timing */
 #define I2C_CMD_GET_TIMING       (0x04) /* Get I2C timing */
+#if defined(QCC74x_undef)
+#define I2C_CMD_SET_TIMEOUT_VALUE (0x05) /* Set I2C timeout value */
+#define I2C_CMD_READ_HW_VERSION   (0x06)
+#define I2C_CMD_READ_SW_USAGE     (0x07)
+#define I2C_CMD_WRITE_SW_USAGE    (0x08)
+#endif
 
 /**
   * @}

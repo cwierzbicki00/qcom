@@ -53,6 +53,7 @@ static mfg_tx_para_t g_mfg_tx_para = {
     .sg_channel_index = 1,
     .ble_is_sending = 0,
     .ble_sending_power = 0,
+    .zb_channel_index = 11,
     .zb_sending_power = 10,
     .tx_on = 0,
     .bw = 0,
@@ -1625,8 +1626,10 @@ static int32_t mfg_calc_ifs(mfg_tx_para_t tx_para)
 static int32_t mfg_cmd_tx_toggle(uint8_t *data, uint16_t len)
 {
     if(mfg_m154_en){
-        wl_rf_set_bz_target_power_table(g_mfg_tx_para.zb_sending_power);
-        wl_rf_set_154_tx_power(g_mfg_tx_para.zb_sending_power);
+        // wl_rf_set_154_tx_power(g_mfg_tx_para.zb_sending_power);
+        int8_t tx_power_output;
+        tx_power_output = wl_rf_set_154_tx_power_with_power_limit(g_mfg_tx_para.zb_sending_power,g_mfg_tx_para.zb_channel_index,NULL);
+        wl_rf_set_bz_target_power_table(tx_power_output);
         return m154_cmd_tx_toggle(data, len);
     }
 
@@ -2494,11 +2497,12 @@ static int32_t mfg_cmd_11b_shortpre_ctrl(uint8_t *data, uint16_t len)
 
 static int32_t mfg_cmd_channel_switch(uint8_t *data, uint16_t len)
 {
+    int channel_index;
     if(mfg_m154_en){
+        channel_index = atoi((char *)data);
+        g_mfg_tx_para.zb_channel_index = channel_index;
         return m154_cmd_channel_switch(data, len);
     }
-
-    int channel_index;
 
     if(phy_init_flag == 0){
         memset((char *)phy_cli_cmd,0,sizeof(phy_cli_cmd));
@@ -3532,7 +3536,7 @@ int32_t mfg_board_get_average_temp()
 
 static int32_t mfg_cmd_get_info(uint8_t *data, uint16_t len)
 {
-    extern qcc74xverinf_t app_ver;
+    extern qcc74x_verinf_t app_ver;
 
     if (data[0] == ':') {
         switch (data[1]) {
@@ -3836,7 +3840,7 @@ void mfg_temp_trim(void *pvParameters)
     struct qcc74x_adc_config_s adc_cfg;
     adc_cfg.clk_div = ADC_CLK_DIV_32;
     adc_cfg.scan_conv_mode = false;
-    adc_cfg.continuous_conv_mode = false;
+    adc_cfg.continuous_conv_mode = true;
     adc_cfg.differential_mode = false;
     adc_cfg.resolution = ADC_RESOLUTION_16B;
     adc_cfg.vref = ADC_VREF_2P0V;

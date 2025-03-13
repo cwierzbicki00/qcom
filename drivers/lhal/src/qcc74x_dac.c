@@ -1,9 +1,9 @@
 #include "qcc74x_dac.h"
 #include "hardware/dac_reg.h"
 
-#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undefL)
+#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
 #define DAC_GPIP_BASE ((uint32_t)0x40002000)
-#elif defined(QCC743) || defined(QCC74x_undefP) || defined(QCC74x_undef) || defined(QCC74x_undef)
+#elif defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
 #define DAC_GPIP_BASE ((uint32_t)0x20002000)
 #endif
 

@@ -1043,10 +1043,9 @@ static int at_setup_cmd_ciprecvmode(int argc, const char **argv)
 
 static int at_setup_cmd_ciprecvdata(int argc, const char **argv)
 {
-    int read_len, linkid = 0, size, ret = 0, n, offset = 0;
+    int read_len, remain_len, single_len, linkid = 0, size, ret = 0, n, offset = 0;
     uint8_t *buffer;
-    uint16_t remote_port;
-    ip_addr_t ipaddr;
+    uint8_t ishead = 1;
 
     AT_DEBUG_POINT(0);
     if (at_net_config->mux_mode == NET_LINK_SINGLE) {
@@ -1066,76 +1065,69 @@ static int at_setup_cmd_ciprecvdata(int argc, const char **argv)
         return AT_RESULT_CODE_ERROR;
     }
 
-    if (size + 48 > AT_NET_TX_MAX_LEN) {
-        return AT_RESULT_CODE_ERROR;
-    }
-
 #if AT_THROUGHPUT_NOWIFI
     read_len = 1470;
 #else
     read_len = at_net_client_get_recvsize(linkid);
 #endif
-    read_len = read_len > size ? size : read_len;
+    remain_len = read_len = read_len > size ? size : read_len;
+
+    do {
+
+        single_len = remain_len > (AT_NET_TX_MAX_LEN - (ishead?48:2)) ? (AT_NET_TX_MAX_LEN - (ishead?48:2)) : remain_len;
 
 #if (AT_TRANS_ZEROCOPY) 
-    trans_desc_t *desc_buf = nxspi_writebuf_pop(portMAX_DELAY);
-    if (!desc_buf) {
-        return AT_RESULT_CODE_ERROR;
-    }
-    buffer = desc_buf->payload;
-    desc_buf->len = 0;
+        trans_desc_t *desc_buf = nxspi_writebuf_pop(portMAX_DELAY);
+        if (!desc_buf) {
+            return AT_RESULT_CODE_ERROR;
+        }
+        buffer = desc_buf->payload;
+        desc_buf->len = 0;
 #else 
-    buffer = at_net_tx_buffer;
+        buffer = at_net_tx_buffer;
 #endif 
 
-    /* Use strncat + itoa instead of snprintf to improve performance. */
-    uint8_t tmp[10];
-    buffer[0] = 0;
-    strncat(buffer, "+CIPRECVDATA:", 48);
-    strncat(buffer, itoa(read_len, tmp, 10), 48 - strlen(buffer));
-    strncat(buffer, ",", 48 - strlen(buffer));
-    offset = strlen(buffer);
-    
-    //n = snprintf(buffer + offset, 48, "+CIPRECVDATA:%d,", read_len);
-    //if (n > 0) {
-    //    offset += n;
-    //}
-    
-    if (at_net_config->ipd_info == NET_IPDINFO_ENABLE_IPPORT) {
-        at_net_recvbuf_read(linkid, &ipaddr, &remote_port, NULL, 0);
-        n = snprintf(buffer + offset, 48 - offset, "\"%s\",%d,", ipaddr_ntoa(&ipaddr), remote_port);
-        if (n > 0) {
-            offset += n;
+        if (ishead) {
+            /* Use strncat + itoa instead of snprintf to improve performance. */
+            uint8_t tmp[10];
+            buffer[0] = 0;
+            strncat(buffer, "+CIPRECVDATA:", 48);
+            strncat(buffer, itoa(read_len, tmp, 10), 48 - strlen(buffer));
+            strncat(buffer, ",", 48 - strlen(buffer));
+            offset = strlen(buffer);
+            ishead = 0;
         }
-    } 
-    AT_DEBUG_POINT(0);
-    if (read_len) {
+
+        AT_DEBUG_POINT(0);
+        if (read_len) {
 #if AT_THROUGHPUT_NOWIFI
-        ret = read_len;
+            ret = read_len;
 #else
-        ret = at_net_recvbuf_read(linkid, NULL, NULL, buffer + offset, read_len);
+            ret = at_net_recvbuf_read(linkid, NULL, NULL, buffer + offset, single_len);
 #endif
-        if (ret != read_len) {
-            printf("at_net_recvbuf_read error %d\r\n", ret);
+            if (ret != single_len) {
+                printf("at_net_recvbuf_read error %d\r\n", ret);
+            }
         }
-    }
-    AT_DEBUG_POINT(0);
-    
-    offset += ret;
-   
-    memcpy(buffer + offset, "\r\n", 2);
-    offset += 2;
-
-    assert(offset < AT_NET_TX_MAX_LEN);
-
+        AT_DEBUG_POINT(0);
+        
+        offset += ret;
+       
+        if (remain_len - single_len == 0) {
+            memcpy(buffer + offset, "\r\n", 2);
+        }
+        
 #if (AT_TRANS_ZEROCOPY) 
-    desc_buf->len = offset;
-    nxspi_writebuf_push(desc_buf);
+        desc_buf->len = (remain_len - single_len == 0) ? (offset + 2) : offset;
+        nxspi_writebuf_push(desc_buf);
 #else
-    AT_CMD_DATA_SEND((uint8_t *)buffer, offset);
+        AT_CMD_DATA_SEND((uint8_t *)buffer, (remain_len - single_len == 0) ? (offset + 2) : offset);
 #endif
-    AT_DEBUG_POINT(0);
-    
+        AT_DEBUG_POINT(0);
+        remain_len -= single_len;
+        offset = 0;
+    } while(remain_len > 0);
+
     return AT_RESULT_CODE_OK;
 }
 
@@ -1148,7 +1140,8 @@ static int at_setup_cmd_ciprecvbuf(int argc, const char **argv)
         AT_CMD_PARSE_NUMBER(0, &linkid);
         AT_CMD_PARSE_NUMBER(1, &size);
     }
-    if (size <= 0) {
+    /* Reserve some size to prevent fragmented memory */
+    if (size <= 0 || (size + 10240 > kfree_size())) {
         return AT_RESULT_CODE_ERROR;
     }
 

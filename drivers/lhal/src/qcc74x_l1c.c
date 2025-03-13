@@ -1,7 +1,7 @@
 #include "qcc74x_l1c.h"
 #include "qcc74x_core.h"
 
-#if (defined(QCC743) || defined(QCC74x_undefP) || defined(QCC74x_undef) || defined(QCC74x_undef)) && !defined(CPU_LP)
+#if (defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)) && !defined(CPU_LP)
 #include "csi_core.h"
 void qcc74x_l1c_icache_enable(void)
 {
@@ -103,7 +103,7 @@ ATTR_TCM_SECTION void qcc74x_l1c_dcache_clean_invalidate_range(void *addr, uint3
 }
 #else
 
-#if defined(QCC74x_undef) || defined(QCC74x_undefL)
+#if defined(QCC74x_undef) || defined(QCC74x_undef)
 extern void L1C_Cache_Enable_Set(uint8_t wayDisable);
 extern void L1C_Cache_Flush(void);
 #endif
@@ -114,7 +114,7 @@ void qcc74x_l1c_icache_enable(void)
 
 void qcc74x_l1c_icache_disable(void)
 {
-#if defined(QCC74x_undef) || defined(QCC74x_undefL)
+#if defined(QCC74x_undef) || defined(QCC74x_undef)
     L1C_Cache_Enable_Set(0x0f);
 #endif
 }
@@ -137,14 +137,14 @@ void qcc74x_l1c_dcache_clean_all(void)
 
 void qcc74x_l1c_dcache_invalidate_all(void)
 {
-#if defined(QCC74x_undef) || defined(QCC74x_undefL)
+#if defined(QCC74x_undef) || defined(QCC74x_undef)
     L1C_Cache_Flush();
 #endif
 }
 
 void qcc74x_l1c_dcache_clean_invalidate_all(void)
 {
-#if defined(QCC74x_undef) || defined(QCC74x_undefL)
+#if defined(QCC74x_undef) || defined(QCC74x_undef)
     L1C_Cache_Flush();
 #endif
 }
@@ -155,18 +155,18 @@ void qcc74x_l1c_dcache_clean_range(void *addr, uint32_t size)
 
 ATTR_TCM_SECTION void qcc74x_l1c_dcache_invalidate_range(void *addr, uint32_t size)
 {
-#if defined(QCC74x_undef) || defined(QCC74x_undefL)
+#if defined(QCC74x_undef) || defined(QCC74x_undef)
     L1C_Cache_Flush();
 #endif
 }
 
 ATTR_TCM_SECTION void qcc74x_l1c_dcache_clean_invalidate_range(void *addr, uint32_t size)
 {
-#if defined(QCC74x_undef) || defined(QCC74x_undefL)
+#if defined(QCC74x_undef) || defined(QCC74x_undef)
     L1C_Cache_Flush();
 #endif
 }
-#if defined(QCC74x_undef) || defined(QCC74x_undefL)
+#if defined(QCC74x_undef) || defined(QCC74x_undef)
 /****************************************************************************/ /**
  * @brief  L1C cache write set
  *

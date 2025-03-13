@@ -56,7 +56,7 @@ static int ble_adv_id;
 BLE_CLI(enable);
 BLE_CLI(set_chan_map);
 BLE_CLI(init);
-#if defined(QCC74x_undef)
+#if defined(QCC74x_undef) || defined (QCC743) || defined(QCC74x_undefL)
 BLE_CLI(set_2M_phy);
 BLE_CLI(set_coded_phy);
 BLE_CLI(set_default_phy);
@@ -147,6 +147,8 @@ BLE_CLI(gatts_get_char);
 BLE_CLI(gatts_get_desp);
 #endif
 #endif
+BLE_CLI(le_tx_test);
+BLE_CLI(le_rx_test);
 BLE_CLI(le_enh_tx_test);
 BLE_CLI(le_enh_rx_test);
 BLE_CLI(le_test_end);
@@ -160,7 +162,7 @@ BLE_CLI(le_test_end);
 #if defined(CONFIG_BLE_TP_SERVER)
     SHELL_CMD_EXPORT_ALIAS(blecli_tp_start, ble_tp_start, throughput start Parameter:[TP test 1:enable; 0:disable]);
 #endif /* CONFIG_BLE_TP_SERVER */
-#if defined(QCC74x_undef)
+#if defined(QCC74x_undef) || defined (QCC743) || defined(QCC74x_undefL)
 #if defined(CONFIG_BT_CONN)
     SHELL_CMD_EXPORT_ALIAS(blecli_set_default_phy, ble_set_default_phy, ble set default phy Parameter:[defualt phys]);
     SHELL_CMD_EXPORT_ALIAS(blecli_set_2M_phy, ble_set_2M_Phy, ble set 2M Phy Parameter:[defualt phys]);
@@ -303,9 +305,13 @@ BLE_CLI(le_test_end);
     SHELL_CMD_EXPORT_ALIAS(blecli_gatts_get_desp, ble_get_svc_desp, );
 #endif /* CONFIG_BT_PERIPHERAL */
 #endif /* QCC74x_BLE_DYNAMIC_SERVICE */
-    SHELL_CMD_EXPORT_ALIAS(blecli_le_enh_tx_test, ble_tx_test, LE tx test \
+    SHELL_CMD_EXPORT_ALIAS(blecli_le_tx_test, ble_tx_test, LE tx test \
+        parameter:[tx channel:1 datalen:1 octet;packet payload:1);
+    SHELL_CMD_EXPORT_ALIAS(blecli_le_rx_test, ble_rx_test, LE tx test \
+        parameter:[rx channel:1);
+    SHELL_CMD_EXPORT_ALIAS(blecli_le_enh_tx_test, ble_enh_tx_test, LE enh tx test \
         parameter:[tx channel:1 octet;test data length:1 octet;packet payload:1 octet; phy:1 octet);
-    SHELL_CMD_EXPORT_ALIAS(blecli_le_enh_rx_test, ble_rx_test, LE tx test \
+    SHELL_CMD_EXPORT_ALIAS(blecli_le_enh_rx_test, ble_enh_rx_test, LE enh tx test \
         parameter:[rx channel:1 octet;phy:1 octet;modulation index:1 octet);
     SHELL_CMD_EXPORT_ALIAS(blecli_le_test_end, ble_test_end, );
 #else /* CONFIG_SHELL */
@@ -321,7 +327,7 @@ const struct cli_command btStackCmdSet[] STATIC_CLI_CMD_ATTRIBUTE = {
 #if defined(CONFIG_BLE_TP_SERVER)
     {"ble_tp_start", "throughput start\r\nParameter [TP test,1:enable, 0:disable]\r\n", blecli_tp_start},
 #endif
-#if defined(QCC74x_undef)
+#if defined(QCC74x_undef)|| defined (QCC743) || defined(QCC74x_undefL)
 #if defined(CONFIG_BT_CONN)
     {"ble_set_default_phy", "ble set default phy\r\nParameter [defualt phys]\r\n", blecli_set_default_phy},
     {"ble_set_2M_Phy", "ble set 2M Phy\r\nParameter [defualt phys]\r\n", blecli_set_2M_phy},
@@ -741,7 +747,7 @@ BLE_CLI(init)
     vOutputString("Init successfully\r\n");
 }
 
-#if defined(QCC74x_undef)
+#if defined(QCC74x_undef) || defined (QCC743) ||defined(QCC74x_undefL)
 #if defined(CONFIG_BT_CONN)
 BLE_CLI(set_2M_phy)
 {
@@ -809,6 +815,54 @@ BLE_CLI(set_default_phy)
 }
 #endif
 #endif
+
+BLE_CLI(le_rx_test)
+{
+    int err;
+    u8_t rx_ch;
+
+    if(argc != 2){
+       vOutputString("Number of Parameters is not correct\r\n");
+       return;
+    }
+    get_uint8_from_string(&argv[1], &rx_ch); 
+    
+    err = bt_ble_rx_test_cmd(rx_ch);
+    if(err)
+    {
+        vOutputString("le rx test failed (err %d)\r\n", err); 
+    }
+    else
+    {
+        vOutputString("le rx test success\r\n");
+    }
+}
+
+BLE_CLI(le_tx_test)
+{
+    int err;
+    u8_t tx_ch;
+    u8_t data_len;
+    u8_t pkt_payload;
+
+    if(argc != 4){
+       vOutputString("Number of Parameters is not correct\r\n");
+       return;
+    }
+    get_uint8_from_string(&argv[1], &tx_ch); 
+    get_uint8_from_string(&argv[2], &data_len); 
+    get_uint8_from_string(&argv[3], &pkt_payload); 
+    
+    err = bt_ble_tx_test_cmd(tx_ch, data_len, pkt_payload);
+    if(err)
+    {
+        vOutputString("le tx test failed (err %d)\r\n", err); 
+    }
+    else
+    {
+        vOutputString("le tx test success\r\n");
+    }
+}
 
 BLE_CLI(le_enh_tx_test)
 {

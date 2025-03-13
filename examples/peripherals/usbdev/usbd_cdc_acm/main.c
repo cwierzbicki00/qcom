@@ -12,6 +12,6 @@ int main(void)
     cdc_acm_init();
     while (1) {
         cdc_acm_data_send_poll();
-        qcc74x_mtimer_delay_us(2);
+        // qcc74x_mtimer_delay_us(2);
     }
 }

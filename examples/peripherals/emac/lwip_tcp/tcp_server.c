@@ -13,6 +13,10 @@
 
 #include "tcp_server.h"
 
+#if LWIP_DHCP
+#include "lwip/dhcp.h"
+#endif
+
 #define USE_RAWAPI_TEST  0
 #define USE_NETCONN_TEST 1
 #define USE_SOCKET_TEST  2
@@ -205,10 +209,12 @@ static void tcp_server_socket_thread(void *arg)
     int sock, newconn, size;
     struct sockaddr_in address, remotehost;
 
-    tmpnetif = netif_find("ex");
+    vTaskDelay(1000);
+
+    tmpnetif = netif_default;
 
 #if LWIP_DHCP
-    while (tmpnetif->state != 3) {
+    while (!dhcp_supplied_address(tmpnetif)) {
         printf("wait DHCP get ip...\r\n");
         vTaskDelay(1000);
     }
@@ -257,7 +263,7 @@ static void tcp_server_socket_thread(void *arg)
   */
 void tcp_server_init()
 {
-    xTaskCreateStatic((void *)tcp_server_socket_thread, (char *)"tcp_server", sizeof(tcp_server_stack) / 4, NULL, osPriorityHigh, tcp_server_stack, &tcp_server_handle);
+    xTaskCreateStatic((void *)tcp_server_socket_thread, (char *)"tcp_server", sizeof(tcp_server_stack) / 4, NULL, osPriorityNormal, tcp_server_stack, &tcp_server_handle);
 }
 #endif
 

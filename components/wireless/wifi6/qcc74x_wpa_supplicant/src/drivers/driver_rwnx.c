@@ -1358,6 +1358,27 @@ static int wpa_rwnx_driver_update_bcn(struct wpa_rwnx_driver_itf_data *drv,
 	return res;
 }
 
+int wpa_rwnx_driver_control_bcn(struct wpa_rwnx_driver_itf_data *drv,
+                                     uint8_t bcn_mode, int bcn_timer, bool bcn_stop)
+{
+       struct cfgrwnx_bcn_control cmd;
+       struct cfgrwnx_resp resp;
+       int res = 0;
+
+       wpa_rwnx_msg_hdr_init(drv, &cmd.hdr, CFGRWNX_BCN_CONTROL_CMD, sizeof(cmd));
+       wpa_rwnx_msg_hdr_init(drv, &resp.hdr, CFGRWNX_BCN_CONTROL_RESP, sizeof(resp));
+
+       cmd.fhost_vif_idx = drv->fhost_vif_idx;
+       cmd.bcn_mode = bcn_mode;
+       cmd.bcn_timer = bcn_timer;
+       cmd.bcn_stop = bcn_stop;
+
+       if (fhost_cntrl_cfgrwnx_cmd_send(&cmd.hdr, &resp.hdr) && (resp.status != CFGRWNX_SUCCESS))
+            res = -1;
+
+       return res;
+}
+
 static struct hostapd_hw_modes *wpa_rwnx_driver_get_hw_feature_data(void *priv,
 								    u16 *num_modes,
 								    u16 *flags, u8 *dfs)
@@ -1392,7 +1413,8 @@ static struct hostapd_hw_modes *wpa_rwnx_driver_get_hw_feature_data(void *priv,
 
 	mode = modes;
 	if (feat.chan->chan2G4_cnt) {
-		mode->mode = HOSTAPD_MODE_IEEE80211G;
+        // support work on channel 14
+		mode->mode = HOSTAPD_MODE_IEEE80211B;
 		mode->num_channels = feat.chan->chan2G4_cnt;
 		mode->channels = os_malloc(feat.chan->chan2G4_cnt *
 					   sizeof(struct hostapd_channel_data));
@@ -1752,7 +1774,7 @@ static int wpa_rwnx_driver_associate(void *priv,
 			     WPA_AUTH_ALG_FT | WPA_AUTH_ALG_SAE);
 
 	if (params->auth_alg == 0)
-		return -1;
+		return -2;
 
 	cmd.auth_alg = hostapd_to_rwnx_auth_alg(params->auth_alg);
 	if (cmd.auth_alg == MAC_AUTH_ALGO_INVALID)  {
@@ -1778,7 +1800,7 @@ static int wpa_rwnx_driver_associate(void *priv,
 
 	/* for now only support station role */
 	if (params->mode != IEEE80211_MODE_INFRA)
-		return -1;
+		return -3;
 	cmd.uapsd = params->uapsd;
 
 	cmd.ie = params->wpa_ie;
@@ -1787,7 +1809,7 @@ static int wpa_rwnx_driver_associate(void *priv,
 	cmd.sock = drv->gdrv->link->sock_send;
 
 	if (fhost_cntrl_cfgrwnx_cmd_send(&cmd.hdr, &resp.hdr) || (resp.status != CFGRWNX_SUCCESS))
-		return -1;
+		return -4;
 
 	return 0;
 }

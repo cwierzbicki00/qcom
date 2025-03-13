@@ -31,6 +31,10 @@
   * @{
   */
 #define MJPEG_INTSTS_ONE_FRAME     (1 << 4)
+#if defined(QCC74x_undef)
+#define MJPEG_INTSTS_KICK_DONE     (1 << 23)
+#endif
+#define MJPEG_INTSTS_SWAP          (1 << 30)
 /**
   * @}
   */
@@ -39,6 +43,10 @@
   * @{
   */
 #define MJPEG_INTCLR_ONE_FRAME     (1 << 8)
+#if defined(QCC74x_undef)
+#define MJPEG_INTCLR_KICK_DONE     (1 << 5)
+#endif
+#define MJPEG_INTCLR_SWAP          (1 << 13)
 /**
   * @}
   */
@@ -46,8 +54,17 @@
 /** @defgroup MJPEG_CMD mjpeg feature control cmd definition
   * @{
   */
-#define MJPEG_CMD_SET_INPUTADDR0   0x00
-#define MJPEG_CMD_SET_INPUTADDR1   0x01
+#define MJPEG_CMD_SET_INPUTADDR0                               0x00
+#define MJPEG_CMD_SET_INPUTADDR1                               0x01
+#if defined(QCC74x_undef)
+#define MJPEG_CMD_SET_KICK_DONE_DELAY                          0x02
+#define MJPEG_CMD_UPDATE_KICK_ADDR                             0x03
+#define MJPEG_CMD_READ_HW_VERSION                              0x04
+#define MJPEG_CMD_READ_SW_USAGE                                0x05
+#define MJPEG_CMD_WRITE_SW_USAGE                               0x06
+#endif
+#define MJPEG_CMD_SWAP_ENABLE                                  0x07
+
 /**
   * @}
   */
@@ -145,6 +162,7 @@ void qcc74x_mjpeg_kick_stop(struct qcc74x_device_s *dev);
  * @param [in] dev device handle
  */
 void qcc74x_mjpeg_kick(struct qcc74x_device_s *dev);
+
 /**
  * @brief Enable or disable mjpeg one frame compression completion interrupt.
  *
@@ -152,6 +170,24 @@ void qcc74x_mjpeg_kick(struct qcc74x_device_s *dev);
  * @param [in] mask true means disable, false means enable
  */
 void qcc74x_mjpeg_tcint_mask(struct qcc74x_device_s *dev, bool mask);
+
+#if defined(QCC74x_undef)
+/**
+ * @brief Enable or disable mjpeg kick done interrupt.
+ *
+ * @param [in] dev device handle
+ * @param [in] mask true means disable, false means enable
+ */
+void qcc74x_mjpeg_kickint_mask(struct qcc74x_device_s *dev, bool mask);
+#endif
+
+/**
+ * @brief Enable or disable mjpeg swap interrupt.
+ *
+ * @param [in] dev device handle
+ * @param [in] mask true means disable, false means enable
+ */
+void qcc74x_mjpeg_swapint_mask(struct qcc74x_device_s *dev, bool mask);
 
 /**
  * @brief Enable or disable mjpeg error interrupt.
@@ -193,6 +229,21 @@ uint8_t qcc74x_mjpeg_get_frame_count(struct qcc74x_device_s *dev);
 void qcc74x_mjpeg_pop_one_frame(struct qcc74x_device_s *dev);
 
 /**
+ * @brief Drop swap current block.
+ *
+ * @param [in] dev device handle
+ */
+void qcc74x_mjpeg_pop_swap_block(struct qcc74x_device_s *dev);
+
+/**
+ * @brief Get bit count remained in swap mode.
+ *
+ * @param [in] dev device handle
+ * @return remained bit count
+ */
+uint32_t qcc74x_mjpeg_get_swap_bit_count(struct qcc74x_device_s *dev);
+
+/**
  * @brief Get one frame information.
  *
  * @param [in] dev device handle
@@ -200,6 +251,24 @@ void qcc74x_mjpeg_pop_one_frame(struct qcc74x_device_s *dev);
  * @return frame length
  */
 uint32_t qcc74x_mjpeg_get_frame_info(struct qcc74x_device_s *dev, uint8_t **pic);
+
+/**
+ * @brief Get swap block information.
+ *
+ * @param [in] dev device handle
+ * @param [in] idx index of current swap block.
+ * @return swap block is end or not
+ */
+uint8_t qcc74x_mjpeg_get_swap_block_info(struct qcc74x_device_s *dev, uint8_t *idx);
+
+/**
+ * @brief Check is block full in swap mode.
+ *
+ * @param [in] dev device handle
+ * @param [in] idx index of the block to be checked.
+ * @return block is full or not
+ */
+uint8_t qcc74x_mjpeg_swap_is_block_full(struct qcc74x_device_s *dev, uint8_t idx);
 
 /**
  * @brief Calculate jpeg quantize table.

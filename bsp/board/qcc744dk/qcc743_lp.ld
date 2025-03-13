@@ -15,6 +15,9 @@ __RFTLV_SIZE_HOLE = 2K;
 __RFTLV_HEAD1_H = (0x46524C42); /* */
 __RFTLV_HEAD1_L = (0x41524150); /* PAPA */
 
+__lpfw_share_start = 0x63029000;
+__lpfw_share_end = __lpfw_share_start + 28K;
+
 VerOffset = 0xc00;
 
 MEMORY

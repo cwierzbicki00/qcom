@@ -19,13 +19,13 @@
  * QCC74x_undef  : GPIO0/1/2/7/8/9/14/15/17/23/24/25/26/27/28
  * QCC74x_undef  : GPIO0 ~ GPIO3, GPIO7 ~ GPIO11, GPIO14/15, GPIO17 ~ GPIO28,
  * QCC74x_undef  : GPIO0 ~ GPIO31
- * QCC74x_undefL : GPIO0 ~ GPIO2, GPIO7 ~ GPIO11, GPIO14 ~ GPIO18, GPIO22 ~ GPIO28, GPIO30 ~ GPIO31
- * QCC74x_undefL:  GPIO0 ~ GPIO3, GPIO7 ~ GPIO31
- * QCC74x_undefP : GPIO0 ~ GPIO5, GPIO11 ~ GPIO12, GPIO16 ~ GPIO21, GPIO24 ~ GPIO28, GPIO34 ~ GPIO41
+ * QCC74x_undef  : GPIO0 ~ GPIO2, GPIO7 ~ GPIO11, GPIO14 ~ GPIO18, GPIO22 ~ GPIO28, GPIO30 ~ GPIO31
+ * QCC74x_undef  : GPIO0 ~ GPIO3, GPIO7 ~ GPIO31
+ * QCC74x_undef  : GPIO0 ~ GPIO5, GPIO11 ~ GPIO12, GPIO16 ~ GPIO21, GPIO24 ~ GPIO28, GPIO34 ~ GPIO41
  * QCC743  : GPIO0 ~ GPIO3, GPIO10 ~ GPIO17, GPIO20 ~ GPIO22, GPIO27 ~ GPIO30
- * QCC74x_undef  : GPIO0 ~ GPIO34
- * QCC74x_undefC : GPIO0 ~ GPIO23, GPIO34 ~ GPIO45
- * QCC74x_undefD : GPIO0 ~ GPIO8, GPIO11 ~ GPIO41
+ * QCC744  : GPIO0 ~ GPIO34
+ * QCC74x_undef  : GPIO0 ~ GPIO23, GPIO34 ~ GPIO45
+ * QCC74x_undef  : GPIO0 ~ GPIO8, GPIO11 ~ GPIO41
  *
  */
 
@@ -45,7 +45,9 @@
 #define GPIO_PIN_10     10
 #define GPIO_PIN_11     11
 #define GPIO_PIN_12     12
+#if !defined(QCC74x_undef)
 #define GPIO_PIN_13     13
+#endif
 #define GPIO_PIN_14     14
 #define GPIO_PIN_15     15
 #define GPIO_PIN_16     16
@@ -55,6 +57,27 @@
 #define GPIO_PIN_20     20
 #define GPIO_PIN_21     21
 #define GPIO_PIN_22     22
+#if defined(QCC74x_undef)
+#define GPIO_PIN_MAX    23
+#elif defined(QCC74x_undef)
+#define GPIO_PIN_23     23
+#define GPIO_PIN_24     24
+#define GPIO_PIN_25     25
+#define GPIO_PIN_26     26
+#define GPIO_PIN_27     27
+#define GPIO_PIN_28     28
+#define GPIO_PIN_29     29
+#define GPIO_PIN_30     30
+#define GPIO_PIN_31     31
+/* external flash */
+#define GPIO_PIN_32     32
+#define GPIO_PIN_33     33
+#define GPIO_PIN_34     34
+#define GPIO_PIN_35     35
+#define GPIO_PIN_36     36
+#define GPIO_PIN_37     37
+#define GPIO_PIN_MAX    38
+#elif defined(QCC74x_undef) || defined(QCC74x_undef)
 #define GPIO_PIN_23     23
 #define GPIO_PIN_24     24
 #define GPIO_PIN_25     25
@@ -78,6 +101,101 @@
 #define GPIO_PIN_43     43
 #define GPIO_PIN_44     44
 #define GPIO_PIN_45     45
+#define GPIO_PIN_MAX    46
+#elif defined(QCC743)
+#define GPIO_PIN_23     23
+#define GPIO_PIN_24     24
+#define GPIO_PIN_25     25
+#define GPIO_PIN_26     26
+#define GPIO_PIN_27     27
+#define GPIO_PIN_28     28
+#define GPIO_PIN_29     29
+#define GPIO_PIN_30     30
+#define GPIO_PIN_31     31
+#define GPIO_PIN_32     32
+#define GPIO_PIN_33     33
+#define GPIO_PIN_34     34
+#define GPIO_PIN_MAX    35
+#elif defined(QCC74x_undef)
+#define GPIO_PIN_23     23
+#define GPIO_PIN_24     24
+#define GPIO_PIN_25     25
+#define GPIO_PIN_26     26
+#define GPIO_PIN_27     27
+#define GPIO_PIN_28     28
+#define GPIO_PIN_29     29
+#define GPIO_PIN_30     30
+#define GPIO_PIN_31     31
+/* external flash */
+#define GPIO_PIN_32     32
+#define GPIO_PIN_33     33
+#define GPIO_PIN_34     34
+#define GPIO_PIN_35     35
+#define GPIO_PIN_36     36
+#define GPIO_PIN_37     37
+#define GPIO_PIN_MAX    38
+#elif defined(QCC74x_undef)
+#define GPIO_PIN_23     23
+#define GPIO_PIN_24     24
+#define GPIO_PIN_25     25
+#define GPIO_PIN_26     26
+#define GPIO_PIN_27     27
+#define GPIO_PIN_28     28
+#define GPIO_PIN_29     29
+#define GPIO_PIN_30     30
+#define GPIO_PIN_31     31
+#define GPIO_PIN_32     32
+#define GPIO_PIN_33     33
+#define GPIO_PIN_34     34
+#define GPIO_PIN_35     35
+#define GPIO_PIN_36     36
+#define GPIO_PIN_37     37
+#define GPIO_PIN_38     38
+#define GPIO_PIN_39     39
+#define GPIO_PIN_40     40
+#define GPIO_PIN_41     41
+#define GPIO_PIN_42     42
+#define GPIO_PIN_43     43
+#define GPIO_PIN_44     44
+#define GPIO_PIN_45     45
+#define GPIO_PIN_46     46
+#define GPIO_PIN_47     47
+#define GPIO_PIN_48     48
+#define GPIO_PIN_49     49
+#define GPIO_PIN_50     50
+#define GPIO_PIN_51     51
+#define GPIO_PIN_52     52
+#define GPIO_PIN_MAX    53
+#elif defined(QCC74x_undef)
+#define GPIO_PIN_23     23
+#define GPIO_PIN_24     24
+#define GPIO_PIN_25     25
+#define GPIO_PIN_26     26
+#define GPIO_PIN_27     27
+#define GPIO_PIN_28     28
+#define GPIO_PIN_29     29
+#define GPIO_PIN_30     30
+#define GPIO_PIN_31     31
+#define GPIO_PIN_32     32
+#define GPIO_PIN_33     33
+#define GPIO_PIN_34     34
+#define GPIO_PIN_35     35
+#define GPIO_PIN_36     36
+#define GPIO_PIN_MAX    37
+#elif defined(QCC74x_undef)
+#define GPIO_PIN_23     23
+#define GPIO_PIN_24     24
+#define GPIO_PIN_25     25
+#define GPIO_PIN_26     26
+#define GPIO_PIN_27     27
+#define GPIO_PIN_28     28
+#define GPIO_PIN_29     29
+#define GPIO_PIN_30     30
+#define GPIO_PIN_31     31
+#define GPIO_PIN_32     32
+#define GPIO_PIN_MAX    33
+#endif
+
 /**
   * @}
   */
@@ -101,14 +219,14 @@
 #define GPIO_FUNC_JTAG     (14 << GPIO_FUNC_SHIFT)
 #define GPIO_FUNC_EMAC     (19 << GPIO_FUNC_SHIFT)
 #define GPIO_FUNC_CAM_MCLK (23 << GPIO_FUNC_SHIFT)
-#elif defined(QCC74x_undefL)
+#elif defined(QCC74x_undef)
 #define GPIO_FUNC_SPI0    (4 << GPIO_FUNC_SHIFT)
 #define GPIO_FUNC_I2C0    (6 << GPIO_FUNC_SHIFT)
 #define GPIO_FUNC_PWM0    (8 << GPIO_FUNC_SHIFT)
 #define GPIO_FUNC_PWM1    (8 << GPIO_FUNC_SHIFT)
 #define GPIO_FUNC_KEYSCAN (13 << GPIO_FUNC_SHIFT)
 #define GPIO_FUNC_JTAG    (14 << GPIO_FUNC_SHIFT)
-#elif defined(QCC743)
+#elif defined(QCC743) || defined(QCC74x_undef)
 #define GPIO_FUNC_SDH       (0 << GPIO_FUNC_SHIFT)
 #define GPIO_FUNC_SPI0      (1 << GPIO_FUNC_SHIFT)
 #define GPIO_FUNC_I2S       (3 << GPIO_FUNC_SHIFT)
@@ -117,15 +235,19 @@
 #define GPIO_FUNC_I2C1      (6 << GPIO_FUNC_SHIFT)
 #define GPIO_FUNC_EMAC      (8 << GPIO_FUNC_SHIFT)
 #define GPIO_FUNC_CAM       (9 << GPIO_FUNC_SHIFT)
+#define GPIO_FUNC_GPIO      (11 << GPIO_FUNC_SHIFT)
 #define GPIO_FUNC_SDU       (12 << GPIO_FUNC_SHIFT)
 #define GPIO_FUNC_PWM0      (16 << GPIO_FUNC_SHIFT)
+#if defined(QCC74x_undef)
+#define GPIO_FUNC_SPI1      (20 << GPIO_FUNC_SHIFT)
+#endif
 #define GPIO_FUNC_DBI_B     (22 << GPIO_FUNC_SHIFT)
 #define GPIO_FUNC_DBI_C     (23 << GPIO_FUNC_SHIFT)
 #define GPIO_FUNC_DBI_QSPI  (24 << GPIO_FUNC_SHIFT)
 #define GPIO_FUNC_AUDAC_PWM (25 << GPIO_FUNC_SHIFT)
 #define GPIO_FUNC_JTAG      (26 << GPIO_FUNC_SHIFT)
 #define GPIO_FUNC_CLKOUT    (31 << GPIO_FUNC_SHIFT)
-#elif defined(QCC74x_undefP) || defined(QCC74x_undef)
+#elif defined(QCC74x_undef) || defined(QCC74x_undef)
 #define GPIO_FUNC_SDH     (0 << GPIO_FUNC_SHIFT)
 #define GPIO_FUNC_SPI0    (1 << GPIO_FUNC_SHIFT)
 #define GPIO_FUNC_I2S     (3 << GPIO_FUNC_SHIFT)
@@ -134,6 +256,7 @@
 #define GPIO_FUNC_I2C1    (6 << GPIO_FUNC_SHIFT)
 #define GPIO_FUNC_EMAC    (8 << GPIO_FUNC_SHIFT)
 #define GPIO_FUNC_CAM     (9 << GPIO_FUNC_SHIFT)
+#define GPIO_FUNC_GPIO    (11 << GPIO_FUNC_SHIFT)
 #define GPIO_FUNC_SDU     (12 << GPIO_FUNC_SHIFT)
 #define GPIO_FUNC_PWM0    (16 << GPIO_FUNC_SHIFT)
 #define GPIO_FUNC_PWM1    (17 << GPIO_FUNC_SHIFT)
@@ -147,20 +270,51 @@
 #define GPIO_FUNC_JTAG_D0 (27 << GPIO_FUNC_SHIFT)
 #define GPIO_FUNC_CLKOUT  (31 << GPIO_FUNC_SHIFT)
 #elif defined(QCC74x_undef)
-#define GPIO_FUNC_SDH    (0 << GPIO_FUNC_SHIFT)
-#define GPIO_FUNC_SPI0   (1 << GPIO_FUNC_SHIFT)
-#define GPIO_FUNC_I2S    (3 << GPIO_FUNC_SHIFT)
-#define GPIO_FUNC_PDM    (4 << GPIO_FUNC_SHIFT)
-#define GPIO_FUNC_I2C0   (5 << GPIO_FUNC_SHIFT)
-#define GPIO_FUNC_I2C1   (6 << GPIO_FUNC_SHIFT)
-#define GPIO_FUNC_UART   (7 << GPIO_FUNC_SHIFT)
-#define GPIO_FUNC_EMAC   (8 << GPIO_FUNC_SHIFT)
-#define GPIO_FUNC_CAM    (9 << GPIO_FUNC_SHIFT)
-#define GPIO_FUNC_SDU    (12 << GPIO_FUNC_SHIFT)
-#define GPIO_FUNC_PWM0   (16 << GPIO_FUNC_SHIFT)
-#define GPIO_FUNC_DBI_B  (22 << GPIO_FUNC_SHIFT)
-#define GPIO_FUNC_DBI_C  (23 << GPIO_FUNC_SHIFT)
-#define GPIO_FUNC_CLKOUT (31 << GPIO_FUNC_SHIFT)
+#define GPIO_FUNC_SDH     (0 << GPIO_FUNC_SHIFT)
+#define GPIO_FUNC_SPI0    (1 << GPIO_FUNC_SHIFT)
+#define GPIO_FUNC_I2S     (3 << GPIO_FUNC_SHIFT)
+#define GPIO_FUNC_PDM     (4 << GPIO_FUNC_SHIFT)
+#define GPIO_FUNC_I2C0    (5 << GPIO_FUNC_SHIFT)
+#define GPIO_FUNC_I2C1    (6 << GPIO_FUNC_SHIFT)
+#define GPIO_FUNC_UART    (7 << GPIO_FUNC_SHIFT)
+#define GPIO_FUNC_GMAC    (8 << GPIO_FUNC_SHIFT)
+#define GPIO_FUNC_CAM     (9 << GPIO_FUNC_SHIFT)
+#define GPIO_FUNC_GPIO    (11 << GPIO_FUNC_SHIFT)
+#define GPIO_FUNC_SDU     (12 << GPIO_FUNC_SHIFT)
+#define GPIO_FUNC_PWM0    (16 << GPIO_FUNC_SHIFT)
+#define GPIO_FUNC_JTAG_M1 (17 << GPIO_FUNC_SHIFT)
+#define GPIO_FUNC_UART3   (18 << GPIO_FUNC_SHIFT)
+#define GPIO_FUNC_DBI_B   (22 << GPIO_FUNC_SHIFT)
+#define GPIO_FUNC_DBI_C   (23 << GPIO_FUNC_SHIFT)
+#define GPIO_FUNC_JTAG_M0 (26 << GPIO_FUNC_SHIFT)
+#define GPIO_FUNC_CLKOUT  (31 << GPIO_FUNC_SHIFT)
+#elif defined(QCC74x_undef)
+#define GPIO_FUNC_SDH       (0 << GPIO_FUNC_SHIFT)
+#define GPIO_FUNC_SPI       (1 << GPIO_FUNC_SHIFT)
+#define GPIO_FUNC_SPI0      (1 << GPIO_FUNC_SHIFT)
+#define GPIO_FUNC_SPI1      (1 << GPIO_FUNC_SHIFT)
+#define GPIO_FUNC_I2S       (3 << GPIO_FUNC_SHIFT)
+#define GPIO_FUNC_I2C0      (5 << GPIO_FUNC_SHIFT)
+#define GPIO_FUNC_I2C1      (5 << GPIO_FUNC_SHIFT)
+#define GPIO_FUNC_I2C2      (6 << GPIO_FUNC_SHIFT)
+#define GPIO_FUNC_UART      (7 << GPIO_FUNC_SHIFT)
+#define GPIO_FUNC_EMAC      (8 << GPIO_FUNC_SHIFT)
+#define GPIO_FUNC_CAM       (9 << GPIO_FUNC_SHIFT)
+#define GPIO_FUNC_ANALOG    (10 << GPIO_FUNC_SHIFT)
+#define GPIO_FUNC_GPIO      (11 << GPIO_FUNC_SHIFT)
+#define GPIO_FUNC_SDU       (12 << GPIO_FUNC_SHIFT)
+#define GPIO_FUNC_PWM       (16 << GPIO_FUNC_SHIFT)
+#define GPIO_FUNC_PWM0      (16 << GPIO_FUNC_SHIFT)
+#define GPIO_FUNC_PWM1      (16 << GPIO_FUNC_SHIFT)
+#define GPIO_FUNC_JTAG_M1   (17 << GPIO_FUNC_SHIFT)
+#define GPIO_FUNC_JTAG_LP   (17 << GPIO_FUNC_SHIFT)
+#define GPIO_FUNC_UART3     (18 << GPIO_FUNC_SHIFT)
+#define GPIO_FUNC_AUDAC     (21 << GPIO_FUNC_SHIFT)
+#define GPIO_FUNC_DBI_B     (22 << GPIO_FUNC_SHIFT)
+#define GPIO_FUNC_DBI_C     (23 << GPIO_FUNC_SHIFT)
+#define GPIO_FUNC_DPI       (24 << GPIO_FUNC_SHIFT)
+#define GPIO_FUNC_JTAG_M0   (26 << GPIO_FUNC_SHIFT)
+#define GPIO_FUNC_CLKOUT    (31 << GPIO_FUNC_SHIFT)
 #endif
 
 #define GPIO_MODE_SHIFT                      (5) /* Bits 5-8: Port Mode */
@@ -222,7 +376,7 @@
 #define GPIO_UART_FUNC_UART1_CTS 5
 #define GPIO_UART_FUNC_UART1_TX  6
 #define GPIO_UART_FUNC_UART1_RX  7
-#if defined(QCC74x_undef) || defined(QCC74x_undefP)
+#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
 #define GPIO_UART_FUNC_UART2_RTS 8
 #define GPIO_UART_FUNC_UART2_CTS 9
 #define GPIO_UART_FUNC_UART2_TX  10
@@ -285,22 +439,6 @@ void qcc74x_gpio_reset(struct qcc74x_device_s *dev, uint8_t pin);
  * @return true means high level, otherwise low level
  */
 bool qcc74x_gpio_read(struct qcc74x_device_s *dev, uint8_t pin);
-
-/**
- * @brief Write gpio pin 0~31.
- *
- * @param [in] dev device handle
- * @param [in] val gpio pin 0~31 value
- */
-void qcc74x_gpio_pin0_31_write(struct qcc74x_device_s *dev, uint32_t val);
-
-/**
- * @brief Write gpio pin 32~63.
- *
- * @param [in] dev device handle
- * @param [in] val gpio pin 32~63 value
- */
-void qcc74x_gpio_pin32_63_write(struct qcc74x_device_s *dev, uint32_t val);
 
 /**
  * @brief Read level from gpio pin 0~31.

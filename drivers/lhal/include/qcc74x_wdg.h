@@ -11,7 +11,7 @@
   * @{
   */
 
-#if !defined(QCC74x_undefL)
+#if !defined(QCC74x_undef)
 #define WDG_CLKSRC_BCLK 0
 #endif
 #define WDG_CLKSRC_32K  1

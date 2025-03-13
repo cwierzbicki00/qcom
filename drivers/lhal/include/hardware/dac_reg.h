@@ -13,7 +13,7 @@
 #define GPIP_GPDAC_DMA_WDATA_OFFSET      (0x48) /* gpdac_dma_wdata */
 #define GPIP_GPDAC_TX_FIFO_STATUS_OFFSET (0x4C) /* gpdac_tx_fifo_status */
 /* glb base */
-#if defined(QCC74x_undef)
+#if defined(QCC74x_undef) || defined(QCC74x_undef)
 #define GLB_GPDAC_CTRL_OFFSET  (0x308) /* gpdac_ctrl */
 #define GLB_GPDAC_ACTRL_OFFSET (0x30C) /* gpdac_actrl */
 #define GLB_GPDAC_BCTRL_OFFSET (0x310) /* gpdac_bctrl */
@@ -28,7 +28,7 @@
 
 /* 0x40 : gpdac_config */
 #define GPIP_GPDAC_EN (1 << 0U)
-#if defined(QCC74x_undef)
+#if defined(QCC74x_undef) || defined(QCC74x_undef)
 #define GPIP_GPDAC_EN2      (1 << 1U)
 #define GPIP_DSM_MODE_SHIFT (4U)
 #define GPIP_DSM_MODE_MASK  (0x3 << GPIP_DSM_MODE_SHIFT)
@@ -42,7 +42,7 @@
 
 /* 0x44 : gpdac_dma_config */
 #define GPIP_GPDAC_DMA_TX_EN (1 << 0U)
-#if defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undefP) || defined(QCC74x_undef)
+#if defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
 #define GPIP_GPDAC_DMA_INV_MSB (1 << 1U)
 #endif
 #define GPIP_GPDAC_DMA_FORMAT_SHIFT (4U)
@@ -69,7 +69,7 @@
 #define GLB_GPDAC_REF_SEL        (1 << 8U)
 #define GLB_GPDAC_TEST_SEL_SHIFT (9U)
 #define GLB_GPDAC_TEST_SEL_MASK  (0x7 << GLB_GPDAC_TEST_SEL_SHIFT)
-#if defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undefP) || defined(QCC74x_undef)
+#if defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
 #define GLB_GPDAC_ANA_CLK_SEL (1 << 12U)
 #define GLB_GPDAC_DAT_CHA_SEL (1 << 13U)
 #define GLB_GPDAC_DAT_CHB_SEL (1 << 14U)
@@ -94,12 +94,12 @@
 #define GLB_GPDAC_B_OUTMUX_MASK  (0x7 << GLB_GPDAC_B_OUTMUX_SHIFT)
 
 /* 0x314 : gpdac_data */
-#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undefP) || defined(QCC74x_undef)
+#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
 #define GLB_GPDAC_B_DATA_SHIFT (0U)
 #define GLB_GPDAC_B_DATA_MASK  (0x3ff << GLB_GPDAC_B_DATA_SHIFT)
 #define GLB_GPDAC_A_DATA_SHIFT (16U)
 #define GLB_GPDAC_A_DATA_MASK  (0x3ff << GLB_GPDAC_A_DATA_SHIFT)
-#elif defined(QCC743) || defined(QCC74x_undef)
+#elif defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
 #define GLB_GPDAC_B_DATA_SHIFT (0U)
 #define GLB_GPDAC_B_DATA_MASK  (0x1fff << GLB_GPDAC_B_DATA_SHIFT)
 #define GLB_GPDAC_A_DATA_SHIFT (16U)

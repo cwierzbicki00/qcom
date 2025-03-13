@@ -214,6 +214,8 @@ int qcc74x_audac_link_rxdma(struct qcc74x_device_s *dev, bool enable);
 
 int qcc74x_audac_int_mask(struct qcc74x_device_s *dev, uint32_t mask);
 
+int qcc74x_audac_int_unmask(struct qcc74x_device_s *dev, uint32_t int_sts);
+
 int qcc74x_audac_get_intstatus(struct qcc74x_device_s *dev);
 
 int qcc74x_audac_int_clear(struct qcc74x_device_s *dev, uint32_t int_clear);

@@ -339,6 +339,10 @@ enum mm_msg_tag
     MM_BCN_CHANGE_REQ,
     /// Confirmation of the beacon change
     MM_BCN_CHANGE_CFM,
+    ///Beacon Transmission Control
+    MM_BCN_CONTROL_REQ,
+    /// CFM of Beacon Transmission Control
+    MM_BCN_CONTROL_CFM,
     /// Request to update the TIM in the beacon (i.e to indicate traffic bufferized at AP)
     MM_TIM_UPDATE_REQ,
     /// Confirmation of the TIM update

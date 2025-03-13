@@ -10,7 +10,7 @@
 
 #include "common.h"
 #include "base64.h"
-#include "uuid.h"
+#include "wpa_uuid.h"
 #include "eloop.h"
 #include "httpread.h"
 #include "http_client.h"

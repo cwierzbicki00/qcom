@@ -196,14 +196,26 @@ static inline uint32_t ATTR_CLOCK_SECTION Clock_F32k_Mux_Output(uint8_t sel)
     tmpVal = QCC74x_RD_REG(GLB_BASE, GLB_DIG_CLK_CFG0);
     div = QCC74x_GET_REG_BITS_VAL(tmpVal, GLB_DIG_32K_DIV);
 
-    if (sel == 0) {
-        /* src32k */
-        return (32 * 1000);
+    if (sel == 0 || sel == 2) {
+        /* rc32k */
+        return (32768);
     } else if (sel == 1) {
         /* xtal 32K */
-        return (32 * 1000);
+        return (32768);
     } else {
-        return Clock_Xtal_Output() / (div + 1);
+        /* dig32k */
+        if (QCC74x_GET_REG_BITS_VAL(tmpVal, GLB_DIG_32K_EN) == 0) {
+            return 0;
+        } else {
+            sel = QCC74x_GET_REG_BITS_VAL(tmpVal, GLB_DIG_CLK_SRC_SEL);
+            if (sel == 0) {
+                return Clock_Get_WIFI_PLL_Output(32 * 1000 * 1000) / div;
+            } else if (sel == 1) {
+                return Clock_Xtal_Output() / div;
+            } else {
+                return Clock_Get_Audio_PLL_Output() / div;
+            }
+        }
     }
 }
 

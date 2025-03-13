@@ -2,9 +2,9 @@
 #include "qcc74x_efuse.h"
 #include "hardware/adc_reg.h"
 
-#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undefL)
+#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
 #define ADC_GPIP_BASE ((uint32_t)0x40002000)
-#elif defined(QCC743) || defined(QCC74x_undefP) || defined(QCC74x_undef) || defined(QCC74x_undef)
+#elif defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
 #define ADC_GPIP_BASE ((uint32_t)0x20002000)
 #endif
 
@@ -14,6 +14,7 @@ volatile int os2 = 0;
 volatile uint32_t tsen_offset;
 volatile int adc_reference_channel = -1;
 volatile int32_t adc_reference_channel_millivolt = -1;
+volatile int adc_cali_complete = 0;
 
 void qcc74x_adc_init(struct qcc74x_device_s *dev, const struct qcc74x_adc_config_s *config)
 {
@@ -59,7 +60,7 @@ void qcc74x_adc_init(struct qcc74x_device_s *dev, const struct qcc74x_adc_config
     regval |= (1 << AON_GPADC_V11_SEL_SHIFT);                     /* V11 select 1.1V */
     regval |= (config->clk_div << AON_GPADC_CLK_DIV_RATIO_SHIFT); /* clock div */
     regval |= (config->resolution << AON_GPADC_RES_SEL_SHIFT);    /* resolution */
-#if defined(QCC74x_undefL)
+#if defined(QCC74x_undef)
     regval |= AON_GPADC_LOWV_DET_EN;  /* low voltage detect enable */
     regval |= AON_GPADC_VCM_HYST_SEL; /* VCM hyst select */
     regval |= AON_GPADC_VCM_SEL_EN;   /* VCM select enable */
@@ -97,7 +98,7 @@ void qcc74x_adc_init(struct qcc74x_device_s *dev, const struct qcc74x_adc_config
     regval |= (2 << AON_GPADC_DLY_SEL_SHIFT);
     regval |= (2 << AON_GPADC_CHOP_MODE_SHIFT); /* Vref AZ and PGA chop on */
     regval |= (1 << AON_GPADC_PGA1_GAIN_SHIFT); /* gain 1 */
-#if defined(QCC74x_undefL)
+#if defined(QCC74x_undef)
     regval &= ~AON_GPADC_PGA2_GAIN_MASK; /* gain 2 */
 #else
     regval |= (1 << AON_GPADC_PGA2_GAIN_SHIFT); /* gain 2 */
@@ -131,7 +132,7 @@ void qcc74x_adc_init(struct qcc74x_device_s *dev, const struct qcc74x_adc_config
     regval |= (GPIP_GPADC_FIFO_UNDERRUN_MASK | GPIP_GPADC_FIFO_OVERRUN_MASK | GPIP_GPADC_RDY_MASK |
                GPIP_GPADC_FIFO_UNDERRUN_CLR | GPIP_GPADC_FIFO_OVERRUN_CLR | GPIP_GPADC_RDY_CLR);
 
-#if defined(QCC74x_undef) || defined(QCC74x_undefL)
+#if defined(QCC74x_undef) || defined(QCC74x_undef)
     regval |= (GPIP_GPADC_FIFO_RDY_MASK | GPIP_GPADC_FIFO_RDY);
 #endif
     regval |= GPIP_GPADC_FIFO_CLR;
@@ -151,9 +152,13 @@ void qcc74x_adc_init(struct qcc74x_device_s *dev, const struct qcc74x_adc_config
     regval |= AON_GPADC_POS_SATUR_MASK;
     putreg32(regval, reg_base + AON_GPADC_REG_ISR_OFFSET);
 
-    coe = qcc74x_efuse_get_adc_trim(); /* read from efuse */
-    qcc74x_update_adc_trim(dev, config);
-    tsen_offset = qcc74x_efuse_get_adc_tsen_trim(); /* read from efuse */
+    /* only calibrate one time after power on, do not calibrate after reinit even wakeup from pds */
+    if (adc_cali_complete == 0) {
+        coe = qcc74x_efuse_get_adc_trim(); /* read from efuse */
+        qcc74x_update_adc_trim(dev, config);
+        tsen_offset = qcc74x_efuse_get_adc_tsen_trim(); /* read from efuse */
+        adc_cali_complete = 1;
+    }
 }
 
 void qcc74x_update_adc_trim(struct qcc74x_device_s *dev, const struct qcc74x_adc_config_s *config)
@@ -545,7 +550,7 @@ void qcc74x_adc_int_clear(struct qcc74x_device_s *dev, uint32_t int_clear)
     }
 }
 
-uint32_t get_conv_value(uint32_t os1, int os2, uint32_t val)
+static uint32_t qcc74x_get_conv_value(uint32_t os1, int os2, uint32_t val)
 {
     int conv_val = 0;
 
@@ -625,23 +630,21 @@ void qcc74x_adc_parse_result(struct qcc74x_device_s *dev, uint32_t *buffer, stru
             result[i].pos_chan = buffer[i] >> 21;
             result[i].neg_chan = -1;
 
+            conv_result = (uint32_t)((buffer[i] & 0xffff));
+            result[i].value = qcc74x_get_conv_value(os1, os2, conv_result);
             if (resolution == ADC_RESOLUTION_12B) {
-                conv_result = (uint32_t)(((buffer[i] & 0xffff) >> 4));
-                result[i].value = get_conv_value(os1, os2, conv_result);
+                result[i].value >>= 4;
                 if (result[i].value > 4095) {
                     result[i].value = 4095;
                 }
                 result[i].millivolt = (int32_t)result[i].value * ref / 4096;
             } else if (resolution == ADC_RESOLUTION_14B) {
-                conv_result = (uint32_t)(((buffer[i] & 0xffff) >> 2));
-                result[i].value = get_conv_value(os1, os2, conv_result);
+                result[i].value >>= 2;
                 if (result[i].value > 16383) {
                     result[i].value = 16383;
                 }
                 result[i].millivolt = (int32_t)result[i].value * ref / 16384;
             } else if (resolution == ADC_RESOLUTION_16B) {
-                conv_result = (uint32_t)((buffer[i] & 0xffff));
-                result[i].value = get_conv_value(os1, os2, conv_result);
                 if (result[i].value > 65535) {
                     result[i].value = 65535;
                 }
@@ -712,7 +715,7 @@ void qcc74x_adc_tsen_init(struct qcc74x_device_s *dev, uint8_t tsen_mod)
     regval &= ~AON_GPADC_SEN_TEST_EN;
     regval |= (0 << AON_GPADC_SEN_SEL_SHIFT);
     regval &= ~AON_GPADC_CHIP_SEN_PU;
-    regval |= AON_GPADC_DWA_EN;
+    regval &= ~AON_GPADC_DWA_EN;
     putreg32(regval, reg_base + AON_GPADC_REG_CMD_OFFSET);
 
     regval = getreg32(reg_base + AON_GPADC_REG_CONFIG2_OFFSET);
@@ -720,6 +723,7 @@ void qcc74x_adc_tsen_init(struct qcc74x_device_s *dev, uint8_t tsen_mod)
     regval &= ~AON_GPADC_TEST_EN;
     regval &= ~AON_GPADC_TEST_SEL_MASK;
     regval &= ~AON_GPADC_PGA_VCMI_EN;
+    regval &= ~AON_GPADC_CHOP_MODE_MASK;
     regval |= (1 << AON_GPADC_CHOP_MODE_SHIFT); /* Vref AZ */
     regval |= (2 << AON_GPADC_DLY_SEL_SHIFT);
     regval |= AON_GPADC_TS_EN;
@@ -733,7 +737,7 @@ void qcc74x_adc_tsen_init(struct qcc74x_device_s *dev, uint8_t tsen_mod)
     putreg32(regval, reg_base + AON_GPADC_REG_CONFIG2_OFFSET);
 
     regval = getreg32(reg_base + AON_GPADC_REG_CONFIG1_OFFSET);
-    regval |= AON_GPADC_DITHER_EN;
+    regval &= ~AON_GPADC_DITHER_EN;
     putreg32(regval, reg_base + AON_GPADC_REG_CONFIG1_OFFSET);
 
     regval = getreg32(reg_base + AON_GPADC_REG_CMD_OFFSET);
@@ -849,4 +853,58 @@ void qcc74x_adc_vbat_disable(struct qcc74x_device_s *dev)
     regval = getreg32(reg_base + AON_GPADC_REG_CONFIG2_OFFSET);
     regval &= ~AON_GPADC_VBAT_EN;
     putreg32(regval, reg_base + AON_GPADC_REG_CONFIG2_OFFSET);
+}
+
+int qcc74x_adc_feature_control(struct qcc74x_device_s *dev, int cmd, size_t arg)
+{
+#ifdef qcc74x_adc_feature_control
+    return qcc74x_adc_feature_control(dev, cmd, arg);
+#else
+    int ret = 0;
+    uint32_t regval;
+    uint32_t reg_base;
+    bool dma_en;
+
+    reg_base = dev->reg_base;
+
+    switch (cmd) {
+        case ADC_CMD_CLR_FIFO:
+            /* disable adc dma en bit */
+            regval = getreg32(ADC_GPIP_BASE + GPIP_GPADC_CONFIG_OFFSET);
+            if (regval & GPIP_GPADC_DMA_EN) {
+                dma_en = true;
+            } else {
+                dma_en = false;
+            }
+            regval &= ~GPIP_GPADC_DMA_EN;
+            putreg32(regval, ADC_GPIP_BASE + GPIP_GPADC_CONFIG_OFFSET);
+
+            regval = getreg32(ADC_GPIP_BASE + GPIP_GPADC_CONFIG_OFFSET);
+            regval |= GPIP_GPADC_FIFO_CLR;
+            putreg32(regval, ADC_GPIP_BASE + GPIP_GPADC_CONFIG_OFFSET);
+
+            /* restore adc dma en bit */
+            regval = getreg32(ADC_GPIP_BASE + GPIP_GPADC_CONFIG_OFFSET);
+            if (dma_en) {
+                regval |= GPIP_GPADC_DMA_EN;
+            }
+            putreg32(regval, ADC_GPIP_BASE + GPIP_GPADC_CONFIG_OFFSET);
+            break;
+
+        case ADC_CMD_VBAT_EN:
+            if (arg) {
+                regval = getreg32(reg_base + AON_GPADC_REG_CONFIG2_OFFSET);
+                regval |= AON_GPADC_VBAT_EN;
+                putreg32(regval, reg_base + AON_GPADC_REG_CONFIG2_OFFSET);
+            } else {
+                regval = getreg32(reg_base + AON_GPADC_REG_CONFIG2_OFFSET);
+                regval &= ~AON_GPADC_VBAT_EN;
+                putreg32(regval, reg_base + AON_GPADC_REG_CONFIG2_OFFSET);
+            }
+        default:
+            ret = -EPERM;
+            break;
+    }
+    return ret;
+#endif
 }

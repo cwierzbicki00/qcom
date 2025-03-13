@@ -30,6 +30,7 @@
 /**
  * @brief WO configuration structure
  *
+ * @param clk_div           WO clock divider, should be less than 0xFFFF, only available for QCC74x_undef
  * @param code_total_cnt    WO total count of one period, should be less than 512
  * @param code0_first_cnt   WO first phase count of code0, should be less than 256
  * @param code1_first_cnt   WO first phase count of code1, should be less than 256
@@ -40,6 +41,9 @@
  * @param mode              WO mode setting, use @ref WO_MODE
  */
 struct qcc74x_wo_cfg_s {
+#if defined(QCC74x_undef)
+    uint16_t clk_div;
+#endif
     uint16_t code_total_cnt;
     uint8_t code0_first_cnt;
     uint8_t code1_first_cnt;

@@ -262,6 +262,9 @@ void wifiopt_sta_connect(void)
     if (at_wifi_config->wevt_enable) {
         at_response_string("+CW:CONNECTING\r\n");
     }
+    if (antenna_hal_is_static_div_enabled()) {
+        return wifi_sta_antenna_connect(ssid, psk, bssid, at_wifi_config->sta_info.wep_en?"WEP":NULL, pmf_cfg, freq, freq, dhcp_en);
+    }
     wifi_sta_connect(ssid, psk, bssid, at_wifi_config->sta_info.wep_en?"WEP":NULL, pmf_cfg, freq, freq, dhcp_en);
 #endif
 }
@@ -386,7 +389,6 @@ static int wifi_ap_start(void)
     config.key = at_wifi_config->ap_info.pwd;
     config.hidden_ssid = at_wifi_config->ap_info.ssid_hidden;
     config.channel = at_wifi_config->ap_info.channel;
-    config.ap_max_inactivity = at_wifi_config->ap_info.max_conn;
     config.use_dhcpd = at_wifi_config->dhcp_state.bit.ap_dhcp;
     config.start = at_wifi_config->dhcp_server.start;
     config.limit = at_wifi_config->dhcp_server.end - at_wifi_config->dhcp_server.start;
@@ -403,6 +405,7 @@ static int wifi_ap_start(void)
     struct netif *netif = fhost_to_net_if(MGMR_VIF_AP);
 
     wifi_mgmr_ap_start(&config);
+    wifi_mgmr_conf_max_sta(at_wifi_config->ap_info.max_conn);
     vTaskDelay(100);
     dhcpd_status_callback_set(netif, _wifi_ap_status_callback);
     g_wifi_ap_is_start = 1;
@@ -703,6 +706,17 @@ void wifi_event_handler(uint32_t code)
             char *country_code_string[WIFI_COUNTRY_CODE_MAX] = AT_WIFI_COUNTRY_CODE;
             strlcpy(conf.country_code, country_code_string[at_wifi_config->wifi_country.country_code], sizeof(conf.country_code));
             wifi_mgmr_init(&conf);
+
+            if (at_wifi_config->sta_proto.byte) {
+                at_wifi_mode_set(0, at_wifi_config->sta_proto);
+            } else {
+                at_wifi_config->sta_proto = at_wifi_mode_get(0);
+            }
+            if (at_wifi_config->ap_proto.byte) {
+                at_wifi_mode_set(1, at_wifi_config->ap_proto);
+            } else {
+                at_wifi_config->ap_proto = at_wifi_mode_get(1);
+            }
         } break;
         case CODE_WIFI_ON_MGMR_DONE: {
             LOG_I("[APP] [EVT] %s, CODE_WIFI_ON_MGMR_DONE\r\n", __func__);
@@ -747,22 +761,39 @@ void wifi_event_handler(uint32_t code)
     }
 }
 
+static bool wifi_is_connected(void)
+{
+    if (at_wifi_state_get() != FHOST_STA_CONNECTED) {
+        return false;
+    }
+
+    return true;
+}
+
 int at_wifi_set_mode(void)
 {
-    wifiopt_ap_stop(0);
-    wifiopt_sta_disconnect(0);
-
     if(at_wifi_config->wifi_mode == WIFI_STATION_MODE) {
+        wifiopt_ap_stop(0);
         if (at_wifi_config->switch_mode_auto_conn == WIFI_AUTOCONN_ENABLE) {
             wifi_sta_enable_reconnect(1);
-            wifiopt_sta_connect();
+
+            if (!wifi_is_connected()) {
+                wifiopt_sta_connect();
+            }
         }
     } else if(at_wifi_config->wifi_mode == WIFI_SOFTAP_MODE) {
-        wifi_ap_start();
+        wifiopt_sta_disconnect(0);
+	if (!wifi_mgmr_ap_state_get()) {
+		wifi_ap_start();
+	}
     } else if(at_wifi_config->wifi_mode == WIFI_AP_STA_MODE) {
-        wifi_ap_start();
+	    if (!wifi_mgmr_ap_state_get()) {
+		    wifi_ap_start();
+	    }
         if (at_wifi_config->switch_mode_auto_conn == WIFI_AUTOCONN_ENABLE) {
-            wifiopt_sta_connect();
+            if (!wifi_is_connected()) {
+                wifiopt_sta_connect();
+            }
         }
     }
 
@@ -845,6 +876,50 @@ int at_wifi_ap_set_dhcp_range(int start, int end)
     wifi_mgmr_ap_dhcp_range_set(0, 0, start, end);
 #endif
     return 0;
+}
+
+int at_wifi_mode_set(uint8_t ap_or_sta, wifi_proto proto)
+{
+    int mode = 0;
+
+    if (proto.bit.b_mode) {
+        mode |= WIFI_MODE_802_11B;
+    }
+    if (proto.bit.g_mode) {
+        mode |= WIFI_MODE_802_11G;
+    }
+    if (proto.bit.n_mode) {
+        mode |= WIFI_MODE_802_11N_2_4;
+    }
+    if (proto.bit.ax_mode) {
+        mode |= WIFI_MODE_802_11AX_2_4;
+    }
+    wifi_mgmr_set_mode(ap_or_sta, mode);
+    return 0;
+}
+
+wifi_proto at_wifi_mode_get(uint8_t ap_or_sta)
+{
+    wifi_proto proto = {0};
+    int mode;
+    mode = wifi_mgmr_get_mode(ap_or_sta);
+
+    if (WIFI_MODE_802_11B & mode) {
+        proto.bit.b_mode = 1;
+    }
+
+    if (WIFI_MODE_802_11G & mode) {
+        proto.bit.g_mode = 1;
+    }
+
+    if (WIFI_MODE_802_11N_2_4 & mode) {
+        proto.bit.n_mode = 1;
+    }
+
+    if (WIFI_MODE_802_11AX_2_4 & mode) {
+        proto.bit.ax_mode = 1;
+    }
+    return proto;
 }
 
 int at_wifi_sniffer_start(void)

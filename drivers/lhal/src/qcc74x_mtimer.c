@@ -1,9 +1,21 @@
 #include "qcc74x_mtimer.h"
 #include "qcc74x_core.h"
-#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undefL)
+#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
 #include <risc-v/e24/clic.h>
 #else
 #include <csi_core.h>
+#endif
+
+#if defined(QCC74x_undef)
+/* MCU_MISC reg */
+#define QCC74x_MISC_BASE                      (0x20009000)
+#define MCU_MISC_MCU_E907_RTC_LOAD_L_OFFSET (0x08)
+#define MCU_MISC_MCU_E907_RTC_LOAD_H_OFFSET (0x0C)
+#define MCU_MISC_MCU_E907_RTC_OFFSET        (0x14)
+/* 0x14 : mcu_e907_rtc */
+#define MCU_MISC_MCU_RTC_EN                 (1 << 0U)
+#define MCU_MISC_MCU_RTC_RST                (1 << 1U)
+#define MCU_MISC_MCU_LOAD_P                 (1 << 28U)
 #endif
 
 static void (*systick_callback)(void);
@@ -11,7 +23,7 @@ static uint64_t current_set_ticks = 0;
 
 static void systick_isr(int irq, void *arg)
 {
-#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undefL)
+#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
     *(volatile uint64_t *)(CLIC_CTRL_BASE + CLIC_MTIMECMP_OFFSET) += current_set_ticks;
 #else
     csi_coret_config(current_set_ticks, 7);
@@ -25,7 +37,7 @@ void qcc74x_mtimer_config(uint64_t ticks, void (*interruptfun)(void))
 
     current_set_ticks = ticks;
     systick_callback = interruptfun;
-#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undefL)
+#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
     *(volatile uint64_t *)(CLIC_CTRL_BASE + CLIC_MTIMECMP_OFFSET) = (*(volatile uint64_t *)(CLIC_CTRL_BASE + CLIC_MTIME_OFFSET)) + ticks;
 #else
     csi_coret_config_use(ticks, 7);
@@ -49,7 +61,7 @@ uint64_t ATTR_TCM_SECTION qcc74x_mtimer_get_time_us(void)
     volatile uint64_t tmp_low, tmp_high, tmp_low1, tmp_high1;
 
     do {
-#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undefL)
+#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
         tmp_high = getreg32(CLIC_CTRL_BASE + CLIC_MTIME_OFFSET + 4);
         tmp_low = getreg32(CLIC_CTRL_BASE + CLIC_MTIME_OFFSET);
         tmp_low1 = getreg32(CLIC_CTRL_BASE + CLIC_MTIME_OFFSET);
@@ -136,9 +148,21 @@ void ATTR_TCM_SECTION qcc74x_mtimer_delay_ms(uint32_t time)
 #ifdef romapi_qcc74x_mtimer_delay_ms
     return romapi_qcc74x_mtimer_delay_ms(time);
 #else
-    uint64_t start_time = qcc74x_mtimer_get_time_ms();
+    uint64_t start_time = qcc74x_mtimer_get_time_us();
 
-    while (qcc74x_mtimer_get_time_ms() - start_time < time) {
+    while (qcc74x_mtimer_get_time_us() - start_time < ((uint64_t)time * 1000)) {
     }
 #endif
 }
+
+#if defined(QCC74x_undef)
+void ATTR_TCM_SECTION qcc74x_mtimer_set_val(uint64_t val)
+{
+    putreg32((val & 0xFFFFFFFF), (QCC74x_MISC_BASE + MCU_MISC_MCU_E907_RTC_LOAD_L_OFFSET));
+    putreg32(((val >> 32) & 0xFFFFFFFF), (QCC74x_MISC_BASE + MCU_MISC_MCU_E907_RTC_LOAD_H_OFFSET));
+
+    uint32_t regval = getreg32(QCC74x_MISC_BASE + MCU_MISC_MCU_E907_RTC_OFFSET);
+    regval |= MCU_MISC_MCU_LOAD_P;
+    putreg32(regval, (QCC74x_MISC_BASE + MCU_MISC_MCU_E907_RTC_OFFSET));
+}
+#endif

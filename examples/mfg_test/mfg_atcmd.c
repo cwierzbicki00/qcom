@@ -11,7 +11,7 @@
 #define QC_PN_LEN           (24)
 #define mfg_atcmd_print                           printf
 
-extern qcc74xverinf_t app_ver;
+extern qcc74x_verinf_t app_ver;
 struct qcc74x_device_s *gpio;
 
 static int get_FTFW(uint32_t *value)

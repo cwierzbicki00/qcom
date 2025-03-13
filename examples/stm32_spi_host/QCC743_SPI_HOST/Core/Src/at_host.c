@@ -11,6 +11,8 @@
 #include <string.h>
 #include <stdarg.h>
 
+#define RECV_BUF_BYTES	(6 * 1024)
+
 static const osThreadAttr_t _rx_task_attr = {
   .name = "at_rx",
   .priority = (osPriority_t) osPriorityRealtime6,
@@ -115,7 +117,7 @@ static void __at_rx_task(void *arg)
 {
 	int ret;
 	at_host_handle_t handle = (at_host_handle_t)arg;
-	static char evt_head[5*1024];
+	static char evt_head[RECV_BUF_BYTES];
 	struct _fount_list found_list[10];
 
 	printf("at rx start\r\n");

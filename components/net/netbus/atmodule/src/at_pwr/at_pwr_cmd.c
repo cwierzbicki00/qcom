@@ -80,7 +80,6 @@ static int clear_dtim_cmd(int argc, const char **argv)
     return AT_RESULT_CODE_OK;
 }
 
-
 static int at_wkio_cmd(int argc, const char **argv)
 {
     int wkio;
@@ -170,6 +169,35 @@ static int at_twt_sleep_cmd(int argc, const char **argv)
     return AT_RESULT_CODE_OK;
 }
 
+static int at_clock_source_set_cmd(int argc, const char **argv)
+{
+    int source;
+    int ret;
+
+    AT_CMD_PARSE_NUMBER(0, &source);
+
+    int app_set_clock_source(uint8_t source);
+    ret = app_set_clock_source(source);
+    if (ret) {
+        printf("Set clock source fail.\r\n");
+    } else {
+        printf("Set clock source success.\r\n");
+    }
+
+    return AT_RESULT_CODE_OK;
+}
+
+static int at_clock_source_get_cmd(int argc, const char **argv)
+{
+    int source;
+
+    int app_get_clock_source(uint8_t *source);
+    app_get_clock_source(&source);
+    printf("Clock source:%d\r\n", source);
+
+    return AT_RESULT_CODE_OK;
+}
+
 static const at_cmd_struct at_pwr_cmd[] = {
     {"+PWR", NULL, NULL, at_pwr_cmd_pwrmode, NULL, 1, 3},
     {"+SLWKDTIM", NULL, NULL, at_dtim_cmd, NULL, 1, 1},
@@ -183,6 +211,8 @@ static const at_cmd_struct at_pwr_cmd[] = {
     {"+STOP_ARP", NULL, NULL, NULL, at_stop_arp_send_cmd, 0, 0},
     {"+TWT_PARAM", NULL, NULL, at_twt_param_cmd, NULL, 5, 5},
     {"+TWT_SLEEP", NULL, NULL, NULL, at_twt_sleep_cmd, 0, 0},
+    {"+SET_CLOCK", NULL, NULL, at_clock_source_set_cmd, NULL, 1, 1},
+    {"+GET_CLOCK", NULL, NULL, NULL, at_clock_source_get_cmd, 0, 0},
 };
 
 bool at_pwr_cmd_regist(void)

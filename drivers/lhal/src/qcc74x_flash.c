@@ -1,5 +1,10 @@
-
-#if defined(QCC743)
+#if defined(QCC74x_undef)
+#include "qcc74x_undef_memorymap.h"
+#include "qcc74x_undef_glb.h"
+#elif defined(QCC74x_undef)
+#include "qcc74x_undef_memorymap.h"
+#include "qcc74x_undef_glb.h"
+#elif defined(QCC743)
 #include "qcc743_memorymap.h"
 #include "qcc743_glb.h"
 #include "qcc743_ef_cfg.h"
@@ -8,17 +13,17 @@
 #include "qcc74x_undef_glb.h"
 #include "qcc74x_undef_ef_cfg.h"
 #include "qcc74x_undef_l1c.h"
-#elif defined(QCC74x_undefP)
-#include "qcc74x_undefp_memorymap.h"
-#include "qcc74x_undefp_glb.h"
-#include "qcc74x_undefp_ef_cfg.h"
 #elif defined(QCC74x_undef)
 #include "qcc74x_undef_memorymap.h"
 #include "qcc74x_undef_glb.h"
 #include "qcc74x_undef_ef_cfg.h"
-#elif defined(QCC74x_undefL)
-#include "qcc74x_undefl_glb.h"
-#include "qcc74x_undefl_ef_ctrl.h"
+#elif defined(QCC74x_undef)
+#include "qcc74x_undef_memorymap.h"
+#include "qcc74x_undef_glb.h"
+#include "qcc74x_undef_ef_cfg.h"
+#elif defined(QCC74x_undef)
+#include "qcc74x_undef_glb.h"
+#include "qcc74x_undef_ef_ctrl.h"
 #elif defined(QCC74x_undef)
 #include "qcc74x_undef_glb.h"
 #include "qcc74x_undef_sflash_ext.h"
@@ -36,7 +41,7 @@
 #include "hardware/sf_ctrl_reg.h"
 #include "qcc74x_efuse.h"
 
-#if defined(QCC743) || defined(QCC74x_undef)
+#if defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
 static uint32_t flash1_size = 4 * 1024 * 1024;
 static uint32_t flash2_size = 2 * 1024 * 1024;
 #ifdef QCC74x_SF_CTRL_SBUS2_ENABLE
@@ -106,7 +111,7 @@ static spi_flash_cfg_type g_flash_cfg = {
     /*id*/
     .jedec_id_cmd = 0x9f,
     .jedec_id_cmd_dmy_clk = 0,
-#if defined(QCC74x_undefL) || defined(QCC74x_undef) || defined(QCC74x_undef)
+#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
     .qpi_jedec_id_cmd = 0x9f,
     .qpi_jedec_id_cmd_dmy_clk = 0x00,
 #else
@@ -282,7 +287,7 @@ static uint32_t ATTR_TCM_SECTION flash_get_size_from_jedecid(uint32_t jedec_id)
     return flash_size;
 }
 
-#if defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undefP) || defined(QCC74x_undef) || defined(QCC74x_undefL)
+#if defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
 static int flash_get_clock_delay(spi_flash_cfg_type *cfg)
 {
     uint32_t reg_base = 0;
@@ -327,21 +332,21 @@ static void ATTR_TCM_SECTION flash_set_l1c_wrap(spi_flash_cfg_type *p_flash_cfg)
     if ((p_flash_cfg->io_mode & 0x1f) == SF_CTRL_QIO_MODE) {
 #if defined(QCC74x_undef)
         qcc74x_l1c_set_wrap(1);
-#else
+#elif defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
         L1C_Set_Wrap(ENABLE);
 #endif
         qcc74x_sflash_set_burst_wrap(p_flash_cfg);
     } else {
 #if defined(QCC74x_undef)
         qcc74x_l1c_set_wrap(0);
-#else
+#elif defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
         L1C_Set_Wrap(DISABLE);
 #endif
         qcc74x_sflash_disable_burst_wrap(p_flash_cfg);
     }
 }
 
-#if defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undefP) || defined(QCC74x_undef)
+#if defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
 static void ATTR_TCM_SECTION qcc74x_flash_set_cmds(spi_flash_cfg_type *p_flash_cfg)
 {
     struct sf_ctrl_cmds_cfg cmds_cfg;
@@ -392,7 +397,7 @@ static int ATTR_TCM_SECTION flash_config_init(spi_flash_cfg_type *p_flash_cfg, u
     p_flash_cfg->c_read_support = 0x00;
 #endif
     /* Set flash controler from p_flash_cfg */
-#if defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undefP) || defined(QCC74x_undef)
+#if defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
     qcc74x_flash_set_cmds(p_flash_cfg);
 #endif
     flash_set_qspi_enable(p_flash_cfg);
@@ -467,7 +472,7 @@ static int ATTR_TCM_SECTION flash2_init(void)
         }
         qcc74x_sf_ctrl_sbus2_revoke_replace();
 
-#if defined(QCC743) || defined(QCC74x_undef)
+#if defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
         flash2_size = flash_get_size_from_jedecid(g_jedec_id2);
 #endif
     }
@@ -489,6 +494,9 @@ int ATTR_TCM_SECTION qcc74x_flash_init(void)
     uint8_t clk_delay = 1;
     uint8_t clk_invert = 1;
     uintptr_t flag;
+#if defined(QCC74x_undef)
+    qcc74x_efuse_device_info_type device_info;
+#endif
 #endif
 
 #ifdef QCC74x_SF_CTRL_SBUS2_ENABLE
@@ -496,6 +504,13 @@ int ATTR_TCM_SECTION qcc74x_flash_init(void)
 #endif
 
 #if defined(QCC74x_undef) || defined(QCC74x_undef)
+#if defined(QCC74x_undef)
+    qcc74x_efuse_get_device_info(&device_info);
+    if (device_info.flash_info == 5 && device_info.psram_info == 1) {
+        *(volatile uint32_t *)0x40000130 |= (1U << 16);
+        *(volatile uint32_t *)0x40000134 |= (1U << 16);
+    }
+#endif
     flag = qcc74x_irq_save();
 #if defined(QCC74x_undef)
     qcc74x_sflash_cache_flush();
@@ -531,13 +546,13 @@ int ATTR_TCM_SECTION qcc74x_flash_init(void)
             g_jedec_id = jedec_id;
             g_flash_cfg.mid = (jedec_id & 0xff);
             flash_get_clock_delay(&g_flash_cfg);
-#if defined(QCC743) || defined(QCC74x_undef)
+#if defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
             flash1_size = flash_get_size_from_jedecid(g_jedec_id);
 #endif
 #ifdef QCC74x_SF_CTRL_SBUS2_ENABLE
             flash2_init();
 #else
-#if defined(QCC743) || defined(QCC74x_undef)
+#if defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
             flash2_size = 0;
 #endif
 #endif
@@ -555,14 +570,14 @@ int ATTR_TCM_SECTION qcc74x_flash_init(void)
 #endif
 #endif
 
-#if defined(QCC743) || defined(QCC74x_undef)
+#if defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
     flash1_size = flash_get_size_from_jedecid(g_jedec_id);
 #endif
 
 #ifdef QCC74x_SF_CTRL_SBUS2_ENABLE
     flash2_init();
 #else
-#if defined(QCC743) || defined(QCC74x_undef)
+#if defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
     flash2_size = 0;
 #endif
 #endif
@@ -572,10 +587,7 @@ int ATTR_TCM_SECTION qcc74x_flash_init(void)
 
 uint32_t qcc74x_flash_get_jedec_id(void)
 {
-    uint32_t jid = 0;
-
-    jid = ((g_jedec_id & 0xff) << 16) + (g_jedec_id & 0xff00) + ((g_jedec_id & 0xff0000) >> 16);
-    return jid;
+    return g_jedec_id;
 }
 
 uint32_t qcc74x_flash_get_size(void)
@@ -583,7 +595,7 @@ uint32_t qcc74x_flash_get_size(void)
     return flash_get_size_from_jedecid(g_jedec_id);
 }
 
-#if defined(QCC743) || defined(QCC74x_undef)
+#if defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
 #ifdef QCC74x_SF_CTRL_SBUS2_ENABLE
 uint32_t qcc74x_flash2_get_size(void)
 {
@@ -616,7 +628,7 @@ void ATTR_TCM_SECTION qcc74x_flash_set_iomode(uint8_t iomode)
         g_flash_cfg.io_mode |= iomode;
     }
 
-#if defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undefP) || defined(QCC74x_undef)
+#if defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
     qcc74x_flash_set_cmds(&g_flash_cfg);
 #endif
     flash_set_qspi_enable(&g_flash_cfg);
@@ -647,7 +659,7 @@ int ATTR_TCM_SECTION qcc74x_flash_erase(uint32_t startaddr, uint32_t len)
     int stat = -1;
     uintptr_t flag;
 
-#if defined(QCC743) || defined(QCC74x_undef)
+#if defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
     if ((startaddr + len) > (flash1_size + flash2_size)) {
         return -ENOMEM;
     } else if ((startaddr + len) <= flash1_size) {
@@ -708,7 +720,7 @@ int ATTR_TCM_SECTION qcc74x_flash_write(uint32_t addr, uint8_t *data, uint32_t l
     int stat = -1;
     uintptr_t flag;
 
-#if defined(QCC743) || defined(QCC74x_undef)
+#if defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
     if ((addr + len) > (flash1_size + flash2_size)) {
         return -ENOMEM;
     } else if ((addr + len) <= flash1_size) {
@@ -769,7 +781,7 @@ int ATTR_TCM_SECTION qcc74x_flash_read(uint32_t addr, uint8_t *data, uint32_t le
     int stat = -1;
     uintptr_t flag;
 
-#if defined(QCC743) || defined(QCC74x_undef)
+#if defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
     if ((addr + len) > (flash1_size + flash2_size)) {
         return -ENOMEM;
     } else if ((addr + len) <= flash1_size) {
@@ -861,7 +873,7 @@ int ATTR_TCM_SECTION qcc74x_flash_set_cache(uint8_t cont_read, uint8_t cache_ena
         }
     }
 
-#if defined(QCC74x_undef) || defined(QCC74x_undef)
+#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
 #if defined(QCC74x_undef)
     qcc74x_sflash_cache_enable_set(0xf);
 #else
@@ -902,6 +914,7 @@ void ATTR_TCM_SECTION qcc74x_flash_aes_init(struct qcc74x_flash_aes_config_s *co
 
 void ATTR_TCM_SECTION qcc74x_flash_aes_enable(void)
 {
+    qcc74x_sf_ctrl_aes_enable_be();
     qcc74x_sf_ctrl_aes_enable();
 }
 

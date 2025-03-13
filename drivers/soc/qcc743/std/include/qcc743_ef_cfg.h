@@ -37,6 +37,17 @@ extern "C" {
 /** @defgroup  EF_CTRL_Public_Functions
  *  @{
  */
+void qcc74x_efuse_read_secure_boot(uint8_t *sign, uint8_t *aes);
+
+int qcc74x_efuse_enable_aes(uint8_t aes_type, uint8_t xts_mode);
+
+int qcc74x_efuse_rw_lock_aes_key(uint8_t key_index, uint8_t rd_lock, uint8_t wr_lock);
+
+int qcc74x_efuse_rw_lock_dbg_key(uint8_t rd_lock, uint8_t wr_lock);
+
+int qcc74x_efuse_write_lock_pk_hash(uint32_t pkhash_len);
+
+int qcc74x_efuse_write_lock_usb_pid_vid(void);
 
 /*@} end of group EF_CTRL_Public_Functions */
 

@@ -1221,15 +1221,28 @@ static void wpa_supplicant_scan(void *eloop_ctx, void *timeout_ctx)
 			"SSID");
 	}
 
-    //XXX scan for specific SSID
-    ssid = wpa_s->conf->ssid;
-    wpa_s->prev_scan_ssid = ssid;
-    wpa_s->prev_scan_wildcard = 1;
-    params.ssids[0].ssid = ssid->ssid;
-    params.ssids[0].ssid_len = ssid->ssid_len;
-    params.num_ssids = 1;
-    os_memcpy(wpa_s->next_scan_bssid, ssid->bssid, ETH_ALEN);
-    printf("Starting AP scan for specific SSID: %s, ssid_len:%d, BSSID: " MACSTR " \r\n", wpa_s->prev_scan_ssid->ssid, ssid->ssid_len, MAC2STR(ssid->bssid));
+#ifdef CONFIG_WPS
+    enum wps_request_type req_type;
+    if (!wpas_wps_in_use(wpa_s, &req_type)) {
+#endif
+        //XXX scan for specific SSID
+        ssid = wpa_s->conf->ssid;
+        wpa_s->prev_scan_ssid = ssid;
+        wpa_s->prev_scan_wildcard = 1;
+        params.ssids[0].ssid = ssid->ssid;
+        params.ssids[0].ssid_len = ssid->ssid_len;
+        params.num_ssids = 1;
+        os_memcpy(wpa_s->next_scan_bssid, ssid->bssid, ETH_ALEN);
+        printf("Starting AP scan for specific SSID: %s, ssid_len:%d, BSSID: " MACSTR " \r\n", wpa_s->prev_scan_ssid->ssid, ssid->ssid_len, MAC2STR(ssid->bssid));
+#ifdef CONFIG_WPS
+    } else {
+        params.ssids[0].ssid = NULL;
+        params.ssids[0].ssid_len = 0;
+        wpa_s->prev_scan_ssid = NULL;
+        wpa_s->prev_scan_wildcard = 1;
+    }
+#endif
+
 
 ssid_list_set:
 	wpa_supplicant_optimize_freqs(wpa_s, &params);

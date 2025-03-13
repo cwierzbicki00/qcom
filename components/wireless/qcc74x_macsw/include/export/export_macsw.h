@@ -182,6 +182,7 @@ struct fhost_statistic {
 extern struct fhost_statistic fhost_statistic;
 
 enum ME_PARAM_ID_E {
+    ME_PARAM_ID_TX_SINGLE_RETRY_CNT_LIMIT,
     ME_PARAM_ID_TX_AMPDU_RETRY_CNT_LIMIT,
     ME_PARAM_ID_TX_AMPDU_PROTECT_ENABLE,
     ME_PARAM_ID_TX_AMPDU_DROP_TO_SINGLETON_RETRYCNT_THRESHOLD,

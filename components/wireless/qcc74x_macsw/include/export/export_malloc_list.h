@@ -30,6 +30,7 @@
     struct_func_alloc_def(me_config_monitor_cfm);
     struct_func_alloc_def(mm_set_edca_req);
     struct_func_alloc_def(mm_bcn_change_req);
+    struct_func_alloc_def(mm_bcn_control_req);
     struct_func_alloc_def(me_sta_add_req);
     struct_func_alloc_def(me_sta_add_cfm);
     struct_func_alloc_def(me_sta_del_req);

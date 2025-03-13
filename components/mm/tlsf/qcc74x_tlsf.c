@@ -45,9 +45,6 @@
     {                                                                                                                         \
         if (!(x)) {                                                                                                           \
             printf("tlsf malloc %d bytes failed at function %s using heap base:%p\r\n", size, __FUNCTION__, heap->heapstart); \
-            qcc74x_irq_save();                                                                                                  \
-            while (1)                                                                                                         \
-                ;                                                                                                             \
         }                                                                                                                     \
     }
 

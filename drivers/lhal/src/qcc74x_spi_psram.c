@@ -1,6 +1,5 @@
 #include "qcc74x_spi_psram.h"
 #include "qcc74x_l1c.h"
-#include "sf_ctrl_reg.h"
 
 /** @addtogroup  QCC74x_Peripheral_Driver
  *  @{
@@ -67,7 +66,7 @@ void ATTR_TCM_SECTION qcc74x_psram_init(struct spi_psram_cfg_type *psram_cfg, st
     qcc74x_sf_ctrl_psram_init(sf_ctrl_psram_cfg);
     qcc74x_sf_ctrl_cmds_set(cmds_cfg, 0);
 
-#if defined(QCC74x_undefL)
+#if defined(QCC74x_undef)
     qcc74x_sf_ctrl_burst_toggle_set(psram_cfg->burst_toggle_en, psram_cfg->ctrl_mode);
 #endif
     qcc74x_psram_setdrivestrength(psram_cfg);

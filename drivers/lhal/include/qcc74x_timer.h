@@ -14,7 +14,7 @@
 /** @defgroup TIMER_CLK_SOURCE timer clock source definition
   * @{
   */
-#if !defined(QCC74x_undefL)
+#if !defined(QCC74x_undef)
 #define TIMER_CLKSRC_BCLK 0
 #endif
 #define TIMER_CLKSRC_32K  1
@@ -48,11 +48,68 @@
   * @}
   */
 
-/** @defgroup TIMER_CAPTURE_POLARITY timer capture polarity definition
+/** @defgroup TIMER_DMA_COMP_ID timer dma request compare id definition
   * @{
   */
-#define TIMER_CAPTURE_POLARITY_POSITIVE 0
-#define TIMER_CAPTURE_POLARITY_NEGATIVE 1
+#if defined(QCC74x_undef)
+#define TIMER_DMA_REQUEST_COMP_ID_0 (1 << 0)
+#define TIMER_DMA_REQUEST_COMP_ID_1 (1 << 1)
+#define TIMER_DMA_REQUEST_COMP_ID_2 (1 << 2)
+#define TIMER_DMA_REQUEST_COMP_NONE (0)
+#endif
+/**
+  * @}
+  */
+
+/** @defgroup TIMER_GPIO_PULSE_POLARITY timer gpio pulse polarity definition
+  * @{
+  */
+#define TIMER_GPIO_PULSE_POLARITY_POSITIVE 0
+#define TIMER_GPIO_PULSE_POLARITY_NEGATIVE 1
+/**
+  * @}
+  */
+
+/** @defgroup TIMER_GPIO_PULSE_INT_MODE timer gpio pulse measure interrupt trigger mode definition
+  * @{
+  */
+#if defined(QCC74x_undef)
+#define TIMER_GPIO_PULSE_INT_EVERY_FALLING_EDGE 0
+#define TIMER_GPIO_PULSE_INT_EVEN_FALLING_EDGE  1
+#endif
+/**
+  * @}
+  */
+
+/** @defgroup TIMER_GPIO_PULSE_VALUE timer gpio pulse value definition
+  * @{
+  */
+#if defined(QCC74x_undef)
+#define TIMER_GPIO_PULSE_VALUE_0 0
+#define TIMER_GPIO_PULSE_VALUE_1 1
+#define TIMER_GPIO_PULSE_VALUE_2 2
+#define TIMER_GPIO_PULSE_VALUE_3 3
+#endif
+/**
+  * @}
+  */
+
+/** @defgroup TIMER_CMD timer feature control cmd definition
+  * @{
+  */
+#if defined(QCC74x_undef)
+#define TIMER_CMD_DMA_REQUEST_SET_COMPARE_ID (0x01)
+#define TIMER_CMD_GPIO_PULSE_SET_ENABLE      (0x02)
+#define TIMER_CMD_GPIO_PULSE_SET_INT_MODE    (0x03)
+#define TIMER_CMD_GPIO_PULSE_SET_POLARITY    (0x04)
+#define TIMER_CMD_GPIO_PULSE_GET_BUSY        (0x05)
+#define TIMER_CMD_GPIO_PULSE_GET_VALUE       (0x06)
+#define TIMER_CMD_GPIO_PULSE_INT_MASK        (0x07)
+#define TIMER_CMD_GPIO_PULSE_INT_CLEAR       (0x08)
+#define TIMER_CMD_READ_HW_VERSION            (0x09)
+#define TIMER_CMD_READ_SW_USAGE              (0x0a)
+#define TIMER_CMD_WRITE_SW_USAGE             (0x0b)
+#endif
 /**
   * @}
   */
@@ -96,16 +153,35 @@ struct qcc74x_timer_config_s {
     uint32_t preload_val;
 };
 
+#if defined(QCC74x_undef)
 /**
  * @brief TIMER capture configuration structure
  *
  * @param pin      Timer capture pin
- * @param polarity Timer capture polarity, use @ref TIMER_CAPTURE_POLARITY
+ * @param polarity Timer capture polarity, use @ref TIMER_GPIO_PULSE_POLARITY
+ * @param int_mode Timer interupt mode(individual or continuous pulse) , use @ref TIMER_GPIO_PULSE_INT
  */
 struct qcc74x_timer_capture_config_s {
     uint8_t pin;
     uint8_t polarity;
+    uint8_t int_mode;
 };
+
+/**
+ * @brief Structure to store the values of timer pulses.
+ *
+ * @param goio_lat1 The gpio pos-edge latch1 value for timer0.
+ * @param goio_lat2 The gpio neg-edge latch2 value for timer0.
+ * @param goio_lat3 The gpio pos-edge latch3 value for timer0.
+ * @param goio_lat4 The gpio neg-edge latch4 value for timer0.
+ */
+struct qcc74x_timer_capture_value_s {
+    uint32_t gpio_lat1;
+    uint32_t gpio_lat2;
+    uint32_t gpio_lat3;
+    uint32_t gpio_lat4;
+};
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -199,6 +275,59 @@ bool qcc74x_timer_get_compint_status(struct qcc74x_device_s *dev, uint8_t cmp_no
  * @param [in] cmp_no compare id, use @ref TIMER_COMP_ID
  */
 void qcc74x_timer_compint_clear(struct qcc74x_device_s *dev, uint8_t cmp_no);
+
+/**
+ * @brief Control timer feature.
+ *
+ * @param [in] dev device handle
+ * @param [in] cmd feature command, use @ref TIMER_CMD
+ * @param [in] arg user data
+ * @return A negated errno value on failure.
+ */
+int qcc74x_timer_feature_control(struct qcc74x_device_s *dev, int cmd, size_t arg);
+
+#if defined(QCC74x_undef)
+/**
+ * @brief Initialize the timer capture feature.
+ *
+ * @param [in] dev device handle
+ * @param [in] config pointer to the timer capture configuration structure
+ */
+void qcc74x_timer_capture_init(struct qcc74x_device_s *dev, const struct qcc74x_timer_capture_config_s *config);
+
+/**
+ * @brief Start the timer capture process.
+ *
+ * @param [in] dev device handle
+ * @return 0 on success, or a negative error code on failure.
+ */
+int qcc74x_timer_capture_start(struct qcc74x_device_s *dev);
+
+/**
+ * @brief Stop the timer capture process.
+ *
+ * @param [in] dev device handle
+ * @return 0 on success, or a negative error code on failure.
+ */
+int qcc74x_timer_capture_stop(struct qcc74x_device_s *dev);
+
+/**
+ * @brief Get the captured latch values.
+ *
+ * @param [in] dev device handle
+ * @param [out] gpio_lat pointer to the structure where the latch values will be stored.
+ * @return 0 on success, or a negative error code on failure.
+ */
+int qcc74x_timer_capture_get_latch_value(struct qcc74x_device_s *dev, struct qcc74x_timer_capture_value_s *gpio_lat);
+
+/**
+ * @brief Calculate the pulse width from the captured latch values.
+ *
+ * @param [in] gpio_lat pointer to the structure containing the latch values.
+ * @return The calculated pulse width, or 0 if the pulse width cannot be determined.
+ */
+int qcc74x_timer_capture_get_pulsewidth(struct qcc74x_timer_capture_value_s *gpio_lat);
+#endif
 
 #ifdef __cplusplus
 }

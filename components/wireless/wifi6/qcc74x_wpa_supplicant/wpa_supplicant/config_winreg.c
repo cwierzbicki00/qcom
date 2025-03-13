@@ -30,7 +30,7 @@ HKEY_LOCAL_MACHINE\SOFTWARE\wpa_supplicant\configs\test\networks\0000
 #include "includes.h"
 
 #include "common.h"
-#include "uuid.h"
+#include "wpa_uuid.h"
 #include "config.h"
 
 #ifndef WPA_KEY_ROOT

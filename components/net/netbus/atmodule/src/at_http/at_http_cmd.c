@@ -66,6 +66,14 @@ static struct at_http_ctx g_httpc_handle[AT_HTTPC_HANDLE_MAX];
 
 static struct at_https_global_config g_https_cfg = {0};
 
+static const char *at_resp_string[] = {
+    "",
+    "+HTTPCHEAD",
+    "+HTTPCGET",
+    "+HTTPCPOST",
+    "+HTTPCPUT",
+};
+
 static inline void free_ctx(struct at_http_ctx *ctx)
 {
     ctx->used = 0;
@@ -262,11 +270,13 @@ static err_t cb_httpc_headers_done_fn(httpc_state_t *connection, void *arg, stru
 
     if (ctx->settings.req_type == REQ_TYPE_HEAD) {
         if (hdr->tot_len) {
-            at_write(AT_HTTP_EVT_HEAD("+HTTPC:%d,%d"), ctx->linkid, hdr_len);
+            at_write("%s:%d,%d,", at_resp_string[ctx->settings.req_type], ctx->linkid, hdr_len);
             AT_CMD_DATA_SEND(hdr->payload, hdr->tot_len);
         }
     } else {
-        at_write(AT_HTTP_EVT_HEAD("+HTTPC:%d,%d"), ctx->linkid, content_len);
+        at_write(AT_HTTP_EVT_HEAD("%s:%d,%d"), 
+                 (g_https_cfg.recv_mode == AT_HTTPC_RECV_MODE_PASSIVE)?"+HTTPC":at_resp_string[ctx->settings.req_type], 
+                 ctx->linkid, content_len);
     }
     return ERR_OK;
 }
@@ -482,7 +492,9 @@ static int at_setup_cmd_httpclient(int argc, const char **argv)
     if (linkid < 0 || linkid >= AT_HTTPC_HANDLE_MAX) {
         return AT_RESULT_CODE_ERROR;
     }
- 
+    if (opt < 0 || opt > REQ_TYPE_PUT) {
+        return AT_RESULT_CODE_ERROR;
+    }
     ctx = &g_httpc_handle[linkid];
     //memset(ctx, 0, sizeof(struct at_http_ctx));
 
@@ -951,7 +963,7 @@ static int at_setup_cmd_httprecvbuf(int argc, const char **argv)
         
     AT_CMD_PARSE_NUMBER(0, &size);
  
-    if (size <= 0) {
+    if (size <= 0 || size > MEM_SIZE) {
         return AT_RESULT_CODE_ERROR;
     }
 

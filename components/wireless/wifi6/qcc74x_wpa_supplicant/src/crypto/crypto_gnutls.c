@@ -282,7 +282,7 @@ void aes_decrypt_deinit(void *ctx)
 	gcry_cipher_close(hd);
 }
 
-
+#ifndef CONFIG_WPS
 int crypto_dh_init(u8 generator, const u8 *prime, size_t prime_len, u8 *privkey,
 		   u8 *pubkey)
 {
@@ -307,6 +307,7 @@ int crypto_dh_init(u8 generator, const u8 *prime, size_t prime_len, u8 *privkey,
 
 	return 0;
 }
+#endif
 
 
 int crypto_dh_derive_secret(u8 generator, const u8 *prime, size_t prime_len,
@@ -358,6 +359,7 @@ fail:
 }
 
 
+#ifndef CONFIG_WPS
 int crypto_mod_exp(const u8 *base, size_t base_len,
 		   const u8 *power, size_t power_len,
 		   const u8 *modulus, size_t modulus_len,
@@ -391,6 +393,7 @@ error:
 	gcry_mpi_release(bn_result);
 	return ret;
 }
+#endif
 
 
 struct crypto_cipher {

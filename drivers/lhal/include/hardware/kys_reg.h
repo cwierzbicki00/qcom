@@ -1,4 +1,3 @@
-
 #ifndef __HARDWARE_KYS_H__
 #define __HARDWARE_KYS_H__
 
@@ -104,7 +103,7 @@
 #define KYS_KEYCODE3_MASK  (0xff << KYS_KEYCODE3_SHIFT)
 #endif
 
-#if defined(qcc74x_undefl)
+#if defined(qcc74x_undef)
 /* 0x30 : keyfifo_idx */
 #define KYS_KEYFIFO_HEAD_SHIFT (0U)
 #define KYS_KEYFIFO_HEAD_MASK  (0x7 << KYS_KEYFIFO_HEAD_SHIFT)

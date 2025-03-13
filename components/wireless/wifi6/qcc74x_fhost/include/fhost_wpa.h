@@ -391,6 +391,14 @@ int fhost_wpa_cipher_name(uint32_t cipher, char *buf, int len);
 int fhost_wpa_get_supplicant_state(int fhost_vif_idx);
 
 int fhost_wpa_ap_sta_del(int fhost_vif_idx, uint8_t *mac_addr);
+
+/**
+ ****************************************************************************************
+ * @brief Start wps mode
+ ****************************************************************************************
+ */
+int fhost_wpa_wps_pbc_start(void);
+
 /**
  * @}
  */

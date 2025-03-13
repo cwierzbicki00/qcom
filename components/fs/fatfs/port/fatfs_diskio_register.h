@@ -1,9 +1,12 @@
 #ifndef FATFS_DISKIO_REGISTER_H
 #define FATFS_DISKIO_REGISTER_H
 
-#if defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undefP)
+#if defined(CONFIG_FATFS_SDH_SDCARD)
 
 void fatfs_sdh_driver_register(void);
+
+#elif defined(CONFIG_FATFS_USBH)
+
 void fatfs_usbh_driver_register(void);
 
 #endif

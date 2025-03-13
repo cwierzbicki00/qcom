@@ -2,6 +2,38 @@
 #include "qcc743_romdriver_e907.h"
 #include <string.h>
 
+/** @addtogroup  QCC743_Periph_Driver
+ *  @{
+ */
+
+/** @defgroup ROMDRIVER
+ *  @brief ROMDRIVER common functions
+ *  @{
+ */
+
+/** @defgroup ROMDRIVER_Private_Type
+ *  @{
+ */
+
+/*@} end of group ROMDRIVER_Private_Type*/
+
+/** @defgroup ROMDRIVER_Private_Defines
+ *  @{
+ */
+
+/*@} end of group ROMDRIVER_Private_Defines */
+
+/** @defgroup ROMDRIVER_Private_Variables
+ *  @{
+ */                               
+
+/*@} end of group ROMDRIVER_Private_Variables */
+
+/** @defgroup ROMDRIVER_Global_Variables
+ *  @{
+ */ 
+ 
+
 uint32_t const romDriverTable[]={
     0x06160002,
     0x00000000,

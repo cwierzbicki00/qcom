@@ -112,11 +112,6 @@ void exception_entry(uintptr_t *regs)
     cause = (cause & 0x3ff);
 
 #ifndef CONFIG_TRAP_DUMP_DISABLE
-    /* 
-     * It the literal string from RISC-V ISA manual
-     * CC-BY-4.0 license: 
-     * https://github.com/riscv/riscv-isa-manual/blob/b6480da0db0c428a8ab29b65cae693041cd3e874/LICENSE
-     */
     const char *mcause_str[] = {
         "Instruction address misaligned",
         "Instruction access fault",

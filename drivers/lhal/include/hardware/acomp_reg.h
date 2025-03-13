@@ -1,5 +1,3 @@
-
-
 #ifndef __HARDWARE_ACOMP_H__
 #define __HARDWARE_ACOMP_H__
 

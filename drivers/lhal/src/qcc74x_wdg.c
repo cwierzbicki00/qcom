@@ -45,7 +45,7 @@ void qcc74x_wdg_init(struct qcc74x_device_s *dev, const struct qcc74x_wdg_config
     regval = getreg32(reg_base + TIMER_WCR_OFFSET);
     regval |= TIMER_WCR;
     putreg32(regval, reg_base + TIMER_WCR_OFFSET);
-    
+
     putreg16(0xBABA, reg_base + TIMER_WFAR_OFFSET);
     putreg16(0xEB10, reg_base + TIMER_WSAR_OFFSET);
     putreg16(config->comp_val, reg_base + TIMER_WMR_OFFSET);

@@ -348,7 +348,7 @@ int board_device_info_version()
 }
 
 #if defined(CONFIG_ANTI_ROLLBACK) && !defined(CONFIG_BOOT2)
-extern const qcc74xverinf_t app_ver;
+extern const qcc74x_verinf_t app_ver;
 uint8_t efuse_version = 0xFF;
 
 static void qcc74x_check_anti_rollback(void){

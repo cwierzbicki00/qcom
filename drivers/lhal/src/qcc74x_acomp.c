@@ -3,10 +3,12 @@
 #include "qcc74x_gpio.h"
 #include "hardware/acomp_reg.h"
 
-#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undefL)
+#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
 #define ACOMP_BASE ((uint32_t)0x4000f000)
-#elif defined(QCC743) || defined(QCC74x_undefP) || defined(QCC74x_undef) || defined(QCC74x_undef)
+#elif defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
 #define ACOMP_BASE ((uint32_t)0x2000f000)
+#elif defined(QCC74x_undef) || defined(QCC74x_undef)
+#define ACOMP_BASE ((uint32_t)0x2008f000)
 #endif
 
 void qcc74x_acomp_init(uint8_t acomp_id, const struct qcc74x_acomp_config_s *config)
@@ -177,7 +179,7 @@ int qcc74x_acomp_gpio_2_chanid(uint32_t pin, uint32_t *channel)
     } else {
         return -1;
     }
-#elif defined(QCC74x_undefL)
+#elif defined(QCC74x_undef)
     if (pin == GPIO_PIN_14) {
         *channel = AON_ACOMP_CHAN_ADC0;
     } else if (pin == GPIO_PIN_15) {
@@ -197,7 +199,7 @@ int qcc74x_acomp_gpio_2_chanid(uint32_t pin, uint32_t *channel)
     } else {
         return -1;
     }
-#elif defined(QCC743)
+#elif defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undef)
     if (pin == GPIO_PIN_20) {
         *channel = AON_ACOMP_CHAN_ADC0;
     } else if (pin == GPIO_PIN_19) {
@@ -217,7 +219,7 @@ int qcc74x_acomp_gpio_2_chanid(uint32_t pin, uint32_t *channel)
     } else {
         return -1;
     }
-#elif defined(QCC74x_undefP) || defined(QCC74x_undef)
+#elif defined(QCC74x_undef) || defined(QCC74x_undef)
     if (pin == GPIO_PIN_17) {
         *channel = AON_ACOMP_CHAN_ADC0;
     } else if (pin == GPIO_PIN_5) {
@@ -247,7 +249,7 @@ int qcc74x_acomp_gpio_2_chanid(uint32_t pin, uint32_t *channel)
 int qcc74x_acomp_chanid_2_gpio(uint32_t channel, uint32_t *pin)
 {
 #ifdef romapi_qcc74x_acomp_chanid_2_gpio
-    romapi_qcc74x_acomp_chanid_2_gpio(channel, pin);
+    return romapi_qcc74x_acomp_chanid_2_gpio(channel, pin);
 #else
 #if defined(QCC74x_undef)
     if (channel == AON_ACOMP_CHAN_ADC0) {
@@ -289,7 +291,7 @@ int qcc74x_acomp_chanid_2_gpio(uint32_t channel, uint32_t *pin)
     } else {
         return -1;
     }
-#elif defined(QCC74x_undefL)
+#elif defined(QCC74x_undef)
     if (channel == AON_ACOMP_CHAN_ADC0) {
         *pin = GPIO_PIN_14;
     } else if (channel == AON_ACOMP_CHAN_ADC1) {
@@ -309,7 +311,7 @@ int qcc74x_acomp_chanid_2_gpio(uint32_t channel, uint32_t *pin)
     } else {
         return -1;
     }
-#elif defined(QCC743)
+#elif defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undef)
     if (channel == AON_ACOMP_CHAN_ADC0) {
         *pin = GPIO_PIN_20;
     } else if (channel == AON_ACOMP_CHAN_ADC1) {
@@ -329,7 +331,7 @@ int qcc74x_acomp_chanid_2_gpio(uint32_t channel, uint32_t *pin)
     } else {
         return -1;
     }
-#elif defined(QCC74x_undefP) || defined(QCC74x_undef)
+#elif defined(QCC74x_undef) || defined(QCC74x_undef)
     if (channel == AON_ACOMP_CHAN_ADC0) {
         *pin = GPIO_PIN_17;
     } else if (channel == AON_ACOMP_CHAN_ADC1) {

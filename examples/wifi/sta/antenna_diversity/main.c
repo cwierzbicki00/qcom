@@ -96,16 +96,6 @@ int wifi_start_firmware_task(void)
     qcc74x_irq_attach(WIFI_IRQn, (irq_callback)interrupt0_handler, NULL);
     qcc74x_irq_enable(WIFI_IRQn);
 
-    #ifdef ANTENNA_CTRL_IMPLEMENTED
-    if (board_antenna_num_get() > 0) {
-        if (board_antenna_init() != 0) {
-            printf("Antenna init failed\r\n");
-        }
-
-        wifi_mgmr_antenna_ctrl_register(board_antenna_set);
-    }
-    #endif
-
     xTaskCreate(wifi_main, (char *)"fw", WIFI_STACK_SIZE, NULL, TASK_PRIORITY_FW, &wifi_fw_task);
 
     return 0;
@@ -159,6 +149,9 @@ int main(void)
 {
     board_init();
 
+#ifdef CONFIG_ANTENNA_CONTROL
+    board_antenna_init(1, 1, 0);
+#endif
     uart0 = qcc74x_device_get_by_name("uart0");
     shell_init_with_task(uart0);
 

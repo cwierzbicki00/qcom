@@ -93,6 +93,18 @@
   * @}
   */
 
+/** @defgroup IR_CMD ir feature control cmd definition
+  * @{
+  */
+#define IR_CMD_SWM_SET_DATA_LEN  (0x01)
+#if !defined(QCC74x_undef) && !defined(QCC74x_undef)
+#define IR_CMD_SWM_WRITE_TX_FIFO (0x02)
+#define IR_CMD_SWM_READ_RX_FIFO  (0x03)
+#endif
+/**
+  * @}
+  */
+
 /**
  * @brief IR TX configuration structure
  *
@@ -126,7 +138,11 @@
  */
 struct qcc74x_ir_tx_config_s {
     uint8_t tx_mode;
+#if defined(QCC74x_undef)
+    uint16_t data_bits;
+#else
     uint8_t data_bits;
+#endif
     uint8_t tail_inverse;
     uint8_t tail_enable;
     uint8_t head_inverse;
@@ -203,7 +219,7 @@ void qcc74x_ir_send(struct qcc74x_device_s *dev, uint32_t *data, uint32_t length
  * @param [in] data data data buffer to send
  * @param [in] length length of data buffer
  */
-void qcc74x_ir_swm_send(struct qcc74x_device_s *dev, uint16_t *data, uint8_t length);
+void qcc74x_ir_swm_send(struct qcc74x_device_s *dev, uint16_t *data, uint32_t length);
 
 /**
  * @brief Enable or disable ir tx.
@@ -277,7 +293,7 @@ void qcc74x_ir_rx_init(struct qcc74x_device_s *dev, const struct qcc74x_ir_rx_co
  * @param [out] data data received
  * @return Bit count of data received
  */
-uint8_t qcc74x_ir_receive(struct qcc74x_device_s *dev, uint64_t *data);
+uint16_t qcc74x_ir_receive(struct qcc74x_device_s *dev, uint64_t *data);
 
 /**
  * @brief Receive data in software mode.
@@ -287,7 +303,7 @@ uint8_t qcc74x_ir_receive(struct qcc74x_device_s *dev, uint64_t *data);
  * @param [in] length of data buffer
  * @return Length of data received
  */
-uint8_t qcc74x_ir_swm_receive(struct qcc74x_device_s *dev, uint16_t *data, uint8_t length);
+uint16_t qcc74x_ir_swm_receive(struct qcc74x_device_s *dev, uint16_t *data, uint16_t length);
 
 /**
  * @brief Enable or disable ir rx.

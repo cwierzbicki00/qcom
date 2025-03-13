@@ -18,7 +18,7 @@
 #endif /* __linux__ */
 
 #include "common.h"
-#include "uuid.h"
+#include "wpa_uuid.h"
 #include "eloop.h"
 #include "wps.h"
 #include "wps_upnp.h"

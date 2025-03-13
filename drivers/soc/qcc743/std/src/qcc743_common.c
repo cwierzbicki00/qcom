@@ -2,6 +2,55 @@
 #include "qcc743_glb.h"
 #include "qcc743_clock.h"
 
+/** @addtogroup  QCC743_Periph_Driver
+ *  @{
+ */
+
+/** @defgroup DRIVER_COMMON DRIVER_COMMON
+ *  @brief Digger driver common functions
+ *  @{
+ */
+
+/** @defgroup DRIVER_Private_Type
+ *  @{
+ */
+
+/*@} end of group DRIVER_Private_Type*/
+
+/** @defgroup DRIVER_Private_Defines
+ *  @{
+ */
+
+/*@} end of group DRIVER_Private_Defines */
+
+/** @defgroup DRIVER_Private_Variables
+ *  @{
+ */
+
+/*@} end of group DRIVER_Private_Variables */
+
+/** @defgroup DRIVER_Global_Variables
+ *  @{
+ */
+
+/*@} end of group DRIVER_Global_Variables */
+
+/** @defgroup DRIVER_Private_FunctionDeclaration
+ *  @{
+ */
+
+/*@} end of group DRIVER_Private_FunctionDeclaration */
+
+/** @defgroup DRIVER_Private_Functions
+ *  @{
+ */
+
+/*@} end of group DRIVER_Private_Functions */
+
+/** @defgroup DRIVER_Public_Functions
+ *  @{
+ */
+
 /****************************************************************************/ /**
  * @brief      delay us
  *

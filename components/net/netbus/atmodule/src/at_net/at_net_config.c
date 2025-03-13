@@ -91,6 +91,9 @@ int at_net_config_default(void)
     ef_del_env(AT_CONFIG_KEY_NET_TCP_OPT);
     ef_del_env(AT_CONFIG_KEY_NET_RECONN_INTV);
     ef_del_env(AT_CONFIG_KEY_NET_TRANS_LINK);
+    ef_del_env(AT_CONFIG_KEY_NET_SSLCONF);
+    ef_del_env(AT_CONFIG_KEY_NET_IPV6_ENABLE);
+    ef_del_env(AT_CONFIG_KEY_NET_DNS);
     return 0;
 }
 

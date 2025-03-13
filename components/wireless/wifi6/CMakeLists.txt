@@ -105,3 +105,5 @@ sdk_add_compile_definitions(-DCONFIG_COEX_WIFI_MODE=0)
 endif()
 
 sdk_add_compile_definitions(-DCONFIG_ANTDIV_STATIC)
+sdk_add_compile_definitions(-DCONFIG_ANTDIV_DYNAMIC)
+#add_subdirectory(antdiv_hal)

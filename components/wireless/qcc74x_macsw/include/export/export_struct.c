@@ -310,6 +310,11 @@ struct_func_set_def(scanu_start_req, uint8_t, ssid_cnt)
 }
 struct_func_len(mm_bcn_change_req)
 
+    struct_func_set_def(mm_bcn_control_req, uint8_t, bcn_tx_mode)
+    struct_func_set_def(mm_bcn_control_req, int, bcn_tx_timer)
+    struct_func_set_def(mm_bcn_control_req, bool, bcn_tx_stop)
+    struct_func_len(mm_bcn_control_req)
+
     struct_func_set_def(me_sta_add_req, struct mac_addr, mac_addr)
     struct_func_set_def(me_sta_add_req, struct mac_rateset, rate_set)
     struct_func_set_def(me_sta_add_req, struct mac_htcapability, ht_cap)

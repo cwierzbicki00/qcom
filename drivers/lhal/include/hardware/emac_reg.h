@@ -1,4 +1,3 @@
-
 #ifndef __HARDWARE_EMAC_H__
 #define __HARDWARE_EMAC_H__
 
@@ -40,6 +39,9 @@
 #define EMAC_PAD      (1 << 15U)
 #define EMAC_RECSMALL (1 << 16U)
 #define EMAC_RMII_EN  (1 << 17U)
+#if defined(QCC74x_undef)||defined(QCC74x_undef)
+#define EMAC_100M     (1 << 18U)
+#endif
 
 /* 0x4 : INT_SOURCE */
 #define EMAC_TXB  (1 << 0U)

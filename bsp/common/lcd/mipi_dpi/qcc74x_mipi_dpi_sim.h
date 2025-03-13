@@ -5,8 +5,6 @@
 
 #if defined LCD_SIM_DPI_ENABLE
 
-#include "qcc74x_flash.h"
-
 /* Do not modify this file ! */
 
 #define LCD_MIPI_DPI_PIXEL_FORMAT_RGB565  0
@@ -28,8 +26,8 @@ typedef struct {
     uint16_t vfp;    /* LCD VFP (Vsync Front Porch) */
 
     uint16_t frame_rate; /* Maximum refresh frame rate per second, Used to automatically calculate the clock frequency */
-
     uint16_t pixel_format;
+    uint8_t de_mode_en;
 
     void *frame_buff; /* The frame buffer */
 } lcd_mipi_dpi_init_t;
@@ -81,12 +79,16 @@ struct qcc74x_sim_dpi_s {
     uint8_t pin_data;
 };
 
+extern uint32_t __edata_etext_final;
+
+#define PEC_API_INDEX_qcc74x_pec_dpi_init                        (11)
+#define PEC_API_INDEX_pec_glb_clock_set                        (12)
+
 __ALWAYS_INLINE
 int qcc74x_sim_dpi_init(struct qcc74x_sim_dpi_s *dpi) {
     uint32_t addr;
-    uint32_t offset = qcc74x_sf_ctrl_get_flash_image_offset(0, 0);
-    offset = (0xA03E0000) - offset;
-    addr = ((uint32_t *)offset)[11];
+    uint32_t offset = (uint32_t)&__edata_etext_final;
+    addr = ((uint32_t *)offset)[PEC_API_INDEX_qcc74x_pec_dpi_init];
     addr += offset;
     return ((int (*) (struct qcc74x_sim_dpi_s *dpi))addr)(dpi);
 }
@@ -94,9 +96,8 @@ int qcc74x_sim_dpi_init(struct qcc74x_sim_dpi_s *dpi) {
 __ALWAYS_INLINE
 void sim_glb_clock_set(uint8_t enable, uint8_t src, uint8_t div) {
     uint32_t addr;
-    uint32_t offset = qcc74x_sf_ctrl_get_flash_image_offset(0, 0);
-    offset = (0xA03E0000) - offset;
-    addr = ((uint32_t *)offset)[12];
+    uint32_t offset = (uint32_t)&__edata_etext_final;
+    addr = ((uint32_t *)offset)[PEC_API_INDEX_pec_glb_clock_set];
     addr += offset;
     return ((void (*) (uint8_t enable, uint8_t src, uint8_t div))addr)(enable, src, div);
 }

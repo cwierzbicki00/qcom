@@ -64,10 +64,6 @@ int main(void)
 {
     board_init();
 
-#ifdef LP_APP
-    app_pm_init();
-#endif
-
     uart0 = qcc74x_device_get_by_name("uart0");
     shell_init_with_task(uart0);
 

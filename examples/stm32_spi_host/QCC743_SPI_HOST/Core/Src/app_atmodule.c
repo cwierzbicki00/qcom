@@ -396,10 +396,9 @@ int at_iperf_udp_rx_fast_start(at_host_handle_t at, char ip_addr[20], int port)
 
     while (run_count < 10) {
     	/* Wait the data to be cached TEST_RX_BUFFER_SIZE */
-
-	if (recv_len < TEST_RX_BUFFER_SIZE) {
-		recv_len += wait_ipd(at);
-	}
+    	if (recv_len < TEST_RX_BUFFER_SIZE) {
+    		recv_len += wait_ipd(at);
+    	}
 
     	if (!last) {
     		last = osKernelGetTickCount();
@@ -500,10 +499,9 @@ int at_iperf_tcp_rx_fast_start(at_host_handle_t at, char ip_addr[20], int port)
 
     while (run_count < 10) {
     	/* Wait the data to be cached TEST_RX_BUFFER_SIZE */
-
-	if (recv_len < TEST_RX_BUFFER_SIZE) {
-                recv_len += wait_ipd(at);
-        }
+    	if (recv_len < TEST_RX_BUFFER_SIZE) {
+    		recv_len += wait_ipd(at);
+    	}
 
     	if (!last) {
     		last = osKernelGetTickCount();

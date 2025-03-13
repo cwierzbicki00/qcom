@@ -804,4 +804,21 @@ then it does disconnected flow once more. This will cause hardfault issue becaus
 
 /*Support customized scan interval and scan window in scanning procedure of ble general connection establishment.*/
 #define QCC74x_BLE_SUPPORT_CUSTOMIZED_SCAN_PARAMERS_IN_GENERAL_CONN_ESTABLISH
+
+/* Fix the issue : it excutes bt_conn_create_le, bt_le_scan_start, bt_le_scan_stop sequently. After stop scan ,it takes a long time to establish le connection.
+ * Reason: When it stops scan in this case, it restarts scan if there is a connection's state is BT_CONN_CONNECT_SCAN, but it uses background scan parameters
+ * to do slowly scan even if it is not auto connection without whitelist.
+ * Notice:If Auto conn initiated by bt_le_set_auto_conn,it doesn't create le connection from whitelist.It needs scan first.
+*/
+#define QCC74x_BLE_NOT_USE_BACKGROUD_SCAN_PARAMETERS_IF_NOT_ATUO_CONN_WITHOUT_WHITELIST
+#define QCC74x_BLE_AVOID_WORKQ_TIMER_CANCEL_RISK
+#if !defined(CONFIG_BT_HOST_HCI_TL)
+#define QCC74x_BLE_NOT_ALLOCATE_RX_NETBUF_FOR_NUM_OF_COMPLETED_PKTS_EVT
+#endif
+/*Fix the issue:hci_tx_thread blocked by other sem, not by g_poll_sem, then conn_cleanup is delayed to be handled. When conn_update_timer expires,
+ *conn_update_timeout will be called, and clean the ref,conn->ref = 0. Once hci_tx_thread runs, in bt_conn_prepare_events,it doesn't
+ *excute conn_cleanup if conn->ref is 0.This will cause memory leak issue.
+*/
+#define QCC74x_BLE_PATCH_AVOID_CONN_CLEANUP_FAILED_EXCUTED_RISK
+
 #endif /* BLE_CONFIG_H */

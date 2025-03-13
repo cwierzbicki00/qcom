@@ -178,7 +178,7 @@
 #include <sys/ioctl.h>
 
 #include "common.h"
-#include "uuid.h"
+#include "wpa_uuid.h"
 #include "base64.h"
 #include "wps.h"
 #include "wps_i.h"

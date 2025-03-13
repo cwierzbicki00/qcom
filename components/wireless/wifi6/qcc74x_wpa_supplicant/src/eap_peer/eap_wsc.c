@@ -9,7 +9,7 @@
 #include "includes.h"
 
 #include "common.h"
-#include "uuid.h"
+#include "wpa_uuid.h"
 #include "eap_i.h"
 #include "eap_common/eap_wsc_common.h"
 #include "wps/wps.h"

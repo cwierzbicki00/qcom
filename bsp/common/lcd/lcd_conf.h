@@ -18,12 +18,14 @@
     LCD_DBI_ILI9488
     LCD_DBI_ILI9486
     LCD_DBI_ILI9341
+    LCD_DBI_JD9853
     LCD_DBI_NT35510
     LCD_DBI_ST7796
 
   mipi dpi (RGB) interface
     LCD_DPI_ILI9488
     LCD_DPI_GC9503V
+    LCD_DPI_ST7701S
     LCD_DPI_STANDARD
 
   mipi dsi vidio interface
@@ -34,14 +36,16 @@
     LCD_SPI_ILI9341
     LCD_SPI_ST7796
     LCD_SPI_ST7789V
+    LCD_SPI_ST7735
 */
 #define LCD_DBI_ILI9488
+
 
 /* dbi ili9488 config */
 #if defined LCD_DBI_ILI9488
 
     /* Selecting interface type, more configuration of peripherals comes later
-        1: DBI peripheral, supported functions: typeC-3wire, typeC-4wire, typeB-x8(8080); (support chips: qcc743, qcc74x_undefp, qcc74x_undef),
+        1: DBI peripheral, supported functions: typeC-3wire, typeC-4wire, typeB-x8(8080); (support chips: qcc743, qcc74x_undef, qcc74x_undef),
     */
     #define LCD_DBI_INTERFACE_TYPE 1
 
@@ -71,11 +75,12 @@
     */
    #define ILI9488_DBI_COLOR_REVERSAL 0
 
+
 /* dbi ili9486 config */
 #elif defined LCD_DBI_ILI9486
 
     /* Selecting interface type, more configuration of peripherals comes later
-        1: DBI peripheral, supported functions: typeC-3wire, typeC-4wire, typeB-x8(8080); (support chips: qcc743, qcc74x_undefp, qcc74x_undef),
+        1: DBI peripheral, supported functions: typeC-3wire, typeC-4wire, typeB-x8(8080); (support chips: qcc743, qcc74x_undef, qcc74x_undef),
     */
     #define LCD_DBI_INTERFACE_TYPE 1
 
@@ -105,11 +110,12 @@
     */
    #define ILI9486_DBI_COLOR_REVERSAL 0
 
+
 /* dbi ili9341 config */
 #elif defined LCD_DBI_ILI9341
 
     /* Selecting interface type, more configuration of peripherals comes later
-        1: DBI peripheral, supported functions: typeC-3wire, typeC-4wire, typeB-x8(8080); (support chips: qcc743, qcc74x_undefp, qcc74x_undef),
+        1: DBI peripheral, supported functions: typeC-3wire, typeC-4wire, typeB-x8(8080); (support chips: qcc743, qcc74x_undef, qcc74x_undef),
     */
     #define LCD_DBI_INTERFACE_TYPE 1
 
@@ -139,11 +145,47 @@
     */
    #define ILI9341_DBI_COLOR_REVERSAL 0
 
+
+/* dbi jd9853 config */
+#elif defined LCD_DBI_JD9853
+
+    /* Selecting interface type, more configuration of peripherals comes later
+        1: DBI peripheral, supported functions: typeC-3wire, typeC-4wire, typeB-x8(8080); (support chips: qcc743, qcc74x_undef, qcc74x_undef),
+    */
+    #define LCD_DBI_INTERFACE_TYPE 1
+
+    /* enable the lcd reset function
+        0: Does not care about lcd hard reset
+        1: use gpio to reset the lcd
+    */
+    #define LCD_RESET_EN 1
+
+    /* Selecting pixel format
+        1: rgb565 (16-bit, output rgb565)
+        2: nrgb8888 (32-bit, output rgb888)
+    */
+    #define JD9853_DBI_PIXEL_FORMAT 2
+
+    /* JD9853 LCD width and height */
+    #define JD9853_DBI_W 240
+    #define JD9853_DBI_H 320
+
+    /* The offset of the area can be displayed */
+    #define JD9853_DBI_OFFSET_X 0
+    #define JD9853_DBI_OFFSET_Y 0
+
+    /* Color reversal, Some screens are required
+        0: disable
+        1: enable
+    */
+   #define JD9853_DBI_COLOR_REVERSAL 0
+
+
    /* dbi nt35510 config */
 #elif defined LCD_DBI_NT35510
 
     /* Selecting interface type, more configuration of peripherals comes later
-        1: DBI peripheral, supported functions: typeB-x8(8080); (support chips: qcc743, qcc74x_undefp, qcc74x_undef),
+        1: DBI peripheral, supported functions: typeB-x8(8080); (support chips: qcc743, qcc74x_undef, qcc74x_undef),
     */
     #define LCD_DBI_INTERFACE_TYPE 1
 
@@ -173,11 +215,46 @@
     */
    #define NT35510_DBI_COLOR_REVERSAL 0
 
+
+/* spi st7789v config */
+#elif defined LCD_SPI_ST7735
+
+    /* Selecting interface type, more configuration of peripherals comes later
+        1: SPI peripheral, supported functions: spi-4wire,
+    */
+    #define LCD_SPI_INTERFACE_TYPE 1
+
+    /* Selecting pixel format
+        1: rgb565
+    */
+    #define ST7735_SPI_PIXEL_FORMAT 1
+
+    /* enable the lcd reset function
+        0: Does not care about lcd hard reset
+        1: use gpio to reset the lcd
+    */
+    #define LCD_RESET_EN 0
+
+    /* LCD width and height */
+    #define ST7735_SPI_W 240
+    #define ST7735_SPI_H 320
+
+    /* The offset of the area can be displayed */
+    #define ST7735_SPI_OFFSET_X 0
+    #define ST7735_SPI_OFFSET_Y 0
+
+    /* Color reversal, Some screens are required
+        0: disable
+        1: enable
+    */
+   #define ST7735_SPI_COLOR_REVERSAL 0
+
+
    /* dbi st7796 config */
 #elif defined LCD_DBI_ST7796
 
     /* Selecting interface type, more configuration of peripherals comes later
-        1: DBI peripheral, supported functions: typeB-x8(8080); (support chips: qcc743, qcc74x_undefp, qcc74x_undef),
+        1: DBI peripheral, supported functions: typeB-x8(8080); (support chips: qcc743, qcc74x_undef, qcc74x_undef),
     */
     #define LCD_DBI_INTERFACE_TYPE 1
 
@@ -213,19 +290,15 @@
 
     /* Selecting DPI working mode
         1: DPI peripheral (support: qcc74x_undef)
+        2: PEC simulation (support: qcc743, qcc74x_undef)
     */
-    #define GC9503V_DPI_MODE 1
+    #define LCD_DPI_INTERFACE_TYPE 1
 
     /* Selecting initialization interface
-        1: Software spi 9-bit mode
+        0: Not using or custom
+        1: Software spi 9-bit mode, any pin can be used.
     */
-    #define GC9503V_DPI_INIT_INTERFACE 1
-
-    #if(GC9503V_DPI_INIT_INTERFACE == 1)
-        #define GC9503V_DPI_SPI_CS_PIN   GPIO_PIN_12
-        #define GC9503V_DPI_SPI_CLK_PIN  GPIO_PIN_24
-        #define GC9503V_DPI_SPI_DAT_PIN  GPIO_PIN_25
-    #endif
+    #define LCD_DPI_INIT_INTERFACE_TYPE 1
 
     /* enable the lcd reset function
         0: Does not care about lcd hard reset
@@ -238,28 +311,74 @@
     */
     #define GC9503V_DPI_PIXEL_FORMAT 1
 
+    /* RGB-BGR Order control 
+        0: output R-G-B
+        1: output B-G-R
+    */
+    #define GC9503V_DPI_RGB_ORDER_MODE 0
+
+    /* enabled DE(data enable) signal
+        0: disable DE signal output
+        1: enable DE signal output
+    */
+    #define GC9503V_DPI_DE_MODE 1
+
     /* ILI9488 LCD width and height */
     #define GC9503V_DPI_W 480
     #define GC9503V_DPI_H 480
+
+
+/* dpi st7701s config */
+#elif defined LCD_DPI_ST7701S
+
+    /* Selecting DPI working mode
+        1: DPI peripheral (support: qcc74x_undef)
+        2: PEC simulation (support: qcc743, qcc74x_undef)
+    */
+    #define LCD_DPI_INTERFACE_TYPE 2
+
+    /* Selecting initialization interface
+        0: Not using or custom
+        1: Software spi 9-bit mode, any pin can be used.
+    */
+    #define LCD_DPI_INIT_INTERFACE_TYPE 1
+
+    /* enable the lcd reset function
+        0: Does not care about lcd hard reset
+        1: use gpio to reset the lcd
+    */
+    #define LCD_RESET_EN 1
+
+    /* Selecting pixel format
+        1: rgb565 (16-bits)
+    */
+    #define ST7701S_DPI_PIXEL_FORMAT 1
+
+    /* RGB-BGR Order control 
+        0: output R-G-B
+        1: output B-G-R
+    */
+    #define ST7701S_DPI_RGB_ORDER_MODE 1
+
+    /* ILI9488 LCD width and height */
+    #define ST7701S_DPI_W 480
+    #define ST7701S_DPI_H 480
+
 
 /* dpi ili9488 config */
 #elif defined LCD_DPI_ILI9488
 
     /* Selecting DPI working mode
         1: DPI peripheral (support: qcc74x_undef)
+        2: PEC simulation (support: qcc743, qcc74x_undef)
     */
-    #define ILI9488_DPI_MODE 1
+    #define LCD_DPI_INTERFACE_TYPE 1
 
     /* Selecting initialization interface
-        1: Hardware spi 8-bit mode
-        2: Hardware dbi peripheral typeC (support: qcc743, qcc74x_undefp, qcc74x_undef)
+        0: Not using or custom
+        1: Software spi 9-bit mode
     */
-    #define ILI9488_DPI_INIT_INTERFACE 1
-
-    #if(ILI9488_DPI_INIT_INTERFACE == 1)
-        #define ILI9488_DPI_SPI_CS_PIN  GPIO_PIN_20
-        #define ILI9488_DPI_SPI_DC_PIN  GPIO_PIN_3
-    #endif
+    #define LCD_DPI_INIT_INTERFACE_TYPE 1
 
     /* enable the lcd reset function
         0: Does not care about lcd hard reset
@@ -276,13 +395,21 @@
     #define ILI9488_DPI_W 320
     #define ILI9488_DPI_H 480
 
+
 /* dpi standard config */
 #elif defined LCD_DPI_STANDARD
 
     /* Selecting DPI working mode
         1: DPI peripheral (support: qcc74x_undef)
+        2: PEC simulation (support: qcc743, qcc74x_undef)
     */
-    #define STANDARD_DPI_MODE 1
+    #define LCD_DPI_INTERFACE_TYPE 1
+
+    /* Selecting initialization interface
+        0: Not using or custom
+        1: Software spi 9-bit mode
+    */
+    #define LCD_DPI_INIT_INTERFACE_TYPE 0
 
     /* enable the lcd reset function
         0: Does not care about lcd hard reset
@@ -452,6 +579,59 @@
 
 #endif
 
+/********** PEC simulation DPI configuration **********/
+#if (defined(LCD_DPI_INTERFACE_TYPE) && (LCD_DPI_INTERFACE_TYPE == 2))
+
+    /* supports 16-wire and 8-wire-latch output modes */
+
+    /* For internal use, do not modify */
+    #define LCD_SIM_DPI_ENABLE
+
+    /* Selecting initialization interface */
+    #if (LCD_DPI_INIT_INTERFACE_TYPE == 1)
+        /* Software spi 9-bit mode, any pin can be used. */
+        #define LCD_DPI_INIT_SPI_SOFT_3_PIN_CS    GPIO_PIN_0
+        #define LCD_DPI_INIT_SPI_SOFT_3_PIN_CLK   GPIO_PIN_1
+        #define LCD_DPI_INIT_SPI_SOFT_3_PIN_DAT   GPIO_PIN_3
+    #endif
+
+    /* dma used by sim */
+    #define LCD_SIM_DPI_DMA_NAME "dma0_ch3"
+
+    /* The mode of data latch.
+        0: 16-bit *1-cycle date out;
+        1: 8-bit *2-cycle date out, Low 8-bit latch, high 8-bit pass-through, Additional latch devices are required */
+    #define LCD_SIM_DPI_DATA_LATCH_MODE 1
+
+    /* enable the lcd reset function
+        0: Does not care about lcd hard reset
+        1: use gpio to reset the lcd
+    */
+    #define LCD_RESET_EN 1
+
+    /* Signal polarity selection */
+    #define LCD_SIM_DPI_V_SYNC_SIN_POL 0
+    #define LCD_SIM_DPI_H_SYNC_SIN_POL 0
+    #define LCD_SIM_DPI_DE_SIN_POL     1
+
+    /* Selecting pin
+        The numbers of some pins must be consecutive, and cannot cross the 32 boundary.
+        Rules: PIN_DE = PIN_CLK + 1; PIN_LATCH = PIN_CLK + 2;
+               PIN_VSYNC = PIN_HSYNC + 1;
+               PIN_DATA_n = PIN_DATA_START + n;
+    */
+    #define LCD_DPI_SIM_PIN_CLK         GPIO_PIN_32
+    #define LCD_DPI_SIM_PIN_HSYNC       GPIO_PIN_18
+    #define LCD_DPI_SIM_PIN_DATA_START  GPIO_PIN_24 /* 8-wire(latch mode) or 16-wire */
+
+    /* Maximum number of DPI invalid rows, >= (VHW + VBP + VFP) */
+    #define LCD_DPI_SIM_INVALID_LIN_MAX 300
+
+    /* cache num of dma_lli, >= 2,
+        Performance is best when the value is no less than the number of disp_buffs used */
+    #define LCD_DPI_SIM_DMA_LLI_CACHE_NUM 3
+#endif
+
 /********** DBI peripheral configuration ***********/
 #if (defined(LCD_DBI_INTERFACE_TYPE) && (LCD_DBI_INTERFACE_TYPE == 1))
 
@@ -462,6 +642,12 @@
         4: DBI QSPI mode (Not the mipi standard. Extra support for QSPI mode)
     */
     #define LCD_DBI_WORK_MODE 1
+
+    /* RGB-BGR Order control 
+        0: output R-G-B
+        1: output B-G-R
+    */
+    #define LCD_RGB_ORDER_MODE 0
 
     /* dma used by DBI */
     #define LCD_DBI_DMA_NAME "dma0_ch3"
@@ -553,5 +739,4 @@
 #endif
 
 /* clang-format on */
-
 #endif

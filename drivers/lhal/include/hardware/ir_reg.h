@@ -1,4 +1,3 @@
-
 #ifndef __HARDWARE_IR_H__
 #define __HARDWARE_IR_H__
 
@@ -8,7 +7,7 @@
 
 /* Register offsets *********************************************************/
 
-#if !defined(QCC743)
+#if !defined(QCC743) && !defined(QCC74x_undef)
 #define IRTX_CONFIG_OFFSET      (0x0)  /* irtx_config */
 #define IRTX_INT_STS_OFFSET     (0x4)  /* irtx_int_sts */
 #if defined(QCC74x_undef) || defined(QCC74x_undef)
@@ -31,7 +30,7 @@
 #define IRTX_PW_1_OFFSET        (0x18) /* irtx_pw_1 */
 #endif
 #endif
-#if !defined(QCC74x_undefL)
+#if !defined(QCC74x_undef)
 #if defined(QCC74x_undef) || defined(QCC74x_undef)
 #define IRRX_CONFIG_OFFSET      (0x80) /* irrx_config */
 #define IRRX_INT_STS_OFFSET     (0x84) /* irrx_int_sts */
@@ -54,15 +53,17 @@
 #else
 #define IR_FIFO_CONFIG_0_OFFSET (0x80) /* ir_fifo_config_0 */
 #define IR_FIFO_CONFIG_1_OFFSET (0x84) /* ir_fifo_config_1 */
+#if !defined(QCC743) && !defined(QCC74x_undef)
 #define IR_FIFO_WDATA_OFFSET    (0x88) /* ir_fifo_wdata */
-#if !defined(QCC74x_undefL)
+#endif
+#if !defined(QCC74x_undef)
 #define IR_FIFO_RDATA_OFFSET    (0x8C) /* ir_fifo_rdata */
 #endif
 #endif
 
 /* Register Bitfield definitions *****************************************************/
 
-#if !defined(QCC743)
+#if !defined(QCC743) && !defined(QCC74x_undef)
 /* 0x0 : irtx_config */
 #define IR_CR_IRTX_EN                   (1 << 0U)
 #define IR_CR_IRTX_OUT_INV              (1 << 1U)
@@ -84,7 +85,11 @@
 #define IR_CR_IRTX_FRM_FRAME_SIZE_SHIFT (14U)
 #define IR_CR_IRTX_FRM_FRAME_SIZE_MASK  (0x3 << IR_CR_IRTX_FRM_FRAME_SIZE_SHIFT)
 #define IR_CR_IRTX_DATA_NUM_SHIFT       (16U)
+#if defined(QCC74x_undef)
+#define IR_CR_IRTX_DATA_NUM_MASK        (0xffff << IR_CR_IRTX_DATA_NUM_SHIFT)
+#else
 #define IR_CR_IRTX_DATA_NUM_MASK        (0x7f << IR_CR_IRTX_DATA_NUM_SHIFT)
+#endif
 #endif
 
 /* 0x4 : irtx_int_sts */
@@ -194,7 +199,7 @@
 #endif
 #endif
 
-#if !defined(QCC74x_undefL)
+#if !defined(QCC74x_undef)
 /* 0x40 : irrx_config */
 #define IR_CR_IRRX_EN            (1 << 0U)
 #define IR_CR_IRRX_IN_INV        (1 << 1U)
@@ -230,7 +235,11 @@
 
 /* 0x50 : irrx_data_count */
 #define IR_STS_IRRX_DATA_CNT_SHIFT (0U)
+#if defined(QCC74x_undef)
+#define IR_STS_IRRX_DATA_CNT_MASK  (0xffff << IR_STS_IRRX_DATA_CNT_SHIFT)
+#else
 #define IR_STS_IRRX_DATA_CNT_MASK  (0x7f << IR_STS_IRRX_DATA_CNT_SHIFT)
+#endif
 
 /* 0x54 : irrx_data_word0 */
 #define IR_STS_IRRX_DATA_WORD0_SHIFT (0U)
@@ -242,22 +251,22 @@
 #endif
 
 /* 0x80 : ir_fifo_config_0 */
-#if !defined(QCC743) && !defined(QCC74x_undef) && !defined(QCC74x_undef)
+#if !defined(QCC743) && !defined(QCC74x_undef) && !defined(QCC74x_undef) && !defined(QCC74x_undef)
 #define IRTX_DMA_EN          (1 << 0U)
 #define IR_TX_FIFO_CLR       (1 << 2U)
 #endif
-#if !defined(QCC74x_undefL)
+#if !defined(QCC74x_undef)
 #if defined(QCC74x_undef) || defined(QCC74x_undef)
 #define IR_RX_FIFO_CLR       (1 << 0U)
 #else
 #define IR_RX_FIFO_CLR       (1 << 3U)
 #endif
 #endif
-#if !defined(QCC743) && !defined(QCC74x_undef) && !defined(QCC74x_undef)
+#if !defined(QCC743) && !defined(QCC74x_undef) && !defined(QCC74x_undef) && !defined(QCC74x_undef)
 #define IR_TX_FIFO_OVERFLOW  (1 << 4U)
 #define IR_TX_FIFO_UNDERFLOW (1 << 5U)
 #endif
-#if !defined(QCC74x_undefL)
+#if !defined(QCC74x_undef)
 #if defined(QCC74x_undef) || defined(QCC74x_undef)
 #define IR_RX_FIFO_OVERFLOW  (1<<2U)
 #define IR_RX_FIFO_UNDERFLOW (1<<3U)
@@ -268,11 +277,11 @@
 #endif
 
 /* 0x84 : ir_fifo_config_1 */
-#if !defined(QCC743) && !defined(QCC74x_undef) && !defined(QCC74x_undef)
+#if !defined(QCC743) && !defined(QCC74x_undef) && !defined(QCC74x_undef) && !defined(QCC74x_undef)
 #define IR_TX_FIFO_CNT_SHIFT (0U)
 #define IR_TX_FIFO_CNT_MASK  (0x7 << IR_TX_FIFO_CNT_SHIFT)
 #endif
-#if !defined(QCC74x_undefL)
+#if !defined(QCC74x_undef)
 #if defined(QCC74x_undef) || defined(QCC74x_undef)
 #define IR_RX_FIFO_CNT_SHIFT (4U)
 #else
@@ -280,22 +289,22 @@
 #endif
 #define IR_RX_FIFO_CNT_MASK  (0x7f << IR_RX_FIFO_CNT_SHIFT)
 #endif
-#if !defined(QCC743) && !defined(QCC74x_undef) && !defined(QCC74x_undef)
+#if !defined(QCC743) && !defined(QCC74x_undef) && !defined(QCC74x_undef) && !defined(QCC74x_undef)
 #define IR_TX_FIFO_TH_SHIFT  (16U)
 #define IR_TX_FIFO_TH_MASK   (0x3 << IR_TX_FIFO_TH_SHIFT)
 #endif
-#if !defined(QCC74x_undefL) && !defined(QCC74x_undef) && !defined(QCC74x_undef)
+#if !defined(QCC74x_undef) && !defined(QCC74x_undef) && !defined(QCC74x_undef)
 #define IR_RX_FIFO_TH_SHIFT  (24U)
 #define IR_RX_FIFO_TH_MASK   (0x3f << IR_RX_FIFO_TH_SHIFT)
 #endif
 
-#if !defined(QCC743) && !defined(QCC74x_undef) && !defined(QCC74x_undef)
+#if !defined(QCC743) && !defined(QCC74x_undef) && !defined(QCC74x_undef) && !defined(QCC74x_undef)
 /* 0x88 : ir_fifo_wdata */
 #define IR_TX_FIFO_WDATA_SHIFT (0U)
 #define IR_TX_FIFO_WDATA_MASK  (0xffffffff << IR_TX_FIFO_WDATA_SHIFT)
 #endif
 
-#if !defined(QCC74x_undefL)
+#if !defined(QCC74x_undef)
 /* 0x8C : ir_fifo_rdata */
 #define IR_RX_FIFO_RDATA_SHIFT (0U)
 #define IR_RX_FIFO_RDATA_MASK  (0xffff << IR_RX_FIFO_RDATA_SHIFT)

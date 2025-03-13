@@ -741,10 +741,16 @@
 #endif
 
 /// Antenna Diversity support
-#if NX_UMAC_PRESENT && defined CFG_ANT_DIV && (NX_MDM_VER < 30)
+#if NX_UMAC_PRESENT && defined CONFIG_ANTDIV_DYNAMIC
   #define NX_ANT_DIV 1
 #else
   #define NX_ANT_DIV 0
+#endif
+
+#if NX_UMAC_PRESENT && defined CONFIG_ANTDIV_DYNAMIC_LOG
+  #define NX_ANT_DIV_LOG 1
+#else
+  #define NX_ANT_DIV_LOG 0
 #endif
 
 /// Traffic generator support

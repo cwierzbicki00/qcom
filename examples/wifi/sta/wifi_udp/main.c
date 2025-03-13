@@ -169,11 +169,32 @@ int main(void)
     }
 }
 
+void search_res(struct mdns_answer *answer, const char *varpart, int varlen, int flags, void *arg)
+{
+    printf("mdns: search result type(%x), klass(%x) domain(%s) \r\n", answer->info.type, answer->info.klass, answer->info.domain.name);
+}
+
 int cmd_mdns_start(int argc, char **argv)
 {
-void *wifi_mgmr_sta_netif();
-    mdns_resp_init();
-    mdns_resp_add_netif(netif_find("wl1"), argv[1]);
+    unsigned char request_id;
+    void *netif = netif_find("wl1");
+    static int inited = 0;
+
+    if(inited == 0) {
+        mdns_resp_init();
+        mdns_resp_add_netif(netif, "mdns_searcher");
+        inited = 1;
+    }
+
+    mdns_search_service(NULL, "_http", DNSSD_PROTO_TCP,
+                        netif, search_res, NULL,
+                        &request_id);
+    vTaskDelay(5000);
+    mdns_search_stop(request_id);
+
+    int slot = mdns_resp_add_service(netif, "web", "_http", DNSSD_PROTO_TCP, 2333, NULL, NULL);
+    vTaskDelay(5000);
+    mdns_resp_del_service(netif, slot);
 
     return 0;
 }

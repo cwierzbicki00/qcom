@@ -1,7 +1,7 @@
 #include "qcc74x_mjpeg.h"
 #include "hardware/mjpeg_reg.h"
 
-static const uint16_t q_table_50_y[64] = {
+__UNUSED static const uint16_t q_table_50_y[64] = {
     16, 11, 10, 16, 24, 40, 51, 61,
     12, 12, 14, 19, 26, 58, 60, 55,
     14, 13, 16, 24, 40, 57, 69, 56,
@@ -12,7 +12,7 @@ static const uint16_t q_table_50_y[64] = {
     72, 92, 95, 98, 112, 100, 103, 99
 };
 
-static const uint16_t q_table_50_uv[64] = {
+__UNUSED static const uint16_t q_table_50_uv[64] = {
     17, 18, 24, 47, 99, 99, 99, 99,
     18, 21, 26, 66, 99, 99, 99, 99,
     24, 26, 56, 99, 99, 99, 99, 99,
@@ -23,7 +23,7 @@ static const uint16_t q_table_50_uv[64] = {
     99, 99, 99, 99, 99, 99, 99, 99
 };
 
-static void qcc74x_mjpeg_set_yuv422_interleave_order(struct qcc74x_device_s *dev, uint8_t y0, uint8_t u0, uint8_t y1, uint8_t v0)
+__UNUSED static void qcc74x_mjpeg_set_yuv422_interleave_order(struct qcc74x_device_s *dev, uint8_t y0, uint8_t u0, uint8_t y1, uint8_t v0)
 {
     uint32_t regval;
     uint32_t reg_base;
@@ -44,7 +44,7 @@ static void qcc74x_mjpeg_set_yuv422_interleave_order(struct qcc74x_device_s *dev
     putreg32(regval, reg_base + MJPEG_HEADER_BYTE_OFFSET);
 }
 
-static void qcc74x_mjpeg_set_framesize(struct qcc74x_device_s *dev, uint16_t x, uint16_t y)
+__UNUSED static void qcc74x_mjpeg_set_framesize(struct qcc74x_device_s *dev, uint16_t x, uint16_t y)
 {
     uint32_t regval;
     uint32_t reg_base;
@@ -133,7 +133,7 @@ void qcc74x_mjpeg_init(struct qcc74x_device_s *dev, const struct qcc74x_mjpeg_co
                 regval |= MJPEG_REG_LAST_HF_WBLK_DMY;
             }
 
-            qcc74x_mjpeg_set_framesize(dev, (config->resolution_x + 15) >> 4, (config->resolution_y + 15) >> 3);
+            qcc74x_mjpeg_set_framesize(dev, (config->resolution_x + 15) >> 4, (config->resolution_y + 15) >> 4);
             break;
         case MJPEG_FORMAT_GRAY:
             regval |= (1 << MJPEG_REG_YUV_MODE_SHIFT);
@@ -183,7 +183,7 @@ void qcc74x_mjpeg_init(struct qcc74x_device_s *dev, const struct qcc74x_mjpeg_co
             break;
         case MJPEG_FORMAT_YUV420SP_NV12:
         case MJPEG_FORMAT_YUV420SP_NV21:
-            putreg32((blocks << 16) + blocks, reg_base + MJPEG_YUV_MEM_OFFSET);
+            putreg32(((blocks / 2) << 16) + blocks, reg_base + MJPEG_YUV_MEM_OFFSET);
             break;
         case MJPEG_FORMAT_GRAY:
             putreg32((0 << 16) + blocks, reg_base + MJPEG_YUV_MEM_OFFSET);
@@ -215,9 +215,11 @@ void qcc74x_mjpeg_init(struct qcc74x_device_s *dev, const struct qcc74x_mjpeg_co
     /* Clear interrupt */
     putreg32(0x3F00, reg_base + MJPEG_FRAME_FIFO_POP_OFFSET);
 
-    uint16_t tmp_table_y[64] = { 0 };
-    uint16_t tmp_table_uv[64] = { 0 };
+    uint16_t tmp_table_y[64];
+    uint16_t tmp_table_uv[64];
 
+    arch_memset(tmp_table_y, 0, sizeof(tmp_table_y));
+    arch_memset(tmp_table_uv, 0, sizeof(tmp_table_uv));
     if (config->input_yy_table) {
         qcc74x_mjpeg_calculate_quantize_table(config->quality, config->input_yy_table, tmp_table_y);
     } else {
@@ -323,6 +325,12 @@ void qcc74x_mjpeg_kick_run(struct qcc74x_device_s *dev, uint16_t kick_count)
     regval &= ~MJPEG_REG_SW_KICK_HBLK_MASK;
     regval |= (kick_count << MJPEG_REG_SW_KICK_HBLK_SHIFT);
     putreg32(regval, reg_base + MJPEG_YUV_MEM_SW_OFFSET);
+#if defined(QCC74x_undef)
+    regval = getreg32(reg_base + MJPEG_KICK_DONE_DELAY_OFFSET);
+    regval &= ~MJPEG_KICK_INT_BLOCK_NUM_MASK;
+    regval |= (kick_count << MJPEG_KICK_INT_BLOCK_NUM_SHIFT);
+    putreg32(regval, reg_base + MJPEG_KICK_DONE_DELAY_OFFSET);
+#endif
 
     regval = getreg32(reg_base + MJPEG_CONTROL_2_OFFSET);
     regval |= MJPEG_REG_MJPEG_SW_RUN;
@@ -397,6 +405,52 @@ void qcc74x_mjpeg_tcint_mask(struct qcc74x_device_s *dev, bool mask)
 #endif
 }
 
+#if defined(QCC74x_undef)
+void qcc74x_mjpeg_kickint_mask(struct qcc74x_device_s *dev, bool mask)
+{
+#ifdef romapi_qcc74x_mjpeg_kickint_mask
+    romapi_qcc74x_mjpeg_kickint_mask(dev, mask);
+#else
+    uint32_t regval;
+    uint32_t reg_base;
+
+    reg_base = dev->reg_base;
+
+    regval = getreg32(reg_base + MJPEG_CONTROL_3_OFFSET);
+
+    if (mask) {
+        regval &= ~MJPEG_REG_INT_KICK_EN;
+    } else {
+        regval |= MJPEG_REG_INT_KICK_EN;
+    }
+
+    putreg32(regval, reg_base + MJPEG_CONTROL_3_OFFSET);
+#endif
+}
+#endif
+
+void qcc74x_mjpeg_swapint_mask(struct qcc74x_device_s *dev, bool mask)
+{
+#ifdef romapi_qcc74x_mjpeg_swapint_mask
+    romapi_qcc74x_mjpeg_swapint_mask(dev, mask);
+#else
+    uint32_t regval;
+    uint32_t reg_base;
+
+    reg_base = dev->reg_base;
+
+    regval = getreg32(reg_base + MJPEG_CONTROL_3_OFFSET);
+
+    if (mask) {
+        regval &= ~MJPEG_REG_INT_SWAP_EN;
+    } else {
+        regval |= MJPEG_REG_INT_SWAP_EN;
+    }
+
+    putreg32(regval, reg_base + MJPEG_CONTROL_3_OFFSET);
+#endif
+}
+
 void qcc74x_mjpeg_errint_mask(struct qcc74x_device_s *dev, bool mask)
 {
 #ifdef romapi_qcc74x_mjpeg_errint_mask
@@ -438,7 +492,11 @@ uint32_t qcc74x_mjpeg_get_intstatus(struct qcc74x_device_s *dev)
     reg_base = dev->reg_base;
 
     regval = getreg32(reg_base + MJPEG_CONTROL_3_OFFSET);
-    regval &= 0xf0;
+#if defined(QCC74x_undef)
+    regval &= (0x400000f0 | MJPEG_STS_KICK_INT);
+#else
+    regval &= 0x400000f0;
+#endif
 
     return regval;
 #endif
@@ -449,10 +507,19 @@ void qcc74x_mjpeg_int_clear(struct qcc74x_device_s *dev, uint32_t int_clear)
 #ifdef romapi_qcc74x_mjpeg_int_clear
     romapi_qcc74x_mjpeg_int_clear(dev, int_clear);
 #else
+    __UNUSED uint32_t regval;
     uint32_t reg_base;
 
     reg_base = dev->reg_base;
 
+#if defined(QCC74x_undef)
+    if (int_clear & MJPEG_INTCLR_KICK_DONE) {
+        regval = getreg32(reg_base + MJPEG_CONTROL_2_OFFSET);
+        regval |= MJPEG_INTCLR_KICK_DONE;
+        putreg32(regval, reg_base + MJPEG_CONTROL_2_OFFSET);
+    }
+    int_clear &= ~MJPEG_INTCLR_KICK_DONE;
+#endif
     putreg32(int_clear, reg_base + MJPEG_FRAME_FIFO_POP_OFFSET);
 #endif
 }
@@ -483,6 +550,32 @@ void qcc74x_mjpeg_pop_one_frame(struct qcc74x_device_s *dev)
 #endif
 }
 
+void qcc74x_mjpeg_pop_swap_block(struct qcc74x_device_s *dev)
+{
+#ifdef romapi_qcc74x_mjpeg_pop_swap_block
+    romapi_qcc74x_mjpeg_pop_swap_block(dev);
+#else
+    uint32_t reg_base;
+
+    reg_base = dev->reg_base;
+
+    putreg32(MJPEG_REG_W_SWAP_CLR, reg_base + MJPEG_FRAME_FIFO_POP_OFFSET);
+#endif
+}
+
+uint32_t qcc74x_mjpeg_get_swap_bit_count(struct qcc74x_device_s *dev)
+{
+#ifdef romapi_qcc74x_mjpeg_get_swap_bit_count
+    return romapi_qcc74x_mjpeg_get_swap_bit_count(dev);
+#else
+    uint32_t reg_base;
+
+    reg_base = dev->reg_base;
+
+    return getreg32(reg_base + MJPEG_SWAP_BIT_CNT_OFFSET);
+#endif
+}
+
 uint32_t qcc74x_mjpeg_get_frame_info(struct qcc74x_device_s *dev, uint8_t **pic)
 {
 #ifdef romapi_qcc74x_mjpeg_get_frame_info
@@ -500,10 +593,61 @@ uint32_t qcc74x_mjpeg_get_frame_info(struct qcc74x_device_s *dev, uint8_t **pic)
 #endif
 }
 
+uint8_t qcc74x_mjpeg_get_swap_block_info(struct qcc74x_device_s *dev, uint8_t *idx)
+{
+#ifdef romapi_qcc74x_mjpeg_get_swap_block_info
+    return romapi_qcc74x_mjpeg_get_swap_block_info(dev, idx);
+#else
+    uint32_t regval;
+    uint32_t reg_base;
+
+    reg_base = dev->reg_base;
+
+    regval = getreg32(reg_base + MJPEG_SWAP_MODE_OFFSET);
+    if (regval & MJPEG_STS_READ_SWAP_IDX) {
+        *idx = 1;
+    } else {
+        *idx = 0;
+    }
+    if (regval & MJPEG_STS_SWAP_FEND) {
+        return 1;
+    } else {
+        return 0;
+    }
+#endif
+}
+
+uint8_t qcc74x_mjpeg_swap_is_block_full(struct qcc74x_device_s *dev, uint8_t idx)
+{
+#ifdef romapi_qcc74x_mjpeg_swap_is_block_full
+    return romapi_qcc74x_mjpeg_swap_is_block_full(dev, idx);
+#else
+    uint32_t regval;
+    uint32_t reg_base;
+
+    reg_base = dev->reg_base;
+
+    regval = getreg32(reg_base + MJPEG_SWAP_MODE_OFFSET);
+    if (idx) {
+        if (regval & MJPEG_STS_SWAP1_FULL) {
+            return 1;
+        } else {
+            return 0;
+        }
+    } else {
+        if (regval & MJPEG_STS_SWAP0_FULL) {
+            return 1;
+        } else {
+            return 0;
+        }
+    }
+#endif
+}
+
 void qcc74x_mjpeg_calculate_quantize_table(uint8_t quality, uint16_t *input_table, uint16_t *output_table)
 {
 #ifdef romapi_qcc74x_mjpeg_calculate_quantize_table
-    romapi_qcc74x_mjpeg_calculate_quantize_table(dev, input_table, output_table);
+    romapi_qcc74x_mjpeg_calculate_quantize_table(quality, input_table, output_table);
 #else
     uint32_t scale_factor, i;
 
@@ -656,6 +800,7 @@ int qcc74x_mjpeg_feature_control(struct qcc74x_device_s *dev, int cmd, size_t ar
     return romapi_qcc74x_mjpeg_feature_control(dev, cmd, arg);
 #else
     int ret = 0;
+    __UNUSED uint32_t regval;
     uint32_t reg_base;
 
     reg_base = dev->reg_base;
@@ -667,7 +812,42 @@ int qcc74x_mjpeg_feature_control(struct qcc74x_device_s *dev, int cmd, size_t ar
         case MJPEG_CMD_SET_INPUTADDR1:
             putreg32(arg, reg_base + MJPEG_UV_FRAME_ADDR_OFFSET);
             break;
-
+#if defined(QCC74x_undef)
+        case MJPEG_CMD_SET_KICK_DONE_DELAY:
+            regval = getreg32(reg_base + MJPEG_KICK_DONE_DELAY_OFFSET);
+            regval &= ~MJPEG_KICK_DONE_DELAY_MASK;
+            regval |= (arg << MJPEG_KICK_DONE_DELAY_SHIFT);
+            putreg32(regval, reg_base + MJPEG_KICK_DONE_DELAY_OFFSET);
+            break;
+        case MJPEG_CMD_UPDATE_KICK_ADDR:
+            regval = getreg32(reg_base + MJPEG_CONTROL_1_OFFSET);
+            regval |= MJPEG_KICK_UPDATE_ADDR;
+            putreg32(regval, reg_base + MJPEG_CONTROL_1_OFFSET);
+            break;
+        case MJPEG_CMD_READ_HW_VERSION:
+            regval = getreg32(reg_base + MJPEG_HW_VERSION_OFFSET);
+            ret = (regval & MJPEG_HW_VERSION_MASK) >> MJPEG_HW_VERSION_SHIFT;
+            break;
+        case MJPEG_CMD_READ_SW_USAGE:
+            regval = getreg32(reg_base + MJPEG_SW_USAGE_OFFSET);
+            ret = (regval & MJPEG_SW_USAGE_MASK) >> MJPEG_SW_USAGE_SHIFT;
+            break;
+        case MJPEG_CMD_WRITE_SW_USAGE:
+            regval = getreg32(reg_base + MJPEG_SW_USAGE_OFFSET);
+            regval &= ~MJPEG_SW_USAGE_MASK;
+            regval |= ((arg << MJPEG_SW_USAGE_SHIFT) & MJPEG_SW_USAGE_MASK);
+            putreg32(regval, reg_base + MJPEG_SW_USAGE_OFFSET);
+            break;
+#endif
+        case MJPEG_CMD_SWAP_ENABLE:
+            regval = getreg32(reg_base + MJPEG_SWAP_MODE_OFFSET);
+            if (arg) {
+                regval |= MJPEG_REG_W_SWAP_MODE;
+            } else {
+                regval &= ~MJPEG_REG_W_SWAP_MODE;
+            }
+            putreg32(regval, reg_base + MJPEG_SWAP_MODE_OFFSET);
+            break;
         default:
             ret = -EPERM;
             break;

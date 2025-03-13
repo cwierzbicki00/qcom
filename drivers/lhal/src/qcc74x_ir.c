@@ -4,7 +4,7 @@
 
 #define DIVIDE_ROUND(a, b) ((2 * a + b) / (2 * b))
 
-#if !defined(QCC743)
+#if !defined(QCC743) && !defined(QCC74x_undef)
 void qcc74x_ir_tx_init(struct qcc74x_device_s *dev, const struct qcc74x_ir_tx_config_s *config)
 {
 #ifdef romapi_qcc74x_ir_tx_init
@@ -201,6 +201,7 @@ void qcc74x_ir_send(struct qcc74x_device_s *dev, uint32_t *data, uint32_t length
     uint32_t regval;
 #if !defined(QCC74x_undef) && !defined(QCC74x_undef)
     uint32_t i = 0;
+    uint32_t data_bits;
 #endif
 
     qcc74x_ir_txint_clear(dev);
@@ -219,7 +220,9 @@ void qcc74x_ir_send(struct qcc74x_device_s *dev, uint32_t *data, uint32_t length
 
 #if !defined(QCC74x_undef) && !defined(QCC74x_undef)
     if ((regval & IR_CR_IRTX_FRM_EN) == 0) {
-        length = length < 4 ? length : 4;
+        data_bits = (regval & IR_CR_IRTX_DATA_NUM_MASK) >> IR_CR_IRTX_DATA_NUM_SHIFT;
+        data_bits = data_bits / 32 + 1;
+        length = length < data_bits ? length : data_bits;
     }
     while (i < length) {
         if (qcc74x_ir_get_txfifo_cnt(dev) > 0) {
@@ -250,7 +253,7 @@ void qcc74x_ir_send(struct qcc74x_device_s *dev, uint32_t *data, uint32_t length
 #endif
 }
 
-void qcc74x_ir_swm_send(struct qcc74x_device_s *dev, uint16_t *data, uint8_t length)
+void qcc74x_ir_swm_send(struct qcc74x_device_s *dev, uint16_t *data, uint32_t length)
 {
 #ifdef romapi_qcc74x_ir_swm_send
     romapi_qcc74x_ir_swm_send(dev, data, length);
@@ -258,17 +261,27 @@ void qcc74x_ir_swm_send(struct qcc74x_device_s *dev, uint16_t *data, uint8_t len
     uint32_t reg_base;
     uint32_t regval;
     uint16_t min_data = data[0];
-#if defined(QCC74x_undef) || defined(QCC74x_undef)
-    uint32_t count = (length + 7) / 8;
-#else
-    uint32_t count = (length + 3) / 4;
-#endif
+    uint32_t count;
     uint32_t pwval = 0;
     uint32_t i, j;
 
+#if defined(QCC74x_undef)
+    if (length > 65536) {
+        length = 65536;
+    }
+#else
     if (length > 128) {
         length = 128;
     }
+#endif
+
+#if defined(QCC74x_undef) || defined(QCC74x_undef)
+    count = (length + 7) / 8;
+#elif defined(QCC74x_undef)
+    count = (length + 1) / 2;
+#else
+    count = (length + 3) / 4;
+#endif
 
     qcc74x_ir_txint_clear(dev);
 
@@ -320,6 +333,23 @@ void qcc74x_ir_swm_send(struct qcc74x_device_s *dev, uint16_t *data, uint8_t len
     for (i = 0; i < count; i++) {
         pwval = 0;
 
+#if defined(QCC74x_undef)
+        if (i < count - 1) {
+            /* Put every two pulse width together as a 32-bit value to tx fifo */
+            for (j = 0; j < 2; j++) {
+                /* Every pulse width divided by pulse width unit */
+                regval = (DIVIDE_ROUND(data[j + i * 2], min_data) - 1) & 0xffff;
+                /* Tx fifo 32-bit value: pwval[15:0]:first pulse width, pwval[31:16]:second pulse width */
+                pwval |= regval << (16 * j);
+            }
+        } else {
+            /* Deal with pulse width data remained which is less than 4 */
+            for (j = 0; j < length % 2; j++) {
+                regval = (DIVIDE_ROUND(data[j + i * 2], min_data) - 1) & 0xffff;
+                pwval |= regval << (16 * j);
+            }
+        }
+#else
         if (i < count - 1) {
             /* Put every four pulse width together as a 32-bit value to tx fifo */
             for (j = 0; j < 4; j++) {
@@ -335,6 +365,7 @@ void qcc74x_ir_swm_send(struct qcc74x_device_s *dev, uint16_t *data, uint8_t len
                 pwval |= regval << (8 * j);
             }
         }
+#endif
 
         /* Write to tx fifo */
         while (qcc74x_ir_get_txfifo_cnt(dev) == 0) {}
@@ -468,7 +499,7 @@ void qcc74x_ir_txfifo_clear(struct qcc74x_device_s *dev)
 #endif
 #endif
 
-#if !defined(QCC74x_undefL)
+#if !defined(QCC74x_undef)
 void qcc74x_ir_rx_init(struct qcc74x_device_s *dev, const struct qcc74x_ir_rx_config_s *config)
 {
 #ifdef romapi_qcc74x_ir_rx_init
@@ -526,7 +557,7 @@ void qcc74x_ir_rx_init(struct qcc74x_device_s *dev, const struct qcc74x_ir_rx_co
 #endif
 }
 
-uint8_t qcc74x_ir_receive(struct qcc74x_device_s *dev, uint64_t *data)
+uint16_t qcc74x_ir_receive(struct qcc74x_device_s *dev, uint64_t *data)
 {
 #ifdef romapi_qcc74x_ir_receive
     return romapi_qcc74x_ir_receive(dev, data);
@@ -561,7 +592,7 @@ uint8_t qcc74x_ir_receive(struct qcc74x_device_s *dev, uint64_t *data)
 #endif
 }
 
-uint8_t qcc74x_ir_swm_receive(struct qcc74x_device_s *dev, uint16_t *data, uint8_t length)
+uint16_t qcc74x_ir_swm_receive(struct qcc74x_device_s *dev, uint16_t *data, uint16_t length)
 {
 #ifdef romapi_qcc74x_ir_swm_receive
     return romapi_qcc74x_ir_swm_receive(dev, data, length);
@@ -703,11 +734,40 @@ void qcc74x_ir_rxfifo_clear(struct qcc74x_device_s *dev)
 
 int qcc74x_ir_feature_control(struct qcc74x_device_s *dev, int cmd, size_t arg)
 {
+#ifdef romapi_qcc74x_ir_feature_control
+    return romapi_qcc74x_ir_feature_control(dev, cmd, arg);
+#else
     int ret = 0;
+#if !defined(QCC743) && !defined(QCC74x_undef)
+    uint32_t regval;
+#endif
+
     switch (cmd) {
+#if !defined(QCC743) && !defined(QCC74x_undef)
+        case IR_CMD_SWM_SET_DATA_LEN:
+            regval = getreg32(dev->reg_base + IRTX_CONFIG_OFFSET);
+            regval &= ~IR_CR_IRTX_DATA_NUM_MASK;
+            regval |= arg << IR_CR_IRTX_DATA_NUM_SHIFT;
+            putreg32(regval, dev->reg_base + IRTX_CONFIG_OFFSET);
+            break;
+
+#if !defined(QCC74x_undef) && !defined(QCC74x_undef)
+        case IR_CMD_SWM_WRITE_TX_FIFO:
+            putreg32(arg, dev->reg_base + IR_FIFO_WDATA_OFFSET);
+            break;
+#endif
+#endif
+
+#if !defined(QCC74x_undef) && !defined(QCC74x_undef) && !defined(QCC74x_undef)
+        case IR_CMD_SWM_READ_RX_FIFO:
+            ret = getreg32(dev->reg_base + IR_FIFO_RDATA_OFFSET);
+            break;
+#endif
+
         default:
             ret = -EPERM;
             break;
     }
     return ret;
+#endif
 }

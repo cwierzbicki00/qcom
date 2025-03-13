@@ -43,6 +43,14 @@ void qcc74x_wo_init(struct qcc74x_device_s *dev, struct qcc74x_wo_cfg_s *cfg)
     regval &= ~GLB_CR_GPIO_TX_EN;
     putreg32(regval, reg_base + GLB_GPIO_CFG142_OFFSET);
 
+#if defined(QCC74x_undef)
+    /* config divider */
+    regval = getreg32(reg_base + GLB_GPIO_CFG145_OFFSET);
+    regval &= ~GLB_CR_IO_TOG_CNT_DIV_VAL_MASK;
+    regval |= ((cfg->clk_div << GLB_CR_IO_TOG_CNT_DIV_VAL_SHIFT) & GLB_CR_IO_TOG_CNT_DIV_VAL_MASK);
+    putreg32(regval, reg_base + GLB_GPIO_CFG145_OFFSET);
+#endif
+
     /* config wo wave count and polarity */
     regval = getreg32(reg_base + GLB_GPIO_CFG142_OFFSET);
     regval &= ~GLB_CR_CODE_TOTAL_TIME_MASK;
@@ -299,6 +307,9 @@ void qcc74x_wo_uart_init(struct qcc74x_device_s *dev, uint32_t baudrate, uint8_t
 {
     struct qcc74x_wo_cfg_s cfg;
 
+#if defined(QCC74x_undef)
+    cfg.clk_div = 1;
+#endif
     if (baudrate == 0) {
         baudrate = 2 * 1000 * 1000;
     }
@@ -309,7 +320,11 @@ void qcc74x_wo_uart_init(struct qcc74x_device_s *dev, uint32_t baudrate, uint8_t
     cfg.code0_first_level = 1;
     cfg.code1_first_level = 1;
     cfg.idle_level = 1;
+#if defined(QCC74x_undef)
+    cfg.fifo_threshold = 8;
+#else
     cfg.fifo_threshold = 64;
+#endif
     cfg.mode = WO_MODE_SET_CLR;
     qcc74x_wo_pin_init(dev, pin, WO_MODE_SET_CLR);
     qcc74x_wo_init(dev, &cfg);

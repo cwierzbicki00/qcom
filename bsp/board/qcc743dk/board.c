@@ -291,7 +291,7 @@ int board_device_info_version()
 }
 
 #if defined(CONFIG_ANTI_ROLLBACK) && !defined(CONFIG_BOOT2)
-extern const qcc74xverinf_t app_ver;
+extern const qcc74x_verinf_t app_ver;
 uint8_t efuse_version = 0xFF;
 
 static void qcc74x_check_anti_rollback(void){
@@ -327,45 +327,106 @@ static void qcc74x_check_anti_rollback(void){
 #endif
 
 #ifdef CONFIG_ANTENNA_CONTROL
-#define ANTENNA_NUM 2
-#define ANTENNA_ID_0 0
-#define ANTENNA_ID_1 1
-#define ANTENNA_GPIO_PIN GPIO_PIN_30
+#include "antenna_al.h"
+#define ANTENNA_NUM         2
 
-static struct qcc74x_device_s *antenna_gpio;
+static struct qcc74x_device_s *antenna_gpio = NULL;
+static uint8_t g_antenna_gpio_pin;
+static int board_antenna_hal_init(void);
+static int board_antenna_hal_switch(antenna_id_t antenna);
+static uint8_t board_antenna_hal_get_count(void);
+static void board_antenna_hal_deinit(void);
+static void board_antenna_log(ant_log_level_t level, ant_log_category_t category, const char *fmt, va_list args);
 
-int board_antenna_set(uint8_t antenna_id)
+/* Antenna HAL operations structure */
+static antenna_hal_ops_t board_antenna_ops = {
+    .init = board_antenna_hal_init,
+    .switch_antenna = board_antenna_hal_switch,
+    .get_antenna_count = board_antenna_hal_get_count,
+    .deinit = board_antenna_hal_deinit,
+    .log = board_antenna_log,  // Optional: Set to NULL to disable logging
+    .dynamic_div_enabled = false,  // Enable for dynamic diversity
+    .static_div_enabled = false,  // Enable for static diversity
+};
+
+/* Board-specific antenna HAL operations */
+static int board_antenna_hal_init(void)
+{
+
+    return 0;
+}
+
+static int board_antenna_hal_switch(antenna_id_t antenna)
 {
     if (!antenna_gpio) {
         return -1;
     }
 
-    printf("[board] switch antenna to %d\r\n", antenna_id);
-
-    if (antenna_id == ANTENNA_ID_0) {
-        qcc74x_gpio_set(antenna_gpio, ANTENNA_GPIO_PIN);
-    } else if (antenna_id == ANTENNA_ID_1) {
-        qcc74x_gpio_reset(antenna_gpio, ANTENNA_GPIO_PIN);
+    if (antenna == ANTENNA_0) {
+        qcc74x_gpio_set(antenna_gpio, g_antenna_gpio_pin);
+    } else if (antenna == ANTENNA_1) {
+        qcc74x_gpio_reset(antenna_gpio, g_antenna_gpio_pin);
     }
 
     return 0;
 }
 
-int board_antenna_init(void)
+static uint8_t board_antenna_hal_get_count(void)
 {
+    return ANTENNA_NUM;
+}
+
+static void board_antenna_hal_deinit(void)
+{
+    /* Nothing to do for GPIO-based implementation */
+}
+
+/* Board-specific logging implementation */
+static void board_antenna_log(ant_log_level_t level, ant_log_category_t category, const char *fmt, va_list args)
+{
+    const char *level_str;
+    const char *cat_str;
+
+    /* Convert level to string */
+    switch (level) {
+        case ANT_LOG_ERROR: level_str = "ERR"; break;
+        case ANT_LOG_WARN:  level_str = "WAR"; break;
+        case ANT_LOG_INFO:  level_str = "INF"; break;
+        case ANT_LOG_DEBUG: level_str = "DBG"; break;
+        default: level_str = "UNK"; break;
+    }
+
+    /* Convert category to string */
+    switch (category) {
+        case ANT_CAT_STATIC:  cat_str = "S"; break;
+        case ANT_CAT_DYNAMIC: cat_str = "D"; break;
+        case ANT_CAT_HAL:     cat_str = "H"; break;
+        default: cat_str = " "; break;
+    }
+
+    /* Print log prefix */
+    printf("[ANT-%s:%s] ", cat_str, level_str);
+    
+    /* Print formatted message */
+    vprintf(fmt, args);
+    printf("\r\n");
+}
+
+int board_antenna_init(bool dynamic_div_enabled, bool static_div_enabled, int pin)
+{
+    board_antenna_ops.dynamic_div_enabled = dynamic_div_enabled;
+    board_antenna_ops.static_div_enabled = static_div_enabled;
+    if (dynamic_div_enabled == 0 && static_div_enabled == 0) {
+        return 0;
+    }
     antenna_gpio = qcc74x_device_get_by_name("gpio");
     if (!antenna_gpio) {
         return -1;
     }
 
-    qcc74x_gpio_init(antenna_gpio, ANTENNA_GPIO_PIN, GPIO_OUTPUT | GPIO_PULLUP | GPIO_SMT_EN | GPIO_DRV_0);
-
-    return 0;
-}
-
-int board_antenna_num_get(void)
-{
-    return ANTENNA_NUM;
+    qcc74x_gpio_init(antenna_gpio, pin, GPIO_OUTPUT | GPIO_PULLUP | GPIO_SMT_EN | GPIO_DRV_0);
+    g_antenna_gpio_pin = pin;
+    return antenna_hal_init(&board_antenna_ops);
 }
 #endif
 

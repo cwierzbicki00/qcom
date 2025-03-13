@@ -190,6 +190,8 @@
 .rodata.rtos_mutex_lock.*
 .text.mm_sta_tbtt
 .rodata.mm_sta_tbtt.*
+.text.mm_ant_div_update_rssi
+.rodata.mm_ant_div_update_rssi.*
 .text.td_pck_ind
 .rodata.td_pck_ind.*
 .text.td_timer_end
@@ -534,6 +536,8 @@
 )
 */
 *(
+.text.pbuf_copy_partial_pbuf
+.rodata.pbuf_copy_partial_pbuf.*
 .text.tcp_timer_needed
 .rodata.tcp_timer_needed.*
 .text.sys_sem_new

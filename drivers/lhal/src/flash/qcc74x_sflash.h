@@ -16,7 +16,7 @@
  */
 typedef struct
 {
-    uint8_t  io_mode;                   /*!< Serail flash interface mode,bit0-3:IF mode,bit4:unwrap,bit5:32-bits addr mode support */
+    uint8_t  io_mode;                   /*!< Serial flash interface mode,bit0-3:IF mode,bit4:unwrap,bit5:32-bits addr mode support */
     uint8_t  c_read_support;            /*!< Support continuous read mode,bit0:continuous read mode support,bit1:read mode cfg */
     uint8_t  clk_delay;                 /*!< SPI clock delay,bit0-3:delay,bit4-6:pad delay */
     uint8_t  clk_invert;                /*!< SPI clock phase invert,bit0:clck invert,bit1:rx invert,bit2-4:pad delay,bit5-7:pad delay */
@@ -26,7 +26,7 @@ typedef struct
     uint8_t  reset_c_read_cmd_size;     /*!< Flash reset continuous read command size */
     uint8_t  jedec_id_cmd;              /*!< JEDEC ID command */
     uint8_t  jedec_id_cmd_dmy_clk;      /*!< JEDEC ID command dummy clock */
-#if defined(QCC74x_undefL) || defined(QCC74x_undef) || defined(QCC74x_undef)
+#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
     uint8_t  qpi_jedec_id_cmd;          /*!< QPI JEDEC ID comamnd */
     uint8_t  qpi_jedec_id_cmd_dmy_clk;  /*!< QPI JEDEC ID command dummy clock */
 #else
@@ -135,7 +135,7 @@ struct sflash_sec_reg_cfg
 extern "C" {
 #endif
 
-#if defined(QCC74x_undef) || defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undefP)
+#if defined(QCC74x_undef) || defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
 void qcc74x_sflash_init(const struct sf_ctrl_cfg_type *p_sf_ctrl_cfg, const struct sf_ctrl_bank2_cfg *p_bank2_cfg);
 #else
 void qcc74x_sflash_init(const struct sf_ctrl_cfg_type *p_sf_ctrl_cfg);

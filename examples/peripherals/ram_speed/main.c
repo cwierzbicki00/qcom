@@ -1,4 +1,3 @@
-#include "qcc74x_platform_dma.h"
 #include "qcc74x_dma.h"
 #include "qcc74x_l1c.h"
 #include "qcc74x_mtimer.h"
@@ -12,8 +11,6 @@ ATTR_NOINIT_PSRAM_SECTION __attribute((aligned(32))) uint8_t src2_buffer[DMA_BUF
 
 __attribute((aligned(32))) uint8_t dst1_buffer[DMA_BUFFER_LENGTH];
 ATTR_NOINIT_PSRAM_SECTION __attribute((aligned(32))) uint8_t dst2_buffer[DMA_BUFFER_LENGTH];
-
-ATTR_WIFI_RAM_SECTION struct qcc74x_platform_dma_desc dmslist;
 
 struct qcc74x_dma_channel_lli_pool_s lli[20];
 
@@ -33,54 +30,6 @@ void memcpy_test(void)
 
     start_time = qcc74x_mtimer_get_time_us();
     memcpy(dst2_buffer, src2_buffer, DMA_BUFFER_LENGTH);
-    printf("psram2psram speed:%d MB/s\r\n", K_NUM * 1000000 / 1024 / ((uint32_t)(qcc74x_mtimer_get_time_us() - start_time)));
-}
-
-void platform_dma_test()
-{
-    struct qcc74x_device_s *dma_chx;
-
-    uint64_t start_time = 0;
-
-    printf("platform dma speed test\r\n");
-
-    dma_chx = qcc74x_device_get_by_name("plfm_dma_ch2");
-    qcc74x_platform_dma_init(dma_chx);
-
-    dmslist.src = (uint32_t)src1_buffer;
-    dmslist.dest = (uint32_t)dst1_buffer;
-    dmslist.length = DMA_BUFFER_LENGTH;
-    dmslist.ctrl = 0;
-    dmslist.next = 0;
-
-    start_time = qcc74x_mtimer_get_time_us();
-    qcc74x_platform_dma_push(dma_chx, &dmslist, &dmslist);
-    qcc74x_platform_dma_wait_eot(dma_chx);
-    qcc74x_platform_dma_clear_eot(dma_chx);
-    printf("ocram2ocram speed:%d MB/s\r\n", K_NUM * 1000000 / 1024 / ((uint32_t)(qcc74x_mtimer_get_time_us() - start_time)));
-
-    dmslist.src = (uint32_t)src1_buffer;
-    dmslist.dest = (uint32_t)dst2_buffer;
-    dmslist.length = DMA_BUFFER_LENGTH;
-    dmslist.ctrl = 0;
-    dmslist.next = 0;
-
-    start_time = qcc74x_mtimer_get_time_us();
-    qcc74x_platform_dma_push(dma_chx, &dmslist, &dmslist);
-    qcc74x_platform_dma_wait_eot(dma_chx);
-    qcc74x_platform_dma_clear_eot(dma_chx);
-    printf("ocram2psram speed:%d MB/s\r\n", K_NUM * 1000000 / 1024 / ((uint32_t)(qcc74x_mtimer_get_time_us() - start_time)));
-
-    dmslist.src = (uint32_t)src2_buffer;
-    dmslist.dest = (uint32_t)dst2_buffer;
-    dmslist.length = DMA_BUFFER_LENGTH;
-    dmslist.ctrl = 0;
-    dmslist.next = 0;
-
-    start_time = qcc74x_mtimer_get_time_us();
-    qcc74x_platform_dma_push(dma_chx, &dmslist, &dmslist);
-    qcc74x_platform_dma_wait_eot(dma_chx);
-    qcc74x_platform_dma_clear_eot(dma_chx);
     printf("psram2psram speed:%d MB/s\r\n", K_NUM * 1000000 / 1024 / ((uint32_t)(qcc74x_mtimer_get_time_us() - start_time)));
 }
 
@@ -150,9 +99,7 @@ int main(void)
     memset(dst2_buffer, 0xaa, DMA_BUFFER_LENGTH);
 
     memcpy_test();
-#if defined(QCC743)
-    platform_dma_test();
-#endif
+
     dma_test();
 
     while (1) {

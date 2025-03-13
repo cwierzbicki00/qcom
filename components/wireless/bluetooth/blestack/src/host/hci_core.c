@@ -44,7 +44,11 @@
 #include "../include/bluetooth/crypto.h"
 #include "settings.h"
 #if defined(QCC74x_BLE)
+#if defined(CONFIG_BT_HOST_HCI_TL)
+#include "qcc74x_hci_tl.h"
+#else
 #include "qcc74x_hci_wrapper.h"
+#endif
 #if defined(QCC74x_undef) || defined(QCC74x_undef)
 #include "ble_lib_api.h"
 #else
@@ -486,6 +490,7 @@ int bt_hci_cmd_send_sync(u16_t opcode, struct net_buf *buf,
 			break;
 		#endif
 		default:
+			BT_ERR("status  0x%02x", cmd(buf)->status);
 			err = -EIO;
 			break;
 		}
@@ -527,7 +532,12 @@ static int set_advertise_enable(bool enable)
 	struct net_buf *buf;
 	struct cmd_state_set state;
 	int err;
-
+	#if defined(CFG_BLE_ADV_TWO_PAYLOAD_IN_ONE_ADV_INTERVAL_WITH_ROME_CODE)
+	if(atomic_test_bit(bt_dev.flags, BT_DEV_ADVERTISING2_SETTING)){
+		buf = bt_hci_cmd_create(BT_HCI_OP_VS_LE_SET_ADV_EN_CMD_OPCODE, 1);
+	}
+	else
+	#endif /* CFG_BLE_ADV_TWO_PAYLOAD_IN_ONE_ADV_INTERVAL_WITH_ROME_CODE */
 	buf = bt_hci_cmd_create(BT_HCI_OP_LE_SET_ADV_ENABLE, 1);
 	if (!buf) {
 		return -ENOBUFS;
@@ -538,10 +548,21 @@ static int set_advertise_enable(bool enable)
 	} else {
 		net_buf_add_u8(buf, BT_HCI_LE_ADV_DISABLE);
 	}
-
+	#if defined(CFG_BLE_ADV_TWO_PAYLOAD_IN_ONE_ADV_INTERVAL_WITH_ROME_CODE)
+	if(atomic_test_bit(bt_dev.flags, BT_DEV_ADVERTISING2_SETTING)){
+		cmd_state_set_init(&state, bt_dev.flags, BT_DEV_ADVERTISING2, enable);
+	}
+	else
+	#endif /* CFG_BLE_ADV_TWO_PAYLOAD_IN_ONE_ADV_INTERVAL_WITH_ROME_CODE */
 	cmd_state_set_init(&state, bt_dev.flags, BT_DEV_ADVERTISING, enable);
 	cmd(buf)->state = &state;
 
+	#if defined(CFG_BLE_ADV_TWO_PAYLOAD_IN_ONE_ADV_INTERVAL_WITH_ROME_CODE)
+	if(atomic_test_bit(bt_dev.flags, BT_DEV_ADVERTISING2_SETTING)){
+		err = bt_hci_cmd_send_sync(BT_HCI_OP_VS_LE_SET_ADV_EN_CMD_OPCODE, buf, NULL);
+	}
+	else
+	#endif /* CFG_BLE_ADV_TWO_PAYLOAD_IN_ONE_ADV_INTERVAL_WITH_ROME_CODE */
 	err = bt_hci_cmd_send_sync(BT_HCI_OP_LE_SET_ADV_ENABLE, buf, NULL);
 	if (err) {
 		return err;
@@ -844,9 +865,15 @@ static void hci_data_buf_overflow(struct net_buf *buf)
     (void) evt;
 }
 
+#if defined(QCC74x_BLE_NOT_ALLOCATE_RX_NETBUF_FOR_NUM_OF_COMPLETED_PKTS_EVT)
+void hci_num_completed_packets(struct bt_hci_evt_num_completed_packets *evt)
+#else
 static void hci_num_completed_packets(struct net_buf *buf)
+#endif
 {
+	#if !defined(QCC74x_BLE_NOT_ALLOCATE_RX_NETBUF_FOR_NUM_OF_COMPLETED_PKTS_EVT)
 	struct bt_hci_evt_num_completed_packets *evt = (void *)buf->data;
+	#endif
 	int i;
 
 	BT_DBG("num_handles %u", evt->num_handles);
@@ -4110,6 +4137,13 @@ int bt_le_scan_update(bool fast_scan)
 		//atomic_set_bit(bt_dev.flags, BT_DEV_SCAN_FILTER_DUP);
 		atomic_clear_bit(bt_dev.flags, BT_DEV_SCAN_FILTER_DUP);
 
+		#if defined(QCC74x_BLE_NOT_USE_BACKGROUD_SCAN_PARAMETERS_IF_NOT_ATUO_CONN_WITHOUT_WHITELIST)
+		if (!atomic_test_bit(conn->flags, BT_CONN_AUTO_CONNECT))
+		{
+			fast_scan = true;
+		}
+		#endif
+
 		bt_conn_unref(conn);
 
 		if (fast_scan) {
@@ -5584,9 +5618,11 @@ static const struct event_handler prio_events[] = {
 	EVENT_HANDLER(BT_HCI_EVT_DATA_BUF_OVERFLOW,
 		      hci_data_buf_overflow,
 		      sizeof(struct bt_hci_evt_data_buf_overflow)),
+	#if !defined(QCC74x_BLE_NOT_ALLOCATE_RX_NETBUF_FOR_NUM_OF_COMPLETED_PKTS_EVT)
 	EVENT_HANDLER(BT_HCI_EVT_NUM_COMPLETED_PACKETS,
 		      hci_num_completed_packets,
 		      sizeof(struct bt_hci_evt_num_completed_packets)),
+	#endif
 #endif /* CONFIG_BT_CONN */
 };
 
@@ -5700,10 +5736,12 @@ static int bt_init(void)
 #endif
 
 #if defined(QCC74x_BLE)
+#if !defined (CONFIG_BT_HOST_HCI_TL)
     err = qcc74x_onchiphci_interface_init();
     if (err) {
 		return err;
 	}
+#endif
 #if defined(QCC74x_HOST_ASSISTANT)
 	blhast_init(host_assist_cb);
 #endif
@@ -6064,9 +6102,9 @@ int bt_disable_action(void)
     net_buf_deinit(&discardable_pool);
     #endif
     #endif//defined(QCC74x_DYNAMIC_ALLOC_MEM)
-
+#if !defined (CONFIG_BT_HOST_HCI_TL)
     qcc74x_onchiphci_interface_deinit();
-
+#endif
     //delete task
     #if defined(QCC74x_undef) || defined(QCC74x_undef)
     ble_controller_deinit();
@@ -6889,7 +6927,14 @@ int set_adv_enable(bool enable)
 		return -EAGAIN;
 	}
 
-    if (atomic_test_bit(bt_dev.flags, BT_DEV_ADVERTISING) && enable) {
+	#if defined(CFG_BLE_ADV_TWO_PAYLOAD_IN_ONE_ADV_INTERVAL_WITH_ROME_CODE)
+	if ((!atomic_test_bit(bt_dev.flags, BT_DEV_ADVERTISING2_SETTING) &&
+		atomic_test_bit(bt_dev.flags, BT_DEV_ADVERTISING) && enable ) ||
+		((atomic_test_bit(bt_dev.flags, BT_DEV_ADVERTISING2_SETTING) &&
+		atomic_test_bit(bt_dev.flags, BT_DEV_ADVERTISING2)) && enable)) {
+	#else
+	if (atomic_test_bit(bt_dev.flags, BT_DEV_ADVERTISING) && enable) {
+	#endif /* CFG_BLE_ADV_TWO_PAYLOAD_IN_ONE_ADV_INTERVAL_WITH_ROME_CODE */
 		return -EALREADY;
 	}
     
@@ -7065,11 +7110,19 @@ int set_ad_and_rsp_d(u16_t hci_op, u8_t *data, u32_t ad_len)
 	struct net_buf *buf;
 	u8_t size;
 
-	if(BT_HCI_OP_LE_SET_ADV_DATA == hci_op){
+	if(BT_HCI_OP_LE_SET_ADV_DATA == hci_op 
+		#if defined(CFG_BLE_ADV_TWO_PAYLOAD_IN_ONE_ADV_INTERVAL_WITH_ROME_CODE)
+		|| BT_HCI_OP_VS_LE_SET_ADV_DATA_CMD_OPCODE == hci_op
+		#endif
+		){
 
 		size = sizeof(struct bt_hci_cp_le_set_adv_data);
 
-	}else if(BT_HCI_OP_LE_SET_SCAN_RSP_DATA == hci_op){
+	}else if(BT_HCI_OP_LE_SET_SCAN_RSP_DATA == hci_op
+		#if defined(CFG_BLE_ADV_TWO_PAYLOAD_IN_ONE_ADV_INTERVAL_WITH_ROME_CODE)
+		|| BT_HCI_OP_VS_LE_SET_SCAN_RSP_DATA_CMD_OPCODE == hci_op
+		#endif
+		){
 
 		size = sizeof(struct bt_hci_cp_le_set_scan_rsp_data);
 
@@ -7081,7 +7134,11 @@ int set_ad_and_rsp_d(u16_t hci_op, u8_t *data, u32_t ad_len)
 		return -ENOBUFS;
 	}
 
-	if(BT_HCI_OP_LE_SET_ADV_DATA == hci_op){
+	if(BT_HCI_OP_LE_SET_ADV_DATA == hci_op
+		#if defined(CFG_BLE_ADV_TWO_PAYLOAD_IN_ONE_ADV_INTERVAL_WITH_ROME_CODE)
+		|| BT_HCI_OP_VS_LE_SET_ADV_DATA_CMD_OPCODE == hci_op
+		#endif
+		){
 
 		struct bt_hci_cp_le_set_adv_data *set_data  = net_buf_add(buf, size);
 		memset(set_data, 0, size);
@@ -7094,7 +7151,11 @@ int set_ad_and_rsp_d(u16_t hci_op, u8_t *data, u32_t ad_len)
 
 		memcpy(set_data->data,data,set_data->len);
 
-	}else if(BT_HCI_OP_LE_SET_SCAN_RSP_DATA == hci_op){
+	}else if(BT_HCI_OP_LE_SET_SCAN_RSP_DATA == hci_op
+		#if defined(CFG_BLE_ADV_TWO_PAYLOAD_IN_ONE_ADV_INTERVAL_WITH_ROME_CODE)
+		|| BT_HCI_OP_VS_LE_SET_SCAN_RSP_DATA_CMD_OPCODE == hci_op
+		#endif
+		){
 
 		struct bt_hci_cp_le_set_scan_rsp_data *set_data  = net_buf_add(buf, size);
 		memset(set_data, 0, size);
@@ -7173,9 +7234,24 @@ int bt_le_adv_start(const struct bt_le_adv_param *param,
 		    const struct bt_data *ad, size_t ad_len,
 		    const struct bt_data *sd, size_t sd_len)
 {
+	int err = 0;
 	if (param->options & BT_LE_ADV_OPT_DIR_MODE_LOW_DUTY) {
 		return -EINVAL;
 	}
+	#if defined(CFG_BLE_ADV_TWO_PAYLOAD_IN_ONE_ADV_INTERVAL_WITH_ROME_CODE)
+	int second_adv_flag = 0;
+
+	if (atomic_test_bit(bt_dev.flags, BT_DEV_ADVERTISING2)) {
+		atomic_set_bit(bt_dev.flags, BT_DEV_ADVERTISING2_SETTING);
+		err = bt_le_adv_stop();
+		atomic_clear_bit(bt_dev.flags, BT_DEV_ADVERTISING2_SETTING);
+		if (err) {
+			BT_ERR("Stop seconed adv: %d", err);
+			return -EBUSY;
+		}
+		second_adv_flag = 1;
+	}
+	#endif
 
 	#if defined(QCC74x_BLE_REJECT_CONNECTABLE_ADV_IF_MAX_LINKS_REACH)
 	if(param->options & BT_LE_ADV_OPT_CONNECTABLE && bt_conn_get_remote_dev_info(NULL) == CONFIG_BT_MAX_CONN)
@@ -7184,12 +7260,41 @@ int bt_le_adv_start(const struct bt_le_adv_param *param,
 	}
 	#endif
 
-	return bt_le_adv_start_internal(param, ad, ad_len, sd, sd_len, NULL);
+	err = bt_le_adv_start_internal(param, ad, ad_len, sd, sd_len, NULL);
+	if(err){
+		return err;
+	}
+	#if defined(CFG_BLE_ADV_TWO_PAYLOAD_IN_ONE_ADV_INTERVAL_WITH_ROME_CODE)
+	if(second_adv_flag){
+		atomic_set_bit(bt_dev.flags, BT_DEV_ADVERTISING2_SETTING);
+		err = set_adv_enable(true);
+		atomic_clear_bit(bt_dev.flags, BT_DEV_ADVERTISING2_SETTING);
+		if(err){
+			BT_ERR("Re-enable second adv failed: %d.", err);
+			return -EBUSY;
+		}
+	}
+	#endif
+	return err;
 }
 
 int bt_le_adv_stop(void)
 {
 	int err;
+
+	#if defined(CFG_BLE_ADV_TWO_PAYLOAD_IN_ONE_ADV_INTERVAL_WITH_ROME_CODE)
+	if(atomic_test_bit(bt_dev.flags, BT_DEV_ADVERTISING2_SETTING)){
+		if (!atomic_test_bit(bt_dev.flags, BT_DEV_ADVERTISING2)) {
+			return 0;
+		}
+
+		err = set_advertise_enable(false);
+		if (err) {
+			return err;
+		}
+		return 0;
+	}
+	#endif /* CFG_BLE_ADV_TWO_PAYLOAD_IN_ONE_ADV_INTERVAL_WITH_ROME_CODE */
 
 	/* Make sure advertising is not re-enabled later even if it's not
 	 * currently enabled (i.e. BT_DEV_ADVERTISING is not set).
@@ -8408,6 +8513,66 @@ int bt_le_enh_rx_test(u8_t rx_ch, u8_t phy, u8_t mod_index)
 		return err;
 	}
     
+	return 0;
+}
+
+int bt_ble_rx_test_cmd(u8_t rx_ch)
+{
+	int err;
+	struct net_buf *buf;
+
+	struct bt_hci_cp_le_rx_test set_param;
+	if(rx_ch > 39)
+		return -EINVAL ;
+
+	memset(&set_param, 0, sizeof(set_param));
+
+	set_param.rx_ch = rx_ch;
+
+	buf = bt_hci_cmd_create(BT_HCI_OP_LE_RX_TEST, sizeof(set_param));
+	if (!buf) {
+		return -ENOBUFS;   
+	}
+
+	net_buf_add_mem(buf, &set_param, sizeof(set_param));
+
+	err = bt_hci_cmd_send_sync(BT_HCI_OP_LE_RX_TEST, buf, NULL);
+
+	if (err) {
+		return err;
+	}
+
+	return 0;
+}
+
+int bt_ble_tx_test_cmd(u8_t tx_ch,u8_t  test_data_len,u8_t  pkt_payload)
+{
+	int err;
+	struct net_buf *buf;
+
+	struct bt_hci_cp_le_tx_test set_param;
+	if(tx_ch > 39)
+		return -EINVAL;
+
+	memset(&set_param, 0, sizeof(set_param));
+
+	set_param.tx_ch         = tx_ch;
+	set_param.test_data_len = test_data_len;
+	set_param.pkt_payload   = pkt_payload;
+
+	buf = bt_hci_cmd_create(BT_HCI_OP_LE_TX_TEST, sizeof(set_param));
+	if (!buf) {
+		return -ENOBUFS;   
+	}
+
+	net_buf_add_mem(buf, &set_param, sizeof(set_param));
+
+	err = bt_hci_cmd_send_sync(BT_HCI_OP_LE_TX_TEST, buf, NULL);
+
+	if (err) {
+		return err;
+	}
+
 	return 0;
 }
 

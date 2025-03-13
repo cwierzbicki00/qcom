@@ -104,6 +104,9 @@
 #define EAP_SERVER
 #define EAP_SERVER_IDENTITY
 #define CONFIG_WNM_AP
+#define CONFIG_WPS
+#define IEEE8021X_EAPOL
+#define EAP_WSC
 #if NX_P2P
 #define CONFIG_P2P
 #define CONFIG_WPS

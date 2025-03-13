@@ -334,6 +334,7 @@ struct hostapd_bss_config {
 	int erp_send_reauth_start;
 	char *erp_domain;
 
+    bool mac_acl_disable;
 	enum macaddr_acl {
 		ACCEPT_UNLESS_DENIED = 0,
 		DENY_UNLESS_ACCEPTED = 1,
@@ -457,6 +458,8 @@ struct hostapd_bss_config {
 
 	int ap_max_inactivity;
 	int ignore_broadcast_ssid;
+    int bcn_mode;
+    int bcn_timer;
 	int no_probe_resp_if_max_sta;
 
 	int wmm_enabled;
@@ -1179,6 +1182,11 @@ void hostapd_config_free_bss(struct hostapd_bss_config *conf);
 void hostapd_config_free(struct hostapd_config *conf);
 int hostapd_maclist_found(struct mac_acl_entry *list, int num_entries,
 			  const u8 *addr, struct vlan_description *vlan_id);
+int hostapd_acl_comp(const void *a, const void *b);
+int hostapd_add_acl_maclist(struct mac_acl_entry **acl, int *num,
+                int vlan_id, const u8 *addr);
+void hostapd_remove_acl_mac(struct mac_acl_entry **acl, int *num,
+                const u8 *addr);
 int hostapd_rate_found(int *list, int rate);
 const u8 * hostapd_get_psk(const struct hostapd_bss_config *conf,
 			   const u8 *addr, const u8 *p2p_dev_addr,

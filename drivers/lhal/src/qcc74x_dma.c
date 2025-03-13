@@ -7,18 +7,24 @@ struct qcc74x_dma_irq_callback {
     void *arg;
 };
 
-#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undefL)
+#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
 const uint32_t dma_base[] = { 0x4000C000 };
 struct qcc74x_dma_irq_callback dma_callback[1][8];
 #elif defined(QCC743)
 const uint32_t dma_base[] = { 0x2000C000 };
 struct qcc74x_dma_irq_callback dma_callback[1][4];
-#elif defined(QCC74x_undefP) || defined(QCC74x_undef)
+#elif defined(QCC74x_undef)
+const uint32_t dma_base[] = { 0x2000C000 };
+struct qcc74x_dma_irq_callback dma_callback[1][8];
+#elif defined(QCC74x_undef) || defined(QCC74x_undef)
 const uint32_t dma_base[] = { 0x2000C000, 0x20071000, 0x30001000 };
 struct qcc74x_dma_irq_callback dma_callback[3][8];
 #elif defined(QCC74x_undef)
 const uint32_t dma_base[] = { 0x20081000 };
 struct qcc74x_dma_irq_callback dma_callback[1][8];
+#elif defined(QCC74x_undef)
+const uint32_t dma_base[] = { 0x20081000, 0x20086000, 0x000C0000 };
+struct qcc74x_dma_irq_callback dma_callback[3][8];
 #endif
 
 void dma0_isr(int irq, void *arg)
@@ -35,7 +41,7 @@ void dma0_isr(int irq, void *arg)
     }
 }
 
-#if defined(QCC74x_undefP) || defined(QCC74x_undef)
+#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
 void dma1_isr(int irq, void *arg)
 {
     uint32_t regval;
@@ -137,7 +143,17 @@ void qcc74x_dma_channel_init(struct qcc74x_device_s *dev, const struct qcc74x_dm
 #endif
 }
 
-void qcc74x_dma_lli_config(struct qcc74x_device_s *dev,
+void qcc74x_dma_channel_deinit(struct qcc74x_device_s *dev)
+{
+#ifdef romapi_qcc74x_dma_channel_deinit
+    romapi_qcc74x_dma_channel_deinit(dev);
+#else
+    qcc74x_dma_channel_stop(dev);
+    qcc74x_dma_channel_tcint_mask(dev, true);
+#endif
+}
+
+__UNUSED static void qcc74x_dma_lli_config(struct qcc74x_device_s *dev,
                          struct qcc74x_dma_channel_lli_pool_s *lli_pool,
                          uint32_t lli_count,
                          uint32_t src_addr,
@@ -269,13 +285,116 @@ int qcc74x_dma_channel_lli_reload(struct qcc74x_device_s *dev, struct qcc74x_dma
     putreg32(lli_pool[0].dst_addr, channel_base + DMA_CxDSTADDR_OFFSET);
     putreg32(lli_pool[0].nextlli, channel_base + DMA_CxLLI_OFFSET);
     putreg32(lli_pool[0].control.WORD, channel_base + DMA_CxCONTROL_OFFSET);
-#if defined(QCC743) || defined(QCC74x_undefP) || defined(QCC74x_undef) || defined(QCC74x_undef)
+#if defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
     /* clean cache, DMA does not pass through the cache */
     qcc74x_l1c_dcache_clean_range((uint32_t *)(uintptr_t)lli_pool, sizeof(struct qcc74x_dma_channel_lli_pool_s) * lli_count_used_offset);
 #endif
     return lli_count_used_offset;
 #endif
 }
+
+#if defined(QCC74x_undef)
+int qcc74x_dma_channel_lli_insert(struct qcc74x_device_s *dev, struct qcc74x_dma_channel_lli_pool_s *lli_pool, uint32_t max_lli_count, struct qcc74x_dma_channel_lli_transfer_s *transfer, uint32_t count)
+{
+#ifdef romapi_qcc74x_dma_channel_lli_insert
+    return romapi_qcc74x_dma_channel_lli_insert(dev, lli_pool, max_lli_count, transfer, count);
+#else
+    uint32_t channel_base;
+    uint32_t actual_transfer_offset = 0;
+    uint32_t actual_transfer_len = 0;
+    uint32_t last_transfer_len = 0;
+    uint32_t current_lli_count = 0;
+    uint32_t lli_count_used_offset = 0;
+    union qcc74x_dma_lli_control_s dma_ctrl_cfg;
+
+    channel_base = dev->reg_base;
+
+    dma_ctrl_cfg = (union qcc74x_dma_lli_control_s)getreg32(channel_base + DMA_CxCONTROL_OFFSET);
+
+    qcc74x_dma_feature_control(dev, DMA_CMD_SET_LLI_MUTEX, 1);
+
+    if (qcc74x_dma_feature_control(dev, DMA_CMD_GET_LLI_MUTEX_STATUS, 0) == DMA_LLI_MUTEX_UNAVAILABLE) {
+        return -1;
+    }
+
+    for (lli_count_used_offset = 0; lli_count_used_offset < max_lli_count; lli_count_used_offset++) {
+        if (lli_pool[lli_count_used_offset].nextlli == 0) {
+            break;
+        }
+    }
+    if (count) {
+        lli_pool[lli_count_used_offset].nextlli = (uint32_t)(uintptr_t)&lli_pool[lli_count_used_offset + 1];
+        if (qcc74x_dma_feature_control(dev, DMA_CMD_GET_LLI_MUTEX_STATUS, 0) == DMA_LLI_MUTEX_LAST_NODE) {
+            putreg32(lli_pool[lli_count_used_offset].nextlli, channel_base + DMA_CxLLI_OFFSET);
+        }
+        lli_count_used_offset++;
+    }
+
+    switch (dma_ctrl_cfg.bits.SWidth) {
+        case DMA_DATA_WIDTH_8BIT:
+            actual_transfer_offset = 4064;
+            break;
+        case DMA_DATA_WIDTH_16BIT:
+            actual_transfer_offset = 4064 << 1;
+            break;
+        case DMA_DATA_WIDTH_32BIT:
+            actual_transfer_offset = 4064 << 2;
+            break;
+        default:
+            break;
+    }
+
+    for (size_t i = 0; i < count; i++) {
+        switch (dma_ctrl_cfg.bits.SWidth) {
+            case DMA_DATA_WIDTH_8BIT:
+                actual_transfer_len = transfer[i].nbytes;
+                break;
+            case DMA_DATA_WIDTH_16BIT:
+                if (transfer[i].nbytes % 2) {
+                    return -1;
+                }
+                actual_transfer_len = transfer[i].nbytes >> 1;
+                break;
+            case DMA_DATA_WIDTH_32BIT:
+                if (transfer[i].nbytes % 4) {
+                    return -1;
+                }
+                actual_transfer_len = transfer[i].nbytes >> 2;
+                break;
+
+            default:
+                break;
+        }
+
+        current_lli_count = actual_transfer_len / 4064 + 1;
+        last_transfer_len = actual_transfer_len % 4064;
+
+        /* The maximum transfer capacity of the last node is 4095 */
+        if (current_lli_count > 1 && last_transfer_len < (4095 - 4064)) {
+            current_lli_count--;
+            last_transfer_len += 4064;
+        }
+
+        qcc74x_dma_lli_config(dev, &lli_pool[lli_count_used_offset], current_lli_count, transfer[i].src_addr, transfer[i].dst_addr, actual_transfer_offset, last_transfer_len);
+        if (i) {
+            lli_pool[lli_count_used_offset - 1].nextlli = (uint32_t)(uintptr_t)&lli_pool[lli_count_used_offset];
+        }
+        lli_count_used_offset += current_lli_count;
+
+        if (lli_count_used_offset > max_lli_count) {
+            return -ENOMEM;
+        }
+    }
+
+    /* clean cache, DMA does not pass through the cache */
+    qcc74x_l1c_dcache_clean_range((uint32_t *)(uintptr_t)lli_pool, sizeof(struct qcc74x_dma_channel_lli_pool_s) * lli_count_used_offset);
+
+    qcc74x_dma_feature_control(dev, DMA_CMD_SET_LLI_MUTEX, 0);
+
+    return lli_count_used_offset;
+#endif
+}
+#endif
 
 void qcc74x_dma_channel_lli_link_head(struct qcc74x_device_s *dev,
                                     struct qcc74x_dma_channel_lli_pool_s *lli_pool,
@@ -291,7 +410,7 @@ void qcc74x_dma_channel_lli_link_head(struct qcc74x_device_s *dev,
     lli_pool[used_lli_count - 1].nextlli = (uint32_t)(uintptr_t)&lli_pool[0];
 
     putreg32(lli_pool[0].nextlli, channel_base + DMA_CxLLI_OFFSET);
-#if defined(QCC743) || defined(QCC74x_undefP) || defined(QCC74x_undef) || defined(QCC74x_undef)
+#if defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
     /* clean cache, DMA does not pass through the cache */
     qcc74x_l1c_dcache_clean_range((uint32_t *)lli_pool, sizeof(struct qcc74x_dma_channel_lli_pool_s) * used_lli_count);
 #endif
@@ -335,7 +454,7 @@ void qcc74x_dma_channel_stop(struct qcc74x_device_s *dev)
 bool qcc74x_dma_channel_isbusy(struct qcc74x_device_s *dev)
 {
 #ifdef romapi_qcc74x_dma_channel_isbusy
-    romapi_qcc74x_dma_channel_isbusy(dev);
+    return romapi_qcc74x_dma_channel_isbusy(dev);
 #else
     uint32_t regval;
     uint32_t channel_base;
@@ -375,41 +494,27 @@ void qcc74x_dma_channel_tcint_mask(struct qcc74x_device_s *dev, bool mask)
 
 void qcc74x_dma_channel_irq_attach(struct qcc74x_device_s *dev, void (*callback)(void *arg), void *arg)
 {
-    uint8_t init_attach = 0;
     dma_callback[dev->idx][dev->sub_idx].handler = callback;
     dma_callback[dev->idx][dev->sub_idx].arg = arg;
 
     qcc74x_dma_channel_tcint_mask(dev, false);
 
-    if (init_attach == 0) {
-        init_attach = 1;
-#if (defined(QCC74x_undefP) || defined(QCC74x_undef)) && (defined(CPU_M0) || defined(CPU_LP))
-        qcc74x_irq_attach(31, dma0_isr, NULL);
-        qcc74x_irq_attach(32, dma1_isr, NULL);
-        qcc74x_irq_enable(31);
-        qcc74x_irq_enable(32);
-#elif (defined(QCC74x_undefP) || defined(QCC74x_undef)) && defined(CPU_D0)
-        qcc74x_irq_attach(40, dma2_isr, NULL);
-        qcc74x_irq_attach(41, dma2_isr, NULL);
-        qcc74x_irq_attach(42, dma2_isr, NULL);
-        qcc74x_irq_attach(43, dma2_isr, NULL);
-        qcc74x_irq_attach(44, dma2_isr, NULL);
-        qcc74x_irq_attach(45, dma2_isr, NULL);
-        qcc74x_irq_attach(46, dma2_isr, NULL);
-        qcc74x_irq_attach(47, dma2_isr, NULL);
-        qcc74x_irq_enable(40);
-        qcc74x_irq_enable(41);
-        qcc74x_irq_enable(42);
-        qcc74x_irq_enable(43);
-        qcc74x_irq_enable(44);
-        qcc74x_irq_enable(45);
-        qcc74x_irq_enable(46);
-        qcc74x_irq_enable(47);
-#else
+    if (dev->idx == 0) {
         qcc74x_irq_attach(dev->irq_num, dma0_isr, NULL);
         qcc74x_irq_enable(dev->irq_num);
-#endif
     }
+#if (defined(QCC74x_undef) || defined(QCC74x_undef)) && (defined(CPU_M0) || defined(CPU_LP)) || defined(QCC74x_undef)
+    else if (dev->idx == 1) {
+        qcc74x_irq_attach(dev->irq_num, dma1_isr, NULL);
+        qcc74x_irq_enable(dev->irq_num);
+    }
+#endif
+#if ((defined(QCC74x_undef) || defined(QCC74x_undef)) && defined(CPU_D0)) || defined(QCC74x_undef)
+    else if (dev->idx == 2) {
+        qcc74x_irq_attach(dev->irq_num, dma2_isr, NULL);
+        qcc74x_irq_enable(dev->irq_num);
+    }
+#endif
 }
 
 void qcc74x_dma_channel_irq_detach(struct qcc74x_device_s *dev)
@@ -603,6 +708,50 @@ int qcc74x_dma_feature_control(struct qcc74x_device_s *dev, int cmd, size_t arg)
             return getreg32(channel_base + DMA_CxCONTROL_OFFSET);
         case DMA_CMD_GET_LLI_COUNT:
             return (getreg32(channel_base + DMA_CxCONFIG_OFFSET) & DMA_LLICOUNTER_MASK) >> DMA_LLICOUNTER_SHIFT;
+
+#if defined(QCC74x_undef)
+        case DMA_CMD_SET_LLI_MUTEX:
+            regval = getreg32(channel_base + DMA_CxCONFIG_OFFSET);
+            if (arg) {
+                regval |= DMA_LLI_MUTEX;
+            } else {
+                regval &= ~DMA_LLI_MUTEX;
+                regval |= DMA_E;
+            }
+            putreg32(regval, channel_base + DMA_CxCONFIG_OFFSET);
+            break;
+
+        case DMA_CMD_GET_LLI_MUTEX_STATUS:
+            regval = getreg32(channel_base + DMA_CxCONTROL_OFFSET);
+            if (regval & DMA_LLI_VALID) {
+                regval = getreg32(channel_base + DMA_CxLLI_OFFSET);
+                if (regval == 0) {
+                    ret = DMA_LLI_MUTEX_LAST_NODE;
+                } else {
+                    ret = DMA_LLI_MUTEX_NOT_LAST_NODE;
+                }
+            } else {
+                ret = DMA_LLI_MUTEX_UNAVAILABLE;
+            }
+            break;
+
+        case DMA_CMD_READ_HW_VERSION:
+            regval = getreg32(dma_base[0] + DMA_HW_VERSION_OFFSET);
+            ret = (regval & DMA_HW_VERSION_MASK) >> DMA_HW_VERSION_SHIFT;
+            break;
+
+        case DMA_CMD_READ_SW_USAGE:
+            regval = getreg32(dma_base[0] + DMA_SW_USAGE_OFFSET);
+            ret = (regval & DMA_SW_USAGE_MASK) >> DMA_SW_USAGE_SHIFT;
+            break;
+
+        case DMA_CMD_WRITE_SW_USAGE:
+            regval = getreg32(dma_base[0] + DMA_SW_USAGE_OFFSET);
+            regval &= ~DMA_SW_USAGE_MASK;
+            regval |= ((arg << DMA_SW_USAGE_SHIFT) & DMA_SW_USAGE_MASK);
+            putreg32(regval, dma_base[0] + DMA_SW_USAGE_OFFSET);
+            break;
+#endif
 
         default:
             ret = -EPERM;

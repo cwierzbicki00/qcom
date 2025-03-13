@@ -174,6 +174,9 @@ static int hostapd_radius_acl_query(struct hostapd_data *hapd, const u8 *addr,
 int hostapd_check_acl(struct hostapd_data *hapd, const u8 *addr,
 		      struct vlan_description *vlan_id)
 {
+    if (hapd->conf->mac_acl_disable)
+        return HOSTAPD_ACL_ACCEPT;
+
 	if (hostapd_maclist_found(hapd->conf->accept_mac,
 				  hapd->conf->num_accept_mac, addr, vlan_id))
 		return HOSTAPD_ACL_ACCEPT;

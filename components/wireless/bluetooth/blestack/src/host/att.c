@@ -16,7 +16,7 @@
 
 #include <hci_host.h>
 #include <bluetooth.h>
-#include <uuid.h>
+#include <bt_uuid.h>
 #include <gatt.h>
 #include <hci_driver.h>
 

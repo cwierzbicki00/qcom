@@ -9,10 +9,12 @@
         p[3] = (val >> 24) & 0xff;   \
     }
 
-#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undefL)
+#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
 #define QCC74x_SEC_ENG_BASE ((uint32_t)0x40004000)
-#elif defined(QCC743) || defined(QCC74x_undefP) || defined(QCC74x_undef) || defined(QCC74x_undef)
+#elif defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
 #define QCC74x_SEC_ENG_BASE ((uint32_t)0x20004000)
+#elif defined(QCC74x_undef)
+#define QCC74x_SEC_ENG_BASE ((uint32_t)0x20080000)
 #endif
 
 int qcc74x_trng_read(struct qcc74x_device_s *dev, uint8_t data[32])
@@ -115,6 +117,9 @@ int qcc74x_trng_read(struct qcc74x_device_s *dev, uint8_t data[32])
 
 int qcc74x_trng_readlen(uint8_t *data, uint32_t len)
 {
+#ifdef romapi_qcc74x_trng_readlen
+    return romapi_qcc74x_trng_readlen(data, len);
+#else
     uint8_t tmp_buf[32];
     uint32_t readlen = 0;
     uint32_t i = 0, cnt = 0;
@@ -138,15 +143,23 @@ int qcc74x_trng_readlen(uint8_t *data, uint32_t len)
     }
 
     return 0;
+#endif
 }
 
 __WEAK long random(void)
 {
+#ifdef romapi_random
+    return romapi_random();
+#else
     uint32_t data[8];
+    uintptr_t flag;
 
+    flag = qcc74x_irq_save();
     qcc74x_trng_read(NULL, (uint8_t *)data);
+    qcc74x_irq_restore(flag);
 
     return data[0];
+#endif
 }
 
 void qcc74x_group0_request_trng_access(struct qcc74x_device_s *dev)
@@ -161,7 +174,7 @@ void qcc74x_group0_request_trng_access(struct qcc74x_device_s *dev)
 
     regval = getreg32(reg_base + SEC_ENG_SE_CTRL_PROT_RD_OFFSET);
     if (((regval >> 4) & 0x03) == 0x03) {
-        putreg32(0x04, reg_base + SEC_ENG_SE_TRNG_0_CTRL_PROT_OFFSET);
+        putreg32(0x02, reg_base + SEC_ENG_SE_TRNG_0_CTRL_PROT_OFFSET);
 
         regval = getreg32(reg_base + SEC_ENG_SE_CTRL_PROT_RD_OFFSET);
         if (((regval >> 4) & 0x03) == 0x01) {

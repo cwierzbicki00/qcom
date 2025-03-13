@@ -1,31 +1,41 @@
 #include "qcc74x_ef_ctrl.h"
 #include "hardware/ef_ctrl_reg.h"
+#include "qcc74x_clock.h"
 
-#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undefL)
+#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
 #define QCC74x_EF_CTRL_BASE ((uint32_t)0x40007000)
-#elif defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undefP)
+#elif defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
 #define QCC74x_EF_CTRL_BASE ((uint32_t)0x20056000)
-#elif defined(QCC74x_undef)
+#elif defined(QCC74x_undef) || defined(QCC74x_undef)
 #define QCC74x_EF_CTRL_BASE ((uint32_t)0x2000C000)
 #endif
 
+#define EF_CTRL_EFUSE_CTRL_PROTECT (0xbf << 8)
+#define EF_CTRL_OP_MODE_AUTO 0
+#if defined(QCC74x_undef)
+#define EF_CTRL_PARA_DFT 1
 #define EF_CTRL_EFUSE_CYCLE_PROTECT (0xbf << 24)
-#define EF_CTRL_EFUSE_CTRL_PROTECT  (0xbf << 8)
-#define EF_CTRL_OP_MODE_AUTO        0
-#define EF_CTRL_PARA_DFT            0
-#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undefL)
-#define EF_CTRL_EF_CLK   0
+#else
+#define EF_CTRL_PARA_DFT 0
+#define EF_CTRL_EFUSE_CYCLE_PROTECT (0x0)
+#endif
+#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
+#define EF_CTRL_EF_CLK 0
 #define EF_CTRL_SAHB_CLK 1
 #endif
 #define EF_CTRL_DFT_TIMEOUT_VAL (160 * 1000)
 
-#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undefL)
+#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
 #define EF_CTRL_EFUSE_R0_SIZE 128
-#elif defined(QCC74x_undefP) || defined(QCC74x_undef)
+#elif defined(QCC74x_undef) || defined(QCC74x_undef)
 #define EF_CTRL_EFUSE_R0_SIZE 128
 #define EF_CTRL_EFUSE_R1_SIZE 128
 #elif defined(QCC743) || defined(QCC74x_undef)
 #define EF_CTRL_EFUSE_R0_SIZE 512
+#elif defined(QCC74x_undef)
+#define EF_CTRL_EFUSE_R0_SIZE 256
+#elif defined(QCC74x_undef)
+#define EF_CTRL_EFUSE_R0_SIZE 128
 #else
 #define EF_CTRL_EFUSE_R0_SIZE 128
 #endif
@@ -33,12 +43,25 @@
 #define EF_CTRL_DATA0_CLEAR qcc74x_ef_ctrl_clear_data_reg0(dev)
 #define EF_CTRL_DATA1_CLEAR qcc74x_ef_ctrl_clear_data_reg1(dev)
 
-#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undefL)
+#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
 extern void qcc74x_efuse_switch_cpu_clock_save(void);
 extern void qcc74x_efuse_switch_cpu_clock_restore(void);
 #endif
 
-static ATTR_TCM_SECTION size_t qcc74x_ef_ctrl_strlen(const char *s)
+#if defined(QCC74x_undef)
+extern void AON_LDO18_IO_Switch_Efuse(uint8_t enable);
+#define qcc74x_power_on_efuse()  AON_LDO18_IO_Switch_Efuse(1)
+#define qcc74x_power_off_efuse() AON_LDO18_IO_Switch_Efuse(0)
+#elif defined(QCC74x_undef)
+extern void AON_Set_Switch_For_Efuse(uint8_t enable);
+#define qcc74x_power_on_efuse()  AON_Set_Switch_For_Efuse(1);
+#define qcc74x_power_off_efuse()  AON_Set_Switch_For_Efuse(0);
+#else
+#define qcc74x_power_on_efuse()
+#define qcc74x_power_off_efuse()
+#endif
+
+__UNUSED static ATTR_TCM_SECTION size_t qcc74x_ef_ctrl_strlen(const char *s)
 {
     const char *sc;
     for (sc = s; *sc != '\0'; ++sc) {}
@@ -53,8 +76,11 @@ static ATTR_TCM_SECTION size_t qcc74x_ef_ctrl_strlen(const char *s)
  * @return 1 for busy 0 for not
  *
 *******************************************************************************/
-static int ATTR_TCM_SECTION qcc74x_ef_ctrl_busy(struct qcc74x_device_s *dev)
+int ATTR_TCM_SECTION qcc74x_ef_ctrl_busy(struct qcc74x_device_s *dev)
 {
+#ifdef romapi_qcc74x_ef_ctrl_busy
+    return romapi_qcc74x_ef_ctrl_busy(dev);
+#else
     uint32_t reg_val;
 
     reg_val = getreg32(QCC74x_EF_CTRL_BASE + EF_CTRL_EF_IF_CTRL_0_OFFSET);
@@ -64,6 +90,49 @@ static int ATTR_TCM_SECTION qcc74x_ef_ctrl_busy(struct qcc74x_device_s *dev)
     }
 
     return 0;
+#endif
+}
+
+/****************************************************************************/ /**
+ * @brief  Check efuse busy status
+ *
+ * @param dev  ef control device pointer
+ *
+ * @return 1 for busy 0 for not
+ *
+*******************************************************************************/
+__UNUSED static int ATTR_TCM_SECTION qcc74x_ef_ctrl_update_para(struct qcc74x_device_s *dev)
+{
+#ifdef romapi_qcc74x_ef_ctrl_update_para
+    return qcc74x_ef_ctrl_update_para(dev);
+#else
+#if defined(QCC74x_undef)
+    qcc74x_ef_ctrl_para_t para = {
+        .pd_1st = 0x03,  /*!< stable */
+        .pd_cs_s = 0x30, /*!< >500ns */
+        .cs = 0x0d,      /*!< >6.6ns */
+        .rd_adr = 0x0a,  /*!< >6.3ns */
+        .rd_dat = 0x0b,  /*!< >199ns */
+        .rd_dmy = 0x0f,  /*!< >14.9ns */
+        .pd_cs_h = 0x0d, /*!< >1ns */
+        .ps_cs = 0x20,   /*!< >50ns */
+        .wr_adr = 0x0d,  /*!< >6.3ns */
+        .pp = 0x479,     /*!< *4 >11-13us */
+        .pi = 0x0d,      /*!< *4 >14.9ns */
+    };
+    uint32_t xclk = 0;
+
+    xclk = qcc74x_clk_get_system_clock(QCC74x_SYSTEM_XCLK);
+    if (xclk != 0) {
+        xclk = xclk / 1000000;
+        para.pp = 12 * xclk / 4;
+    }
+
+    return qcc74x_ef_ctrl_set_para(&para);
+#else
+    return 0;
+#endif
+#endif
 }
 
 /****************************************************************************/ /**
@@ -86,10 +155,10 @@ static void ATTR_TCM_SECTION qcc74x_ef_ctrl_switch_ahb_clk_r0(struct qcc74x_devi
         }
     }
 
-    reg_val = (EF_CTRL_EFUSE_CTRL_PROTECT) |
+    reg_val = (EF_CTRL_EFUSE_CTRL_PROTECT) | (EF_CTRL_EFUSE_CYCLE_PROTECT) |
               (EF_CTRL_OP_MODE_AUTO << EF_CTRL_EF_IF_0_MANUAL_EN_POS) |
               (EF_CTRL_PARA_DFT << EF_CTRL_EF_IF_0_CYC_MODIFY_POS) |
-#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undefL)
+#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
               (EF_CTRL_SAHB_CLK << EF_CTRL_EF_CLK_SAHB_DATA_SEL_POS) |
 #endif
               (1 << EF_CTRL_EF_IF_AUTO_RD_EN_POS) |
@@ -127,7 +196,7 @@ static void ATTR_TCM_SECTION qcc74x_ef_ctrl_switch_ahb_clk_r1(struct qcc74x_devi
 
     /* Note:ef_if_ctrl_1 has no EF_CTRL_EF_CLK_SAHB_DATA_SEL_POS bit as ef_if_ctrl_0,
 	   so we select it(them) in ef_if_ctrl_0 */
-    reg_val = (EF_CTRL_EFUSE_CTRL_PROTECT) |
+    reg_val = (EF_CTRL_EFUSE_CTRL_PROTECT) | (EF_CTRL_EFUSE_CYCLE_PROTECT) |
               (EF_CTRL_OP_MODE_AUTO << EF_CTRL_EF_IF_0_MANUAL_EN_POS) |
               (EF_CTRL_PARA_DFT << EF_CTRL_EF_IF_0_CYC_MODIFY_POS) |
               (1 << EF_CTRL_EF_IF_AUTO_RD_EN_POS) |
@@ -138,7 +207,7 @@ static void ATTR_TCM_SECTION qcc74x_ef_ctrl_switch_ahb_clk_r1(struct qcc74x_devi
 
     putreg32(reg_val, QCC74x_EF_CTRL_BASE + EF_CTRL_EF_IF_CTRL_0_OFFSET);
 
-    reg_val = (EF_CTRL_EFUSE_CTRL_PROTECT) |
+    reg_val = (EF_CTRL_EFUSE_CTRL_PROTECT) | (EF_CTRL_EFUSE_CYCLE_PROTECT) |
               (EF_CTRL_OP_MODE_AUTO << EF_CTRL_EF_IF_1_MANUAL_EN_POS) |
               (EF_CTRL_PARA_DFT << EF_CTRL_EF_IF_1_CYC_MODIFY_POS) |
               (1 << EF_CTRL_EF_IF_1_INT_CLR_POS) |
@@ -160,15 +229,15 @@ static void ATTR_TCM_SECTION qcc74x_ef_ctrl_switch_ahb_clk_r1(struct qcc74x_devi
  * @return None
  *
 *******************************************************************************/
-static void ATTR_TCM_SECTION qcc74x_ef_ctrl_program_efuse_r0(struct qcc74x_device_s *dev)
+__UNUSED static void ATTR_TCM_SECTION qcc74x_ef_ctrl_program_efuse_r0(struct qcc74x_device_s *dev)
 {
     uint32_t reg_val;
 
     /* Select auto mode and select ef clock */
-    reg_val = (EF_CTRL_EFUSE_CTRL_PROTECT) |
+    reg_val = (EF_CTRL_EFUSE_CTRL_PROTECT) | (EF_CTRL_EFUSE_CYCLE_PROTECT) |
               (EF_CTRL_OP_MODE_AUTO << EF_CTRL_EF_IF_0_MANUAL_EN_POS) |
               (EF_CTRL_PARA_DFT << EF_CTRL_EF_IF_0_CYC_MODIFY_POS) |
-#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undefL)
+#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
               (EF_CTRL_EF_CLK << EF_CTRL_EF_CLK_SAHB_DATA_SEL_POS) |
 #endif
               (1 << EF_CTRL_EF_IF_AUTO_RD_EN_POS) |
@@ -180,10 +249,10 @@ static void ATTR_TCM_SECTION qcc74x_ef_ctrl_program_efuse_r0(struct qcc74x_devic
     putreg32(reg_val, QCC74x_EF_CTRL_BASE + EF_CTRL_EF_IF_CTRL_0_OFFSET);
 
     /* Program */
-    reg_val = (EF_CTRL_EFUSE_CTRL_PROTECT) |
+    reg_val = (EF_CTRL_EFUSE_CTRL_PROTECT) | (EF_CTRL_EFUSE_CYCLE_PROTECT) |
               (EF_CTRL_OP_MODE_AUTO << EF_CTRL_EF_IF_0_MANUAL_EN_POS) |
               (EF_CTRL_PARA_DFT << EF_CTRL_EF_IF_0_CYC_MODIFY_POS) |
-#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undefL)
+#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
               (EF_CTRL_EF_CLK << EF_CTRL_EF_CLK_SAHB_DATA_SEL_POS) |
 #endif
               (1 << EF_CTRL_EF_IF_AUTO_RD_EN_POS) |
@@ -198,10 +267,10 @@ static void ATTR_TCM_SECTION qcc74x_ef_ctrl_program_efuse_r0(struct qcc74x_devic
     arch_delay_us(4);
 
     /* Trigger */
-    reg_val = (EF_CTRL_EFUSE_CTRL_PROTECT) |
+    reg_val = (EF_CTRL_EFUSE_CTRL_PROTECT) | (EF_CTRL_EFUSE_CYCLE_PROTECT) |
               (EF_CTRL_OP_MODE_AUTO << EF_CTRL_EF_IF_0_MANUAL_EN_POS) |
               (EF_CTRL_PARA_DFT << EF_CTRL_EF_IF_0_CYC_MODIFY_POS) |
-#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undefL)
+#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
               (EF_CTRL_EF_CLK << EF_CTRL_EF_CLK_SAHB_DATA_SEL_POS) |
 #endif
               (1 << EF_CTRL_EF_IF_AUTO_RD_EN_POS) |
@@ -229,7 +298,7 @@ static void ATTR_TCM_SECTION qcc74x_ef_ctrl_program_efuse_r1(struct qcc74x_devic
     /* Select auto mode and select ef clock */
     /* Note:ef_if_ctrl_1 has no EF_CTRL_EF_CLK_SAHB_DATA_SEL_POS bit as ef_if_ctrl_0,
 	   so we select it(them) in ef_if_ctrl_0 */
-    reg_val = (EF_CTRL_EFUSE_CTRL_PROTECT) |
+    reg_val = (EF_CTRL_EFUSE_CTRL_PROTECT) | (EF_CTRL_EFUSE_CYCLE_PROTECT) |
               (EF_CTRL_OP_MODE_AUTO << EF_CTRL_EF_IF_0_MANUAL_EN_POS) |
               (EF_CTRL_PARA_DFT << EF_CTRL_EF_IF_0_CYC_MODIFY_POS) |
               (1 << EF_CTRL_EF_IF_AUTO_RD_EN_POS) |
@@ -240,7 +309,7 @@ static void ATTR_TCM_SECTION qcc74x_ef_ctrl_program_efuse_r1(struct qcc74x_devic
 
     putreg32(reg_val, QCC74x_EF_CTRL_BASE + EF_CTRL_EF_IF_CTRL_0_OFFSET);
 
-    reg_val = (EF_CTRL_EFUSE_CTRL_PROTECT) |
+    reg_val = (EF_CTRL_EFUSE_CTRL_PROTECT) | (EF_CTRL_EFUSE_CYCLE_PROTECT) |
               (EF_CTRL_OP_MODE_AUTO << EF_CTRL_EF_IF_1_MANUAL_EN_POS) |
               (EF_CTRL_PARA_DFT << EF_CTRL_EF_IF_1_CYC_MODIFY_POS) |
               (1 << EF_CTRL_EF_IF_1_INT_CLR_POS) |
@@ -252,7 +321,7 @@ static void ATTR_TCM_SECTION qcc74x_ef_ctrl_program_efuse_r1(struct qcc74x_devic
     /* Program */
     /* Note:ef_if_ctrl_1 has no EF_CTRL_EF_CLK_SAHB_DATA_SEL_POS bit as ef_if_ctrl_0,
 	so we select it(them) in ef_if_ctrl_0 */
-    reg_val = (EF_CTRL_EFUSE_CTRL_PROTECT) |
+    reg_val = (EF_CTRL_EFUSE_CTRL_PROTECT) | (EF_CTRL_EFUSE_CYCLE_PROTECT) |
               (EF_CTRL_OP_MODE_AUTO << EF_CTRL_EF_IF_0_MANUAL_EN_POS) |
               (EF_CTRL_PARA_DFT << EF_CTRL_EF_IF_0_CYC_MODIFY_POS) |
               (1 << EF_CTRL_EF_IF_AUTO_RD_EN_POS) |
@@ -266,7 +335,7 @@ static void ATTR_TCM_SECTION qcc74x_ef_ctrl_program_efuse_r1(struct qcc74x_devic
     /* Add delay for POR to be stable */
     arch_delay_us(4);
 
-    reg_val = (EF_CTRL_EFUSE_CTRL_PROTECT) |
+    reg_val = (EF_CTRL_EFUSE_CTRL_PROTECT) | (EF_CTRL_EFUSE_CYCLE_PROTECT) |
               (EF_CTRL_OP_MODE_AUTO << EF_CTRL_EF_IF_1_MANUAL_EN_POS) |
               (EF_CTRL_PARA_DFT << EF_CTRL_EF_IF_1_CYC_MODIFY_POS) |
               (1 << EF_CTRL_EF_IF_1_INT_CLR_POS) |
@@ -275,7 +344,7 @@ static void ATTR_TCM_SECTION qcc74x_ef_ctrl_program_efuse_r1(struct qcc74x_devic
 
     putreg32(reg_val, QCC74x_EF_CTRL_BASE + EF_CTRL_EF_IF_CTRL_1_OFFSET);
 
-    reg_val = (EF_CTRL_EFUSE_CTRL_PROTECT) |
+    reg_val = (EF_CTRL_EFUSE_CTRL_PROTECT) | (EF_CTRL_EFUSE_CYCLE_PROTECT) |
               (EF_CTRL_OP_MODE_AUTO << EF_CTRL_EF_IF_1_MANUAL_EN_POS) |
               (EF_CTRL_PARA_DFT << EF_CTRL_EF_IF_1_CYC_MODIFY_POS) |
               (1 << EF_CTRL_EF_IF_1_INT_CLR_POS) |
@@ -340,7 +409,7 @@ static void ATTR_TCM_SECTION qcc74x_ef_ctrl_clear_data_reg1(struct qcc74x_device
  * @return None
  *
 *******************************************************************************/
-static void ATTR_TCM_SECTION qcc74x_ef_ctrl_load_efuse_r0(struct qcc74x_device_s *dev)
+__UNUSED static void ATTR_TCM_SECTION qcc74x_ef_ctrl_load_efuse_r0(struct qcc74x_device_s *dev)
 {
     uint32_t reg_val;
     uint32_t timeout = EF_CTRL_DFT_TIMEOUT_VAL;
@@ -348,10 +417,10 @@ static void ATTR_TCM_SECTION qcc74x_ef_ctrl_load_efuse_r0(struct qcc74x_device_s
     EF_CTRL_DATA0_CLEAR;
 
     /* Trigger read */
-    reg_val = (EF_CTRL_EFUSE_CTRL_PROTECT) |
+    reg_val = (EF_CTRL_EFUSE_CTRL_PROTECT) | (EF_CTRL_EFUSE_CYCLE_PROTECT) |
               (EF_CTRL_OP_MODE_AUTO << EF_CTRL_EF_IF_0_MANUAL_EN_POS) |
               (EF_CTRL_PARA_DFT << EF_CTRL_EF_IF_0_CYC_MODIFY_POS) |
-#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undefL)
+#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
               (EF_CTRL_EF_CLK << EF_CTRL_EF_CLK_SAHB_DATA_SEL_POS) |
 #endif
               (1 << EF_CTRL_EF_IF_AUTO_RD_EN_POS) |
@@ -362,10 +431,10 @@ static void ATTR_TCM_SECTION qcc74x_ef_ctrl_load_efuse_r0(struct qcc74x_device_s
 
     putreg32(reg_val, QCC74x_EF_CTRL_BASE + EF_CTRL_EF_IF_CTRL_0_OFFSET);
 
-    reg_val = (EF_CTRL_EFUSE_CTRL_PROTECT) |
+    reg_val = (EF_CTRL_EFUSE_CTRL_PROTECT) | (EF_CTRL_EFUSE_CYCLE_PROTECT) |
               (EF_CTRL_OP_MODE_AUTO << EF_CTRL_EF_IF_0_MANUAL_EN_POS) |
               (EF_CTRL_PARA_DFT << EF_CTRL_EF_IF_0_CYC_MODIFY_POS) |
-#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undefL)
+#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
               (EF_CTRL_EF_CLK << EF_CTRL_EF_CLK_SAHB_DATA_SEL_POS) |
 #endif
               (1 << EF_CTRL_EF_IF_AUTO_RD_EN_POS) |
@@ -389,10 +458,10 @@ static void ATTR_TCM_SECTION qcc74x_ef_ctrl_load_efuse_r0(struct qcc74x_device_s
     } while ((reg_val & EF_CTRL_EF_IF_0_BUSY_MASK) || (!(reg_val & EF_CTRL_EF_IF_0_AUTOLOAD_DONE_MASK)));
 
     /* Switch to AHB clock */
-    reg_val = (EF_CTRL_EFUSE_CTRL_PROTECT) |
+    reg_val = (EF_CTRL_EFUSE_CTRL_PROTECT) | (EF_CTRL_EFUSE_CYCLE_PROTECT) |
               (EF_CTRL_OP_MODE_AUTO << EF_CTRL_EF_IF_0_MANUAL_EN_POS) |
               (EF_CTRL_PARA_DFT << EF_CTRL_EF_IF_0_CYC_MODIFY_POS) |
-#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undefL)
+#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
               (EF_CTRL_EF_CLK << EF_CTRL_EF_CLK_SAHB_DATA_SEL_POS) |
 #endif
               (1 << EF_CTRL_EF_IF_AUTO_RD_EN_POS) |
@@ -422,7 +491,7 @@ static void ATTR_TCM_SECTION qcc74x_ef_ctrl_load_efuse_r1(struct qcc74x_device_s
     /* Trigger read */
     /* Note:ef_if_ctrl_1 has no EF_CTRL_EF_CLK_SAHB_DATA_SEL_POS bit as ef_if_ctrl_0,
 	so we select it(them) in ef_if_ctrl_0 */
-    reg_val = (EF_CTRL_EFUSE_CTRL_PROTECT) |
+    reg_val = (EF_CTRL_EFUSE_CTRL_PROTECT) | (EF_CTRL_EFUSE_CYCLE_PROTECT) |
               (EF_CTRL_OP_MODE_AUTO << EF_CTRL_EF_IF_0_MANUAL_EN_POS) |
               (EF_CTRL_PARA_DFT << EF_CTRL_EF_IF_0_CYC_MODIFY_POS) |
               (1 << EF_CTRL_EF_IF_AUTO_RD_EN_POS) |
@@ -433,7 +502,7 @@ static void ATTR_TCM_SECTION qcc74x_ef_ctrl_load_efuse_r1(struct qcc74x_device_s
 
     putreg32(reg_val, QCC74x_EF_CTRL_BASE + EF_CTRL_EF_IF_CTRL_0_OFFSET);
 
-    reg_val = (EF_CTRL_EFUSE_CTRL_PROTECT) |
+    reg_val = (EF_CTRL_EFUSE_CTRL_PROTECT) | (EF_CTRL_EFUSE_CYCLE_PROTECT) |
               (EF_CTRL_OP_MODE_AUTO << EF_CTRL_EF_IF_1_MANUAL_EN_POS) |
               (EF_CTRL_PARA_DFT << EF_CTRL_EF_IF_1_CYC_MODIFY_POS) |
               (1 << EF_CTRL_EF_IF_1_INT_CLR_POS) |
@@ -442,7 +511,7 @@ static void ATTR_TCM_SECTION qcc74x_ef_ctrl_load_efuse_r1(struct qcc74x_device_s
 
     putreg32(reg_val, QCC74x_EF_CTRL_BASE + EF_CTRL_EF_IF_CTRL_1_OFFSET);
 
-    reg_val = (EF_CTRL_EFUSE_CTRL_PROTECT) |
+    reg_val = (EF_CTRL_EFUSE_CTRL_PROTECT) | (EF_CTRL_EFUSE_CYCLE_PROTECT) |
               (EF_CTRL_OP_MODE_AUTO << EF_CTRL_EF_IF_1_MANUAL_EN_POS) |
               (EF_CTRL_PARA_DFT << EF_CTRL_EF_IF_1_CYC_MODIFY_POS) |
               (1 << EF_CTRL_EF_IF_1_INT_CLR_POS) |
@@ -465,7 +534,7 @@ static void ATTR_TCM_SECTION qcc74x_ef_ctrl_load_efuse_r1(struct qcc74x_device_s
     /* Switch to AHB clock since often read efuse data after load */
     /* Note:ef_if_ctrl_1 has no EF_CTRL_EF_CLK_SAHB_DATA_SEL_POS bit as ef_if_ctrl_0,
 	   so we select it(them) in ef_if_ctrl_0 */
-    reg_val = (EF_CTRL_EFUSE_CTRL_PROTECT) |
+    reg_val = (EF_CTRL_EFUSE_CTRL_PROTECT) | (EF_CTRL_EFUSE_CYCLE_PROTECT) |
               (EF_CTRL_OP_MODE_AUTO << EF_CTRL_EF_IF_0_MANUAL_EN_POS) |
               (EF_CTRL_PARA_DFT << EF_CTRL_EF_IF_0_CYC_MODIFY_POS) |
               (1 << EF_CTRL_EF_IF_AUTO_RD_EN_POS) |
@@ -476,7 +545,7 @@ static void ATTR_TCM_SECTION qcc74x_ef_ctrl_load_efuse_r1(struct qcc74x_device_s
 
     putreg32(reg_val, QCC74x_EF_CTRL_BASE + EF_CTRL_EF_IF_CTRL_0_OFFSET);
 
-    reg_val = (EF_CTRL_EFUSE_CTRL_PROTECT) |
+    reg_val = (EF_CTRL_EFUSE_CTRL_PROTECT) | (EF_CTRL_EFUSE_CYCLE_PROTECT) |
               (EF_CTRL_OP_MODE_AUTO << EF_CTRL_EF_IF_1_MANUAL_EN_POS) |
               (EF_CTRL_PARA_DFT << EF_CTRL_EF_IF_1_CYC_MODIFY_POS) |
               (1 << EF_CTRL_EF_IF_1_INT_CLR_POS) |
@@ -520,6 +589,49 @@ int ATTR_TCM_SECTION qcc74x_ef_ctrl_autoload_done(struct qcc74x_device_s *dev)
 }
 
 /****************************************************************************/ /**
+ * @brief  Check efuse auto load done
+ *
+ * @param para  parameter for efuse program or read
+ *
+ * @return 1 for auto load done 0 for not
+ *
+*******************************************************************************/
+int ATTR_TCM_SECTION qcc74x_ef_ctrl_set_para(qcc74x_ef_ctrl_para_t *para)
+{
+#ifdef romapi_qcc74x_ef_ctrl_set_para
+    return romapi_qcc74x_ef_ctrl_set_para(para);
+#else
+    uint32_t reg_val;
+
+    /* Switch to AHB clock */
+    qcc74x_ef_ctrl_switch_ahb_clk_r0(NULL);
+
+    reg_val = ((para->rd_dmy << 0) |
+               (para->rd_dat << 6) |
+               (para->rd_adr << 12) |
+               (para->cs << 18) |
+               (para->pd_cs_s << 24));
+
+    putreg32(reg_val, QCC74x_EF_CTRL_BASE + EF_CTRL_EF_IF_CYC_0_OFFSET);
+
+    reg_val = ((para->pi << 0) |
+               (para->pp << 6) |
+               (para->wr_adr << 14) |
+               (para->ps_cs << 20) |
+               (para->pd_cs_h << 26));
+
+    putreg32(reg_val, QCC74x_EF_CTRL_BASE + EF_CTRL_EF_IF_CYC_1_OFFSET);
+
+    reg_val = getreg32(QCC74x_EF_CTRL_BASE + EF_CTRL_EF_IF_CTRL_0_OFFSET);
+    reg_val |= EF_CTRL_EFUSE_CYCLE_PROTECT;
+    reg_val |= (EF_CTRL_PARA_DFT << EF_CTRL_EF_IF_0_CYC_MODIFY_POS);
+    putreg32(reg_val, QCC74x_EF_CTRL_BASE + EF_CTRL_EF_IF_CTRL_0_OFFSET);
+
+    return 0;
+#endif
+}
+
+/****************************************************************************/ /**
  * @brief  write data to efuse
  *
  * @param dev  ef control device pointer
@@ -540,6 +652,7 @@ void ATTR_TCM_SECTION qcc74x_ef_ctrl_write_direct(struct qcc74x_device_s *dev, u
     uint32_t region0_count = 0, region1_count = 0;
     uint32_t total_size = EF_CTRL_EFUSE_R0_SIZE;
     uintptr_t irq_stat;
+    uint32_t timeout = EF_CTRL_DFT_TIMEOUT_VAL;
 
 #ifdef EF_CTRL_EFUSE_R1_SIZE
     total_size += EF_CTRL_EFUSE_R1_SIZE;
@@ -547,10 +660,39 @@ void ATTR_TCM_SECTION qcc74x_ef_ctrl_write_direct(struct qcc74x_device_s *dev, u
     (void)region1_count;
 #endif
 
+    qcc74x_ef_ctrl_update_para(dev);
+
     if (offset > total_size || (offset + count * 4) > total_size || pword == NULL) {
         if (program) {
+            irq_stat = qcc74x_irq_save();
+#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
+            qcc74x_efuse_switch_cpu_clock_save();
+#endif
+            /* Switch to AHB clock */
+            qcc74x_ef_ctrl_switch_ahb_clk_r0(dev);
+            qcc74x_power_on_efuse();
             qcc74x_ef_ctrl_program_efuse_r0(dev);
+            while (qcc74x_ef_ctrl_busy(dev) == 1) {
+                timeout--;
+                if (timeout == 0) {
+                    break;
+                }
+                arch_delay_us(10);
+            }
+            qcc74x_power_off_efuse();
             arch_delay_us(100);
+#ifdef EF_CTRL_EFUSE_R1_SIZE
+            /* Switch to AHB clock */
+            qcc74x_ef_ctrl_switch_ahb_clk_r1(dev);
+            /* Add delay for CLK to be stable */
+            arch_delay_us(4);
+            qcc74x_ef_ctrl_program_efuse_r1(dev);
+            arch_delay_us(100);
+#endif
+#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
+            qcc74x_efuse_switch_cpu_clock_restore();
+#endif
+            qcc74x_irq_restore(irq_stat);
         }
         return;
     }
@@ -572,7 +714,7 @@ void ATTR_TCM_SECTION qcc74x_ef_ctrl_write_direct(struct qcc74x_device_s *dev, u
     pefuse_start = (uint32_t *)(uintptr_t)(QCC74x_EF_CTRL_BASE + offset);
 
     irq_stat = qcc74x_irq_save();
-#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undefL)
+#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
     qcc74x_efuse_switch_cpu_clock_save();
 #endif
     if (region0_count > 0) {
@@ -584,7 +726,16 @@ void ATTR_TCM_SECTION qcc74x_ef_ctrl_write_direct(struct qcc74x_device_s *dev, u
         pword += region0_count;
 
         if (program) {
+            qcc74x_power_on_efuse();
             qcc74x_ef_ctrl_program_efuse_r0(dev);
+            while (qcc74x_ef_ctrl_busy(dev) == 1) {
+                timeout--;
+                if (timeout == 0) {
+                    break;
+                }
+                arch_delay_us(10);
+            }
+            qcc74x_power_off_efuse();
             arch_delay_us(100);
         }
     }
@@ -604,7 +755,7 @@ void ATTR_TCM_SECTION qcc74x_ef_ctrl_write_direct(struct qcc74x_device_s *dev, u
         }
     }
 #endif
-#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undefL)
+#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
     qcc74x_efuse_switch_cpu_clock_restore();
 #endif
 
@@ -640,7 +791,23 @@ void ATTR_TCM_SECTION qcc74x_ef_ctrl_read_direct(struct qcc74x_device_s *dev, ui
     (void)region1_count;
 #endif
 
+    qcc74x_ef_ctrl_update_para(dev);
+
     if (offset > total_size || (offset + count * 4) > total_size || pword == NULL) {
+        if (reload) {
+            irq_stat = qcc74x_irq_save();
+#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
+            qcc74x_efuse_switch_cpu_clock_save();
+#endif
+            qcc74x_ef_ctrl_load_efuse_r0(dev);
+#ifdef EF_CTRL_EFUSE_R1_SIZE
+            qcc74x_ef_ctrl_load_efuse_r1(dev);
+#endif
+#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
+            qcc74x_efuse_switch_cpu_clock_restore();
+#endif
+            qcc74x_irq_restore(irq_stat);
+        }
         return;
     }
 
@@ -661,7 +828,7 @@ void ATTR_TCM_SECTION qcc74x_ef_ctrl_read_direct(struct qcc74x_device_s *dev, ui
     pefuse_start = (uint32_t *)(uintptr_t)(QCC74x_EF_CTRL_BASE + offset);
 
     irq_stat = qcc74x_irq_save();
-#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undefL)
+#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
     qcc74x_efuse_switch_cpu_clock_save();
 #endif
     if (region0_count > 0) {
@@ -685,7 +852,7 @@ void ATTR_TCM_SECTION qcc74x_ef_ctrl_read_direct(struct qcc74x_device_s *dev, ui
     }
 #endif
 
-#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undefL)
+#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
     qcc74x_efuse_switch_cpu_clock_restore();
 #endif
 
@@ -705,6 +872,9 @@ void ATTR_TCM_SECTION qcc74x_ef_ctrl_read_direct(struct qcc74x_device_s *dev, ui
 *******************************************************************************/
 void ATTR_TCM_SECTION qcc74x_ef_ctrl_read_common_trim(struct qcc74x_device_s *dev, char *name, qcc74x_ef_ctrl_com_trim_t *trim, uint8_t reload)
 {
+#ifdef romapi_qcc74x_ef_ctrl_read_common_trim
+    romapi_qcc74x_ef_ctrl_read_common_trim(dev, name, trim, reload);
+#else
     uint32_t reg_val;
     uint32_t i = 0;
     const qcc74x_ef_ctrl_com_trim_cfg_t *trim_list = NULL;
@@ -716,7 +886,10 @@ void ATTR_TCM_SECTION qcc74x_ef_ctrl_read_common_trim(struct qcc74x_device_s *de
     // }
 
     irq_stat = qcc74x_irq_save();
-#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undefL)
+
+    qcc74x_ef_ctrl_update_para(dev);
+
+#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
     qcc74x_efuse_switch_cpu_clock_save();
 #endif
     if (reload) {
@@ -777,10 +950,11 @@ void ATTR_TCM_SECTION qcc74x_ef_ctrl_read_common_trim(struct qcc74x_device_s *de
             break;
         }
     }
-#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undefL)
+#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
     qcc74x_efuse_switch_cpu_clock_restore();
 #endif
     qcc74x_irq_restore(irq_stat);
+#endif
 }
 
 /****************************************************************************/ /**
@@ -796,12 +970,16 @@ void ATTR_TCM_SECTION qcc74x_ef_ctrl_read_common_trim(struct qcc74x_device_s *de
 *******************************************************************************/
 void ATTR_TCM_SECTION qcc74x_ef_ctrl_write_common_trim(struct qcc74x_device_s *dev, char *name, uint32_t value, uint8_t program)
 {
+#ifdef romapi_qcc74x_ef_ctrl_write_common_trim
+    romapi_qcc74x_ef_ctrl_write_common_trim(dev, name, value, program);
+#else
     uint32_t reg_val;
     uint32_t i = 0;
     uint8_t parity = 0;
     const qcc74x_ef_ctrl_com_trim_cfg_t *trim_list = NULL;
     uint32_t trim_list_len;
-    uintptr_t irq_stat;
+    uintptr_t irq_stat;    
+    uint32_t timeout = EF_CTRL_DFT_TIMEOUT_VAL;
 
     // if (dev == NULL) {
     //     dev = qcc74x_device_get_by_name("ef_ctrl");
@@ -810,9 +988,12 @@ void ATTR_TCM_SECTION qcc74x_ef_ctrl_write_common_trim(struct qcc74x_device_s *d
     trim_list_len = qcc74x_ef_ctrl_get_common_trim_list(&trim_list);
 
     irq_stat = qcc74x_irq_save();
+
+    qcc74x_ef_ctrl_update_para(dev);
+
     for (i = 0; i < trim_list_len; i++) {
         if (arch_memcmp(name, trim_list[i].name, qcc74x_ef_ctrl_strlen(name)) == 0) {
-#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undefL)
+#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
             qcc74x_efuse_switch_cpu_clock_save();
 #endif
             /* switch clock */
@@ -854,7 +1035,16 @@ void ATTR_TCM_SECTION qcc74x_ef_ctrl_write_common_trim(struct qcc74x_device_s *d
             if (program) {
                 /* program */
                 if (trim_list[i].en_addr < EF_CTRL_EFUSE_R0_SIZE * 8) {
+                    qcc74x_power_on_efuse();
                     qcc74x_ef_ctrl_program_efuse_r0(dev);
+                    while (qcc74x_ef_ctrl_busy(dev) == 1) {
+                        timeout--;
+                        if (timeout == 0) {
+                            break;
+                        }
+                        arch_delay_us(10);
+                    }
+                    qcc74x_power_off_efuse();
                     arch_delay_us(100);
                 }
 #ifdef EF_CTRL_EFUSE_R1_SIZE
@@ -864,13 +1054,14 @@ void ATTR_TCM_SECTION qcc74x_ef_ctrl_write_common_trim(struct qcc74x_device_s *d
                 }
 #endif
             }
-#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undefL)
+#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
             qcc74x_efuse_switch_cpu_clock_restore();
 #endif
             break;
         }
     }
     qcc74x_irq_restore(irq_stat);
+#endif
 }
 
 /****************************************************************************/ /**

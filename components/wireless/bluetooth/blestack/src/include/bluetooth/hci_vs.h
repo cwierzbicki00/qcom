@@ -364,6 +364,12 @@ struct hci_vsc_bt_tx_pwr_cmd
     int8_t edr_power;
 }__packed;
 
+#define BT_HCI_OP_VS_LE_SET_ADV_DATA_CMD_OPCODE BT_OP(BT_OGF_VS, 0x007D)
+
+#define BT_HCI_OP_VS_LE_SET_SCAN_RSP_DATA_CMD_OPCODE BT_OP(BT_OGF_VS, 0x007E)
+
+#define BT_HCI_OP_VS_LE_SET_ADV_EN_CMD_OPCODE BT_OP(BT_OGF_VS, 0x007F)
+
 
 #ifdef __cplusplus
 }

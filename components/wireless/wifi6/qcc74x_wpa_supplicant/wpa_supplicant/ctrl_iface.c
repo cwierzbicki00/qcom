@@ -13,7 +13,7 @@
 
 #include "utils/common.h"
 #include "utils/eloop.h"
-#include "utils/uuid.h"
+#include "utils/wpa_uuid.h"
 #include "utils/module_tests.h"
 #include "common/version.h"
 #include "common/ieee802_11_defs.h"
@@ -12638,6 +12638,38 @@ char * wpa_supplicant_ctrl_iface_process(struct wpa_supplicant *wpa_s,
 		if (ap_ctrl_iface_sta_disassociate(wpa_s, buf + 13))
 			reply_len = -1;
 #endif
+     } else if (os_strncmp(buf, "ACCEPT_ACL ", 11) == 0) {
+         if (os_strncmp(buf + 11, "ADD_MAC ", 8) == 0) {
+             if (ap_ctrl_iface_acl_add_mac(wpa_s, true, buf + 19))
+                 reply_len = -1;
+         } else if (os_strncmp((buf + 11), "DEL_MAC ", 8) == 0) {
+             if (!ap_ctrl_iface_acl_del_mac(wpa_s, true, buf + 19))
+                 ap_disassoc_accept_mac(wpa_s);
+             else
+                 reply_len = -1;
+         } else if (os_strcmp(buf + 11, "SHOW") == 0) {
+             reply_len = ap_ctrl_iface_acl_show_mac(wpa_s, true, reply, reply_size);
+         } else if (os_strcmp(buf + 11, "CLEAR") == 0) {
+             ap_ctrl_iface_acl_clear_list(wpa_s, true);
+             ap_disassoc_accept_mac(wpa_s);
+         }
+     } else if (os_strncmp(buf, "DENY_ACL ", 9) == 0) {
+         if (os_strncmp(buf + 9, "ADD_MAC ", 8) == 0) {
+             if (!ap_ctrl_iface_acl_add_mac(
+                     wpa_s, false, buf + 17))
+                 ap_disassoc_deny_mac(wpa_s);
+             else
+                 reply_len = -1;
+         } else if (os_strncmp(buf + 9, "DEL_MAC ", 8) == 0) {
+             if (ap_ctrl_iface_acl_del_mac(wpa_s, false, buf + 17))
+                 reply_len = -1;
+         } else if (os_strcmp(buf + 9, "SHOW") == 0) {
+             reply_len = ap_ctrl_iface_acl_show_mac(wpa_s, false, reply, reply_size);
+         } else if (os_strcmp(buf + 9, "CLEAR") == 0) {
+             ap_ctrl_iface_acl_clear_list(wpa_s, false);
+         }
+     } else if (os_strncmp(buf, "ENABLE_ACL ", 11) == 0) {
+             ap_ctrl_iface_acl_enable(wpa_s, buf + 11);
 #endif /* CONFIG_AP */
 	} else if (os_strncmp(buf, "STA_AUTOCONNECT ", 16) == 0) {
 		wpa_s->auto_reconnect_disabled = atoi(buf + 16) == 0;
@@ -12761,8 +12793,13 @@ char * wpa_supplicant_ctrl_iface_process(struct wpa_supplicant *wpa_s,
 		if (res == -2) {
 			os_memcpy(reply, "FAIL-PBC-OVERLAP\n", 17);
 			reply_len = 17;
-		} else if (res)
+		} else if (res < 0) {
 			reply_len = -1;
+        } else if (res >= 0) {
+            reply_len = 1;
+            *reply = res;
+        }
+
 	} else if (os_strncmp(buf, "WPS_PBC ", 8) == 0) {
 		int res = wpa_supplicant_ctrl_iface_wps_pbc(wpa_s, buf + 8);
 		if (res == -2) {

@@ -156,7 +156,7 @@ static int32_t qcc74xsp_mediaboot_parse_one_group(boot2_image_config *boot_img_c
         if (ret != QCC74x_BOOT2_SUCCESS) {
             return ret;
         }
-#if defined(CHIP_QCC74x_undefP) || defined(CHIP_QCC74x_undef)
+#if defined(CHIP_QCC74x_undef) || defined(CHIP_QCC74x_undef)
         addr += sizeof(boot_pk_config);
         if (hal_boot2_get_grp_count() > 1) {
             /* Read public key 2*/
@@ -183,7 +183,7 @@ static int32_t qcc74xsp_mediaboot_parse_one_group(boot2_image_config *boot_img_c
         if (ret != QCC74x_BOOT2_SUCCESS) {
             return ret;
         }
-#if defined(CHIP_QCC74x_undefP) || defined(CHIP_QCC74x_undef)
+#if defined(CHIP_QCC74x_undef) || defined(CHIP_QCC74x_undef)
         /*len+data+crc*/
         addr += sizeof(sig_len);
         addr += (sig_len + 4);
@@ -301,7 +301,7 @@ int32_t qcc74xsp_mediaboot_parse_one_group_xz(boot2_image_config *boot_img_cfg, 
             if(ret!=QCC74x_BOOT2_SUCCESS){
                 return ret;
             }
-#if defined(CHIP_QCC74x_undefP) || defined(CHIP_QCC74x_undef)
+#if defined(CHIP_QCC74x_undef) || defined(CHIP_QCC74x_undef)
             addr+=sizeof(boot_pk_config);
             if(hal_boot2_get_grp_count()>1){
                 /* Read public key 2*/
@@ -322,7 +322,7 @@ int32_t qcc74xsp_mediaboot_parse_one_group_xz(boot2_image_config *boot_img_cfg, 
             if(ret!=QCC74x_BOOT2_SUCCESS){
                 return ret;
             }
-#if defined(CHIP_QCC74x_undefP) || defined(CHIP_QCC74x_undef)
+#if defined(CHIP_QCC74x_undef) || defined(CHIP_QCC74x_undef)
             /*len+data+crc*/
             addr+=sizeof(sig_len);
             addr+=(sig_len+4);

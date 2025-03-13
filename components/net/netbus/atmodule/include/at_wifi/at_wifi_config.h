@@ -30,6 +30,7 @@ extern "C" {
 #define AT_CONFIG_KEY_WIFI_COUNTRY_CODE     "WIFICOUNTRY"
 #define AT_CONFIG_KEY_WIFI_HOSTNAME         "WIFIHOSTNAME"
 #define AT_CONFIG_KEY_WIFI_LAPOPT           "WIFILAPOPT"
+#define AT_CONFIG_KEY_WIFI_ANTDIV           "ANTDIV"
 
 #define AT_WIFI_COUNTRY_CODE                {"CN", "JP", "US", "EU", "00"}
 
@@ -111,6 +112,7 @@ typedef union {
         uint8_t b_mode:1;
         uint8_t g_mode:1;
         uint8_t n_mode:1;
+        uint8_t ax_mode:1;
     } bit;
     uint8_t byte;
 } wifi_proto;
@@ -135,6 +137,12 @@ typedef struct {
     uint8_t country_code;
 } wifi_country_code;
 
+typedef struct {
+    uint8_t  static_ant_div_enable;
+    uint8_t  dynamic_ant_div_enable;
+    uint8_t  ant_div_pin;
+} wifi_ant_div;
+
 
 typedef struct {
     wifi_work_mode wifi_mode;
@@ -158,6 +166,7 @@ typedef struct {
     uint8_t  connecting_state;
     uint8_t  wlan_disable;
     uint8_t  wevt_enable;
+    wifi_ant_div ant_div;
 }wifi_config;
 
 extern wifi_config *at_wifi_config;

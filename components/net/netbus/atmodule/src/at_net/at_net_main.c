@@ -28,6 +28,7 @@
 #include "at_net_ssl.h"
 #include "at_wifi_config.h"
 
+#define AT_UDP_MAX_BUFFER_LEN      (1470)
 #define AT_NET_TASK_STACK_SIZE     (1024)
 #define AT_NET_TASK_PRIORITY_LOW   (27)
 #define AT_NET_TASK_PRIORITY_HIGH  (28)
@@ -519,6 +520,8 @@ static int udp_client_close(int fd)
 static int udp_client_send(int fd, void *buffer, int length, ip_addr_t *ipaddr, uint16_t port)
 {
     int ret;
+    uint32_t send_len = 0;
+
     if (fd >= 0) {
 #if CFG_IPV6
         if (IP_IS_V6(ipaddr)) {
@@ -527,7 +530,16 @@ static int udp_client_send(int fd, void *buffer, int length, ip_addr_t *ipaddr, 
             toaddr6.sin6_family = AF_INET6;
             memcpy(&toaddr6.sin6_addr, ipaddr, sizeof(toaddr6.sin6_addr));
             toaddr6.sin6_port = htons(port);
-            ret = sendto(fd, buffer, length, 0, (struct sockaddr *)&toaddr6, sizeof(struct sockaddr_in6));
+            
+            while (send_len < length) {
+
+                ret = sendto(fd, ((uint8_t *)buffer) + send_len, (length - send_len > AT_UDP_MAX_BUFFER_LEN) ? AT_UDP_MAX_BUFFER_LEN : (length - send_len),
+                        0, (struct sockaddr *)&toaddr6, sizeof(struct sockaddr_in6));
+                if (ret <= 0) {
+                    break;
+                }
+                send_len += ret;
+            }
         } else 
 #endif
         {
@@ -536,10 +548,19 @@ static int udp_client_send(int fd, void *buffer, int length, ip_addr_t *ipaddr, 
             toaddr.sin_family = AF_INET;
             toaddr.sin_addr.s_addr = ip_addr_get_ip4_u32(ipaddr);
             toaddr.sin_port = htons(port);
-            ret = sendto(fd, buffer, length, 0, (struct sockaddr *)&toaddr, sizeof(struct sockaddr_in));
+
+            while (send_len < length) {
+
+                ret = sendto(fd, ((uint8_t *)buffer) + send_len, (length - send_len > AT_UDP_MAX_BUFFER_LEN) ? AT_UDP_MAX_BUFFER_LEN : (length - send_len),
+                        0, (struct sockaddr *)&toaddr, sizeof(struct sockaddr_in));
+                if (ret <= 0) {
+                    break;
+                }
+                send_len += ret;
+            }
         }
         
-        return (ret < 0) ? 0 : ret;
+        return send_len;
         //printf("sendto ret:%d len:%d\r\n", ret, length);
     }
     return 0;
@@ -1084,7 +1105,7 @@ static int net_socket_recv(int id)
         net_socket_close(id);
     }
     else {
-
+#if 0
         static uint32_t count = 0;
         static uint32_t sum = 0;
 
@@ -1097,7 +1118,7 @@ static int net_socket_recv(int id)
             sum = 0;
             //ps_cmd(0,0,0,0);
         }
-
+#endif
         net_socket_ipd(NET_IPDINFO_RECVDATA, 
                        id, 
                        at_net_recv_buf, 

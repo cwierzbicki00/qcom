@@ -11,7 +11,7 @@
 #include "utils/common.h"
 #include "utils/base64.h"
 #include "utils/eloop.h"
-#include "utils/uuid.h"
+#include "utils/wpa_uuid.h"
 #include "utils/list.h"
 #include "crypto/crypto.h"
 #include "crypto/sha256.h"

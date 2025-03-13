@@ -59,8 +59,10 @@
 #define CAM_INTSTS_VSYNC_MISMATCH   (1 << 9)
 #else
 #define CAM_INTSTS_NORMAL           (1 << 12)
+#if !defined(QCC74x_undef)
 #define CAM_INTSTS_MEMORY_OVERWRITE (1 << 13)
 #define CAM_INTSTS_FRAME_OVERWRITE  (1 << 14)
+#endif
 #define CAM_INTSTS_FIFO_OVERWRITE   (1 << 15)
 #define CAM_INTSTS_HSYNC_MISMATCH   (1 << 21)
 #define CAM_INTSTS_VSYNC_MISMATCH   (1 << 22)
@@ -81,8 +83,10 @@
 #define CAM_INTMASK_VSYNC_MISMATCH   (1 << 6)
 #else
 #define CAM_INTMASK_NORMAL           (1 << 8)
+#if !defined(QCC74x_undef)
 #define CAM_INTMASK_MEMORY_OVERWRITE (1 << 9)
 #define CAM_INTMASK_FRAME_OVERWRITE  (1 << 10)
+#endif
 #define CAM_INTMASK_FIFO_OVERWRITE   (1 << 11)
 #define CAM_INTMASK_HSYNC_MISMATCH   (1 << 6)
 #define CAM_INTMASK_VSYNC_MISMATCH   (1 << 7)
@@ -95,8 +99,10 @@
   * @{
   */
 #define CAM_INTCLR_NORMAL           (1 << 4)
+#if !defined(QCC74x_undef)
 #define CAM_INTCLR_MEMORY_OVERWRITE (1 << 5)
 #define CAM_INTCLR_FRAME_OVERWRITE  (1 << 6)
+#endif
 #define CAM_INTCLR_FIFO_OVERWRITE   (1 << 7)
 #define CAM_INTCLR_HSYNC_MISMATCH   (1 << 8)
 #define CAM_INTCLR_VSYNC_MISMATCH   (1 << 9)
@@ -147,14 +153,23 @@
 #define CAM_CMD_SET_BURST          3
 #if !defined(QCC74x_undef)
 #define CAM_CMD_SET_RGBA8888_ALPHA 4
+#if !defined(QCC74x_undef)
 #define CAM_CMD_GET_FRAME_ID       5
+#endif
 #endif
 #define CAM_CMD_WRAP_MODE                6
 #define CAM_CMD_COUNT_TRIGGER_NORMAL_INT 7
 #if !defined(QCC74x_undef)
+#if !defined(QCC74x_undef)
 #define CAM_CMD_FRAME_ID_RESET         8
+#endif
 #define CAM_CMD_INVERSE_VSYNC_POLARITY 9
 #define CAM_CMD_INVERSE_HSYNC_POLARITY 10
+#define CAM_CMD_INVERSE_YUYV2UYVY      11
+#define CAM_CMD_FRAME_FILTER           12
+#endif
+#if defined(QCC74x_undef)
+#define CAM_CMD_SET_OUTPUT_ADDR        13
 #endif
 
 // clang-format off
@@ -205,6 +220,11 @@ struct qcc74x_cam_config_s {
     uint8_t output_format;
     uint32_t output_bufaddr;
     uint32_t output_bufsize;
+};
+
+struct qcc74x_cam_frame_filter_config_s {
+    uint32_t frame_count;
+    uint32_t frame_valid;
 };
 
 #ifdef __cplusplus
@@ -274,25 +294,6 @@ void qcc74x_cam_crop_hsync(struct qcc74x_device_s *dev, uint16_t start_pixel, ui
  * @param [in] dev device handle
  */
 void qcc74x_cam_pop_one_frame(struct qcc74x_device_s *dev);
-
-#if !defined(QCC74x_undef)
-/**
- * @brief Swap input order of y and uv.
- *
- * @param [in] dev device handle
- * @param [in] enable enable or disable
- */
-void qcc74x_cam_swap_input_yu_order(struct qcc74x_device_s *dev, bool enable);
-
-/**
- * @brief Set frame filter, if frame_count = 3, frame_valid = 101b, second frame will be dropped every 3 frames.
- *
- * @param [in] dev device handle
- * @param [in] frame_count frame filter period
- * @param [in] frame_valid frame valid
- */
-void qcc74x_cam_filter_frame_period(struct qcc74x_device_s *dev, uint8_t frame_count, uint32_t frame_valid);
-#endif
 
 /**
  * @brief Get frame count.

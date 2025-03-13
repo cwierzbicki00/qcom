@@ -14,13 +14,13 @@
 #if defined(QCC74x_undef) || defined(QCC74x_undef)
 #define SPI_FIFO_WORD_NUM_MAX           4
 #define SPI_FIFO_WIDTH_VARIABLE_SUPPORT 0
-#elif defined(QCC74x_undefP) || defined(QCC74x_undef)
+#elif defined(QCC74x_undef) || defined(QCC74x_undef)
 #define SPI_FIFO_BYTE_NUM_MAX           32
 #define SPI_FIFO_WIDTH_VARIABLE_SUPPORT 1
-#elif defined(QCC743) || defined(QCC74x_undef)
+#elif defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
 #define SPI_FIFO_BYTE_NUM_MAX           32
 #define SPI_FIFO_WIDTH_VARIABLE_SUPPORT 1
-#elif defined(QCC74x_undefL)
+#elif defined(QCC74x_undef)
 #define SPI_FIFO_BYTE_NUM_MAX           16
 #define SPI_FIFO_WIDTH_VARIABLE_SUPPORT 1
 #else
@@ -109,7 +109,7 @@
 #define SPI_CMD_CLEAR_TX_FIFO        (0x03)
 #define SPI_CMD_CLEAR_RX_FIFO        (0x04)
 #define SPI_CMD_SET_CS_INTERVAL      (0x05)
-#define SPI_CMD_RX_IGNORE            (0x06)
+#define SPI_CMD_RX_IGNORE_ENABLE     (0x06)
 #define SPI_CMD_SET_MODE             (0x07)
 #define SPI_CMD_GET_MODE             (0x08)
 #define SPI_CMD_SET_FREQ             (0x09)
@@ -118,6 +118,15 @@
 #define SPI_CMD_GET_BIT_ORDER        (0x0C)
 #define SPI_CMD_SET_BYTE_ORDER       (0x0E)
 #define SPI_CMD_GET_BYTE_ORDER       (0x0F)
+#define SPI_CMD_SET_DEGLITCH_CNT     (0x10)
+#define SPI_CMD_SET_CS_DISABLE       (0x11)
+#if defined(QCC74x_undef)
+#define SPI_CMD_SLAVE_FAST_MODE_EN   (0x12)
+#define SPI_CMD_READ_HW_VERSION      (0x13)
+#define SPI_CMD_READ_SW_USAGE        (0x14)
+#define SPI_CMD_WRITE_SW_USAGE       (0x15)
+#endif
+#define SPI_CMD_RX_IGNORE_DISABLE    (0x16)
 
 /**
   * @}

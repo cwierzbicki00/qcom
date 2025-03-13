@@ -2,9 +2,9 @@
 #include "qcc74x_clock.h"
 #include "hardware/spi_reg.h"
 
-#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undefL)
+#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
 #define GLB_SPI_MODE_ADDRESS 0x40000080
-#elif defined(QCC74x_undefP) || defined(QCC74x_undef) || defined(QCC743) || defined(QCC74x_undef)
+#elif defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
 #define GLB_SPI_MODE_ADDRESS 0x20000510
 #endif
 
@@ -101,6 +101,11 @@ void qcc74x_spi_init(struct qcc74x_device_s *dev, const struct qcc74x_spi_config
     /* data frame size cfg */
     regval &= ~SPI_CR_SPI_FRAME_SIZE_MASK;
     regval |= (config->data_width - 1) << SPI_CR_SPI_FRAME_SIZE_SHIFT;
+
+#if defined(QCC74x_undef)
+    /* not fast mode in slave role, MISO modify edge is different from sample edge */
+    regval |= SPI_CR_SPI_S_TRANS_DATA_EDGE_SEL;
+#endif
 
     /* disable SPI */
     regval &= ~SPI_CR_SPI_S_EN;
@@ -540,7 +545,7 @@ void qcc74x_spi_int_clear(struct qcc74x_device_s *dev, uint32_t int_clear)
 bool qcc74x_spi_isbusy(struct qcc74x_device_s *dev)
 {
 #ifdef romapi_qcc74x_spi_isbusy
-    romapi_qcc74x_spi_isbusy(dev);
+    return romapi_qcc74x_spi_isbusy(dev);
 #else
     uint32_t reg_base;
     uint32_t regval;
@@ -571,8 +576,8 @@ bool qcc74x_spi_isbusy(struct qcc74x_device_s *dev)
 
 int qcc74x_spi_feature_control(struct qcc74x_device_s *dev, int cmd, size_t arg)
 {
-#ifdef romapi_qcc74x_spi_init
-    return romapi_qcc74x_spi_init(dev, cmd, arg);
+#ifdef romapi_qcc74x_spi_feature_control
+    return romapi_qcc74x_spi_feature_control(dev, cmd, arg);
 #else
     int ret = 0;
     uint32_t reg_base;
@@ -628,15 +633,19 @@ int qcc74x_spi_feature_control(struct qcc74x_device_s *dev, int cmd, size_t arg)
             putreg32(regval, reg_base + SPI_CONFIG_OFFSET);
             break;
 
-        case SPI_CMD_RX_IGNORE:
-            /* set rx ignore, start: arg[20:16], stop: arg[4:0] */
+        case SPI_CMD_RX_IGNORE_ENABLE:
+            /* enable rx ignore, start: arg[20:16], stop: arg[4:0] */
             regval = getreg32(reg_base + SPI_CONFIG_OFFSET);
-            if (arg) {
-                regval |= SPI_CR_SPI_RXD_IGNR_EN;
-                putreg32(arg, reg_base + SPI_RXD_IGNR_OFFSET);
-            } else {
-                regval &= ~SPI_CR_SPI_RXD_IGNR_EN;
-            }
+            regval |= SPI_CR_SPI_RXD_IGNR_EN;
+            putreg32(arg, reg_base + SPI_RXD_IGNR_OFFSET);
+            putreg32(regval, reg_base + SPI_CONFIG_OFFSET);
+            break;
+
+        case SPI_CMD_RX_IGNORE_DISABLE:
+            /* disable rx ignore, start: arg[20:16], stop: arg[4:0] */
+            regval = getreg32(reg_base + SPI_CONFIG_OFFSET);
+            regval &= ~SPI_CR_SPI_RXD_IGNR_EN;
+            putreg32(arg, reg_base + SPI_RXD_IGNR_OFFSET);
             putreg32(regval, reg_base + SPI_CONFIG_OFFSET);
             break;
 
@@ -751,6 +760,58 @@ int qcc74x_spi_feature_control(struct qcc74x_device_s *dev, int cmd, size_t arg)
                 ret = SPI_BYTE_LSB;
             }
             break;
+
+        case SPI_CMD_SET_DEGLITCH_CNT:
+            /* set de-glitch function cycle count, 0 for disable de-glitch function */
+            regval = getreg32(reg_base + SPI_CONFIG_OFFSET);
+            regval &= ~SPI_CR_SPI_DEG_CNT_MASK;
+            regval &= ~SPI_CR_SPI_DEG_EN;
+            if (arg) {
+                regval |= (arg << SPI_CR_SPI_DEG_CNT_SHIFT) & SPI_CR_SPI_DEG_CNT_MASK;
+                regval |= SPI_CR_SPI_DEG_EN;
+            }
+            putreg32(regval, reg_base + SPI_CONFIG_OFFSET);
+            break;
+
+        case SPI_CMD_SET_CS_DISABLE:
+            /* 3-pin mode (SS_n is disabled / don't care) */
+            regval = getreg32(reg_base + SPI_CONFIG_OFFSET);
+            if (arg) {
+                regval |= SPI_CR_SPI_S_3PIN_MODE;
+            } else {
+                regval &= ~SPI_CR_SPI_S_3PIN_MODE;
+            }
+            putreg32(regval, reg_base + SPI_CONFIG_OFFSET);
+            break;
+
+#if defined(QCC74x_undef)
+        case SPI_CMD_SLAVE_FAST_MODE_EN:
+            regval = getreg32(reg_base + SPI_CONFIG_OFFSET);
+            if (arg) {
+                regval &= ~SPI_CR_SPI_S_TRANS_DATA_EDGE_SEL;
+            } else {
+                regval |= SPI_CR_SPI_S_TRANS_DATA_EDGE_SEL;
+            }
+            putreg32(regval, reg_base + SPI_CONFIG_OFFSET);
+            break;
+
+        case SPI_CMD_READ_HW_VERSION:
+            regval = getreg32(reg_base + SPI_HW_VERSION_OFFSET);
+            ret = (regval & SPI_HW_VERSION_MASK) >> SPI_HW_VERSION_SHIFT;
+            break;
+
+        case SPI_CMD_READ_SW_USAGE:
+            regval = getreg32(reg_base + SPI_SW_USAGE_OFFSET);
+            ret = (regval & SPI_SW_USAGE_MASK) >> SPI_SW_USAGE_SHIFT;
+            break;
+
+        case SPI_CMD_WRITE_SW_USAGE:
+            regval = getreg32(reg_base + SPI_SW_USAGE_OFFSET);
+            regval &= ~SPI_SW_USAGE_MASK;
+            regval |= ((arg << SPI_SW_USAGE_SHIFT) & SPI_SW_USAGE_MASK);
+            putreg32(regval, reg_base + SPI_SW_USAGE_OFFSET);
+            break;
+#endif
 
         default:
             ret = -EPERM;

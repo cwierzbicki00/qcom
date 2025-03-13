@@ -13,11 +13,11 @@
 
 #if defined(QCC74x_undef) || defined(QCC74x_undef)
 #define UART_FIFO_MAX           32
-#elif defined(QCC74x_undefP) || defined(QCC74x_undef)
+#elif defined(QCC74x_undef) || defined(QCC74x_undef)
 #define UART_FIFO_MAX           32
-#elif defined(QCC743) || defined(QCC74x_undef)
+#elif defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
 #define UART_FIFO_MAX           32
-#elif defined(QCC74x_undefL)
+#elif defined(QCC74x_undef)
 #define UART_FIFO_MAX           16
 #else
 #error "unknown device"
@@ -165,6 +165,11 @@
 #define UART_CMD_SET_CTS_EN              (0x24)
 #define UART_CMD_SET_TX_FIFO_THREHOLD    (0x25)
 #define UART_CMD_SET_RX_FIFO_THREHOLD    (0x26)
+#if defined(QCC74x_undef)
+#define UART_CMD_READ_HW_VERSION         (0x27)
+#define UART_CMD_READ_SW_USAGE           (0x28)
+#define UART_CMD_WRITE_SW_USAGE          (0x29)
+#endif
 
 /**
   * @}
@@ -172,6 +177,7 @@
 
 #define UART_AUTO_BAUD_START             0
 #define UART_AUTO_BAUD_0X55              1
+#define UART_AUTO_BAUD_CLOSE             2
 
 // clang-format off
 #define IS_UART_DATABITS(type)   (((type) == UART_DATA_BITS_5) || \

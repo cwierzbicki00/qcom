@@ -9,7 +9,8 @@ find_package(qcc74x_sdk REQUIRED HINTS $ENV{QCC74x_SDK_BASE})
 sdk_add_compile_definitions(-DCONFIG_CLI_CMD_ENABLE)
 
 target_sources(app PRIVATE
-                   wl_lp_app.c)
+                   wl_lp_app.c
+                   app_clock_manager.c)
 
 sdk_set_main_file(main.c)
 sdk_add_include_directories(.)

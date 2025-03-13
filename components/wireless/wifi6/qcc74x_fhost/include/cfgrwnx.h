@@ -124,6 +124,10 @@ enum cfgrwnx_msg_index {
     CFGRWNX_BCN_UPDATE_CMD,
     /// Response to CFGRWNX_BCN_UPDATE (param: @ref cfgrwnx_resp)
     CFGRWNX_BCN_UPDATE_RESP,
+    /// Beacon Transmission Control
+    CFGRWNX_BCN_CONTROL_CMD,
+    /// resp of Beacon Transmission Control
+    CFGRWNX_BCN_CONTROL_RESP,
     /// Send to supplicant to register a new Station (param: @ref cfgrwnx_sta_add)
     CFGRWNX_STA_ADD_CMD,
     /// Response to CFGRWNX_STA_ADD_CMD (param: @ref cfgrwnx_resp)
@@ -849,6 +853,25 @@ struct cfgrwnx_bcn_update {
     uint8_t csa_oft[BCN_MAX_CSA_CPT];
 };
 
+struct cfgrwnx_bcn_control {
+    /// header
+    struct cfgrwnx_msg_hdr hdr;
+    /// Vif idx
+    uint16_t fhost_vif_idx;
+    /// bcn_mode:
+    /// 0	Start/Stop beacon transmissions automatically
+    ///         a.Beacon transmission is NOT started when SAP is started.
+    ///         b.Once a Probe Request frame having the same SSID is received, replies with a Probe Response frame, then Beacon transmission is started.
+    ///         c.Beacon transmission is stopped again if no STA is associated for more than bcn_timer seconds.
+    /// 1	Do not transmit beacon frames
+    /// 2	Transmit beacon frames (Default)
+    uint8_t bcn_mode;
+    /// Beacon transmission is stopped again if no STA is associated for more than bcn_timer seconds.
+    int bcn_timer;
+    /// should bcn tx stop
+    bool bcn_stop;
+};
+
 /// Structure for CFGRWNX_STA_ADD_CMD
 struct cfgrwnx_sta_add {
     /// header
@@ -959,6 +982,7 @@ struct cfgrwnx_twt_teardown_req {
 };
 
 enum CFGRWNX_ME_PARAM_ID_E {
+    CFGRWNX_ME_PARAM_ID_TX_SINGLE_RETRY_CNT_LIMIT,
     CFGRWNX_ME_PARAM_ID_TX_AMPDU_RETRY_CNT_LIMIT,
     CFGRWNX_ME_PARAM_ID_TX_AMPDU_PROTECT_ENABLE,
     CFGRWNX_ME_PARAM_ID_TX_AMPDU_DROP_TO_SINGLETON_RETRYCNT_THRESHOLD,

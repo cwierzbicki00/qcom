@@ -23,7 +23,7 @@
 #include "qcc743_gpio.h"
 #include "qcc743_clock.h"
 
-extern const qcc74xverinf_t app_ver;
+extern const qcc74x_verinf_t app_ver;
 
 #define UART1_BAUDRATE (2000000)
 

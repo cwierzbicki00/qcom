@@ -419,7 +419,12 @@ static int at_scan_wifi(uint8_t *channels, uint16_t channel_num, uint8_t mac[6],
         memcpy(scan_cfg.bssid, mac, sizeof(scan_cfg.bssid));
     }
 
-    wifi_mgmr_sta_scan(&scan_cfg);
+    if (antenna_hal_is_static_div_enabled()) {
+        ant_scan_task_start(&scan_cfg, NULL);
+    } else {
+        wifi_mgmr_sta_scan(&scan_cfg);
+    }
+
     if (!g_scan_tick) {
         g_scan_tick = rtos_now(0);
     }
@@ -722,6 +727,26 @@ static int at_exe_cmd_cwqap(int argc, const char **argv)
     return AT_RESULT_CODE_OK;
 }
 
+static int at_setup_cmd_cwqap(int argc, const char **argv)
+{
+    int restore = 0;
+    int restore_valid = 0;
+
+    AT_CMD_PARSE_OPT_NUMBER(0, &restore, restore_valid);
+    
+    if ((at_wifi_config->wifi_mode != WIFI_STATION_MODE) && (at_wifi_config->wifi_mode != WIFI_AP_STA_MODE)) {
+        return AT_RESULT_CODE_ERROR;
+    }
+
+    if (restore_valid && restore) {
+	    memset(&at_wifi_config->sta_info.ssid, 0, sizeof(at_wifi_config->sta_info.ssid));
+        ef_del_env(AT_CONFIG_KEY_WIFI_STA_INFO);
+    }
+    
+    at_wifi_sta_disconnect();
+    return AT_RESULT_CODE_OK;
+}
+
 #if 1
 static int at_query_cmd_cwsap(int argc, const char **argv)
 {
@@ -764,7 +789,7 @@ static int at_setup_cmd_cwsap(int argc, const char **argv)
     if (!(ecn == AT_WIFI_ENC_OPEN || (ecn >= AT_WIFI_ENC_WPA_PSK && ecn <= AT_WIFI_ENC_WPA2_PSK)) || (ecn >= AT_WIFI_ENC_WPA_PSK  && ecn <= AT_WIFI_ENC_WPA2_PSK && strlen(pwd) < 8)) {
         return AT_RESULT_CODE_ERROR;
     }
-    if (max_conn_valid && (max_conn < 1 || max_conn > 10)) {
+    if (max_conn_valid && (max_conn < 1 || max_conn > CFG_STA_MAX)) {
         return AT_RESULT_CODE_ERROR;
     }
     if (ssid_hidden_valid && (ssid_hidden != 0 && ssid_hidden != 1)) {
@@ -1257,8 +1282,9 @@ static int at_setup_cmd_cwapproto(int argc, const char **argv)
 
     AT_CMD_PARSE_NUMBER(0, &proto);
 
-    if (proto >= 0 && proto <= 7) {
+    if (proto >= 0 && proto <= 0xf) {
         at_wifi_config->ap_proto.byte = (uint8_t)proto;
+        at_wifi_mode_set(1, at_wifi_config->ap_proto);
         if (at->store) {
             at_wifi_config_save(AT_CONFIG_KEY_WIFI_AP_PROTO);
         }
@@ -1281,8 +1307,9 @@ static int at_setup_cmd_cwstaproto(int argc, const char **argv)
 
     AT_CMD_PARSE_NUMBER(0, &proto);
 
-    if (proto >= 0 && proto <= 7) {
+    if (proto >= 0 && proto <= 0xf) {
         at_wifi_config->sta_proto.byte = (uint8_t)proto;
+        at_wifi_mode_set(0, at_wifi_config->sta_proto);
         if (at->store) {
             at_wifi_config_save(AT_CONFIG_KEY_WIFI_STA_PROTO);
         }
@@ -1410,7 +1437,25 @@ static int at_setup_cmd_cwmonitor(int argc, const char **argv)
 
 static int at_setup_cmd_wps(int argc, const char **argv)
 {
-    return AT_RESULT_CODE_ERROR;
+    int enable = 0;
+    AT_CMD_PARSE_NUMBER(0, &enable);
+    
+    if ((at_wifi_config->wifi_mode != WIFI_STATION_MODE) && (at_wifi_config->wifi_mode != WIFI_AP_STA_MODE)) {
+        printf("err at_wifi_config\r\n");
+        return AT_RESULT_CODE_ERROR;
+    }
+
+    if (enable == 0) {
+        wifi_mgmr_sta_disconnect();
+        return AT_RESULT_CODE_OK;
+    }
+
+    int ret = wifi_mgmr_sta_wps_pbc();
+    if (ret != 0) {
+        return AT_RESULT_CODE_ERROR;
+    }
+
+    return AT_RESULT_CODE_OK;
 }
 
 static int at_setup_cmd_mdns(int argc, const char **argv)
@@ -1499,6 +1544,62 @@ static int at_query_cmd_cwevt(int argc, const char **argv)
     return AT_RESULT_CODE_OK;
 }
 
+#ifdef CONFIG_ANTENNA_CONTROL
+static int at_setup_cmd_cwantenable(int argc, const char **argv)
+{
+    int dynamic_enable, static_enable;
+    int pin_is_vaild = 0, pin = 0;
+
+    AT_CMD_PARSE_NUMBER(0, &dynamic_enable);
+    AT_CMD_PARSE_NUMBER(1, &static_enable);
+    AT_CMD_PARSE_OPT_NUMBER(2, &pin, pin_is_vaild);
+
+    if ((dynamic_enable || static_enable) && pin_is_vaild == 0) {
+        return AT_RESULT_CODE_ERROR;
+    }
+    at_wifi_config->ant_div.static_ant_div_enable = static_enable;
+    at_wifi_config->ant_div.dynamic_ant_div_enable = dynamic_enable;
+    at_wifi_config->ant_div.ant_div_pin = pin;
+
+    if (at->store) {
+        at_wifi_config_save(AT_CONFIG_KEY_WIFI_ANTDIV);
+    }
+    return AT_RESULT_CODE_OK;
+}
+
+static int at_query_cmd_cwantenable(int argc, const char **argv)
+{
+    at_response_string("+CWANTENABLE:%d,%d,%d\r\n", antenna_hal_is_dynamic_div_enabled(), antenna_hal_is_static_div_enabled(), at_wifi_config->ant_div.ant_div_pin);
+    return AT_RESULT_CODE_OK;
+}
+
+static int at_setup_cmd_cwant(int argc, const char **argv)
+{
+    int ant_id;
+    AT_CMD_PARSE_NUMBER(0, &ant_id);
+
+    if (ant_id < 0 || ant_id > antenna_hal_get_antenna_count()) {
+        return AT_RESULT_CODE_ERROR;
+    }
+    antenna_hal_switch_antenna(ant_id);
+
+    return AT_RESULT_CODE_OK;
+}
+
+static int at_query_cmd_cwant(int argc, const char **argv)
+{
+    at_response_string("+CWANT:%d\r\n", antenna_hal_get_current_antenna());
+    return AT_RESULT_CODE_OK;
+}
+
+static int at_query_cmd_cwantnum(int argc, const char **argv)
+{
+    at_response_string("+CWANTNUM:%d\r\n", antenna_hal_get_antenna_count());
+
+    return AT_RESULT_CODE_OK;
+}
+#endif 
+
 static const at_cmd_struct at_wifi_cmd[] = {
     {"+WIFISP",       NULL, at_query_cmd_wifisp,      at_setup_cmd_wifisp,       NULL,                    1, 1},
     {"+CWMODE",       NULL, at_query_cmd_cwmode,      at_setup_cmd_cwmode,       NULL,                    1, 2},
@@ -1507,7 +1608,7 @@ static const at_cmd_struct at_wifi_cmd[] = {
     {"+CWRECONNCFG",  NULL, at_query_cmd_cwreconncfg, at_setup_cmd_cwreconncfg,  NULL,                    2, 2},
     {"+CWLAPOPT",     NULL, at_query_cmd_cwlapopt,    at_setup_cmd_cwlapopt,     NULL,                    2, 5},
     {"+CWLAP",        NULL, NULL,                     at_setup_cmd_cwlap,        at_exe_cmd_cwlap,        1, 6},
-    {"+CWQAP",        NULL, NULL,                     NULL,                      at_exe_cmd_cwqap,        0, 0},
+    {"+CWQAP",        NULL, NULL,                     at_setup_cmd_cwqap,        at_exe_cmd_cwqap,        0, 1},
     {"+CWSAP",        NULL, at_query_cmd_cwsap,       at_setup_cmd_cwsap,        NULL,                    4, 6},
     {"+CWLIF",        NULL, NULL,                     NULL,                      at_exe_cmd_cwlif,        0, 0},
     {"+CWQIF",        NULL, NULL,                     at_setup_cmd_cwqif,        at_exe_cmd_cwqif,        1, 1},
@@ -1521,17 +1622,25 @@ static const at_cmd_struct at_wifi_cmd[] = {
     {"+CIPSTA",       NULL, at_query_cmd_cipsta,      at_setup_cmd_cipsta,       NULL,                    1, 3},
     {"+CIPAP",        NULL, at_query_cmd_cipap,       at_setup_cmd_cipap,        NULL,                    1, 3},
     {"+CWMONITOR",    NULL, NULL,                     at_setup_cmd_cwmonitor,    NULL,                    1, 4},
-    {"+WPS",          NULL, NULL,                     at_setup_cmd_wps,          NULL,                    1, 2},
+    {"+WPS",          NULL, NULL,                     at_setup_cmd_wps,          NULL,                    1, 1},
     {"+MDNS",         NULL, NULL,                     at_setup_cmd_mdns,         NULL,                    1, 4},
     {"+CWHOSTNAME",   NULL, at_query_cmd_cwhostname,  at_setup_cmd_cwhostname,   NULL,                    1, 1},
     {"+CWCOUNTRY",    NULL, at_query_cmd_cwcountry,   at_setup_cmd_cwcountry,    NULL,                    2, 2},
     {"+CWEVT",        NULL, at_query_cmd_cwevt,       at_setup_cmd_cwevt,        NULL,                    1, 1},
+#ifdef CONFIG_ANTENNA_CONTROL
+    {"+CWANTENABLE",  NULL, at_query_cmd_cwantenable, at_setup_cmd_cwantenable,  NULL,                    2, 3},
+    {"+CWANTNUM",     NULL, at_query_cmd_cwantnum,    NULL,                      NULL,                    0, 0},
+    {"+CWANT",        NULL, at_query_cmd_cwant,       at_setup_cmd_cwant,        NULL,                    1, 1},
+#endif
 };
 
 bool at_wifi_cmd_regist(void)
 {
     at_wifi_config_init();
 
+#ifdef CONFIG_ANTENNA_CONTROL
+    board_antenna_init(at_wifi_config->ant_div.dynamic_ant_div_enable, at_wifi_config->ant_div.static_ant_div_enable, at_wifi_config->ant_div.ant_div_pin);
+#endif
     at_wifi_start();
 
     at_register_function(at_wifi_config_default, at_wifi_stop);

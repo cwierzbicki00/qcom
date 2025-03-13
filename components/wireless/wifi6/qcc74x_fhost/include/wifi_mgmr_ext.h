@@ -62,6 +62,25 @@ typedef enum
     MGMR_VIF_AP
 }wifi_mgmr_vif_type;
 
+typedef enum
+{
+    ACCEPT_ACL,
+    DENY_ACL
+} ap_acl_type;
+
+typedef enum
+{
+    ADD_ACL,
+    DELETE_ACL
+} ap_action_type;
+
+typedef enum
+{
+    DISABLE_ACL,
+    ACCEPT_UNLESS_DENIED,
+    DENY_UNLESS_ACCEPTED
+} ap_acl_prem;
+
 typedef struct wifi_mgmr_scan_item {
     uint32_t mode;
     uint32_t timestamp_lastseen;
@@ -212,11 +231,16 @@ typedef struct wifi_mgmr_ap_params {
     bool hidden_ssid;
     /// whether enable isolation
     bool isolation;
+    /// Beacon interval in TU
+    int bcn_interval;
     /// Additional vendor specific elements for Beacon and Probe Response frames
     /// a hexdump of the raw information elements (id+len+payload for one or more elements),
     //  the maximum length supported is MAX_AP_VENDOR_ELEMENTS_LEN,
     /// ref wap_supplicant.conf
     char *ap_vendor_elements;
+
+    uint8_t bcn_mode;
+    int bcn_timer;
 } wifi_mgmr_ap_params_t;
 
 /**
@@ -363,11 +387,24 @@ typedef struct
 
 typedef void (*scan_item_cb_t)(void *env, void *arg, wifi_mgmr_scan_item_t *item);
 
-#ifdef CONFIG_ANTDIV_STATIC
-// Antenna control function type
-typedef int (*wifi_mgmr_antenna_ctrl_func_t)(uint8_t antenna_id);
-int wifi_mgmr_antenna_ctrl_register(wifi_mgmr_antenna_ctrl_func_t func);
-#endif
+/**
+ * wifi_sta_antenna_connect
+ * Connect to the AP
+ * param:
+ *  ssid     : SSID of target AP
+ *  key      : Password of AP
+ *  bssid    : BSSID of AP
+ *  akm_str  : AKM of AP, must be all in upper case
+ *  pmf_cfg  : PMF config
+ *  freq1    : Frequency of AP
+ *  freq2    : Frequency of AP (You can specify up to two frequencies on which AP will be scanned.)
+ *  use_dhcp : Whether to use the dhcp server which provided by AP
+ * return:
+ *  0 : Success
+ *  -1 : Failed
+ *  Others is Failed
+ */
+int wifi_sta_antenna_connect(const char *ssid, const char *key, const char *bssid, const char *akm_str, uint8_t pmf_cfg, uint16_t freq1, uint16_t freq2, uint8_t use_dhcp);
 
 /**
  * wifi_sta_connect
@@ -558,6 +595,7 @@ int wifi_mgmr_sta_connect_ind_stat_get(wifi_mgmr_connect_ind_stat_info_t *wifi_m
  */
 int wifi_mgmr_sta_scan(const wifi_mgmr_scan_params_t *config);
 
+int wifi_mgmr_ap_bcn_mode_set(uint8_t bcn_mode, int bcn_timer);
 /**
  * wifi_mgmr_sta_scanlist
  * List the scan results in last scan
@@ -618,6 +656,26 @@ int wifi_mgmr_ap_start(const wifi_mgmr_ap_params_t *config);
  *  Others is Failed
  */
 int wifi_mgmr_ap_stop(void);
+
+/**
+ * wifi_mgmr_ap_acl_enable
+ * MAC Address Filtering Enable && MAC Address Filtering Default permission setting
+ * return:
+ *  0 : Success
+ *  -1 : Failed
+ *  Others is Failed
+ */
+int wifi_mgmr_ap_acl_enable(ap_acl_prem default_prem);
+
+/**
+ * wifi_mgmr_ap_acl_set
+ * MAC Address White-list/Black-list setting
+ * return:
+ *  0 : Success
+ *  -1 : Failed
+ *  Others is Failed
+ */
+int wifi_mgmr_ap_acl_set(ap_acl_type acl, ap_action_type action, char *mac_str);
 
 /**
  * wifi_mgmr_mode_to_str
@@ -717,6 +775,16 @@ int wifi_mgmr_sta_autoconnect_enable(void);
  *  Others is Failed
  */
 int wifi_mgmr_sta_autoconnect_disable(void);
+
+/**
+ * wifi_mgmr_sta_wps_pbc
+ * Start sta wps pbc
+ * return:
+ *  0 : Success
+ *  -1 : Failed
+ *  Others is Failed
+ */
+int wifi_mgmr_sta_wps_pbc(void);
 
 /**
  * wifi_mgmr_sta_non_pref_chan_set - Set the non-preferred channel list for Wi-Fi management
@@ -1046,6 +1114,18 @@ void wifi_mgmr_coex_enable(bool en);
  *  Others is Failed
  */
 int wifi_mgmr_set_ht40_enable(uint8_t value);
+
+/**
+ * wifi_mgmr_sta_ap_retry_limit_set
+ * Set tx retry limit for ap/sta mode
+ */
+int wifi_mgmr_sta_ap_retry_limit_set(uint8_t retry_limit);
+
+/**
+ * wifi_mgmr_sta_ap_retry_limit_set
+ * Get tx retry limit for ap/sta mode
+ */
+uint32_t wifi_mgmr_sta_ap_retry_limit_get(void);
 
 /**
  * wifi_mgmr_adhoc_start

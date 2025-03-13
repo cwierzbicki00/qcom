@@ -383,6 +383,7 @@ void vApplicationSleep(TickType_t xExpectedIdleTime) {
       configASSERT(p!=NULL);
       *p = 0;
     }
+    ble_sleep_rtc -= QCC74x_US_TO_PDS_CNT(600);
 
     tickless_info("ble sleep duration: %d", ble_sleep_rtc);
 
@@ -448,7 +449,7 @@ void vApplicationSleep(TickType_t xExpectedIdleTime) {
 
   rwnxl_regs_save_ops();
 #if defined(CFG_BLE_ENABLE)
-  if(rtc_sleep_remain < rtc_epilogue_time_max + QCC74x_US_TO_PDS_CNT(6550))
+  if(rtc_sleep_remain < rtc_epilogue_time_max + QCC74x_US_TO_PDS_CNT(6350))
   {
     portENABLE_INTERRUPTS();
     tickless_info("Sleep Abort! %d", __LINE__);
@@ -457,7 +458,7 @@ void vApplicationSleep(TickType_t xExpectedIdleTime) {
   }
 #endif
   /* How much time do we have to sleep? */
-  rtc_sleep_remain -= rtc_epilogue_time_max + QCC74x_US_TO_PDS_CNT(6550);
+  rtc_sleep_remain -= rtc_epilogue_time_max + QCC74x_US_TO_PDS_CNT(6350);
   tickless_info("rtc_sleep_remain: %" __PRI64(d), rtc_sleep_remain);
   configASSERT((signed)rtc_sleep_remain > 0);
 

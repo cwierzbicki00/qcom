@@ -67,6 +67,7 @@ typedef struct mfg_tx_para{
     uint16_t sg_channel_index;
     uint16_t ble_is_sending;
     uint16_t ble_sending_power;
+    uint16_t zb_channel_index;
     uint16_t zb_sending_power;
     uint16_t tx_on;
     uint16_t bw;

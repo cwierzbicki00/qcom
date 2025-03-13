@@ -1,4 +1,37 @@
 # Changes
+## 2025-02-10
+1.[blestack] Add CONFIG_BT_WORK_QUEUE_STACK_SIZE to config work_q thread size.
+
+## 2025-02-08
+[blestack] Fix build error when enable CONFIG_BT_TP_CLI
+
+## 2025-02-08
+1.[blestack] Add CONFIG_BT_RX_STACK_SIZE to config ble rx thread stack size.
+2.[blestack] Add bt_gatt_find_attr api to get struct bt_gatt_attr from handle.
+
+## 2025-02-08
+[blestack]support uart interface.
+
+## 2025-02-06
+[blestack]Add Throughput test cli and ble1m0s1sbredr0 Support DTM.
+
+## 2025-01-21
+[blestack]Support send two advertising in one adv event, this call be enabled by set CONFIG_BLE_ADV_TWO_PAYLOAD_IN_ONE_ADV_INTERVAL_WITH_ROME_CODE to 1.
+
+## 2025-01-13
+1.Fix the assert issue when it stops the work_q timer because of timer handle is null in some corner case.
+2.Fix hci command timeout becuase BT_HCI_EVT_NUM_COMPLETED_PACKETS evt fails to be handled in time.
+3.Fix memory leak issue because ble connection's tx queue fails to be freed in some corner case.
+
+## 2025-01-09
+[blestack]Rename uuid.h to bt_uuid.h to avoid incorrect inclusion.
+
+## 2024-12-19
+[blestack]Fix the problem that repeated calls to bt_conn_create_br/bt_conn_create_sco and causes subsequent connection failure.
+
+## 2024-12-11
+1.Fix the issue that master takes a long time to establish le connection after stop scan in the case that upper layer triggers scan once after it initiates le connection. 
+
 ## 2024-11-18
 1.[QCC743]Fix smp timeout issue in smp transport key distribution over the BR/EDR transport because the local device doesn't send id key while it indicates id key distribution.
 

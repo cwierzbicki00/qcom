@@ -1,11 +1,11 @@
 #include "qcc74x_rtc.h"
 #include "hardware/rtc_reg.h"
 
-#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undefL)
+#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
 #define QCC74x_RTC_BASE 0x4000F000
-#elif defined(QCC74x_undef) || defined(QCC74x_undefP) || defined(QCC743)
+#elif defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC743) || defined(QCC74x_undef)
 #define QCC74x_RTC_BASE 0x2000F000
-#elif defined(QCC74x_undef)
+#elif defined(QCC74x_undef) || defined(QCC74x_undef)
 #define QCC74x_RTC_BASE 0x2008F000
 #endif
 
@@ -54,16 +54,27 @@ void qcc74x_rtc_set_time(struct qcc74x_device_s *dev, uint64_t time)
     putreg32(regval, reg_base + HBN_RTC_TIME_H_OFFSET);
 
     /* Read RTC val */
+#if defined(QCC74x_undef)
+    rtc_cnt = getreg32(reg_base + HBN_RTC_TIME_H_OFFSET);
+    rtc_cnt <<= 32;
+    rtc_cnt |= getreg32(reg_base + HBN_RTC_TIME_L_OFFSET);
+#else
     rtc_cnt = getreg32(reg_base + HBN_RTC_TIME_H_OFFSET) & 0xff;
     rtc_cnt <<= 32;
     rtc_cnt |= getreg32(reg_base + HBN_RTC_TIME_L_OFFSET);
+#endif
 
     /* calculate RTC Comp time */
     rtc_cnt += time;
 
     /* Set RTC Comp time  */
+#if defined(QCC74x_undef)
+    putreg32((uint32_t)rtc_cnt, reg_base + HBN_TIME_L_OFFSET);
+    putreg32((uint32_t)(rtc_cnt >> 32), reg_base + HBN_TIME_H_OFFSET);
+#else
     putreg32((uint32_t)rtc_cnt, reg_base + HBN_TIME_L_OFFSET);
     putreg32((uint32_t)(rtc_cnt >> 32) & 0xff, reg_base + HBN_TIME_H_OFFSET);
+#endif
 
     /* Enable RTC Counter */
     regval = getreg32(reg_base + HBN_CTL_OFFSET);
@@ -92,8 +103,13 @@ uint64_t qcc74x_rtc_get_time(struct qcc74x_device_s *dev)
     putreg32(regval, reg_base + HBN_RTC_TIME_H_OFFSET);
 
     /* Read RTC val */
+#if defined(QCC74x_undef)
+    time_l = getreg32(reg_base + HBN_RTC_TIME_L_OFFSET);
+    time_h = getreg32(reg_base + HBN_RTC_TIME_H_OFFSET);
+#else
     time_l = getreg32(reg_base + HBN_RTC_TIME_L_OFFSET);
     time_h = getreg32(reg_base + HBN_RTC_TIME_H_OFFSET) & 0xff;
+#endif
 
     return (((uint64_t)time_h << 32) | (uint64_t)time_l);
 #endif
@@ -324,7 +340,7 @@ static time_t __mktime(struct qcc74x_tm *tp)
     return ret;
 }
 
-#define QCC74x_RTC_COUNTER_TO_MS(CNT) ((uint64_t)(CNT)*1000 / 32768) // ((CNT)*(1024-16-8)/32768)
+#define QCC74x_RTC_COUNTER_TO_MS(CNT) ((uint64_t)(CNT) * 1000 / 32768) // ((CNT)*(1024-16-8)/32768)
 #define QCC74x_RTC_MAX_COUNTER        (0x000000FFFFFFFFFFllu)
 
 uint64_t qcc74x_rtc_get_delta_counter(uint64_t ref_cnt)
@@ -355,7 +371,7 @@ static volatile uint64_t s_rtc_ref_cnt = 0;
 
 void qcc74x_rtc_set_utc_time(const struct qcc74x_tm *time)
 {
-    memcpy((void *)&g_rtc_tm, time, sizeof(struct qcc74x_tm));
+    arch_memcpy((void *)&g_rtc_tm, time, sizeof(struct qcc74x_tm));
     s_rtc_ref_cnt = qcc74x_rtc_get_time(NULL);
 }
 
@@ -375,7 +391,7 @@ uint64_t qcc74x_rtc_get_utc_timestamp(void)
 
     time_stamp_ms = qcc74x_rtc_get_delta_time_ms(s_rtc_ref_cnt);
     time_stamp_ms = time_stamp_ms / 1000;
-    time_stamp_ms += __mktime((struct bflb_tm *)&g_rtc_tm);
+    time_stamp_ms += __mktime((struct qcc74x_tm *)&g_rtc_tm);
 
     return time_stamp_ms;
 }

@@ -6,11 +6,11 @@ struct qcc74x_sec_irq_callback {
     void *arg;
 };
 
-#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undefL)
+#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
 #define QCC74x_SEC_ENG_BASE ((uint32_t)0x40004000)
-#elif defined(QCC743) || defined(QCC74x_undefP) || defined(QCC74x_undef)
+#elif defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
 #define QCC74x_SEC_ENG_BASE ((uint32_t)0x20004000)
-#elif defined(QCC74x_undef)
+#elif defined(QCC74x_undef) || defined(QCC74x_undef)
 #define QCC74x_SEC_ENG_BASE ((uint32_t)0x20080000)
 #endif
 
@@ -133,7 +133,7 @@ void qcc74x_sec_irq_attach(uint8_t sec_type, void (*callback)(void *arg), void *
 {
     sec_eng_callback[sec_type].handler = callback;
     sec_eng_callback[sec_type].arg = arg;
-#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undefL)
+#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
     qcc74x_irq_attach(25, sec_eng_isr, NULL);
     qcc74x_irq_attach(26, sec_eng_isr, NULL);
     qcc74x_irq_attach(27, sec_eng_isr, NULL);
@@ -146,7 +146,7 @@ void qcc74x_sec_irq_attach(uint8_t sec_type, void (*callback)(void *arg), void *
     qcc74x_irq_enable(28);
     qcc74x_irq_enable(29);
     qcc74x_irq_enable(30);
-#elif (defined(QCC74x_undefP) || defined(QCC74x_undef)) && (defined(CPU_M0) || defined(CPU_LP))
+#elif (defined(QCC74x_undef) || defined(QCC74x_undef)) && (defined(CPU_M0) || defined(CPU_LP))
     qcc74x_irq_attach(25, sec_eng_isr, NULL);
     qcc74x_irq_attach(26, sec_eng_isr, NULL);
     qcc74x_irq_attach(27, sec_eng_isr, NULL);
@@ -155,7 +155,7 @@ void qcc74x_sec_irq_attach(uint8_t sec_type, void (*callback)(void *arg), void *
     qcc74x_irq_enable(26);
     qcc74x_irq_enable(27);
     qcc74x_irq_enable(28);
-#elif defined(QCC743) || defined(QCC74x_undef)
+#elif defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
     qcc74x_irq_attach(25, sec_eng_isr, NULL);
     qcc74x_irq_attach(26, sec_eng_isr, NULL);
     qcc74x_irq_attach(27, sec_eng_isr, NULL);

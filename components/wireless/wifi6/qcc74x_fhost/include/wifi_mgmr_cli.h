@@ -50,6 +50,8 @@ void cmd_wifi_adhoc_send(int argc, char *argv[]);
 void cmd_adhoc_start(int argc, char *argv[]);
 void cmd_adhoc_stop(int argc, char *argv[]);
 void cmd_wifi_mode_set (int argc, char *argv[]);
+void cmd_wifi_wps_pbc(int argc, char **argv);
+void wifi_ap_bcn_mode_set_cmd(int argc, char **argv);
 #ifdef CONFIG_ANTDIV_STATIC
 void wifi_antenna_scan_cmd(int argc, char *argv[]);
 void wifi_antenna_scan_connect_cmd(int argc, char *argv[]);

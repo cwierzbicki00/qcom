@@ -38,6 +38,12 @@ int ap_ctrl_iface_sta_disassociate(struct wpa_supplicant *wpa_s,
 				   const char *txtaddr);
 int ap_ctrl_iface_wpa_get_status(struct wpa_supplicant *wpa_s, char *buf,
 				 size_t buflen, int verbose);
+int ap_disassoc_accept_mac(struct wpa_supplicant *wpa_s);
+int ap_disassoc_deny_mac(struct wpa_supplicant *wpa_s);
+int ap_ctrl_iface_acl_clear_list(struct wpa_supplicant *wpa_s, bool allow);
+int ap_ctrl_iface_acl_show_mac(struct wpa_supplicant *wpa_s, bool allow, char *reply, size_t reply_size);
+int ap_ctrl_iface_acl_del_mac(struct wpa_supplicant *wpa_s, bool allow, const char *txtaddr);
+int ap_ctrl_iface_acl_add_mac(struct wpa_supplicant *wpa_s, bool allow, const char *txtaddr);
 void ap_tx_status(void *ctx, const u8 *addr,
 		  const u8 *buf, size_t len, int ack);
 void ap_eapol_tx_status(void *ctx, const u8 *dst,

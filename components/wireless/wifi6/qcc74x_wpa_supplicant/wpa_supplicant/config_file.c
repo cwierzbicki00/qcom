@@ -18,7 +18,7 @@
 #include "common.h"
 #include "config.h"
 #include "base64.h"
-#include "uuid.h"
+#include "wpa_uuid.h"
 #include "common/ieee802_1x_defs.h"
 #include "p2p/p2p.h"
 #include "eap_peer/eap_methods.h"
@@ -828,6 +828,8 @@ static void wpa_config_write_network(FILE *f, struct wpa_ssid *ssid)
 	INT(wpa_deny_ptk0_rekey);
 	INT(group_rekey);
 	INT(ignore_broadcast_ssid);
+    INT(bcn_mode);
+    INT(bcn_timer);
 #ifdef CONFIG_DPP
 	STR(dpp_connector);
 	STR(dpp_netaccesskey);

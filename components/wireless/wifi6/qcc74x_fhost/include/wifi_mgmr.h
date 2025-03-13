@@ -80,6 +80,17 @@ typedef struct wifi_mgmr {
 
     // Antenna scan
     bool is_antenna_scanning;
+
+    /// ap_bcn_mode:
+    /// 0	Start/Stop beacon transmissions automatically
+    ///         a.Beacon transmission is NOT started when SAP is started.
+    ///         b.Once a Probe Request frame having the same SSID is received, replies with a Probe Response frame, then Beacon transmission is started.
+    ///         c.Beacon transmission is stopped again if no STA is associated for more than bcn_timer seconds.
+    /// 1	Do not transmit beacon frames
+    /// 2	Transmit beacon frames (Default)
+    int ap_bcn_mode;
+    /// Beacon transmission is stopped again if no STA is associated for more than ap_bcn_timer seconds.
+    int ap_bcn_timer;
 } wifi_mgmr_t;
 extern wifi_mgmr_t wifiMgmr;
 

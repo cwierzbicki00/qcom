@@ -208,6 +208,7 @@ void System_Post_Init(void)
 {
     /* config chip pod */
     System_BOD_Init();
+
     /* Bootrom not use dcache,so ignore this flush*/
 #ifndef BOOTROM
     csi_dcache_clean();

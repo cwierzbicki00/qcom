@@ -11,7 +11,7 @@
 #define UART_URX_CONFIG_OFFSET  (0x4) /* urx_config */
 #define UART_BIT_PRD_OFFSET     (0x8) /* uart_bit_prd */
 #define UART_DATA_CONFIG_OFFSET (0xC) /* data_config */
-#if !defined(QCC74x_undefL)
+#if !defined(QCC74x_undef)
 #define UART_UTX_IR_POSITION_OFFSET (0x10) /* utx_ir_position */
 #define UART_URX_IR_POSITION_OFFSET (0x14) /* urx_ir_position */
 #endif
@@ -38,6 +38,11 @@
 #define UART_FIFO_CONFIG_1_OFFSET (0x84) /* uart_fifo_config_1 */
 #define UART_FIFO_WDATA_OFFSET    (0x88) /* uart_fifo_wdata */
 #define UART_FIFO_RDATA_OFFSET    (0x8C) /* uart_fifo_rdata */
+#if defined(QCC74x_undef)
+#define UART_HW_VERSION_OFFSET (0x90) /* uart_hw_version */
+#define UART_SW_USAGE_OFFSET   (0x90) /* uart_sw_usage */
+#endif
+
 
 /* Register Bitfield definitions *****************************************************/
 
@@ -50,7 +55,7 @@
 #endif
 #define UART_CR_UTX_PRT_EN  (1 << 4U)
 #define UART_CR_UTX_PRT_SEL (1 << 5U)
-#if !defined(QCC74x_undefL)
+#if !defined(QCC74x_undef)
 #define UART_CR_UTX_IR_EN  (1 << 6U)
 #define UART_CR_UTX_IR_INV (1 << 7U)
 #endif
@@ -81,15 +86,17 @@
 #endif
 #define UART_CR_URX_PRT_EN  (1 << 4U)
 #define UART_CR_URX_PRT_SEL (1 << 5U)
-#if !defined(QCC74x_undefL)
+#if !defined(QCC74x_undef)
 #define UART_CR_URX_IR_EN  (1 << 6U)
 #define UART_CR_URX_IR_INV (1 << 7U)
 #endif
 #define UART_CR_URX_BIT_CNT_D_SHIFT (8U)
 #define UART_CR_URX_BIT_CNT_D_MASK  (0x7 << UART_CR_URX_BIT_CNT_D_SHIFT)
+#if !defined(QCC74x_undef) && !defined(QCC74x_undef)
 #define UART_CR_URX_DEG_EN          (1 << 11U)
 #define UART_CR_URX_DEG_CNT_SHIFT   (12U)
 #define UART_CR_URX_DEG_CNT_MASK    (0xf << UART_CR_URX_DEG_CNT_SHIFT)
+#endif
 #define UART_CR_URX_LEN_SHIFT       (16U)
 #define UART_CR_URX_LEN_MASK        (0xffff << UART_CR_URX_LEN_SHIFT)
 
@@ -100,9 +107,18 @@
 #define UART_CR_URX_BIT_PRD_MASK  (0xffff << UART_CR_URX_BIT_PRD_SHIFT)
 
 /* 0xC : data_config */
-#define UART_CR_UART_BIT_INV (1 << 0U)
+#define UART_CR_UART_BIT_INV      (1 << 0U)
+#if defined(QCC74x_undef)
+#define UART_CR_URX_DEG_EN        (1 << 1U)
+#elif defined(QCC74x_undef)
+#define UART_CR_URX_DEG_EN        (1 << 7U)
+#endif
+#if defined(QCC74x_undef) || defined(QCC74x_undef)
+#define UART_CR_URX_DEG_CNT_SHIFT (8U)
+#define UART_CR_URX_DEG_CNT_MASK  (0xff << UART_CR_URX_DEG_CNT_SHIFT)
+#endif
 
-#if !defined(QCC74x_undefL)
+#if !defined(QCC74x_undef)
 /* 0x10 : utx_ir_position */
 #define UART_CR_UTX_IR_POS_S_SHIFT (0U)
 #define UART_CR_UTX_IR_POS_S_MASK  (0xffff << UART_CR_UTX_IR_POS_S_SHIFT)
@@ -115,8 +131,14 @@
 #endif
 
 /* 0x18 : urx_rto_timer */
+#if !defined(QCC74x_undef)
 #define UART_CR_URX_RTO_VALUE_SHIFT (0U)
+#if defined(QCC74x_undef)
+#define UART_CR_URX_RTO_VALUE_MASK  (0xffff << UART_CR_URX_RTO_VALUE_SHIFT)
+#else
 #define UART_CR_URX_RTO_VALUE_MASK  (0xff << UART_CR_URX_RTO_VALUE_SHIFT)
+#endif
+#endif
 
 #if !defined(QCC74x_undef)
 /* 0x1C : uart_sw_mode */
@@ -202,7 +224,7 @@
 #define UART_STS_URX_ABR_PRD_START_SHIFT (0U)
 #define UART_STS_URX_ABR_PRD_START_MASK  (0xffff << UART_STS_URX_ABR_PRD_START_SHIFT)
 #define UART_STS_URX_ABR_PRD_0X55_SHIFT  (16U)
-#if defined(QCC74x_undefL)
+#if defined(QCC74x_undef)
 #define UART_STS_URX_ABR_PRD_0X55_MASK (0x3ff << UART_STS_URX_ABR_PRD_0X55_SHIFT)
 #else
 #define UART_STS_URX_ABR_PRD_0X55_MASK (0xffff << UART_STS_URX_ABR_PRD_0X55_SHIFT)
@@ -211,13 +233,13 @@
 #if !defined(QCC74x_undef) && !defined(QCC74x_undef)
 /* 0x38 : urx_abr_prd_b01 */
 #define UART_STS_URX_ABR_PRD_BIT0_SHIFT (0U)
-#if defined(QCC74x_undefL)
+#if defined(QCC74x_undef)
 #define UART_STS_URX_ABR_PRD_BIT0_MASK (0x3ff << UART_STS_URX_ABR_PRD_BIT0_SHIFT)
 #else
 #define UART_STS_URX_ABR_PRD_BIT0_MASK (0xffff << UART_STS_URX_ABR_PRD_BIT0_SHIFT)
 #endif
 #define UART_STS_URX_ABR_PRD_BIT1_SHIFT (16U)
-#if defined(QCC74x_undefL)
+#if defined(QCC74x_undef)
 #define UART_STS_URX_ABR_PRD_BIT1_MASK (0x3ff << UART_STS_URX_ABR_PRD_BIT1_SHIFT)
 #else
 #define UART_STS_URX_ABR_PRD_BIT1_MASK (0xffff << UART_STS_URX_ABR_PRD_BIT1_SHIFT)
@@ -225,13 +247,13 @@
 
 /* 0x3C : urx_abr_prd_b23 */
 #define UART_STS_URX_ABR_PRD_BIT2_SHIFT (0U)
-#if defined(QCC74x_undefL)
+#if defined(QCC74x_undef)
 #define UART_STS_URX_ABR_PRD_BIT2_MASK (0x3ff << UART_STS_URX_ABR_PRD_BIT2_SHIFT)
 #else
 #define UART_STS_URX_ABR_PRD_BIT2_MASK (0xffff << UART_STS_URX_ABR_PRD_BIT2_SHIFT)
 #endif
 #define UART_STS_URX_ABR_PRD_BIT3_SHIFT (16U)
-#if defined(QCC74x_undefL)
+#if defined(QCC74x_undef)
 #define UART_STS_URX_ABR_PRD_BIT3_MASK (0x3ff << UART_STS_URX_ABR_PRD_BIT3_SHIFT)
 #else
 #define UART_STS_URX_ABR_PRD_BIT3_MASK (0xffff << UART_STS_URX_ABR_PRD_BIT3_SHIFT)
@@ -239,13 +261,13 @@
 
 /* 0x40 : urx_abr_prd_b45 */
 #define UART_STS_URX_ABR_PRD_BIT4_SHIFT (0U)
-#if defined(QCC74x_undefL)
+#if defined(QCC74x_undef)
 #define UART_STS_URX_ABR_PRD_BIT4_MASK (0x3ff << UART_STS_URX_ABR_PRD_BIT4_SHIFT)
 #else
 #define UART_STS_URX_ABR_PRD_BIT4_MASK (0xffff << UART_STS_URX_ABR_PRD_BIT4_SHIFT)
 #endif
 #define UART_STS_URX_ABR_PRD_BIT5_SHIFT (16U)
-#if defined(QCC74x_undefL)
+#if defined(QCC74x_undef)
 #define UART_STS_URX_ABR_PRD_BIT5_MASK (0x3ff << UART_STS_URX_ABR_PRD_BIT5_SHIFT)
 #else
 #define UART_STS_URX_ABR_PRD_BIT5_MASK (0xffff << UART_STS_URX_ABR_PRD_BIT5_SHIFT)
@@ -253,13 +275,13 @@
 
 /* 0x44 : urx_abr_prd_b67 */
 #define UART_STS_URX_ABR_PRD_BIT6_SHIFT (0U)
-#if defined(QCC74x_undefL)
+#if defined(QCC74x_undef)
 #define UART_STS_URX_ABR_PRD_BIT6_MASK (0x3ff << UART_STS_URX_ABR_PRD_BIT6_SHIFT)
 #else
 #define UART_STS_URX_ABR_PRD_BIT6_MASK (0xffff << UART_STS_URX_ABR_PRD_BIT6_SHIFT)
 #endif
 #define UART_STS_URX_ABR_PRD_BIT7_SHIFT (16U)
-#if defined(QCC74x_undefL)
+#if defined(QCC74x_undef)
 #define UART_STS_URX_ABR_PRD_BIT7_MASK (0x3ff << UART_STS_URX_ABR_PRD_BIT7_SHIFT)
 #else
 #define UART_STS_URX_ABR_PRD_BIT7_MASK (0xffff << UART_STS_URX_ABR_PRD_BIT7_SHIFT)
@@ -294,7 +316,7 @@
 #define UART_TX_FIFO_CNT_SHIFT (0U)
 #if defined(QCC74x_undef)
 #define UART_TX_FIFO_CNT_MASK (0xff << UART_TX_FIFO_CNT_SHIFT)
-#elif defined(QCC74x_undefL)
+#elif defined(QCC74x_undef)
 #define UART_TX_FIFO_CNT_MASK (0x1f << UART_TX_FIFO_CNT_SHIFT)
 #else
 #define UART_TX_FIFO_CNT_MASK (0x3f << UART_TX_FIFO_CNT_SHIFT)
@@ -302,7 +324,7 @@
 #define UART_RX_FIFO_CNT_SHIFT (8U)
 #if defined(QCC74x_undef)
 #define UART_RX_FIFO_CNT_MASK (0xff << UART_RX_FIFO_CNT_SHIFT)
-#elif defined(QCC74x_undefL)
+#elif defined(QCC74x_undef)
 #define UART_RX_FIFO_CNT_MASK (0x1f << UART_RX_FIFO_CNT_SHIFT)
 #else
 #define UART_RX_FIFO_CNT_MASK (0x3f << UART_RX_FIFO_CNT_SHIFT)
@@ -310,7 +332,7 @@
 #define UART_TX_FIFO_TH_SHIFT (16U)
 #if defined(QCC74x_undef)
 #define UART_TX_FIFO_TH_MASK (0x7f << UART_TX_FIFO_TH_SHIFT)
-#elif defined(QCC74x_undefL)
+#elif defined(QCC74x_undef)
 #define UART_TX_FIFO_TH_MASK (0xf << UART_TX_FIFO_TH_SHIFT)
 #else
 #define UART_TX_FIFO_TH_MASK (0x1f << UART_TX_FIFO_TH_SHIFT)
@@ -318,7 +340,7 @@
 #define UART_RX_FIFO_TH_SHIFT (24U)
 #if defined(QCC74x_undef)
 #define UART_RX_FIFO_TH_MASK (0x7f << UART_RX_FIFO_TH_SHIFT)
-#elif defined(QCC74x_undefL)
+#elif defined(QCC74x_undef)
 #define UART_RX_FIFO_TH_MASK (0xf << UART_RX_FIFO_TH_SHIFT)
 #else
 #define UART_RX_FIFO_TH_MASK (0x1f << UART_RX_FIFO_TH_SHIFT)
@@ -331,5 +353,13 @@
 /* 0x8C : uart_fifo_rdata */
 #define UART_FIFO_RDATA_SHIFT (0U)
 #define UART_FIFO_RDATA_MASK  (0xff << UART_FIFO_RDATA_SHIFT)
+
+#if defined(QCC74x_undef)
+/* 0x90 : uart_version */
+#define UART_SW_USAGE_SHIFT   (0U)
+#define UART_SW_USAGE_MASK    (0xffffff << UART_SW_USAGE_SHIFT)
+#define UART_HW_VERSION_SHIFT (24U)
+#define UART_HW_VERSION_MASK  (0xff << UART_HW_VERSION_SHIFT)
+#endif
 
 #endif /* __HARDWARE_UART_H__ */

@@ -17,6 +17,8 @@
 
 #define DBG_TAG "NXSPI"
 #include <log.h>
+#include "qcc74x_mtimer.h"
+#include "qcc74x_timer.h"
 #include <qcc74x_core.h>
 #include "qcc74x_dma.h"
 #include "qcc743_glb.h"
@@ -94,16 +96,57 @@ void nxspi_state_mache(void)
     xTaskNotify(g_nxspi.task_hdl, NTF_DATA_READY, eSetBits);
 }
 
+void __spihddelay_cb_isr(int irq, void *arg)
+{
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+    bool status;
+
+    // set gpio low
+    status = qcc74x_timer_get_compint_status(g_nxspi.timer0, TIMER_COMP_ID_0);
+    if (status) {
+        qcc74x_timer_compint_clear(g_nxspi.timer0, TIMER_COMP_ID_0);
+    }
+    qcc74x_irq_disable(g_nxspi.timer0->irq_num);
+    qcc74x_timer_stop(g_nxspi.timer0);
+
+    g_nxspi.time_isr_cnt += 1;
+
+    // set received
+    g_hd_received = 1;
+    xTaskNotifyFromISR(g_nxspi.task_hdl, NTF_SPIHD_REVEIVED, eSetBits, &xHigherPriorityTaskWoken);
+
+    portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+}
+
 // cb when hdcomplete isr
+void nxspi_delay_setgpio_start(uint32_t delay_us);
 void __spihdreceived_cb_isr(void *arg)
 {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+    uint64_t diff;
+
     /* debug received hd */
     g_nxspi.tfsize_received_hd = ((*(volatile uint32_t *)0x2000C20C)&4095);
     g_nxspi.dst_received_hd    = (*(volatile uint32_t *)0x2000C204);
 
-    g_hd_received = 1;
-    xTaskNotifyFromISR(g_nxspi.task_hdl, NTF_SPIHD_REVEIVED, eSetBits, &xHigherPriorityTaskWoken);
+    g_nxspi.cfg_endtime = qcc74x_mtimer_get_time_us();
+    diff = g_nxspi.cfg_endtime - g_nxspi.cfg_starttime;
+    if (diff > NXSPI_GPIO_SAFYDELAY) {
+        g_nxspi.cfg_usetime = 0;
+    } else {
+        g_nxspi.cfg_usetime = NXSPI_GPIO_SAFYDELAY - diff;
+    }
+    //g_hd_received = 1;
+    //xTaskNotifyFromISR(g_nxspi.task_hdl, NTF_SPIHD_REVEIVED, eSetBits, &xHigherPriorityTaskWoken);
+    if ((g_nxspi.cfg_usetime > 5) && (g_nxspi.cfg_usetime < NXSPI_GPIO_SAFYDELAY)) {
+        g_nxspi.time_start_cnt += 1;
+        g_nxspi.time_lastcfg = g_nxspi.cfg_usetime;
+        nxspi_delay_setgpio_start(g_nxspi.cfg_usetime);
+    } else {
+        g_hd_received = 1;
+        xTaskNotifyFromISR(g_nxspi.task_hdl, NTF_SPIHD_REVEIVED, eSetBits, &xHigherPriorityTaskWoken);
+    }
+
     portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
 
@@ -182,6 +225,7 @@ void __trans_start()
 #endif
     nxspi_hwspi_init(__spihdreceived_cb_isr, NULL);
     nxspi_hwgpio_init(NXSPI_GPIO_CS, __cs_handler_isr, GPIO_INT_TRIG_MODE_ASYNC_FALLING_EDGE);
+    g_nxspi.cfg_starttime = qcc74x_mtimer_get_time_us();
 #if GPIO_TIME_ENABLE
     func_usetime_us = (qcc74x_mtimer_get_time_us()) - func_usetime_us;
     nx_process_value(&g_nxspi.stats, func_usetime_us);
@@ -258,7 +302,8 @@ void __trans_bdcomplete()
         g_nxspi.dnmsg = NULL;
     } else {
         if (dn_header.len) {
-            NX_LOGE("Discard len:%d because user did not process the data in a timely manner.\r\n", dn_header.len);
+            // because user did not process the data in a timely manner
+            NX_LOGE("Discard len:%d.\r\n", dn_header.len);
         }
     }
 }
@@ -331,29 +376,19 @@ void state_machine()
                 NXSPI_SETIRQ1;
             } else  if ((0 == cs) && (NXSPI_GET_BDRECEIVED)) {
                 NX_LOGA("s2chere.\r\n");
-#if 1//if 0: disable start to complete
+#if 0//if 0: disable start to complete
                 NXSPI_SETIRQ0;
                 NXSPI_SETSM(NXSPI_SM_COMPLETE);
 #endif
             }
         } else if (NXSPI_SM_HDRECEIVED ==  g_nxspi.sm) {
             if (0 == cs) {
-                NXSPI_SETIRQ0;
                 NXSPI_SETSM(NXSPI_SM_COMPLETE);
-#if 0// if 0: disable bd complete to complete
-            } else if (NXSPI_GET_BDRECEIVED) {
-                NX_LOGD("bd received\r\n");
-                NXSPI_SETIRQ0;
-                NXSPI_SETSM(NXSPI_SM_COMPLETE);
-#endif
             } else {
-                NXSPI_SETIRQ0;
-#if 1
                 if (g_cs_rising) {
                     g_cs_rising = 0;// change from rising isr
                     NXSPI_SETSM(NXSPI_SM_COMPLETE);
                 }
-#endif
             }
         } else if (NXSPI_SM_COMPLETE ==  g_nxspi.sm) {
 #if 0

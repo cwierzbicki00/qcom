@@ -131,6 +131,7 @@ static int _init_queue(void)
     return 0;
 }
 
+extern void __spihddelay_cb_isr(int irq, void *arg);
 int nxspi_init(void)
 {
     int ret;
@@ -157,6 +158,13 @@ int nxspi_init(void)
             pdFALSE,                                // auto reload
             NULL,
             spi_start_timeout_handler);
+
+    g_nxspi.cfg_starttime = 0;
+    g_nxspi.cfg_endtime = 0;
+    g_nxspi.cfg_usetime = 0;
+    PERIPHERAL_CLOCK_TIMER0_1_WDG_ENABLE();
+    g_nxspi.timer0 = qcc74x_device_get_by_name("timer0");
+    qcc74x_irq_attach(g_nxspi.timer0->irq_num, __spihddelay_cb_isr, NULL);
 
     /* init task */
     ret = xTaskCreate(nxspi_task_entry, "nxspi", 1024/4, NULL, 29, &g_nxspi.task_hdl);//pri: 0(lowpri)->30(highpri)

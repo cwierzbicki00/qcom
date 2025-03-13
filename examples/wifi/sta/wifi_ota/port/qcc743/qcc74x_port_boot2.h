@@ -2,7 +2,7 @@
 #define __QCC74x_PORT_BOOT2_H__
 
 #include "qcc743_glb.h"
-#include "qcc743_common.h"
+#include "qcc74x_common.h"
 
 #define QCC74x_TCM_BASE           QCC743_TCM_BASE
 #define QCC74x_SYS_CLK_PLL        GLB_SYS_CLK_PLL160M

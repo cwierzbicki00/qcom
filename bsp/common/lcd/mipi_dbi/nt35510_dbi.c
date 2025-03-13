@@ -20,7 +20,7 @@
 #define lcd_dbi_transmit_cmd_pixel_fill_async lcd_dbi_transmit_cmd_pixel_fill_async
 
 lcd_dbi_init_t dbi_para = {
-    .clock_freq = 80 * 1000 * 1000,
+    .clock_freq = 32 * 1000 * 1000,
 #if (NT35510_DBI_PIXEL_FORMAT == 1)
     .pixel_format = LCD_DBI_LCD_PIXEL_FORMAT_RGB565,
 #elif (NT35510_DBI_PIXEL_FORMAT == 2)
@@ -95,7 +95,7 @@ const nt35510_dbi_init_cmd_t nt35510_dbi_init_cmds[] = {
     { 0xBF, "\x01\x84\x07\x31\x00", 5 },
 
     { 0x35, "\x00", 1 },
-    { 0x36, "\x08", 1 }, /* Display direction control */
+    { 0x36, "\x00", 1 }, /* Display direction control */
 
 #if (NT35510_DBI_COLOR_REVERSAL == 0)
     { 0x20, NULL, 0 },
@@ -202,27 +202,27 @@ int nt35510_dbi_set_dir(uint8_t dir, uint8_t mir_flag)
     switch (dir) {
         case 0:
             if (!mir_flag)
-                param[1] = 0x08;
+                param[1] = 0x00;
             else
-                param[1] = 0x09;
+                param[1] = 0x01;
             break;
         case 1:
             if (!mir_flag)
-                param[1] = 0x68;
+                param[1] = 0x60;
             else
-                param[1] = 0x28;
+                param[1] = 0x20;
             break;
         case 2:
             if (!mir_flag)
-                param[1] = 0xC8;
+                param[1] = 0xC0;
             else
-                param[1] = 0x88;
+                param[1] = 0x80;
             break;
         case 3:
             if (!mir_flag)
-                param[1] = 0xA8;
+                param[1] = 0xA0;
             else
-                param[1] = 0xE8;
+                param[1] = 0xE0;
 
             break;
         default:

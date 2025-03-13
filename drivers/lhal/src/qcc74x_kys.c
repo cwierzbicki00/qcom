@@ -1,4 +1,3 @@
-
 #include "qcc74x_core.h"
 #include "qcc74x_kys.h"
 #include "qcc74x_clock.h"
@@ -40,7 +39,7 @@ void qcc74x_kys_init(struct qcc74x_device_s *dev, const struct qcc74x_kys_config
 
     reg_val &= ~(KYS_COL_NUM_MASK |
                  KYS_ROW_NUM_MASK |
-#if defined(QCC74x_undefL)
+#if defined(QCC74x_undef)
                  KYS_FIFO_MODE_MASK |
 #endif
                  KYS_RC_EXT_MASK |
@@ -53,7 +52,7 @@ void qcc74x_kys_init(struct qcc74x_device_s *dev, const struct qcc74x_kys_config
     reg_val |= (config->ghost_en << KYS_GHOST_EN_SHIFT);
     reg_val |= (config->deglitch_en << KYS_DEG_EN_SHIFT);
     reg_val |= (config->deglitch_cnt << KYS_DEG_CNT_SHIFT);
-#if defined(QCC74x_undefL)
+#if defined(QCC74x_undef)
     reg_val |= (0x1 << KYS_FIFO_MODE_SHIFT);
 #endif
     putreg32(reg_val, reg_base + KYS_KS_CTRL_OFFSET);
@@ -141,7 +140,7 @@ uint32_t qcc74x_kys_get_int_status(struct qcc74x_device_s *dev)
     return (reg_sts_val & (reg_mask_val));
 }
 
-#if defined(QCC74x_undefL)
+#if defined(QCC74x_undef)
 /**
  * @brief get keyscan keycode index in fifo
  *
@@ -174,7 +173,7 @@ void qcc74x_kys_get_fifo_info(struct qcc74x_device_s *dev, uint8_t *fifo_head, u
  */
 uint8_t qcc74x_kys_read_keyvalue(struct qcc74x_device_s *dev, uint8_t index)
 {
-#if defined(QCC74x_undefL)
+#if defined(QCC74x_undef)
     return (uint8_t)(getreg32(dev->reg_base + KYS_KEYFIFO_VALUE_OFFSET) & 0xff);
 #endif
 #if defined(QCC74x_undef)

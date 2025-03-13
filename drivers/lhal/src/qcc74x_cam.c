@@ -5,8 +5,11 @@
 #include "qcc74x_clock.h"
 #endif
 
-#if defined(QCC743)
+#if defined(QCC743) || defined(QCC74x_undef)
 #define CAM_FRONT_BASE 0x20050000
+#endif
+#if defined(QCC74x_undef)
+#define CAM_FRONT_BASE 0x20040000
 #endif
 #if defined(QCC74x_undef)
 #define CAM_FRONT_BASE 0x30010000
@@ -31,9 +34,11 @@ void qcc74x_cam_init(struct qcc74x_device_s *dev, const struct qcc74x_cam_config
 #if !defined(QCC74x_undef)
     uint32_t threshold;
 #endif
-#if defined(QCC74x_undef)
+#if defined(QCC74x_undef) || defined(QCC74x_undef)
     uint32_t tmpval;
+#endif
 
+#if defined(QCC74x_undef)
     if (config->input_source) {
         tmpval = 0x15;
         regval = getreg32(CAM_FRONT_BASE + CAM_FRONT_PIX_DATA_CTRL_OFFSET);
@@ -54,7 +59,9 @@ void qcc74x_cam_init(struct qcc74x_device_s *dev, const struct qcc74x_cam_config
     reg_base = dev->reg_base;
     putreg32(config->output_bufaddr, reg_base + CAM_DVP2AXI_ADDR_START_OFFSET);
     putreg32(config->resolution_y << 16 | config->resolution_x, reg_base + CAM_DVP2AXI_FRAM_EXM_OFFSET);
+#if !defined(QCC74x_undef)
     putreg32(data_mode, reg_base + CAM_DVP_DEBUG_OFFSET);
+#endif
 
     regval = getreg32(reg_base + CAM_DVP2AXI_HSYNC_CROP_OFFSET);
 #if defined(QCC74x_undef)
@@ -77,8 +84,12 @@ void qcc74x_cam_init(struct qcc74x_device_s *dev, const struct qcc74x_cam_config
         resolution_y = (regval & 0xffff) - (regval >> 16 & 0xffff);
     }
 
-#if defined(QCC743)
+#if defined(QCC743) || defined(QCC74x_undef)
     putreg32(0, CAM_FRONT_BASE + CAM_FRONT_DVP2BUS_SRC_SEL_1_OFFSET);
+#elif defined(QCC74x_undef)
+    regval = getreg32(CAM_FRONT_BASE + CAM_FRONT_DVP_MUX_SEL_REG_OFFSET);
+    regval &= ~(dev->idx == 0 ? CAM_FRONT_REG_D2XA_IN_SEL_MASK : CAM_FRONT_REG_D2XB_IN_SEL_MASK);
+    putreg32(regval, CAM_FRONT_BASE + CAM_FRONT_DVP_MUX_SEL_REG_OFFSET);
 #endif
 
 #if !defined(QCC74x_undef)
@@ -110,9 +121,17 @@ void qcc74x_cam_init(struct qcc74x_device_s *dev, const struct qcc74x_cam_config
     frame_size = resolution_x * resolution_y * 2;
     regval = getreg32(reg_base + CAM_DVP2AXI_CONFIGUE_OFFSET);
     if (config->with_mjpeg) {
+#if defined(QCC74x_undef)
+        regval |= CAM_REG_WRAP_MODE;
+#else
         regval &= ~CAM_REG_SW_MODE;
+#endif
     } else {
+#if defined(QCC74x_undef)
+        regval &= ~CAM_REG_WRAP_MODE;
+#else
         regval |= CAM_REG_SW_MODE;
+#endif
     }
 #if defined(QCC74x_undef)
     regval |= CAM_REG_INTERLV_MODE;
@@ -185,8 +204,12 @@ void qcc74x_cam_init(struct qcc74x_device_s *dev, const struct qcc74x_cam_config
 #endif
                 data_mode = 4;
                 frame_size = resolution_x * resolution_y / 2;
-#if defined(QCC743)
+#if defined(QCC743) || defined(QCC74x_undef)
                 putreg32(1, CAM_FRONT_BASE + CAM_FRONT_DVP2BUS_SRC_SEL_1_OFFSET);
+#elif defined(QCC74x_undef)
+                tmpval = getreg32(CAM_FRONT_BASE + CAM_FRONT_DVP_MUX_SEL_REG_OFFSET);
+                tmpval |= 3 << (dev->idx == 0 ? CAM_FRONT_REG_D2XA_IN_SEL_SHIFT : CAM_FRONT_REG_D2XB_IN_SEL_SHIFT);
+                putreg32(tmpval, CAM_FRONT_BASE + CAM_FRONT_DVP_MUX_SEL_REG_OFFSET);
 #endif
             }
             break;
@@ -194,7 +217,7 @@ void qcc74x_cam_init(struct qcc74x_device_s *dev, const struct qcc74x_cam_config
         case CAM_INPUT_FORMAT_YUV422_UYVY:
 #if defined(QCC74x_undef)
             if (config->output_format >= CAM_OUTPUT_FORMAT_RGB888_OR_BGR888 && config->output_format <= CAM_OUTPUT_FORMAT_RGB888_TO_RGBA8888) {
-                qcc74x_cam_swap_input_yu_order(dev, true);
+                qcc74x_cam_feature_control(dev, CAM_CMD_INVERSE_YUYV2UYVY, true);
                 tmpval = 0x23;
                 if (config->input_source) {
                     putreg32(0x18000000, CAM_FRONT_BASE + CAM_FRONT_Y2RA_CONFIG_0_OFFSET);
@@ -256,8 +279,12 @@ void qcc74x_cam_init(struct qcc74x_device_s *dev, const struct qcc74x_cam_config
 #endif
                 data_mode = 4;
                 frame_size = resolution_x * resolution_y / 2;
-#if defined(QCC743)
+#if defined(QCC743) || defined(QCC74x_undef)
                 putreg32(1, CAM_FRONT_BASE + CAM_FRONT_DVP2BUS_SRC_SEL_1_OFFSET);
+#elif defined(QCC74x_undef)
+                tmpval = getreg32(CAM_FRONT_BASE + CAM_FRONT_DVP_MUX_SEL_REG_OFFSET);
+                tmpval |= 3 << (dev->idx == 0 ? CAM_FRONT_REG_D2XA_IN_SEL_SHIFT : CAM_FRONT_REG_D2XB_IN_SEL_SHIFT);
+                putreg32(tmpval, CAM_FRONT_BASE + CAM_FRONT_DVP_MUX_SEL_REG_OFFSET);
 #endif
             }
             break;
@@ -305,7 +332,11 @@ void qcc74x_cam_init(struct qcc74x_device_s *dev, const struct qcc74x_cam_config
             break;
     }
 #if !defined(QCC74x_undef)
+#if defined(QCC74x_undef)
+    putreg32(resolution_y << CAM_REG_FRAME_HEIGHT_SHIFT | (frame_size / resolution_y / 8), reg_base + CAM_DVP2AXI_FRAME_BCNT_OFFSET);
+#else
     putreg32(frame_size, reg_base + CAM_DVP2AXI_FRAME_BCNT_OFFSET);
+#endif
     regval |= data_mode << CAM_REG_DVP_DATA_MODE_SHIFT;
 #endif
     putreg32(regval, reg_base + CAM_DVP2AXI_CONFIGUE_OFFSET);
@@ -365,7 +396,14 @@ void qcc74x_cam_init(struct qcc74x_device_s *dev, const struct qcc74x_cam_config
             frame_size = frame_size >> 6;
             break;
     }
+#if defined(QCC74x_undef)
+    tmpval = getreg32(reg_base + CAM_DVP2AXI_FRAME_BCNT_OFFSET);
+    tmpval &= CAM_REG_FRAME_WIDTH_X8_MASK;
+    tmpval = config->output_bufsize / tmpval / 8;
+    putreg32(tmpval << CAM_REG_WRAP_LCNT_SHIFT, reg_base + CAM_DVP2AXI_MEM_BCNT_OFFSET);
+#else
     putreg32(regval, reg_base + CAM_DVP2AXI_MEM_BCNT_OFFSET);
+#endif
 
 #if defined(QCC74x_undef)
     putreg32(frame_size, reg_base + CAM_DVP2AXI_FRAME_BCNT_0_OFFSET);
@@ -386,6 +424,12 @@ void qcc74x_cam_init(struct qcc74x_device_s *dev, const struct qcc74x_cam_config
 #endif
 
 #if !defined(QCC74x_undef)
+#if defined(QCC74x_undef)
+    regval = getreg32(CAM_FRONT_BASE + CAM_FRONT_MM_MISC_CTRL_OFFSET);
+    regval |= CAM_FRONT_CR_DVP_S2P_EN;
+    putreg32(regval, CAM_FRONT_BASE + CAM_FRONT_MM_MISC_CTRL_OFFSET);
+#endif
+
 #if defined(QCC74x_undef)
     if (config->input_source == 0) {
         regval = getreg32(CAM_FRONT_BASE + CAM_FRONT_CONFIG_OFFSET);
@@ -499,42 +543,12 @@ void qcc74x_cam_pop_one_frame(struct qcc74x_device_s *dev)
 #if defined(QCC74x_undef)
     putreg32(3, dev->reg_base + CAM_DVP_FRAME_FIFO_POP_OFFSET);
 #else
+#if !defined(QCC74x_undef)
     putreg32(1, dev->reg_base + CAM_DVP_FRAME_FIFO_POP_OFFSET);
 #endif
 #endif
-}
-
-#if !defined(QCC74x_undef)
-void qcc74x_cam_swap_input_yu_order(struct qcc74x_device_s *dev, bool enable)
-{
-#ifdef romapi_qcc74x_cam_swap_input_yu_order
-    romapi_qcc74x_cam_swap_input_yu_order(dev, enable);
-#else
-    uint32_t regval;
-
-    /* If image sensor output format is YUYV, it will be changed to UYVY */
-    regval = getreg32(CAM_FRONT_BASE + CAM_FRONT_CONFIG_OFFSET);
-    if (enable) {
-        regval |= CAM_FRONT_RG_DVPAS_DA_ORDER;
-    } else {
-        regval &= ~CAM_FRONT_RG_DVPAS_DA_ORDER;
-    }
-    putreg32(regval, CAM_FRONT_BASE + CAM_FRONT_CONFIG_OFFSET);
 #endif
 }
-
-void qcc74x_cam_filter_frame_period(struct qcc74x_device_s *dev, uint8_t frame_count, uint32_t frame_valid)
-{
-#ifdef romapi_qcc74x_cam_filter_frame_period
-    romapi_qcc74x_cam_filter_frame_period(dev, frame_count, frame_valid);
-#else
-    /* For example: frame_count is 4, frame_valid is 0x14 (10100b). Third/fifth frame will be retained,
-       First/second/fourth frame will be dropped in every (4 + 1) frames */
-    putreg32(frame_count, dev->reg_base + CAM_DVP2AXI_FRAME_PERIOD_OFFSET);
-    putreg32(frame_valid, dev->reg_base + CAM_DVP2AXI_FRAME_VLD_OFFSET);
-#endif
-}
-#endif
 
 uint8_t qcc74x_cam_get_frame_count(struct qcc74x_device_s *dev)
 {
@@ -546,8 +560,12 @@ uint8_t qcc74x_cam_get_frame_count(struct qcc74x_device_s *dev)
 
     reg_base = dev->reg_base;
     regval = getreg32(reg_base + CAM_DVP_STATUS_AND_ERROR_OFFSET);
+#if defined(QCC74x_undef)
+    return ((regval >> 12) & 1);
+#else
     regval &= CAM_FRAME_VALID_CNT_MASK;
     return (regval >> CAM_FRAME_VALID_CNT_SHIFT);
+#endif
 #endif
 }
 
@@ -559,11 +577,16 @@ uint32_t qcc74x_cam_get_frame_info(struct qcc74x_device_s *dev, uint8_t **pic)
     uint32_t reg_base;
 
     reg_base = dev->reg_base;
-    *pic = (uint8_t *)getreg32(reg_base + CAM_FRAME_START_ADDR0_OFFSET);
+    *pic = (uint8_t *)(uintptr_t)getreg32(reg_base + CAM_FRAME_START_ADDR0_OFFSET);
 #if defined(QCC74x_undef)
     return (getreg32(reg_base + CAM_FRAME_BYTE_CNT0_0_OFFSET));
 #else
+#if defined(QCC74x_undef)
+    reg_base = getreg32(reg_base + CAM_DVP2AXI_FRAME_BCNT_OFFSET);
+    return ((reg_base & CAM_REG_FRAME_WIDTH_X8_MASK) * 8 * (reg_base >> CAM_REG_FRAME_HEIGHT_SHIFT));
+#else
     return (getreg32(reg_base + CAM_DVP2AXI_FRAME_BCNT_OFFSET));
+#endif
 #endif
 #endif
 }
@@ -628,19 +651,29 @@ int qcc74x_cam_feature_control(struct qcc74x_device_s *dev, int cmd, size_t arg)
             putreg32(regval, reg_base + CAM_DVP2AXI_MISC_OFFSET);
             break;
 
+#if !defined(QCC74x_undef)
         case CAM_CMD_GET_FRAME_ID:
             /* Get frame id */
             *(uint16_t *)arg = getreg32(reg_base + CAM_FRAME_ID_STS01_OFFSET) & 0xffff;
             break;
+#endif
 #endif
 
         case CAM_CMD_WRAP_MODE:
             /* Wrap to output buffer start address, only effective in mjpeg mode, arg use ENABLE or DISABLE */
             regval = getreg32(reg_base + CAM_DVP2AXI_CONFIGUE_OFFSET);
             if (arg) {
+#if defined(QCC74x_undef)
+                regval |= CAM_REG_WRAP_MODE;
+#else
                 regval |= CAM_REG_HW_MODE_FWRAP;
+#endif
             } else {
+#if defined(QCC74x_undef)
+                regval &= ~CAM_REG_WRAP_MODE;
+#else
                 regval &= ~CAM_REG_HW_MODE_FWRAP;
+#endif
             }
             putreg32(regval, reg_base + CAM_DVP2AXI_CONFIGUE_OFFSET);
             break;
@@ -661,25 +694,71 @@ int qcc74x_cam_feature_control(struct qcc74x_device_s *dev, int cmd, size_t arg)
             break;
 
 #if !defined(QCC74x_undef)
+#if !defined(QCC74x_undef)
         case CAM_CMD_FRAME_ID_RESET:
             /* Reset frame id */
             regval = getreg32(CAM_FRONT_BASE + CAM_FRONT_ISP_ID_YUV_OFFSET);
             regval |= CAM_FRONT_REG_YUV_IDGEN_RST;
             putreg32(regval, CAM_FRONT_BASE + CAM_FRONT_ISP_ID_YUV_OFFSET);
             break;
+#endif
 
         case CAM_CMD_INVERSE_VSYNC_POLARITY:
             /* Inverse vsync polarity */
             regval = getreg32(CAM_FRONT_BASE + CAM_FRONT_CONFIG_OFFSET);
-            regval |= CAM_FRONT_RG_DVPAS_VS_INV;
+            if (arg) {
+                regval |= CAM_FRONT_RG_DVPAS_VS_INV;
+            } else {
+                regval &= ~CAM_FRONT_RG_DVPAS_VS_INV;
+            }
             putreg32(regval, CAM_FRONT_BASE + CAM_FRONT_CONFIG_OFFSET);
             break;
 
         case CAM_CMD_INVERSE_HSYNC_POLARITY:
             /* Inverse hsync polarity */
             regval = getreg32(CAM_FRONT_BASE + CAM_FRONT_CONFIG_OFFSET);
-            regval |= CAM_FRONT_RG_DVPAS_HS_INV;
+            if (arg) {
+                regval |= CAM_FRONT_RG_DVPAS_HS_INV;
+            } else {
+                regval &= ~CAM_FRONT_RG_DVPAS_HS_INV;
+            }
             putreg32(regval, CAM_FRONT_BASE + CAM_FRONT_CONFIG_OFFSET);
+            break;
+
+        case CAM_CMD_INVERSE_YUYV2UYVY:
+            /* If image sensor output format is YUYV, it will be changed to UYVY */
+#if defined(QCC74x_undef)
+            regval = getreg32(CAM_FRONT_BASE + CAM_FRONT_MM_MISC_CTRL_OFFSET);
+            if (arg) {
+                regval |= CAM_FRONT_CR_DVP_S2P_DA_ORDER;
+            } else {
+                regval &= ~CAM_FRONT_CR_DVP_S2P_DA_ORDER;
+            }
+            putreg32(regval, CAM_FRONT_BASE + CAM_FRONT_MM_MISC_CTRL_OFFSET);
+#else
+            regval = getreg32(CAM_FRONT_BASE + CAM_FRONT_CONFIG_OFFSET);
+            if (arg) {
+                regval |= CAM_FRONT_RG_DVPAS_DA_ORDER;
+            } else {
+                regval &= ~CAM_FRONT_RG_DVPAS_DA_ORDER;
+            }
+            putreg32(regval, CAM_FRONT_BASE + CAM_FRONT_CONFIG_OFFSET);
+#endif
+            break;
+
+        case CAM_CMD_FRAME_FILTER: {
+            /* For example: frame_count is 4, frame_valid is 0x14 (10100b). 
+            Third/fifth frame will be retained,First/second/fourth frame will be dropped in every (4 + 1) frames */
+            struct qcc74x_cam_frame_filter_config_s *config = (struct qcc74x_cam_frame_filter_config_s *)arg;
+
+            putreg32(config->frame_count, reg_base + CAM_DVP2AXI_FRAME_PERIOD_OFFSET);
+            putreg32(config->frame_valid, reg_base + CAM_DVP2AXI_FRAME_VLD_OFFSET);
+        } break;
+#endif
+
+#if defined(QCC74x_undef)
+        case CAM_CMD_SET_OUTPUT_ADDR:
+            putreg32(arg, reg_base + CAM_DVP2AXI_ADDR_START_OFFSET);
             break;
 #endif
 

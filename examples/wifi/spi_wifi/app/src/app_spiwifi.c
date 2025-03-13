@@ -12,6 +12,7 @@
 #include "qcc74x_irq.h"
 #include "qcc74x_uart.h"
 #include "qcc743_glb.h"
+#include "app_pm.h"
 
 #include "rfparam_adapter.h"
 
@@ -44,6 +45,10 @@ int app_spiwifi_init(void)
     /* Enable easyflash(littlefs) */
     qcc74x_mtd_init();
     easyflash_init();
+
+     #ifdef LP_APP
+     app_pm_init();
+     #endif
 
     return 0;
 }

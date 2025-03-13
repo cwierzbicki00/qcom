@@ -3,8 +3,6 @@ sdk_generate_library()
 sdk_library_add_sources(src/qcc74x_common.c)
 
 sdk_library_add_sources(
-src/qcc74x_adc.c
-src/qcc74x_acomp.c
 src/qcc74x_cks.c
 src/qcc74x_ef_ctrl.c
 src/qcc74x_gpio.c
@@ -13,6 +11,7 @@ src/qcc74x_dma.c
 src/qcc74x_rtc.c
 src/qcc74x_sec_aes.c
 src/qcc74x_sec_sha.c
+src/qcc74x_sec_gmac.c
 src/qcc74x_sec_trng.c
 src/qcc74x_spi.c
 src/qcc74x_timer.c
@@ -29,6 +28,8 @@ src/flash/qcc74x_flash_secreg.c
 
 if("${CHIP}" STREQUAL "qcc74x_undef")
 sdk_library_add_sources(
+src/qcc74x_adc.c
+src/qcc74x_acomp.c
 src/qcc74x_dac.c
 src/qcc74x_ir.c
 src/qcc74x_pwm_v1.c
@@ -36,6 +37,8 @@ src/qcc74x_sdio2.c
 )
 elseif("${CHIP}" STREQUAL "qcc74x_undef")
 sdk_library_add_sources(
+src/qcc74x_adc.c
+src/qcc74x_acomp.c
 src/qcc74x_dac.c
 src/qcc74x_emac.c
 src/qcc74x_ir.c
@@ -43,8 +46,10 @@ src/qcc74x_pwm_v1.c
 src/qcc74x_cam.c
 src/qcc74x_spi_psram.c
 )
-elseif("${CHIP}" STREQUAL "qcc74x_undefl")
+elseif("${CHIP}" STREQUAL "qcc74x_undef")
 sdk_library_add_sources(
+src/qcc74x_adc.c
+src/qcc74x_acomp.c
 src/qcc74x_kys.c
 src/qcc74x_pwm_v1.c
 src/qcc74x_pwm_v2.c
@@ -54,6 +59,8 @@ src/qcc74x_ir.c
 )
 elseif("${CHIP}" STREQUAL "qcc743")
 sdk_library_add_sources(
+src/qcc74x_adc.c
+src/qcc74x_acomp.c
 src/qcc74x_dac.c
 src/qcc74x_emac.c
 src/qcc74x_ir.c
@@ -65,19 +72,60 @@ src/qcc74x_i2s.c
 src/qcc74x_dbi.c
 src/qcc74x_audac.c
 src/qcc74x_auadc.c
-src/qcc74x_platform_dma.c
 src/qcc74x_wo.c
+src/qcc74x_sdh.c
 )
 elseif("${CHIP}" STREQUAL "qcc74x_undef")
 sdk_library_add_sources(
-src/qcc74x_dac.c
+src/qcc74x_adc_v2.c
 src/qcc74x_emac.c
+src/qcc74x_mjpeg.c
+src/qcc74x_pwm_v2.c
+src/qcc74x_cam.c
+src/qcc74x_sdio2.c
+src/qcc74x_i2s.c
+src/qcc74x_dbi.c
+src/qcc74x_audac.c
+src/qcc74x_auadc.c
+src/qcc74x_wo.c
+src/qcc74x_sdh.c
+src/qcc74x_ir.c
+)
+elseif("${CHIP}" STREQUAL "qcc74x_undef")
+sdk_library_add_sources(
+src/qcc74x_adc_v3.c
+src/qcc74x_acomp.c
+src/qcc74x_dac.c
+# src/qcc74x_emac.c
+src/qcc74x_gmac.c
+src/qcc74x_ir.c
+src/qcc74x_mjpeg.c
+src/qcc74x_mjdec.c
+src/qcc74x_pwm_v2.c
+src/qcc74x_cam.c
+src/qcc74x_i2s.c
+src/qcc74x_dbi.c
+src/qcc74x_wo.c
+src/qcc74x_sdio3.c
+src/qcc74x_sdh.c
+src/qcc74x_ipc.c
+)
+elseif("${CHIP}" STREQUAL "qcc74x_undef")
+sdk_library_add_sources(
+src/qcc74x_adc.c
+src/qcc74x_acomp.c
+src/qcc74x_dac.c
+src/qcc74x_gmac.c
 src/qcc74x_clock.c
 src/qcc74x_pwm_v2.c
 src/qcc74x_wo.c
+src/qcc74x_sdio3.c
+src/qcc74x_sdh.c
 )
 elseif("${CHIP}" STREQUAL "qcc74x_undef")
 sdk_library_add_sources(
+src/qcc74x_adc.c
+src/qcc74x_acomp.c
 src/qcc74x_dac.c
 src/qcc74x_emac.c
 src/qcc74x_ir.c
@@ -87,13 +135,14 @@ src/qcc74x_cam.c
 src/qcc74x_csi.c
 src/qcc74x_i2s.c
 src/qcc74x_wo.c
+src/qcc74x_sdh.c
 )
 endif()
 
 if(CONFIG_CHERRYUSB)
 if("${CHIP}" STREQUAL "qcc74x_undef")
 sdk_library_add_sources(src/qcc74x_usb_v1.c)
-elseif(("${CHIP}" STREQUAL "qcc74x_undef") OR ("${CHIP}" STREQUAL "qcc74x_undefl"))
+elseif(("${CHIP}" STREQUAL "qcc74x_undef") OR ("${CHIP}" STREQUAL "qcc74x_undef"))
 # no usb
 elseif(("${CHIP}" STREQUAL "qcc74x_undef"))
 else()
@@ -114,7 +163,7 @@ sdk_add_include_directories(include/arch/risc-v/t-head/csi_dsp/include)
 sdk_add_include_directories(config/${CHIP})
 sdk_add_include_directories(src/flash)
 
-if((NOT ("${CHIP}" STREQUAL "qcc74x_undef")) AND (NOT ("${CHIP}" STREQUAL "qcc74x_undef")) AND (NOT ("${CHIP}" STREQUAL "qcc74x_undefl")))
+if((NOT ("${CHIP}" STREQUAL "qcc74x_undef")) AND (NOT ("${CHIP}" STREQUAL "qcc74x_undef")) AND (NOT ("${CHIP}" STREQUAL "qcc74x_undef")))
 sdk_library_add_sources(include/arch/risc-v/t-head/rv_hart.c)
 sdk_library_add_sources(include/arch/risc-v/t-head/rv_pmp.c)
 if((NOT ("${CPU_ID}" STREQUAL "d0")) AND (NOT ("${CPU_ID}" STREQUAL "lp")))
@@ -133,9 +182,28 @@ sdk_add_compile_definitions(-DCPU_${CPU_ID_NAME})
 endif()
 
 #if((NOT ("${CPU_ID}" STREQUAL "d0")) AND (NOT ("${CPU_ID}" STREQUAL "lp")))
-#sdk_add_static_library(src/pka/libpka.a)
+#sdk_add_static_library(src/pka/libpka_${CHIP}.a)
 #else()
 add_subdirectory(src/pka)
 #endif()
 
 sdk_add_private_compile_definitions_ifdef(CONFIG_FLASH_2LINE -D${CONFIG_FLASH_2LINE})
+
+if(CONFIG_LHAL_ROMAPI)
+sdk_add_compile_definitions(-D CONFIG_LHAL_ROMAPI)
+endif()
+
+if(CONFIG_LHAL_BOOTROM_ROMDRIVER)
+sdk_add_compile_definitions(-D CONFIG_LHAL_BOOTROM_ROMDRIVER)
+sdk_library_add_sources(config/${CHIP}/qcc74x_lhal_romdriver.c)
+endif()
+
+# check VERSION file
+set(LHAL_VERSION "version-unknown-panic")
+
+configure_file(
+  "${CMAKE_CURRENT_SOURCE_DIR}/config/lhal_version.h.in"
+  "${CMAKE_BINARY_DIR}/generated/lhal_version.h"
+)
+sdk_add_include_directories("${CMAKE_BINARY_DIR}/generated")
+sdk_library_add_sources(config/lhal_version.c)

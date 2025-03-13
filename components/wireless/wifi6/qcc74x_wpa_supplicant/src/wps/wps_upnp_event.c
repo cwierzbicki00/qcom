@@ -13,7 +13,7 @@
 
 #include "common.h"
 #include "eloop.h"
-#include "uuid.h"
+#include "wpa_uuid.h"
 #include "http_client.h"
 #include "wps_defs.h"
 #include "wps_upnp.h"

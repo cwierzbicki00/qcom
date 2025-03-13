@@ -3,341 +3,137 @@
 
 #include "qcc74x_core.h"
 
-/** @addtogroup LHAL
-  * @{
-  */
-
-/** @addtogroup EMAC
-  * @{
-  */
-
-#define EMAC_DO_FLUSH_DATA (1)
-
-/* EMAC clock use external or use internal; 0: used external 1: used internal */
-#define EMAC_CLK_USE_EXTERNAL (0)
-#define EMAC_CLK_USE_INTERNAL (1)
-
-/** @defgroup EMAC_CMD emac feature control cmd definition
-  * @{
-  */
-#define EMAC_CMD_NO_PREAMBLE_MODE (0x01)
-#define EMAC_CMD_EN_PROMISCUOUS   (0x02)
-#define EMAC_CMD_FRAME_GAP_CHECK  (0x03)
-#define EMAC_CMD_FULL_DUPLEX      (0x04)
-#define EMAC_CMD_EN_TX_CRC_FIELD  (0x05)
-#define EMAC_CMD_RECV_HUGE_FRAMES (0x06)
-#define EMAC_CMD_EN_AUTO_PADDING  (0x07)
-#define EMAC_CMD_RECV_SMALL_FRAME (0x08)
-#define EMAC_CMD_SET_PHY_ADDRESS  (0x09)
-#define EMAC_CMD_SET_MAC_ADDRESS  (0x0A)
-#define EMAC_CMD_SET_PACKET_GAP   (0x0B)
-#define EMAC_CMD_SET_MIN_FRAME    (0x0C)
-#define EMAC_CMD_SET_MAX_FRAME    (0x0D)
-#define EMAC_CMD_SET_MAXRET       (0x0E)
-#define EMAC_CMD_SET_COLLVALID    (0x0F)
-/**
-  * @}
-  */
-
-/** @defgroup PHY_STATE phy state definition
-  * @{
-  */
-#define PHY_STATE_DOWN    (0) /* PHY is not usable */
-#define PHY_STATE_READY   (1) /* PHY is OK, wait for controller */
-#define PHY_STATE_UP      (2) /* Network is ready for TX/RX */
-#define PHY_STATE_RUNNING (3) /* working */
-#define PHY_STATE_NOLINK  (4) /* no cable connected */
-#define PHY_STATE_STOPPED (5) /* PHY has been stopped */
-#define PHY_STATE_TESTING (6) /* in test mode */
-/**
-  * @}
-  */
-
-/* EMAC PACKET */
-#define EMAC_NORMAL_PACKET   (uint32_t)(0)
-#define EMAC_FRAGMENT_PACKET (uint32_t)(0x01)
-#define EMAC_NOCOPY_PACKET   (uint32_t)(0x02)
-
-/* ETH packet size */
-/* ETH     | Header | Extra | VLAN tag | Payload   | CRC | */
-/* Size    | 14     | 2     | 4        | 46 ~ 1500 | 4   | */
-#define ETH_MAX_PACKET_SIZE          ((uint32_t)1524U) /*!< ETH_HEADER + ETH_EXTRA + ETH_VLAN_TAG + ETH_MAX_ETH_PAYLOAD + ETH_CRC */
-#define ETH_HEADER_SZIE              ((uint32_t)14U)   /*!< 6 byte Dest addr, 6 byte Src addr, 2 byte length/type */
-#define ETH_CRC_SIZE                 ((uint32_t)4U)    /*!< Ethernet CRC */
-#define ETH_EXTRA_SIZE               ((uint32_t)2U)    /*!< Extra bytes in some cases */
-#define ETH_VLAN_TAG_SIZE            ((uint32_t)4U)    /*!< optional 802.1q VLAN Tag */
-#define ETH_MIN_ETH_PAYLOAD_SIZE     ((uint32_t)46U)   /*!< Minimum Ethernet payload size */
-#define ETH_MAX_ETH_PAYLOAD_SIZE     ((uint32_t)1500U) /*!< Maximum Ethernet payload size */
-#define ETH_JUMBO_FRAME_PAYLOAD_SIZE ((uint32_t)9000U) /*!< Jumbo frame payload size */
-
-/* ETH tx & rx buffer size */
-#ifndef ETH_TX_BUFFER_SIZE
-#define ETH_TX_BUFFER_SIZE (ETH_MAX_PACKET_SIZE)
-#endif
-#ifndef ETH_RX_BUFFER_SIZE
-#define ETH_RX_BUFFER_SIZE (ETH_MAX_PACKET_SIZE)
+#if defined(QCC74x_undef) || defined(QCC74x_undef)
+#define EMAC_SPEED_10M_SUPPORT (1)
+#else
+#define EMAC_SPEED_10M_SUPPORT (0)
 #endif
 
-/* emac interrupt UNMASK/MASK define */
-#define EMAC_INT_EN_TX_DONE  (1 << 0)
-#define EMAC_INT_EN_TX_ERROR (1 << 1)
-#define EMAC_INT_EN_RX_DONE  (1 << 2)
-#define EMAC_INT_EN_RX_ERROR (1 << 3)
-#define EMAC_INT_EN_RX_BUSY  (1 << 4)
-#define EMAC_INT_EN_TX_CTRL  (1 << 5)
-#define EMAC_INT_EN_RX_CTRL  (1 << 6)
-#define EMAC_INT_EN_ALL      (0x7f << 0)
+#ifndef EMAC_TX_BD_BUM_MAX
+#define EMAC_TX_BD_BUM_MAX (64)
+#endif
 
-/* emac interrupt status define */
-#define EMAC_INT_STS_TX_DONE  (1 << 0)
-#define EMAC_INT_STS_TX_ERROR (1 << 1)
-#define EMAC_INT_STS_RX_DONE  (1 << 2)
-#define EMAC_INT_STS_RX_ERROR (1 << 3)
-#define EMAC_INT_STS_RX_BUSY  (1 << 4)
-#define EMAC_INT_STS_TX_CTRL  (1 << 5)
-#define EMAC_INT_STS_RX_CTRL  (1 << 6)
-#define EMAC_INT_STS_ALL      (0x7f << 0)
+#ifndef EMAC_RX_BD_BUM_MAX
+#define EMAC_RX_BD_BUM_MAX (64)
+#endif
 
-/* emac buffer descriptors type define */
-#define EMAC_BD_TYPE_INVLAID (0)
-#define EMAC_BD_TYPE_TX      (1)
-#define EMAC_BD_TYPE_RX      (2)
-#define EMAC_BD_TYPE_NONE    (3)
-#define EMAC_BD_TYPE_MAX     (0x7FFFFFFF)
+#if (EMAC_TX_BD_BUM_MAX & (EMAC_TX_BD_BUM_MAX - 1) != 0) || EMAC_TX_BD_BUM_MAX > 64
+#error "emac tx bd num error, must be 2^n and <= 64"
+#else
+#define EMAC_TX_BD_BUM_MASK (EMAC_TX_BD_BUM_MAX - 1)
+#endif
 
-/**
- * @brief EMAC configuration structure
+#if (EMAC_RX_BD_BUM_MAX & (EMAC_RX_BD_BUM_MAX - 1) != 0) || EMAC_RX_BD_BUM_MAX > 64
+#error "emac tx bd num error, must be 2^n and <= 64"
+#else
+#define EMAC_RX_BD_BUM_MASK (EMAC_RX_BD_BUM_MAX - 1)
+#endif
+
+/* feature CMD */
+#define EMAC_CMD_SET_TX_EN              (0)
+#define EMAC_CMD_SET_TX_AUTO_PADDING    (1)
+#define EMAC_CMD_SET_TX_CRC_FIELD_EN    (2)
+#define EMAC_CMD_SET_TX_PREAMBLE        (3)
+#define EMAC_CMD_SET_TX_GAP_CLK         (4)
+#define EMAC_CMD_SET_TX_COLLISION       (5)
+#define EMAC_CMD_SET_TX_MAXRET          (6)
+#define EMAC_CMD_SET_RX_EN              (7)
+#define EMAC_CMD_SET_RX_SMALL_FRAME     (8)
+#define EMAC_CMD_SET_RX_HUGE_FRAME      (9)
+#define EMAC_CMD_SET_RX_GAP_CHECK       (10)
+#define EMAC_CMD_SET_RX_PROMISCUOUS     (11)
+#define EMAC_CMD_SET_RX_BROADCASE       (12)
+#define EMAC_CMD_SET_FULL_DUPLEX        (13)
+#define EMAC_CMD_SET_SPEED_100M         (14)
+#if (EMAC_SPEED_10M_SUPPORT)
+#define EMAC_CMD_SET_SPEED_10M          (15)
+#endif
+#define EMAC_CMD_SET_MAC_RX_CLK_INVERT  (16)
+#define EMAC_CMD_GET_TX_DB_AVAILABLE    (20)
+#define EMAC_CMD_GET_RX_DB_AVAILABLE    (21)
+#define EMAC_CMD_GET_TX_BD_PTR          (22)
+#define EMAC_CMD_GET_RX_BD_PTR          (23)
+
+/* irq callback event */
+#define EMAC_IRQ_EVENT_RX_BUSY       (1)
+#define EMAC_IRQ_EVENT_RX_FRAME      (2)
+#define EMAC_IRQ_EVENT_RX_CTRL_FRAME (3)
+#define EMAC_IRQ_EVENT_RX_ERR_FRAME  (4)
+#define EMAC_IRQ_EVENT_TX_FRAME      (5)
+#define EMAC_IRQ_EVENT_TX_ERR_FRAME  (6)
+
+/* tx attribute flag */
+#define EMAC_TX_FLAG_FRAGMENT        (1 << 0) /* This BD does not contain EoF and controller will proceed to read out the next BD */
+#define EMAC_TX_FLAG_NO_INT          (1 << 1) /* No interrupt is generated after the transmission */
+#define EMAC_TX_FLAG_NO_CRC          (1 << 2) /* CRC would not be attached to the end of the packet */
+#define EMAC_TX_FLAG_NO_PAD          (1 << 3) /* No padding is appended to the end of the short packet */
+/* tx done err status */
+#define EMAC_TX_STA_ERR_COLLISION    (1 << 0) /* Late Collision */
+#define EMAC_TX_STA_ERR_CS           (1 << 1) /* Carrier Sense Lost */
+#define EMAC_TX_STA_ERR_RETRY_LIMIT  (1 << 2) /* Retransmission Limit*/
+#define EMAC_TX_STA_ERR_FIFO         (1 << 3)
+
+/* rx attribute flag */
+#define EMAC_RX_FLAG_NO_INT          (1 << 1)
+/* rx done err status */
+#define EMAC_RX_STA_ERR_CRC          (1 << 0)
+#define EMAC_RX_STA_ERR_COLLISION    (1 << 1)
+#define EMAC_RX_STA_ERR_LONG_FRAME   (1 << 2)
+#define EMAC_RX_STA_ERR_FIFO         (1 << 3)
+
+/* Buffer hardware descriptor table:
+ * |---------------------|-------------------|---------------------------|
+ * |   Address field     |       Length      |         Attribute         |
+ * |---------------------|-------------------|---------------------------|
+ * |63                 32|31               16|15                       00|
+ * |---------------------|-------------------|---------------------------|
+ * |   32-bit address    |   16-bit length   | 16-bit control and status |
+ * |---------------------|-------------------|---------------------------|
  *
- * @param mac_addr  EMAC mac addr
- * @param inside_clk EMAC select inside or external @ref EMAC_CLK_USE_EXTERNAL or EMAC_CLK_USE_INTERNAL
- * @param mii_clk_div mii clock div
- * @param min_frame_len min frame len
- * @param max_frame_len max frame len
- *
- */
+*/
+struct qcc74x_emac_hw_buff_desc_s {
+    uint16_t attribute; /* The control and status field. */
+    uint16_t length;    /* The length field. */
+    uint32_t address;   /* The address field. */
+};
+
+struct qcc74x_emac_trans_desc_s {
+    void *buff_addr;    /* buff address */
+    uint16_t data_len;  /* data len */
+    uint8_t attr_flag;  /* attribute flag */
+    uint8_t err_status; /* err_status */
+};
+
 struct qcc74x_emac_config_s {
     uint8_t mac_addr[6];
-    uint8_t inside_clk;
-    uint8_t mii_clk_div;
+    bool clk_internal_mode;
+    uint8_t md_clk_div;
     uint16_t min_frame_len;
     uint16_t max_frame_len;
 };
 
-/**
- * @brief EMAC phy configuration structure
- *
- * @param auto_negotiation EMAC phy speed and mode auto negotiation
- * @param full_duplex      EMAC phy duplex mode
- * @param phy_state        EMAC phy down,ready,up,running,nolink,halted, @ref PHY_STATE
- * @param use_irq          EMAC phy interrupt enable 0: no IRQ used
- * @param speed            EMAC phy speed mode
- * @param phy_address      EMAC phy address
- * @param phy_id           EMAC phy read phy id
- */
-struct qcc74x_emac_phy_cfg_s {
-    uint8_t auto_negotiation;
-    uint8_t full_duplex;
-    uint8_t phy_state;
-    uint8_t use_irq;
-    uint16_t speed;
-    uint16_t phy_address;
-    uint32_t phy_id;
-};
+typedef void (*qcc74x_emac_irq_cb_t)(void *arg, uint32_t irq_event, struct qcc74x_emac_trans_desc_s *trans_desc);
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/**
- * @brief
- *
- * @param [in] dev
- * @param [in] config
- */
-void qcc74x_emac_init(struct qcc74x_device_s *dev, const struct qcc74x_emac_config_s *config);
+int qcc74x_emac_init(struct qcc74x_device_s *dev, const struct qcc74x_emac_config_s *config);
+int qcc74x_emac_deinit(struct qcc74x_device_s *dev);
 
-/**
- * @brief
- *
- * @param [in] dev
- */
-void qcc74x_emac_stop(struct qcc74x_device_s *dev);
+int qcc74x_emac_md_read(struct qcc74x_device_s *dev, uint8_t phy_addr, uint8_t reg_addr, uint16_t *data);
+int qcc74x_emac_md_write(struct qcc74x_device_s *dev, uint8_t phy_addr, uint8_t reg_addr, uint16_t data);
 
-/**
- * @brief
- *
- * @param [in] dev
- */
-void qcc74x_emac_start(struct qcc74x_device_s *dev);
+int qcc74x_emac_bd_ctrl_clean(struct qcc74x_device_s *dev);
+int qcc74x_emac_queue_tx_push(struct qcc74x_device_s *dev, struct qcc74x_emac_trans_desc_s *tx_desc);
+int qcc74x_emac_queue_rx_push(struct qcc74x_device_s *dev, struct qcc74x_emac_trans_desc_s *rx_desc);
 
-/**
- * @brief
- *
- * @param [in] dev
- */
-void qcc74x_emac_start_tx(struct qcc74x_device_s *dev);
-
-/**
- * @brief
- *
- * @param [in] dev
- */
-void qcc74x_emac_stop_tx(struct qcc74x_device_s *dev);
-
-/**
- * @brief
- *
- * @param [in] dev
- */
-void qcc74x_emac_start_rx(struct qcc74x_device_s *dev);
-
-/**
- * @brief
- *
- * @param [in] dev
- */
-void qcc74x_emac_stop_rx(struct qcc74x_device_s *dev);
-
-/**
- * @brief
- *
- * @param [in] dev
- * @param [in] eth_tx_buff
- * @param [in] tx_buf_count
- * @param [in] eth_rx_buff
- * @param [in] rx_buf_count
- */
-void qcc74x_emac_bd_init(struct qcc74x_device_s *dev, uint8_t *eth_tx_buff, uint8_t tx_buf_count, uint8_t *eth_rx_buff, uint8_t rx_buf_count);
-
-/**
- * @brief
- *
- * @param [in] dev
- * @param [in] bdt
- * @return uint32_t
- */
-uint32_t qcc74x_emac_bd_get_cur_active(struct qcc74x_device_s *dev, uint8_t bdt);
-
-/**
- * @brief
- *
- * @param [in] index
- */
-void qcc74x_emac_bd_rx_enqueue(uint32_t index);
-
-/**
- * @brief
- *
- * @param [in] index
- */
-void qcc74x_emac_bd_rx_on_err(uint32_t index);
-
-/**
- * @brief
- *
- * @param [in] index
- */
-void qcc74x_emac_bd_tx_dequeue(uint32_t index);
-
-/**
- * @brief
- *
- * @param [in] index
- */
-void qcc74x_emac_bd_tx_on_err(uint32_t index);
-
-/**
- * @brief
- *
- * @param [in] flags
- * @param [in] len
- * @param [in] data_in
- * @return int
- */
-int qcc74x_emac_bd_tx_enqueue(uint32_t flags, uint32_t len, const uint8_t *data_in);
-
-/**
- * @brief
- *
- * @param [in] flags
- * @param [in] len
- * @param [in] data_out
- * @return int
- */
-int qcc74x_emac_bd_rx_dequeue(uint32_t flags, uint32_t *len, uint8_t *data_out);
-
-/**
- * @brief
- *
- * @return int
- */
-int emac_bd_fragment_support(void);
-
-/**
- * @brief
- *
- * @param [in] dev
- * @param [in] flag
- * @param [in] enable
- */
-void qcc74x_emac_int_enable(struct qcc74x_device_s *dev, uint32_t flag, bool enable);
-
-/**
- * @brief
- *
- * @param [in] dev
- * @param [in] flag
- */
-void qcc74x_emac_int_clear(struct qcc74x_device_s *dev, uint32_t flag);
-
-/**
- * @brief
- *
- * @param [in] dev
- * @return uint32_t
- */
-uint32_t qcc74x_emac_get_int_status(struct qcc74x_device_s *dev);
-
-/**
- * @brief
- *
- * @param [in] dev
- * @param [in] cmd
- * @param [in] arg
- * @return int
- */
 int qcc74x_emac_feature_control(struct qcc74x_device_s *dev, int cmd, size_t arg);
 
-/**
- * @brief
- *
- * @param [in] dev
- * @param [in] phy_reg
- * @param [in] phy_reg_val
- * @return int
- */
-int qcc74x_emac_phy_reg_read(struct qcc74x_device_s *dev, uint16_t phy_reg, uint16_t *phy_reg_val);
-
-/**
- * @brief
- *
- * @param [in] dev
- * @param [in] phy_reg
- * @param [in] phy_reg_val
- * @return int
- */
-int qcc74x_emac_phy_reg_write(struct qcc74x_device_s *dev, uint16_t phy_reg, uint16_t phy_reg_val);
+int qcc74x_emac_irq_attach(struct qcc74x_device_s *dev, qcc74x_emac_irq_cb_t irq_event_cb, void *arg);
 
 #ifdef __cplusplus
 }
 #endif
-
-/**
-  * @}
-  */
-
-/**
-  * @}
-  */
 
 #endif

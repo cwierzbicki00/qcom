@@ -6,7 +6,7 @@
 #include "hci_driver.h"
 #include "hci_core.h"
 #include "gatt.h"
-#include "uuid.h"
+#include "bt_uuid.h"
 #include "bt_log.h"
 #if defined(CONFIG_BT_STACK_CLI) 
 #include "ble_cli_cmds.h"

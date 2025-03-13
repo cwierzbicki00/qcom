@@ -1,6 +1,9 @@
 #include "qcc74x_timer.h"
 #include "qcc74x_gpio.h"
 #include "hardware/timer_reg.h"
+#if defined(QCC74x_undef)
+#include "qcc74x_undef_glb.h"
+#endif
 
 void qcc74x_timer_init(struct qcc74x_device_s *dev, const struct qcc74x_timer_config_s *config)
 {
@@ -149,7 +152,7 @@ void qcc74x_timer_stop(struct qcc74x_device_s *dev)
 void qcc74x_timer_set_preloadvalue(struct qcc74x_device_s *dev, uint32_t val)
 {
 #ifdef romapi_qcc74x_timer_set_preloadvalue
-    romapi_qcc74x_timer_set_preloadvalue(dev);
+    romapi_qcc74x_timer_set_preloadvalue(dev, val);
 #else
     uint32_t reg_base;
 
@@ -162,7 +165,7 @@ void qcc74x_timer_set_preloadvalue(struct qcc74x_device_s *dev, uint32_t val)
 void qcc74x_timer_set_compvalue(struct qcc74x_device_s *dev, uint8_t cmp_no, uint32_t val)
 {
 #ifdef romapi_qcc74x_timer_set_compvalue
-    romapi_qcc74x_timer_set_compvalue(dev);
+    romapi_qcc74x_timer_set_compvalue(dev, cmp_no, val);
 #else
     uint32_t reg_base;
 
@@ -175,7 +178,7 @@ void qcc74x_timer_set_compvalue(struct qcc74x_device_s *dev, uint8_t cmp_no, uin
 uint32_t qcc74x_timer_get_compvalue(struct qcc74x_device_s *dev, uint8_t cmp_no)
 {
 #ifdef romapi_qcc74x_timer_get_compvalue
-    romapi_qcc74x_timer_get_compvalue(dev);
+    return romapi_qcc74x_timer_get_compvalue(dev, cmp_no);
 #else
     uint32_t reg_base;
 
@@ -188,7 +191,7 @@ uint32_t qcc74x_timer_get_compvalue(struct qcc74x_device_s *dev, uint8_t cmp_no)
 uint32_t qcc74x_timer_get_countervalue(struct qcc74x_device_s *dev)
 {
 #ifdef romapi_qcc74x_timer_get_countervalue
-    romapi_qcc74x_timer_get_countervalue(dev);
+    return romapi_qcc74x_timer_get_countervalue(dev);
 #else
     uint32_t reg_base;
 
@@ -201,7 +204,7 @@ uint32_t qcc74x_timer_get_countervalue(struct qcc74x_device_s *dev)
 void qcc74x_timer_compint_mask(struct qcc74x_device_s *dev, uint8_t cmp_no, bool mask)
 {
 #ifdef romapi_qcc74x_timer_compint_mask
-    romapi_qcc74x_timer_compint_mask(dev);
+    return romapi_qcc74x_timer_compint_mask(dev, cmp_no, mask);
 #else
     uint32_t regval;
     uint32_t reg_base;
@@ -220,7 +223,7 @@ void qcc74x_timer_compint_mask(struct qcc74x_device_s *dev, uint8_t cmp_no, bool
 bool qcc74x_timer_get_compint_status(struct qcc74x_device_s *dev, uint8_t cmp_no)
 {
 #ifdef romapi_qcc74x_timer_get_compint_status
-    romapi_qcc74x_timer_get_compint_status(dev);
+    return romapi_qcc74x_timer_get_compint_status(dev, cmp_no);
 #else
     uint32_t regval;
     uint32_t reg_base;
@@ -239,7 +242,7 @@ bool qcc74x_timer_get_compint_status(struct qcc74x_device_s *dev, uint8_t cmp_no
 void qcc74x_timer_compint_clear(struct qcc74x_device_s *dev, uint8_t cmp_no)
 {
 #ifdef romapi_qcc74x_timer_compint_clear
-    romapi_qcc74x_timer_compint_clear(dev);
+    romapi_qcc74x_timer_compint_clear(dev, cmp_no);
 #else
     uint32_t regval;
     uint32_t reg_base;
@@ -250,3 +253,309 @@ void qcc74x_timer_compint_clear(struct qcc74x_device_s *dev, uint8_t cmp_no)
     putreg32(regval, reg_base + TIMER_TICR0_OFFSET + 4 * dev->idx);
 #endif
 }
+
+int qcc74x_timer_feature_control(struct qcc74x_device_s *dev, int cmd, size_t arg)
+{
+#ifdef romapi_qcc74x_timer_feature_control
+    return romapi_qcc74x_timer_feature_control(dev, cmd, arg);
+#else
+    int ret = 0;
+#if defined(QCC74x_undef)
+    uint32_t reg_base;
+    uint32_t regval;
+
+    reg_base = dev->reg_base;
+#endif
+
+    switch (cmd) {
+#if defined(QCC74x_undef)
+        /* Select compare id to send dma request, arg use @ref TIMER_DMA_COMP_ID */
+        case TIMER_CMD_DMA_REQUEST_SET_COMPARE_ID:
+            regval = getreg32(reg_base + TIMER_TIER0_OFFSET + 4 * dev->idx);
+            regval &= ~TIMER0_DMA_REQ_EN_MASK;
+            regval |= arg << TIMER0_DMA_REQ_EN_SHIFT;
+            putreg32(regval, reg_base + TIMER_TIER0_OFFSET + 4 * dev->idx);
+            break;
+
+        /* Enable or disable gpio pulse measure function, only timer0 support, arg use true or false */
+        case TIMER_CMD_GPIO_PULSE_SET_ENABLE:
+            if (dev->idx != 0) {
+                ret = -EPERM;
+            } else {
+                regval = getreg32(reg_base + TIMER_GPIO_OFFSET);
+                if (arg) {
+                    regval |= TIMER0_GPIO_EN;
+                } else {
+                    regval &= ~TIMER0_GPIO_EN;
+                }
+                putreg32(regval, reg_base + TIMER_GPIO_OFFSET);
+            }
+            break;
+
+        /* Set gpio pulse width measure interrupt trigger mode, only timer0 support, arg use @ref TIMER_GPIO_PULSE_INT_MODE */
+        case TIMER_CMD_GPIO_PULSE_SET_INT_MODE:
+            if (dev->idx != 0) {
+                ret = -EPERM;
+            } else {
+                regval = getreg32(reg_base + TIMER_GPIO_OFFSET);
+                if (arg) {
+                    regval |= TIMER_GPIO_LAT_DET_MODE;
+                } else {
+                    regval &= ~TIMER_GPIO_LAT_DET_MODE;
+                }
+                putreg32(regval, reg_base + TIMER_GPIO_OFFSET);
+            }
+            break;
+
+        case TIMER_CMD_GPIO_PULSE_GET_BUSY:
+            if (dev->idx != 0) {
+                ret = -EPERM;
+            } else {
+                regval = getreg32(reg_base + TIMER_GPIO_OFFSET);
+                if (regval & TIMER_GPIO_LAT_OK) {
+                    ret = 0;
+                } else {
+                    ret = 1;
+                }
+            }
+            break;
+
+        case TIMER_CMD_GPIO_PULSE_GET_VALUE:
+            if (dev->idx != 0) {
+                ret = -EPERM;
+            } else {
+                switch (arg) {
+                    case TIMER_GPIO_PULSE_VALUE_0:
+                        ret = (int)(getreg32(reg_base + TIMER_GPIO_LAT1_OFFSET));
+                        break;
+
+                    case TIMER_GPIO_PULSE_VALUE_1:
+                        ret = (int)(getreg32(reg_base + TIMER_GPIO_LAT2_OFFSET));
+                        break;
+
+                    case TIMER_GPIO_PULSE_VALUE_2:
+                        ret = (int)(getreg32(reg_base + TIMER_GPIO_LAT3_OFFSET));
+                        break;
+
+                    case TIMER_GPIO_PULSE_VALUE_3:
+                        ret = (int)(getreg32(reg_base + TIMER_GPIO_LAT4_OFFSET));
+                        break;
+
+                    default:
+                        break;
+                }
+            }
+            break;
+
+        case TIMER_CMD_GPIO_PULSE_SET_POLARITY:
+            regval = getreg32(reg_base + TIMER_GPIO_OFFSET);
+            if (arg) {
+                regval |= 1 << (5 + dev->idx);
+            } else {
+                regval &= ~(1 << (5 + dev->idx));
+            }
+            putreg32(regval, reg_base + TIMER_GPIO_OFFSET);
+            break;
+
+        case TIMER_CMD_GPIO_PULSE_INT_MASK:
+            if (dev->idx != 0) {
+                ret = -EPERM;
+            } else {
+                regval = getreg32(reg_base + TIMER_TIER0_OFFSET);
+                if (arg) {
+                    regval &= ~TIMER_GPIO_LAT_IRQ_EN;
+                } else {
+                    regval |= TIMER_GPIO_LAT_IRQ_EN;
+                }
+                putreg32(regval, reg_base + TIMER_TIER0_OFFSET);
+            }
+            break;
+
+        case TIMER_CMD_GPIO_PULSE_INT_CLEAR:
+            if (dev->idx != 0) {
+                ret = -EPERM;
+            } else {
+                regval = getreg32(reg_base + TIMER_TICR0_OFFSET);
+                regval |= TIMER_GPIO_LAT_IRQ_CLR;
+                putreg32(regval, reg_base + TIMER_TICR0_OFFSET);
+            }
+            break;
+
+        case TIMER_CMD_READ_HW_VERSION:
+            regval = getreg32(reg_base + TIMER_HW_VERSION_OFFSET);
+            ret = (regval & TIMER_HW_VERSION_MASK) >> TIMER_HW_VERSION_SHIFT;
+            break;
+
+        case TIMER_CMD_READ_SW_USAGE:
+            regval = getreg32(reg_base + TIMER_SW_USAGE_OFFSET);
+            ret = (regval & TIMER_SW_USAGE_MASK) >> TIMER_SW_USAGE_SHIFT;
+            break;
+
+        case TIMER_CMD_WRITE_SW_USAGE:
+            regval = getreg32(reg_base + TIMER_SW_USAGE_OFFSET);
+            regval &= ~TIMER_SW_USAGE_MASK;
+            regval |= ((arg << TIMER_SW_USAGE_SHIFT) & TIMER_SW_USAGE_MASK);
+            putreg32(regval, reg_base + TIMER_SW_USAGE_OFFSET);
+            break;
+#endif
+
+        default:
+            ret = -EPERM;
+            break;
+    }
+
+    return ret;
+#endif
+}
+
+#if defined(QCC74x_undef)
+void qcc74x_timer_capture_init(struct qcc74x_device_s *dev, const struct qcc74x_timer_capture_config_s *config)
+{
+#ifdef romapi_qcc74x_timer_capture_init
+    return romapi_qcc74x_timer_capture_init(dev, config);
+#else
+    uint32_t regval;
+    uint32_t reg_base;
+    struct qcc74x_device_s *gpio;
+
+    reg_base = dev->reg_base;
+    GLB_Sel_MCU_TMR_GPIO_Clock(config->pin);
+    gpio = qcc74x_device_get_by_name("gpio");
+    qcc74x_gpio_init(gpio, config->pin, GPIO_FUNC_CLKOUT | GPIO_ALTERNATE | GPIO_FLOAT | GPIO_SMT_EN | GPIO_DRV_1);
+
+    regval = getreg32(reg_base + TIMER_GPIO_OFFSET);
+    /* polarity: 1->neg, 0->pos */
+    if (config->polarity == TIMER_GPIO_PULSE_POLARITY_NEGATIVE) {
+        regval |= (1 << (5 + dev->idx));
+    } else {
+        regval &= ~(1 << (5 + dev->idx));
+    }
+
+    if (config->int_mode == TIMER_GPIO_PULSE_INT_EVEN_FALLING_EDGE) {
+        regval |= TIMER_GPIO_LAT_DET_MODE;
+    } else {
+        regval &= ~TIMER_GPIO_LAT_DET_MODE;
+    }
+    putreg32(regval, reg_base + TIMER_GPIO_OFFSET);
+#endif
+}
+
+int qcc74x_timer_capture_start(struct qcc74x_device_s *dev)
+{
+#ifdef romapi_qcc74x_timer_capture_start
+    return romapi_qcc74x_timer_capture_start(dev);
+#else
+    uint32_t regval;
+    uint32_t reg_base;
+
+    if (dev->idx != 0) {
+        return -EPERM;
+    }
+
+    reg_base = dev->reg_base;
+    /* Enable gpio pulse measure function */
+    regval = getreg32(reg_base + TIMER_GPIO_OFFSET);
+    regval |= TIMER0_GPIO_EN;
+    putreg32(regval, reg_base + TIMER_GPIO_OFFSET);
+
+    /* Gpio pulse width latch interrupt clear */
+    regval = getreg32(reg_base + TIMER_TICR0_OFFSET);
+    regval |= TIMER_GPIO_LAT_IRQ_CLR;
+    putreg32(regval, reg_base + TIMER_TICR0_OFFSET);
+
+    /* Gpio pulse width latch interrupt enable */
+    regval = getreg32(reg_base + TIMER_TIER0_OFFSET);
+    regval |= TIMER_GPIO_LAT_IRQ_EN;
+    putreg32(regval, reg_base + TIMER_TIER0_OFFSET);
+
+    return 0;
+#endif
+}
+
+int qcc74x_timer_capture_stop(struct qcc74x_device_s *dev)
+{
+#ifdef romapi_qcc74x_timer_capture_stop
+    return romapi_qcc74x_timer_capture_stop(dev);
+#else
+    uint32_t regval;
+    uint32_t reg_base;
+
+    if (dev->idx != 0) {
+        return -EPERM;
+    }
+
+    reg_base = dev->reg_base;
+    /* Disable gpio pulse measure function */
+    regval = getreg32(reg_base + TIMER_GPIO_OFFSET);
+    regval &= ~TIMER0_GPIO_EN;
+    putreg32(regval, reg_base + TIMER_GPIO_OFFSET);
+
+    /* Gpio pulse width latch interrupt clear */
+    regval = getreg32(reg_base + TIMER_TICR0_OFFSET);
+    regval |= TIMER_GPIO_LAT_IRQ_CLR;
+    putreg32(regval, reg_base + TIMER_TICR0_OFFSET);
+
+    /* Gpio pulse width latch interrupt disable */
+    regval = getreg32(reg_base + TIMER_TIER0_OFFSET);
+    regval &= ~TIMER_GPIO_LAT_IRQ_EN;
+    putreg32(regval, reg_base + TIMER_TIER0_OFFSET);
+
+    return 0;
+#endif
+}
+
+int qcc74x_timer_capture_get_latch_value(struct qcc74x_device_s *dev, struct qcc74x_timer_capture_value_s *gpio_lat)
+{
+#ifdef romapi_qcc74x_timer_capture_get_latch_value
+    return romapi_qcc74x_timer_capture_get_latch_value(dev, gpio_lat);
+#else
+    uint32_t reg_base = dev->reg_base;
+    uintptr_t flag;
+    int ret = 0;
+
+    /* Check timer gpio latch ok */
+    if ((getreg32(reg_base + TIMER_GPIO_OFFSET) & TIMER_GPIO_LAT_OK) == 0) {
+        return -EBUSY;
+    }
+
+    flag = qcc74x_irq_save();
+
+    do {
+        gpio_lat->gpio_lat1 = getreg32(reg_base + TIMER_GPIO_LAT1_OFFSET);
+        gpio_lat->gpio_lat3 = getreg32(reg_base + TIMER_GPIO_LAT3_OFFSET);
+    } while (gpio_lat->gpio_lat1 == gpio_lat->gpio_lat3);
+
+    do {
+        gpio_lat->gpio_lat2 = getreg32(reg_base + TIMER_GPIO_LAT2_OFFSET);
+        gpio_lat->gpio_lat4 = getreg32(reg_base + TIMER_GPIO_LAT4_OFFSET);
+    } while (gpio_lat->gpio_lat2 == gpio_lat->gpio_lat4);
+
+    qcc74x_irq_restore(flag);
+
+    return ret;
+#endif
+}
+
+int qcc74x_timer_capture_get_pulsewidth(struct qcc74x_timer_capture_value_s *gpio_lat)
+{
+#ifdef romapi_qcc74x_timer_capture_get_pulsewidth
+    return romapi_qcc74x_timer_capture_get_pulsewidth(gpio_lat);
+#else
+    uint32_t lat1 = gpio_lat->gpio_lat1;
+    uint32_t lat2 = gpio_lat->gpio_lat2;
+    uint32_t lat3 = gpio_lat->gpio_lat3;
+    uint32_t lat4 = gpio_lat->gpio_lat4;
+
+    if (lat1 < lat2 && lat3 <= lat4) {
+        return lat2 - lat1;
+    } else if (lat1 < lat2 && lat3 > lat4) {
+        /* overflow */
+        return lat2 - lat3;
+    } else if (lat1 > lat2) {
+        return lat2 - lat3;
+    }
+
+    return 0;
+#endif
+}
+#endif

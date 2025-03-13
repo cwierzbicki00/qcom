@@ -25,7 +25,9 @@
 #define ADC_CHANNEL_8         8
 #define ADC_CHANNEL_9         9
 #define ADC_CHANNEL_10        10
+#if !defined(QCC743)
 #define ADC_CHANNEL_11        11
+#endif
 #define ADC_CHANNEL_DACA      12
 #define ADC_CHANNEL_DACB      13
 #define ADC_CHANNEL_TSEN_P    14
@@ -99,6 +101,15 @@
 #define ADC_INTCLR_FIFO_UNDERRUN  (1 << 2)
 #define ADC_INTCLR_FIFO_OVERRUN   (1 << 3)
 #define ADC_INTCLR_ADC_READY      (1 << 4)
+/**
+  * @}
+  */
+
+/** @defgroup ADC_CMD dma feature control cmd definition
+  * @{
+  */
+#define ADC_CMD_CLR_FIFO          0x00
+#define ADC_CMD_VBAT_EN           0x01
 /**
   * @}
   */
@@ -317,6 +328,16 @@ void qcc74x_adc_vbat_enable(struct qcc74x_device_s *dev);
  * @param [in] dev device handle
  */
 void qcc74x_adc_vbat_disable(struct qcc74x_device_s *dev);
+
+/**
+ * @brief Control adc feature.
+ *
+ * @param [in] dev device handle
+ * @param [in] cmd feature command. use @ref ADC_CMD
+ * @param [in] arg user data
+ * @return A negated errno value on failure.
+ */
+int qcc74x_adc_feature_control(struct qcc74x_device_s *dev, int cmd, size_t arg);
 
 #ifdef __cplusplus
 }

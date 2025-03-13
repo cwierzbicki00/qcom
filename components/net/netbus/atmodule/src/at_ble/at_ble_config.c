@@ -31,10 +31,21 @@ int at_ble_config_init(void)
 
     memset(at_ble_config, 0, sizeof(ble_config));
     at_ble_config->work_role = BLE_DISABLE;
-    if (!at_config_read(AT_CONFIG_KEY_BLE_NAME, &at_ble_config->ble_name, sizeof(at_ble_config->ble_name))) {
+    size_t value_len = 0;
+    
+    if(ef_get_env_blob(AT_CONFIG_KEY_BLE_NAME,&at_ble_config->ble_name, sizeof(at_ble_config->ble_name),value_len))
+    {
+        if (!at_config_read(AT_CONFIG_KEY_BLE_NAME, &at_ble_config->ble_name, sizeof(at_ble_config->ble_name))) {
+            strlcpy(at_ble_config->ble_name, "QCC74x-AT", sizeof(at_ble_config->ble_name));
+            bt_set_name(at_ble_config->ble_name); 
+        }
+    }
+    else
+    {
         strlcpy(at_ble_config->ble_name, "QCC74x-AT", sizeof(at_ble_config->ble_name));
         bt_set_name(at_ble_config->ble_name); 
     }
+
     bt_set_name(at_ble_config->ble_name);
 
     at_ble_config->adv_param.adv_int_min = 0xA0;
@@ -72,11 +83,9 @@ int at_ble_config_default(void)
 
     memset(at_ble_config, 0, sizeof(ble_config));
     at_ble_config->work_role = BLE_DISABLE;
-    if (!at_config_read(AT_CONFIG_KEY_BLE_NAME, &at_ble_config->ble_name, sizeof(at_ble_config->ble_name))) {
-        strlcpy(at_ble_config->ble_name, "QCC74x-AT", sizeof(at_ble_config->ble_name));
-        bt_set_name(at_ble_config->ble_name); 
-    }
-    bt_set_name(at_ble_config->ble_name);
+    
+    strlcpy(at_ble_config->ble_name, "QCC74x-AT", sizeof(at_ble_config->ble_name));
+    bt_set_name(at_ble_config->ble_name); 
 
     at_ble_config->adv_param.adv_int_min = 0xA0;
     at_ble_config->adv_param.adv_int_max = 0xD0;

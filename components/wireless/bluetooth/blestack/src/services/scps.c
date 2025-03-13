@@ -1,6 +1,6 @@
 #include "bluetooth.h"
 #include "gatt.h"
-#include "uuid.h"
+#include "bt_uuid.h"
 #include "scps.h"
 #include "byteorder.h"
 

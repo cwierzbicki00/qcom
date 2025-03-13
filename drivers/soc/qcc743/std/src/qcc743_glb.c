@@ -4269,56 +4269,6 @@ QCC74x_Err_Type ATTR_CLOCK_SECTION GLB_Simple_Set_MCU_System_CLK(uint8_t clkFreq
     return SUCCESS;
 }
 
-/****************************************************************************/ /**
- * @brief  GLB GET Package Type From EFUSE
- *
- * @param  None
- *
- * @return Package Type
- *
-*******************************************************************************/
-uint8_t ATTR_TCM_SECTION GLB_Get_Package_Type(void)
-{
-    uint32_t tmpVal = 0;
-    uint8_t package_type = 0;
-
-    /* get device_info[1:0] from efuse */
-    tmpVal = QCC74x_RD_REG(EF_DATA_BASE, EF_DATA_EF_WIFI_MAC_HIGH);
-
-    package_type = (uint8_t)((tmpVal >> 22) & 0x3);
-
-    return package_type;
-}
-
-
-/****************************************************************************/ /**
- * @brief  GLB GET Status of PAD Bonging to GND
- *
- * @param  None
- *
- * @return status of pad bonding to GND
- *
-*******************************************************************************/
-QCC74x_Sts_Type ATTR_TCM_SECTION GLB_Get_PAD_Bonging_to_GND_Sts(void)
-{
-    uint32_t tmpVal = 0;
-    uint8_t package_cfg = 0;
-
-    /* get package_cfg[2:0] from efuse */
-    tmpVal = QCC74x_RD_REG(EF_DATA_BASE, EF_DATA_EF_KEY_SLOT_10_W0);
-
-    package_cfg = (uint8_t)((tmpVal >> 28) & 0x7);
-
-    if (0 == package_cfg) {
-        return RESET;
-    } else {
-        return SET;
-    }
-}
-
-const uint32_t ATTR_CLOCK_CONST_SECTION usbPllSdmin_12M = 0x28000;
-const uint32_t ATTR_CLOCK_CONST_SECTION sscDivSdmin_24M = 0x28000;
-
 void glb_40M_delay_us(uint32_t us)
 {
     for (uint32_t i = 0; i < us; i++) {
@@ -4486,6 +4436,7 @@ QCC74x_Err_Type ATTR_CLOCK_SECTION GLB_Fast_Power_On_XTAL_40M_And_WIFIPLL(void)
 
     glb_40M_delay_us(30);
 
+
     /* enable all PLL clock output */
     /* GLB reg_pll_en = 1, cannot be zero */
     tmpVal = QCC74x_RD_REG(GLB_BASE, GLB_SYS_CFG0);
@@ -4537,6 +4488,7 @@ QCC74x_Err_Type ATTR_CLOCK_SECTION GLB_Fast_Set_MCU_System_CLK(uint8_t clkFreq)
     /* select pll output clock before select root clock */
     tmpVal = QCC74x_RD_REG(PDS_BASE, PDS_CPU_CORE_CFG1);
     tmpVal = QCC74x_SET_REG_BITS_VAL(tmpVal, PDS_REG_PLL_SEL, 3);
+
     QCC74x_WR_REG(PDS_BASE, PDS_CPU_CORE_CFG1, tmpVal);
 
     /* For high speed, set DIV first */
@@ -4548,9 +4500,56 @@ QCC74x_Err_Type ATTR_CLOCK_SECTION GLB_Fast_Set_MCU_System_CLK(uint8_t clkFreq)
     HBN_Set_MCU_Root_CLK_Sel(HBN_MCU_ROOT_CLK_PLL);
     QCC74x_WR_WORD(0x2000f030,QCC74x_RD_WORD(0x2000f030)|(1<<1));
 
+
     GLB_CLK_SET_DUMMY_WAIT;
 
     return SUCCESS;
+}
+/****************************************************************************/ /**
+ * @brief  GLB GET Package Type From EFUSE
+ *
+ * @param  None
+ *
+ * @return Package Type
+ *
+*******************************************************************************/
+uint8_t ATTR_TCM_SECTION GLB_Get_Package_Type(void)
+{
+    uint32_t tmpVal = 0;
+    uint8_t package_type = 0;
+
+    /* get device_info[1:0] from efuse */
+    tmpVal = QCC74x_RD_REG(EF_DATA_BASE, EF_DATA_EF_WIFI_MAC_HIGH);
+
+    package_type = (uint8_t)((tmpVal >> 22) & 0x3);
+
+    return package_type;
+}
+
+
+/****************************************************************************/ /**
+ * @brief  GLB GET Status of PAD Bonging to GND
+ *
+ * @param  None
+ *
+ * @return status of pad bonding to GND
+ *
+*******************************************************************************/
+QCC74x_Sts_Type ATTR_TCM_SECTION GLB_Get_PAD_Bonging_to_GND_Sts(void)
+{
+    uint32_t tmpVal = 0;
+    uint8_t package_cfg = 0;
+
+    /* get package_cfg[2:0] from efuse */
+    tmpVal = QCC74x_RD_REG(EF_DATA_BASE, EF_DATA_EF_KEY_SLOT_10_W0);
+
+    package_cfg = (uint8_t)((tmpVal >> 28) & 0x7);
+
+    if (0 == package_cfg) {
+        return RESET;
+    } else {
+        return SET;
+    }
 }
 
 /*@} end of group GLB_Public_Functions */

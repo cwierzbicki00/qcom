@@ -611,6 +611,8 @@ struct bt_conn *bt_conn_create_br(const bt_addr_t *peer,
 		switch (conn->state) {
 		case BT_CONN_CONNECT:
 		case BT_CONN_CONNECTED:
+			//fix by qcc74x:not ref if conn of this peer has existed.
+			bt_conn_unref(conn);
 			return conn;
 		default:
 			bt_conn_unref(conn);
@@ -663,6 +665,8 @@ struct bt_conn *bt_conn_create_sco(const bt_addr_t *peer,const struct esco_para 
 		switch (sco_conn->state) {
 		case BT_CONN_CONNECT:
 		case BT_CONN_CONNECTED:
+			//fix by qcc74x:not ref if conn of this peer has existed.
+			bt_conn_unref(sco_conn);
 			return sco_conn;
 		default:
 			bt_conn_unref(sco_conn);
@@ -1734,6 +1738,10 @@ static void conn_cleanup(struct bt_conn *conn)
 {
 	struct net_buf *buf;
 
+	#if defined(QCC74x_BLE_PATCH_AVOID_CONN_CLEANUP_FAILED_EXCUTED_RISK)
+	bt_conn_unref(conn);
+	#endif
+
 	/* Give back any allocated buffers */
 	while ((buf = net_buf_get(&conn->tx_queue, K_NO_WAIT))) {
 		if (tx_data(buf)->tx) {
@@ -1958,6 +1966,9 @@ void bt_conn_set_state(struct bt_conn *conn, bt_conn_state_t state)
 			process_unack_tx(conn);
 			tx_notify(conn);
 			atomic_set_bit(conn->flags, BT_CONN_CLEANUP);
+			#if defined(QCC74x_BLE_PATCH_AVOID_CONN_CLEANUP_FAILED_EXCUTED_RISK)
+			bt_conn_ref(conn);
+			#endif
 			k_poll_signal_raise(&conn_change, 0);
 			/* The last ref will be dropped during cleanup */
 		} else if (old_state == BT_CONN_CONNECT) {

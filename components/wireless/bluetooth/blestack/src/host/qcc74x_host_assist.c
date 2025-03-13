@@ -10,6 +10,10 @@
 #include "byteorder.h"
 #include "bt_log.h"
 #include <bt_errno.h>
+#if defined(CONFIG_BT_HOST_HCI_TL)
+#include "qcc74x_hci_tl.h"
+#include "qcc74x_gpio.h"
+#endif
 
 struct blhast_le_adv_data{
     u8_t ad[31];
@@ -367,7 +371,17 @@ void blhast_bt_reset(void)
     #if defined(QCC74x_undef) || defined(QCC74x_undef)
     ble_controller_reset();
     #else
+    #if defined(CONFIG_BT_HOST_HCI_TL)
+    qcc74x_gpio_enable_output(CTRL_RESET_PIN, 0, 0);
+    qcc74x_gpio_output_set(CTRL_RESET_PIN, 0);
+    k_sleep(10);
+    qcc74x_gpio_output_set(CTRL_RESET_PIN, 1);
+    k_sleep(500); // wait controller ready
+
+    qcc74x_hci_reset();
+    #else
     btble_controller_reset();
+    #endif  
     #endif
     blhast_host_state_restore();
 }

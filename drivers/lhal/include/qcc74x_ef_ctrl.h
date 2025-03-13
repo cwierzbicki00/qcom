@@ -14,6 +14,12 @@ extern "C" {
 /** @addtogroup EF_CTRL
   * @{
   */
+#if defined(QCC74x_undef) || defined(QCC74x_undef)
+#define EF_CTRL_SF_AES_NONE (0) /*!< No AES */
+#define EF_CTRL_SF_AES_128  (1) /*!< AES 128 */
+#define EF_CTRL_SF_AES_192  (2) /*!< AES 192 */
+#define EF_CTRL_SF_AES_256  (3) /*!< AES 256 */
+#endif
 
 /**
  *  @brief Efuse common trim config definition
@@ -40,6 +46,25 @@ typedef struct
 } qcc74x_ef_ctrl_com_trim_t;
 
 /**
+ *  @brief Efuse ctrl para type definition
+ */
+typedef struct
+{
+    uint16_t pd_1st;      /*!< stable */
+    uint16_t pd_cs_s;     /*!< >500ns */
+    uint16_t cs;          /*!< >6.6ns */
+    uint16_t rd_adr;      /*!< >6.3ns */
+    uint16_t rd_dat;      /*!< >199ns */
+    uint16_t rd_dmy;      /*!< >14.9ns */
+    uint16_t pd_cs_h;     /*!< >1ns */
+    uint16_t ps_cs;       /*!< >50ns */
+    uint16_t wr_adr;      /*!< >6.3ns */
+    uint16_t pp;          /*!< >11-13us */
+    uint16_t pi;          /*!< >14.9ns */
+} qcc74x_ef_ctrl_para_t;
+
+
+/**
  * @brief Get efuse control common trim list.
  *
  * @param [in] trim_list pointer to save trim list
@@ -54,6 +79,14 @@ uint32_t qcc74x_ef_ctrl_get_common_trim_list(const qcc74x_ef_ctrl_com_trim_cfg_t
  * @return int
  */
 int qcc74x_ef_ctrl_autoload_done(struct qcc74x_device_s *dev);
+
+/**
+ * @brief
+ *
+ * @param [in] para parameter for efuse program or read
+ * @return int
+ */
+int qcc74x_ef_ctrl_set_para(qcc74x_ef_ctrl_para_t *para);
 
 /**
  * @brief
@@ -123,6 +156,17 @@ uint32_t qcc74x_ef_ctrl_get_byte_zero_cnt(uint8_t val);
  * @return uint8_t
  */
 uint8_t qcc74x_ef_ctrl_get_trim_parity(uint32_t val, uint8_t len);
+
+
+/**
+ * @brief  Check efuse busy status
+ *
+ * @param dev  ef control device pointer
+ *
+ * @return 1 for busy 0 for not
+ *
+ */
+int qcc74x_ef_ctrl_busy(struct qcc74x_device_s *dev);
 
 #ifdef __cplusplus
 }

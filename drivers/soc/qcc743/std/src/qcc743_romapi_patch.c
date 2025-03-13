@@ -998,11 +998,6 @@ static const ATTR_TCM_CONST_SECTION Flash_Info_t flash_infos[] = {
         .cfg = &flash_cfg_GD_LQ64E,
     },
     {
-        .jedec_id = 0x1765C8,
-        //.name="GD_WQ64E_64_1833",
-        .cfg = &flash_cfg_GD_Q64E,
-    },
-    {
         .jedec_id = 0x1860c8,
         //.name="GD_LQ128E_128_18",
         .cfg = &flash_cfg_GD_LQ64E,
@@ -1176,6 +1171,16 @@ static const ATTR_TCM_CONST_SECTION Flash_Info_t flash_infos[] = {
         .jedec_id = 0x166125,
         //.name="sk25e032_32_33",
         .cfg = &flash_cfg_GD_LQ64E,
+    },
+    {
+        .jedec_id = 0x1765C8,
+        //.name="GD_WQ64E_64_1833",
+        .cfg = &flash_cfg_GD_Q64E,
+    },
+    {
+        .jedec_id = 0x1460c4,
+        //.name="gt25q80_08_33",
+        .cfg = &flash_cfg_Winb_16JV,
     },
 };
 
@@ -3336,6 +3341,52 @@ QCC74x_Err_Type HBN_Aon_Pad_WakeUpCfg(QCC74x_Fun_Type puPdEn, uint8_t trigMode, 
     QCC74x_WR_REG(HBN_BASE, HBN_IRQ_MODE, tmpVal);
 
     return SUCCESS;
+}
+
+/****************************************************************************/ /**
+ * @brief  Set Reset Reason
+ *
+ * @param  rstReason:Reset Reason
+ *
+ * @return SUCCESS or ERROR
+ *
+*******************************************************************************/
+QCC74x_Err_Type ATTR_TCM_SECTION HBN_Set_Reset_Reason(uint16_t rstReason)
+{
+    uint32_t tmpVal = 0;
+
+    tmpVal = QCC74x_RD_REG(HBN_BASE, HBN_RSV3);
+    tmpVal = QCC74x_SET_REG_BITS_VAL(tmpVal, HBN_FLASH_POWER_STS, HBN_RESET_REASON_FLAG);
+    tmpVal = QCC74x_SET_REG_BITS_VAL(tmpVal, HBN_FLASH_POWER_DLY, rstReason);
+    QCC74x_WR_REG(HBN_BASE, HBN_RSV3, tmpVal);
+
+    return SUCCESS;
+}
+
+/****************************************************************************/ /**
+ * @brief  Set Reset Reason
+ *
+ * @param  flashPwrDly:flash power delay
+ *
+ * @return SUCCESS or ERROR
+ *
+*******************************************************************************/
+QCC74x_Err_Type ATTR_TCM_SECTION HBN_Get_Reset_Reason(uint16_t *rstReason)
+{
+    uint32_t tmpVal = 0;
+
+    if (NULL == rstReason) {
+        return ERROR;
+    }
+
+    tmpVal = QCC74x_RD_REG(HBN_BASE, HBN_RSV3);
+    if (HBN_RESET_REASON_FLAG == QCC74x_GET_REG_BITS_VAL(tmpVal, HBN_FLASH_POWER_STS)) {
+        *rstReason = QCC74x_GET_REG_BITS_VAL(tmpVal, HBN_FLASH_POWER_DLY);
+        return SUCCESS;
+    }
+
+    return ERROR;
+
 }
 
 /****************************************************************************/ /**

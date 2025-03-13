@@ -27,7 +27,7 @@ uint8_t g_log_out_buf[QCC74x_BOOT2_LOG_OUT_BUF_SIZE];
 char ver_name[5] __attribute__ ((section(".verinfo"))) = "boot2";
 char git_commit[41] __attribute__ ((section(".verinfo"))) = GIT_COMMIT;
 char time_info[30] __attribute__ ((section(".verinfo"))) = COMPILE_TIME;
-const qcc74xverinf_t boot2_ver __attribute__ ((section(".qcc74xverinf"))) = {
+const qcc74x_verinf_t boot2_ver __attribute__ ((section(".qcc74xverinf"))) = {
 #if BOOT2_ANTI_ROLLBACK_VER
     .anti_rollback = BOOT2_ANTI_ROLLBACK_VER,
 #else
@@ -272,7 +272,7 @@ int32_t ATTR_TCM_SECTION qcc74xsp_boot2_set_encrypt(uint8_t index, boot2_image_c
         if (len != 0) {
             aes_enabled = 1;
             if (g_boot_img_cfg->basic_cfg.xts_mode) {
-#if defined(QCC743) || defined(QCC74x_undefP) || defined(QCC74x_undef)
+#if defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undef)
                 qcc74x_sf_ctrl_disable_wrap_access(0);
                 qcc74x_sf_ctrl_aes_set_mode(SF_CTRL_AES_XTS_MODE);
                 qcc74x_sf_ctrl_aes_xts_set_key_be(index, NULL, (g_boot_img_cfg->basic_cfg.encrypt_type - 1));
@@ -284,7 +284,7 @@ int32_t ATTR_TCM_SECTION qcc74xsp_boot2_set_encrypt(uint8_t index, boot2_image_c
                                        g_boot_img_cfg->basic_cfg.aes_region_lock /*lock*/);
 #endif
             } else {
-#if defined(QCC743) || defined(QCC74x_undefP) || defined(QCC74x_undef)
+#if defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undef)
                 qcc74x_sf_ctrl_disable_wrap_access(1);
                 qcc74x_sf_ctrl_aes_set_mode(SF_CTRL_AES_CTR_MODE);
 #endif

@@ -58,6 +58,17 @@
   * @}
   */
 
+#if defined(QCC74x_undef)
+/** @defgroup PWM_COUNTER_MODE pwm counter mode definition
+  * @{
+  */
+#define PWM_COUNTER_MODE_UP             0
+#define PWM_COUNTER_MODE_CENTER_ALIGNED 1
+/**
+  * @}
+  */
+#endif
+
 /** @defgroup PWM_INTEN pwm interrupt enable definition
   * @{
   */
@@ -121,11 +132,24 @@
 #define PWM_CMD_SET_SW_BRAKE_ENABLE    (0x04)
 #define PWM_CMD_SET_STOP_ON_REPT       (0x05)
 #define PWM_CMD_SET_REPT_COUNT         (0x06)
+#if defined(QCC74x_undef)
+#define PWM_CMD_UPDATE_DISABLE         (0x07)
+#define PWM_CMD_UPDATE_ENABLE          (0x08)
+#define PWM_CMD_UPDATE_GENERATE        (0x09)
+#define PWM_CMD_READ_HW_VERSION        (0x0A)
+#define PWM_CMD_READ_SW_USAGE          (0x0B)
+#define PWM_CMD_WRITE_SW_USAGE         (0x0C)
+#endif
 /**
   * @}
   */
 
 // clang-format off
+#if defined(QCC74x_undef)
+#define IS_PWM_COUNTER_MODE(type)   (((type) == PWM_COUNTER_MODE_UP) || \
+                                    ((type) == PWM_COUNTER_MODE_CENTER_ALIGNED))
+#endif
+
 #define IS_PWM_CLK_SOURCE(type)   (((type) == QCC74x_SYSTEM_PBCLK) || \
                                   ((type) == QCC74x_SYSTEM_XCLK) || \
                                   ((type) == QCC74x_SYSTEM_32K_CLK))
@@ -165,6 +189,9 @@ struct qcc74x_pwm_v2_channel_config_s {
  * @param period     PWM period count, should be in 2~65535
  */
 struct qcc74x_pwm_v2_config_s {
+#if defined(QCC74x_undef)
+    uint8_t counter_mode;
+#endif
     uint8_t clk_source;
     uint16_t clk_div;
     uint16_t period;

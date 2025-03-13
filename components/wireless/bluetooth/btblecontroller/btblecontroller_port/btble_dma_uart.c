@@ -17,8 +17,8 @@
 #if defined(QCC74x_undefL)
 #define UART_NAME                  "uart0"
 #define UART_BAUDRATE              115200
-#define UART_TXD_PIN               23
-#define UART_RXD_PIN               24
+#define UART_TXD_PIN               14 //23
+#define UART_RXD_PIN               15 //24
 #define UART_CTS_PIN               25
 #define UART_RTS_PIN               26
 #endif
@@ -26,7 +26,11 @@
 #define DMA_RX_NAME                "dma0_ch2"
 #define DMA_TX_NAME                "dma0_ch3"
 
+#if defined(QCC74x_undefL)
+#define UART_FLOW_CTRL_ENABLE      0
+#else
 #define UART_FLOW_CTRL_ENABLE      1
+#endif
 
 #define UART_RX_DMA_BUF_SIZE       2048
 

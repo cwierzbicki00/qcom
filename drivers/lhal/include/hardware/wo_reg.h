@@ -7,11 +7,14 @@
 
 /* Register offsets *********************************************************/
 
-#if defined(QCC743) || defined(QCC74x_undefP) || defined(QCC74x_undef) || defined(QCC74x_undef)
+#if defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
 #define GLB_GPIO_CFG0_OFFSET                                    (0x8C4)/* gpio_cfg0 */
 #define GLB_GPIO_CFG142_OFFSET                                  (0xAFC)/* gpio_cfg142 */
 #define GLB_GPIO_CFG143_OFFSET                                  (0xB00)/* gpio_cfg143 */
 #define GLB_GPIO_CFG144_OFFSET                                  (0xB04)/* gpio_cfg144 */
+#endif
+#if defined(QCC74x_undef)
+#define GLB_GPIO_CFG145_OFFSET                                  (0xB08)/* gpio_cfg145 */
 #endif
 
 /* Register Bitfield definitions *****************************************************/
@@ -76,5 +79,11 @@
 /* 0xB04 : gpio_cfg144 */
 #define GLB_GPIO_TX_DATA_TO_FIFO_SHIFT                          (0U)
 #define GLB_GPIO_TX_DATA_TO_FIFO_MASK                           (0xffff<<GLB_GPIO_TX_DATA_TO_FIFO_SHIFT)
+
+#if defined(QCC74x_undef)
+/* 0xB08 : gpio_cfg145 */
+#define GLB_CR_IO_TOG_CNT_DIV_VAL_SHIFT                         (0U)
+#define GLB_CR_IO_TOG_CNT_DIV_VAL_MASK                          (0xffff<<GLB_CR_IO_TOG_CNT_DIV_VAL_SHIFT)
+#endif
 
 #endif /* __HARDWARE_WO_H__ */

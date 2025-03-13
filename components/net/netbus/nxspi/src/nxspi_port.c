@@ -8,6 +8,8 @@
 #include <qcc74x_core.h>
 #include <qcc74x_dma.h>
 #include <qcc74x_spi.h>
+#include "qcc74x_mtimer.h"
+#include "qcc74x_timer.h"
 #include <hardware/spi_reg.h>
 #include "qcc74x_gpio.h"
 #include "hardware/gpio_reg.h"
@@ -167,7 +169,8 @@ void nxspi_hwspi_ts(uint8_t *send_hd, uint8_t *recv_hd, uint16_t hd_len,
         tx_transfers[1].src_addr = (uint32_t)send_bd;
         tx_transfers[1].si = 1;
         if ((0 == up_header.len) || (NXBD_MTU < up_header.len)) {
-            NX_LOGE("never here send:%p, recv:%p, len:%d(%d)\r\n",
+            // LOG Error
+            NX_LOGD("never here send:%p, recv:%p, len:%d(%d)\r\n",
                 send_bd, recv_bd, bd_len, up_header.len);
         } else {
             // LOGA
@@ -386,6 +389,9 @@ void nxspi_hwgpio_init(int pin, void (*callback)(uint8_t pin), uint8_t trig_mode
     #endif
 
         qcc74x_gpio_init(sgpio, pin, GPIO_INPUT | GPIO_PULLDOWN | GPIO_SMT_EN);
+
+        PERIPHERAL_CLOCK_TIMER0_1_WDG_ENABLE();
+
         g_nxspi.gpio_inited = 1;
     }
  
@@ -637,4 +643,23 @@ void nx_process_value(nx_stats_t *stats, uint64_t value)
     nx_update_bottom(stats->bottom, value);
 }
 #endif
+
+void nxspi_delay_setgpio_start(uint32_t delay_us)
+{
+    struct qcc74x_timer_config_s cfg0;
+
+    cfg0.counter_mode = TIMER_COUNTER_MODE_UP; /* preload when match occur */
+    cfg0.clock_source = TIMER_CLKSRC_XTAL;
+    cfg0.clock_div = 39; /* for qcc743/qcc74x_undef/qcc74x_undefp is 39, for qcc74x_undef is 31 */
+    cfg0.trigger_comp_id = TIMER_COMP_ID_0;
+    cfg0.comp0_val = delay_us; /* match value 0 */
+    cfg0.comp1_val = 90000000; /* match value 1 */ // 90 S
+    cfg0.comp2_val = 100000000; /* match value 2 */ // 99 S
+    cfg0.preload_val = 0;    /* preload value */
+
+    /* Timer init with default configuration */
+    qcc74x_timer_init(g_nxspi.timer0, &cfg0);
+    qcc74x_irq_enable(g_nxspi.timer0->irq_num);
+    qcc74x_timer_start(g_nxspi.timer0);
+}
 

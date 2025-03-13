@@ -362,14 +362,15 @@ void qcc74x_efuse_get_device_info(qcc74x_efuse_device_info_type *device_info)
  *
  * @param  chipid: id pointer
  *
- * @return None
+ * @return 0 or -1
  *
 *******************************************************************************/
-void qcc74x_efuse_get_chipid(uint8_t chipid[8])
+int qcc74x_efuse_get_chipid(uint8_t chipid[8])
 {
-    qcc74x_efuse_read_mac_address_opt(0, chipid, 1);
     chipid[6] = 0;
     chipid[7] = 0;
+
+    return qcc74x_efuse_read_mac_address_opt(0, chipid, 1);
 }
 
 /****************************************************************************/ /**
@@ -572,4 +573,95 @@ void qcc74x_efuse_read_secure_boot(uint8_t *sign, uint8_t *aes)
     qcc74x_ef_ctrl_read_direct(NULL, EF_DATA_EF_CFG_0_OFFSET, &tmpval, 1, 1);
     *sign = ((tmpval & EF_DATA_EF_SBOOT_SIGN_MODE_MSK) >> EF_DATA_EF_SBOOT_SIGN_MODE_POS) & 0x01;
     *aes = ((tmpval & EF_DATA_EF_SF_AES_MODE_MSK) >> EF_DATA_EF_SF_AES_MODE_POS);
+}
+
+int qcc74x_efuse_enable_aes(uint8_t aes_type, uint8_t xts_mode)
+{
+    uint32_t tmpval = aes_type;
+
+    if(xts_mode){
+        tmpval |= (xts_mode<<2);
+    }
+    
+    qcc74x_ef_ctrl_write_direct(NULL, 0x00, &tmpval, 1, 1);
+
+    return 0;
+}
+
+int qcc74x_efuse_rw_lock_aes_key(uint8_t key_index, uint8_t rd_lock, uint8_t wr_lock)
+{
+    uint32_t tmpval = 0;
+
+    if(0 == key_index){
+        if(wr_lock){
+            tmpval |= (1 << 19);
+        }        
+        if(rd_lock){
+            tmpval |= (1 << 29);
+        }
+        qcc74x_ef_ctrl_write_direct(NULL, 0x7C, &tmpval, 1, 1);
+    }else if(1 == key_index){
+        if(wr_lock){
+            tmpval |= (1 << 20);
+        }        
+        if(rd_lock){
+            tmpval |= (1 << 30);
+        }
+        qcc74x_ef_ctrl_write_direct(NULL, 0x7C, &tmpval, 1, 1);
+    }else if(2 == key_index){
+        if(wr_lock){
+            tmpval |= (1 << 15);
+        }        
+        if(rd_lock){
+            tmpval |= (1 << 25);
+        }
+        qcc74x_ef_ctrl_write_direct(NULL, 0xFC, &tmpval, 1, 1);
+    }else if(3 == key_index){
+        if(wr_lock){
+            tmpval |= (1 << 16);
+        }        
+        if(rd_lock){
+            tmpval |= (1 << 26);
+        }
+        qcc74x_ef_ctrl_write_direct(NULL, 0xFC, &tmpval, 1, 1);
+    }
+
+    return 0;
+}
+
+int qcc74x_efuse_rw_lock_dbg_key(uint8_t rd_lock, uint8_t wr_lock)
+{
+    uint32_t tmpval = 0;
+
+    if(wr_lock){
+        tmpval |= (1 << 15);
+    }
+    
+    if(rd_lock){
+        tmpval |= (1 << 26);
+    } 
+    
+    qcc74x_ef_ctrl_write_direct(NULL, 0x7C, &tmpval, 1, 1);
+
+    return 0;
+}
+
+int qcc74x_efuse_write_lock_pk_hash(uint32_t pkhash_len)
+{
+    uint32_t tmpval = 0;
+    
+    if(256 == pkhash_len){
+       tmpval = (1 << 17) | (1 << 18);
+    }else{
+       tmpval = (1 << 17);
+    }
+    
+    qcc74x_ef_ctrl_write_direct(NULL, 0x7C, &tmpval, 1, 1);
+
+    return 0;
+}
+
+int qcc74x_efuse_write_lock_usb_pid_vid(void)
+{
+    return 0;
 }

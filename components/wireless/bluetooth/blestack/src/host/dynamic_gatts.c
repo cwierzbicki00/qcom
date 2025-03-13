@@ -5,7 +5,7 @@
 #include <bluetooth.h>
 #include <conn.h>
 #include <gatt.h>
-#include "uuid.h"
+#include "bt_uuid.h"
 #include <__assert.h>
 #include <net/buf.h>
 #include <bt_log.h>

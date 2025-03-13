@@ -5,7 +5,7 @@
 #include "qcc74x_l1c.h"
 
 lcd_dbi_init_t dbi_para = {
-    .clock_freq = 40 * 1000 * 1000,
+    .clock_freq = 27 * 1000 * 1000,
 #if (GC9307_DBI_PIXEL_FORMAT == 1)
     .pixel_format = LCD_DBI_LCD_PIXEL_FORMAT_RGB565,
 #elif (GC9307_DBI_PIXEL_FORMAT == 2)

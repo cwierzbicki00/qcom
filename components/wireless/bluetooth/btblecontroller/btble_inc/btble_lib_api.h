@@ -172,7 +172,7 @@ void btble_controller_reset(void);
 /* key: 32 bytes ecdh private key. This key shall be malloced and passed to btblecontroller_set_private_key api,
  * and when encrypt is done shall call btblecontroller_del_private_key to delete key and then free malloced key.*/
 void btblecontroller_set_private_key(uint8_t* key);
-void btblecontroller_del_private_key(void);
+uint8_t* btblecontroller_del_private_key(void);
 
 char *btble_controller_get_lib_ver(void);
 
@@ -220,4 +220,17 @@ int hci_vs_tx_test_cmd_handler(struct hci_vs_tx_test_cmd const *param, uint16_t 
 int hci_vs_test_end_cmd_handler(void const *param, uint16_t opcode, bool from_hci);
 #endif
 #endif
+
+//sco/esco callback to codec
+typedef void (*bt_sco_codec_cb_t) (uint16_t   interval_halfslot,
+                                uint32_t   tx_buffer_0,
+                                uint32_t   tx_buffer_1,
+                                uint32_t   rx_buffer_0,
+                                uint32_t   rx_buffer_1,
+                                uint32_t   tx_buffer_size,
+                                uint32_t   rx_buffer_size,
+                                uint32_t   start_time_halfslot,
+                                uint8_t    buffer_index);
+void btble_controller_sco_codec_callback_register(bt_sco_codec_cb_t cb);
+
 #endif

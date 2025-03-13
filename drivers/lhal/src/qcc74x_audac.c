@@ -2,7 +2,7 @@
 #include "hardware/audac_reg.h"
 #include "hardware/dac_reg.h"
 
-#if defined(QCC743) || defined(QCC74x_undefP) || defined(QCC74x_undef) || defined(QCC74x_undef)
+#if defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
 #define GLB_BASE ((uint32_t)0x20000000)
 #endif
 

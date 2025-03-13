@@ -616,6 +616,18 @@ struct fhost_vif_ap_cfg
      * Additional vendor specific elements for Beacon and Probe Response frames
      */
     char *ap_vendor_elements;
+
+    /// bcn_mode:
+    /// 0   Start/Stop beacon transmissions automatically
+    ///         a.Beacon transmission is NOT started when SAP is started.
+    ///         b.Once a Probe Request frame having the same SSID is received, replies with a Probe Response frame, then Beacon transmission is started.
+    ///         c.Beacon transmission is stopped again if no STA is associated for more than bcn_timer seconds.
+    /// 1   Do not transmit beacon frames
+    /// 2   Transmit beacon frames (Default)
+    uint8_t bcn_mode;
+
+    /// Beacon transmission is stopped again if no STA is associated for more than bcn_timer seconds.
+    int bcn_timer;
 };
 
 /**

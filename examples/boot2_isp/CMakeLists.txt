@@ -4,6 +4,8 @@ include(proj.conf)
 
 find_package(qcc74x_sdk REQUIRED HINTS $ENV{QCC74x_SDK_BASE})
 
+sdk_add_include_directories(.)
+
 target_sources(app PRIVATE
 				qcc74x_eflash_loader_interface.c
 				qcc74x_eflash_loader_cmds.c
@@ -29,6 +31,9 @@ endif()
 
 if(IS_DIRECTORY ${CMAKE_SOURCE_DIR}/port/${CHIP})
 include_directories(${CMAKE_SOURCE_DIR}/port/${CHIP})
+if(EXISTS "${CMAKE_SOURCE_DIR}/port/${CHIP}/CMakeLists.txt")
+    add_subdirectory(${CMAKE_SOURCE_DIR}/port/${CHIP})
+endif()
 else()
 message(FATAL_ERROR "${CMAKE_SOURCE_DIR}/port/${CHIP} is not exist")
 endif()
@@ -66,14 +71,14 @@ if((${CHIP} STREQUAL "qcc74x_undef"))
 	sdk_add_compile_definitions(-D CONIFG_DISABLE_ALL_PSRAM_FRQ_EXCEPT_2000)
 	sdk_add_compile_definitions(-D CONIFG_DISABLE_INTERRUPT_BEHADN_UART0)
 	sdk_add_compile_definitions(-D CONIFG_DISABLE_OTHER_CORE_EXCEPT_M0)
-	sdk_add_compile_definitions(-D CONFIG_NOT_SUPPORT_0X13_0X14_0X15_FLASH)
+	sdk_add_compile_definitions(-D CONFIG_NOT_SUPPORT_0X13_0X14_0X15_0X16_FLASH)
 endif()
 
-if((${CHIP} STREQUAL "qcc74x_undefp"))
-    sdk_add_compile_definitions(-DCHIP_QCC74x_undefP)
+if((${CHIP} STREQUAL "qcc74x_undef"))
+    sdk_add_compile_definitions(-DCHIP_QCC74x_undef)
 	sdk_add_compile_definitions(-DCONFIG_SUPPORT_UART_CLOCK_GET_ONLY)
 	sdk_add_compile_definitions(-D CONIFG_DISABLE_ALL_CLOCK_GET_EXCEPT_SYSTEM_CLOCK)
-	sdk_add_compile_definitions(-D CONFIG_NOT_SUPPORT_0X13_0X14_0X15_FLASH)
+	sdk_add_compile_definitions(-D CONFIG_NOT_SUPPORT_0X13_0X14_0X15_0X16_FLASH)
 endif()
 
 if((${CHIP} STREQUAL "qcc743"))

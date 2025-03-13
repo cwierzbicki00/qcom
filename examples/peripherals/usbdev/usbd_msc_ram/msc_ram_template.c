@@ -159,7 +159,7 @@ _retry:
 
 #else
 #define BLOCK_SIZE  512
-#define BLOCK_COUNT 128
+#define BLOCK_COUNT 256
 
 typedef struct
 {

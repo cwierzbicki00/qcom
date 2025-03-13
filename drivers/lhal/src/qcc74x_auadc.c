@@ -33,11 +33,15 @@ int qcc74x_auadc_init(struct qcc74x_device_s *dev, const struct qcc74x_auadc_ini
 
     /* pdm or adc input */
     regval = getreg32(reg_base + AUADC_PDM_DAC_0_OFFSET);
+#if (AUADC_ANALOG_ADC_SUPPORT)
     if (config->input_mode == AUADC_INPUT_MODE_ADC) {
         regval &= ~AUADC_ADC_0_SRC;
     } else {
         regval |= AUADC_ADC_0_SRC;
     }
+#else
+    regval |= AUADC_ADC_0_SRC;
+#endif
     putreg32(regval, reg_base + AUADC_PDM_DAC_0_OFFSET);
 
     /* pdm cfg */
@@ -60,7 +64,8 @@ int qcc74x_auadc_init(struct qcc74x_device_s *dev, const struct qcc74x_auadc_ini
 
     regval = getreg32(reg_base + AUADC_AUDADC_CMD_OFFSET);
     /* audio osr configuration */
-    if (config->input_mode != AUADC_INPUT_MODE_ADC && (config->sampling_rate == AUADC_SAMPLING_RATE_32K || config->sampling_rate == AUADC_SAMPLING_RATE_48K)) {
+    if ((config->input_mode == AUADC_INPUT_MODE_PDM_L || config->input_mode == AUADC_INPUT_MODE_PDM_R) &&
+        (config->sampling_rate == AUADC_SAMPLING_RATE_32K || config->sampling_rate == AUADC_SAMPLING_RATE_48K)) {
         /* osr 64 */
         regval |= AUADC_AUDADC_AUDIO_OSR_SEL;
     } else {
@@ -106,6 +111,7 @@ int qcc74x_auadc_init(struct qcc74x_device_s *dev, const struct qcc74x_auadc_ini
 #endif
 }
 
+#if (AUADC_ANALOG_ADC_SUPPORT)
 int qcc74x_auadc_adc_init(struct qcc74x_device_s *dev, const struct qcc74x_auadc_adc_init_config_s *adc_analog_cfg)
 {
     LHAL_PARAM_ASSERT(dev);
@@ -182,6 +188,7 @@ int qcc74x_auadc_adc_init(struct qcc74x_device_s *dev, const struct qcc74x_auadc
     return 0;
 #endif
 }
+#endif
 
 int qcc74x_auadc_link_rxdma(struct qcc74x_device_s *dev, bool enable)
 {
@@ -206,8 +213,8 @@ int qcc74x_auadc_link_rxdma(struct qcc74x_device_s *dev, bool enable)
 
 int qcc74x_auadc_int_mask(struct qcc74x_device_s *dev, uint32_t int_sts)
 {
-#ifdef romapi_qcc74x_cam_swap_input_yu_order
-    romapi_qcc74x_cam_swap_input_yu_order(dev, enable);
+#ifdef romapi_qcc74x_auadc_int_mask
+    return romapi_qcc74x_auadc_int_mask(dev, enable);
 #else
     uint32_t reg_base;
     uint32_t regval;
@@ -224,8 +231,8 @@ int qcc74x_auadc_int_mask(struct qcc74x_device_s *dev, uint32_t int_sts)
 
 int qcc74x_auadc_int_unmask(struct qcc74x_device_s *dev, uint32_t int_sts)
 {
-#ifdef romapi_qcc74x_cam_swap_input_yu_order
-    romapi_qcc74x_cam_swap_input_yu_order(dev, enable);
+#ifdef romapi_qcc74x_auadc_int_unmask
+    return romapi_qcc74x_auadc_int_unmask(dev, enable);
 #else
     uint32_t reg_base;
     uint32_t regval;
@@ -303,6 +310,7 @@ int qcc74x_auadc_feature_control(struct qcc74x_device_s *dev, int cmd, size_t ar
             putreg32(regval, reg_base + AUADC_PDM_ADC_S0_OFFSET);
             break;
 
+#if (AUADC_ANALOG_ADC_SUPPORT)
         case AUADC_CMD_SET_PGA_GAIN_VAL:
             /* set adc pga gain, range 6dB ~ 42dB, step by 3db */
             volume_val = arg / 3;
@@ -311,6 +319,7 @@ int qcc74x_auadc_feature_control(struct qcc74x_device_s *dev, int cmd, size_t ar
             regval |= (volume_val << AUADC_AUDADC_PGA_GAIN_SHIFT) & AUADC_AUDADC_PGA_GAIN_MASK;
             putreg32(regval, reg_base + AUADC_AUDADC_CMD_OFFSET);
             break;
+#endif
 
         case AUADC_CMD_CLEAR_RX_FIFO:
             /* get rx fifo cnt */

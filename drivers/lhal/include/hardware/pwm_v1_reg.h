@@ -6,7 +6,7 @@
 ****************************************************************************/
 
 /* Register offsets *********************************************************/
-#if defined(QCC74x_undefL)
+#if defined(QCC74x_undef)
 #define PWM_INT_CONFIG_OFFSET (-0x20) /* pwm_int_config */
 #else
 #define PWM_INT_CONFIG_OFFSET (0x0) /* pwm_int_config */

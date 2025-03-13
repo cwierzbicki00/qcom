@@ -5,6 +5,7 @@ include(proj.conf)
 find_package(qcc74x_sdk REQUIRED HINTS $ENV{QCC74x_SDK_BASE})
 
 target_sources(app PRIVATE
+                app_clock_manager.c
               )
 
 sdk_add_include_directories(.)

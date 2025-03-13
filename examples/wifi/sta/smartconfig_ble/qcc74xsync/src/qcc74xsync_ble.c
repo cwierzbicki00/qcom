@@ -10,7 +10,7 @@
 #include <conn.h>
 #include "conn_internal.h"
 #include <gatt.h>
-#include <uuid.h>
+#include <bt_uuid.h>
 // #include <qcc74x_log.h>
 #include <stdio.h>
 #include "cJSON.h"

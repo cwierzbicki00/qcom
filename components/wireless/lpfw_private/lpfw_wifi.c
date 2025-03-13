@@ -10,7 +10,7 @@
 // STA Info table
 // #include "ip/lmac/src/mm/mm.h"
 
-#ifdef QCC74X_WIFI_LP_FW
+#ifdef QCC74x_WIFI_LP_FW
 #include "rwnx_platform.h"
 #include "wl_api.h"
 #endif
@@ -170,7 +170,7 @@ ATTR_ROM_WIFI_SECTION volatile lp_fw_ie_t *lpfw_find_tim(uint32_t interval_start
     return NULL;
 }
 
-#ifdef QCC74X_WIFI_LP_FW
+#ifdef QCC74x_WIFI_LP_FW
 extern void rwnx_platform_init(void);
 extern void rwnxl_init(void);
 extern void rwnx_lpfw_init(struct mac_addr const *mac, struct mac_addr const *bssid);
@@ -233,7 +233,7 @@ ATTR_ROM_WIFI_SECTION int lpfw_bcn_timestamp_check(uint64_t beacon_timestamp_now
     rtc_us = rtc_timestamp_now_us - rtc_timestamp_last_us;
     beacon_us = beacon_timestamp_now_us - beacon_timestamp_last_us;
 
-    if ( beacon_us > 60 * 1000 * 1000 || rtc_us > 60 * 1000 * 1000) {
+    if ( beacon_us > 3 * 60 * 1000 * 1000 || rtc_us > 3 * 60 * 1000 * 1000) {
         /* The time span is too large. Abort */
         return -2;
     }
@@ -253,7 +253,7 @@ ATTR_ROM_WIFI_SECTION int lpfw_recal_rc32k(uint64_t beacon_timestamp_now_us, uin
     rtc_timestamp_last_us = iot2lp_para->last_rc32trim_stamp_rtc_us;
     beacon_timestamp_last_us = iot2lp_para->last_rc32trim_stamp_beacon_us;
 
-#ifndef QCC74X_WIFI_LP_FW
+#ifndef QCC74x_WIFI_LP_FW
     if(qcc74x_lp_get_32k_clock_ready() == 0) {
         /* wait 32k_clock ready */
         ret = -2;
@@ -318,7 +318,7 @@ ATTR_ROM_WIFI_SECTION int lpfw_recal_rc32k(uint64_t beacon_timestamp_now_us, uin
         }
     }
 
-#ifndef QCC74X_WIFI_LP_FW
+#ifndef QCC74x_WIFI_LP_FW
     if(qcc74x_lp_get_32k_trim_ready() == 0){
         /*  */
         ret = 2;

@@ -40,7 +40,12 @@
 //#include "init.h"
 //#include "hal/debug.h"
 #if defined(QCC74x_BLE)
+#if defined(CONFIG_BT_HOST_HCI_TL)
+#include "qcc74x_hci_tl.h"
+#include "qcc74x_gpio.h"
+#else
 #include "qcc74x_hci_wrapper.h"
+#endif
 #endif
 
 #define NODE_RX(_node) CONTAINER_OF(_node, struct radio_pdu_node_rx, \
@@ -409,7 +414,11 @@ static int hci_driver_send(struct net_buf *buf)
 	}
 
 #if defined(QCC74x_BLE)
+    #if defined (CONFIG_BT_HOST_HCI_TL)
+    err = qcc74x_hci_send(buf);
+    #else
     err = qcc74x_onchiphci_send_2_controller(buf);
+    #endif
     net_buf_unref(buf);
 #else
 	type = bt_buf_get_type(buf);
@@ -438,7 +447,9 @@ static int hci_driver_send(struct net_buf *buf)
 #endif
 	return err;
 }
-
+#if defined(CONFIG_BT_HOST_HCI_TL)
+char hci_port[14];
+#endif
 static int hci_driver_open(void)
 {
 #if !defined(QCC74x_BLE) 
@@ -473,6 +484,18 @@ static int hci_driver_open(void)
 			K_THREAD_STACK_SIZEOF(prio_recv_thread_stack),
 			prio_recv_thread, NULL, NULL, NULL,
 			K_PRIO_COOP(CONFIG_BT_CTLR_RX_PRIO), 0, K_NO_WAIT);
+#endif
+
+#if defined(QCC74x_BLE)
+    #if defined(CONFIG_BT_HOST_HCI_TL)
+    qcc74x_gpio_enable_output(CTRL_RESET_PIN, 0, 0);
+    qcc74x_gpio_output_set(CTRL_RESET_PIN, 0);
+    k_sleep(10);
+    qcc74x_gpio_output_set(CTRL_RESET_PIN, 1);
+    k_sleep(500); // wait controller ready
+
+    return qcc74x_hci_init(hci_port);
+    #endif
 #endif
 
 	BT_DBG("Success.");

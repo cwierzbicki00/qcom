@@ -335,6 +335,7 @@ void wl_bz_rx_optimize_restore(); // Restore default setting when exit BTBLE
 
 void wl_rf_set_bz_target_power_table(int8_t target_pwr_dbm);// modified the bz power table according to the target power of bz before set bz tx
 void wl_rf_set_154_tx_power(uint32_t target_pwr_dbm);
+int8_t wl_rf_set_154_tx_power_with_power_limit(uint32_t target_pwr_dbm, uint8_t channel_idx, const char *country_code);
 void wl_rf_cfg_init(void);//set default values to rf members of struct, //by Lx
 void wl_rf_set_channel_pwr_comp(uint8_t channel_idx);
 void wl_rf_set_bz_channel_pwr_comp();
@@ -357,4 +358,12 @@ int8_t wl_lp_init(uint16_t channelfreq_MHz);
 void wl_lp_config(uint32_t cfg, uint32_t cfg_cal);
 void wl_lp_status_update(int8_t bcn_rx_status, int8_t bcn_rssi, uint32_t bcn_hbn_time_us);
 uint32_t wl_cal_read();
+
+/**
+ * @brief Get phyrf version string
+ * 
+ * @return const char* Version string in format "YYYY-MM-DD commit_hash" or "YYYY-MM-DD commit_hash (dirty)"
+ */
+const char* wl_get_version(void);
+
 #endif

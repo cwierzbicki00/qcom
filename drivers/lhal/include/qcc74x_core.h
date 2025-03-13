@@ -17,6 +17,10 @@
 #include "qcc74x_irq.h"
 #include "qcc74x_l1c.h"
 
+#ifdef CONFIG_LHAL_ROMAPI
+#include "qcc74x_lhal_romdriver.h"
+#endif
+
 /** @addtogroup LHAL
   * @{
   */
@@ -25,25 +29,27 @@
   * @{
   */
 
-#if !defined(QCC74x_undef) && !defined(QCC74x_undef) && !defined(QCC74x_undefL) && \
-    !defined(QCC743) && !defined(QCC74x_undefP) && !defined(QCC74x_undef) && !defined(QCC74x_undef)
+#if !defined(QCC74x_undef) && !defined(QCC74x_undef) && !defined(QCC74x_undef) && \
+    !defined(QCC743) && !defined(QCC74x_undef) && !defined(QCC74x_undef) && \
+    !defined(QCC74x_undef) && !defined(QCC74x_undef) && !defined(QCC74x_undef)
 #error please define a supported chip
 #endif
 
 #ifdef CONFIG_LHAL_PARAM_ASSERT
 #define LHAL_PARAM_ASSERT(expr) ((expr) ? (void)0 : qcc74x_lhal_assert_func(__FILE__, __LINE__, __FUNCTION__, #expr))
-void qcc74x_lhal_assert_func(const char *file, uint32_t line, const char *function, const char *string);
 #else
 #define LHAL_PARAM_ASSERT(expr) ((void)0U)
 #endif
 
 #if defined(QCC74x_undef)
 #define QCC74x_PSRAM_BASE 0x26000000
-#elif defined(QCC743)
+#elif defined(QCC74x_undef)
+#define QCC74x_PSRAM_BASE 0x24000000
+#elif defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undef)
 #define QCC74x_PSRAM_BASE 0xA8000000
 #elif defined(QCC74x_undef)
 #define QCC74x_PSRAM_BASE 0x50000000
-#elif defined(QCC74x_undefP)
+#elif defined(QCC74x_undef)
 #define QCC74x_PSRAM_BASE 0x54000000
 #endif
 
@@ -89,6 +95,9 @@ void qcc74x_lhal_assert_func(const char *file, uint32_t line, const char *functi
 #define QCC74x_DEVICE_TYPE_SDIO3    40
 #define QCC74x_DEVICE_TYPE_PLFMDMA  41
 #define QCC74x_DEVICE_TYPE_WO       42
+#define QCC74x_DEVICE_TYPE_GMAC     43
+#define QCC74x_DEVICE_TYPE_IPC      44
+#define QCC74x_DEVICE_TYPE_MJDEC    45
 
 struct qcc74x_device_s {
     const char *name;

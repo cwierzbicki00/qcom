@@ -21,7 +21,7 @@
 #include "bluetooth.h"
 #include "hci_host.h"
 #include "conn.h"
-#include "uuid.h"
+#include "bt_uuid.h"
 #include "gatt.h"
 #include "dis.h"
 

@@ -2,9 +2,11 @@
 #include "board.h"
 #include "qcc74x_flash_secreg.h"
 #include "qcc74x_sf_cfg.h"
+#include "qcc74x_flash.h"
 
 #define DBG_TAG "MAIN"
 #include "log.h"
+qcc74x_flash_otp_config_t flash_otp_cfg;
 
 void ATTR_TCM_SECTION print_param(const qcc74x_flash_secreg_param_t *param)
 {
@@ -16,8 +18,13 @@ void ATTR_TCM_SECTION print_param(const qcc74x_flash_secreg_param_t *param)
     LOG_I("api_type      = %u\r\n", param->api_type);
     LOG_I("lb_share      = %u\r\n", param->lb_share);
     LOG_I("lb_offset     = %u\r\n", param->lb_offset);
-    LOG_I("lb_write_len  = %u\r\n", param->lb_write_len);
-    LOG_I("lb_read_len   = %u\r\n", param->lb_read_len);
+    LOG_I("lb_write_cmd   = %u\r\n", param->lb_write_cmd);
+    LOG_I("lb_write_len   = %u\r\n", param->lb_write_len);
+    for (int i = 0; i < sizeof(param->lb_read_cmd) / sizeof(param->lb_read_cmd[0]); i++) {
+        LOG_I("lb_read_cmd[%d] = 0x%02x\r\n", i, param->lb_read_cmd[i]);
+    }
+    LOG_I("lb_read_len    = %u\r\n", param->lb_read_len);
+    LOG_I("lb_read_loop   = %u\r\n", param->lb_read_loop);
     LOG_I("================================\r\n");
 }
 
@@ -53,11 +60,11 @@ bool ATTR_TCM_SECTION region_lock_test(const qcc74x_flash_secreg_region_info_t *
             LOG_W("Test region %u skiped\r\n", info->index);
             return true;
         }
-        _ASSERT_ZERO_FUNC(qcc74x_flash_secreg_opunlock());
+
         beg = qcc74x_mtimer_get_time_us();
-        _ASSERT_ZERO_FUNC(qcc74x_flash_secreg_erase_by_idx(info->index));
+        _ASSERT_ZERO_FUNC(qcc74x_flash_secreg_erase_by_idx(&flash_otp_cfg, info->index));
         end = qcc74x_mtimer_get_time_us();
-        _ASSERT_ZERO_FUNC(qcc74x_flash_secreg_oplock());
+
         LOG_I("Erase region %u done, bytes %u cost %u us\r\n", info->index, info->secreg_size, end - beg);
         LOG_I("================================\r\n");
 
@@ -65,7 +72,7 @@ bool ATTR_TCM_SECTION region_lock_test(const qcc74x_flash_secreg_region_info_t *
 
         LOG_I("Try to read after erase region %u\r\n", info->index);
         beg = qcc74x_mtimer_get_time_us();
-        _ASSERT_ZERO_FUNC(qcc74x_flash_secreg_read_by_idx(info->index, 0, erbuf, info->secreg_size));
+        _ASSERT_ZERO_FUNC(qcc74x_flash_secreg_read_by_idx(&flash_otp_cfg, info->index, 0, erbuf, info->secreg_size));
         end = qcc74x_mtimer_get_time_us();
         LOG_I("Read region %u done, bytes %u cost %u us\r\n", info->index, info->secreg_size, end - beg);
         LOG_I("================================\r\n");
@@ -85,11 +92,9 @@ bool ATTR_TCM_SECTION region_lock_test(const qcc74x_flash_secreg_region_info_t *
         }
 
         LOG_I("Try to write region %u\r\n", info->index);
-        _ASSERT_ZERO_FUNC(qcc74x_flash_secreg_opunlock());
         beg = qcc74x_mtimer_get_time_us();
-        _ASSERT_ZERO_FUNC(qcc74x_flash_secreg_write_by_idx(info->index, 0, wbuf, info->secreg_size));
+        _ASSERT_ZERO_FUNC(qcc74x_flash_secreg_write_by_idx(&flash_otp_cfg, info->index, 0, wbuf, info->secreg_size));
         end = qcc74x_mtimer_get_time_us();
-        _ASSERT_ZERO_FUNC(qcc74x_flash_secreg_oplock());
         LOG_I("Write region %u done, bytes %u cost %u us\r\n", info->index, info->secreg_size, end - beg);
         LOG_I("================================\r\n");
 
@@ -97,7 +102,7 @@ bool ATTR_TCM_SECTION region_lock_test(const qcc74x_flash_secreg_region_info_t *
 
         LOG_I("Try to read after write region %u\r\n", info->index);
         beg = qcc74x_mtimer_get_time_us();
-        _ASSERT_ZERO_FUNC(qcc74x_flash_secreg_read_by_idx(info->index, 0, wrbuf, info->secreg_size));
+        _ASSERT_ZERO_FUNC(qcc74x_flash_secreg_read_by_idx(&flash_otp_cfg, info->index, 0, wrbuf, info->secreg_size));
         end = qcc74x_mtimer_get_time_us();
         LOG_I("Read region %u done, bytes %u cost %u us\r\n", info->index, info->secreg_size, end - beg);
         LOG_I("================================\r\n");
@@ -113,23 +118,19 @@ bool ATTR_TCM_SECTION region_lock_test(const qcc74x_flash_secreg_region_info_t *
         LOG_I("================================\r\n");
 
         LOG_I("Try to lock region %u\r\n", info->index);
-        _ASSERT_ZERO_FUNC(qcc74x_flash_secreg_opunlock());
-        _ASSERT_ZERO_FUNC(qcc74x_flash_secreg_set_locked(info->index));
-        _ASSERT_ZERO_FUNC(qcc74x_flash_secreg_oplock());
+        _ASSERT_ZERO_FUNC(qcc74x_flash_secreg_set_locked(&flash_otp_cfg, info->index));
         LOG_I("Locked region %u success\r\n", info->index);
         LOG_I("================================\r\n");
 
         LOG_I("Try to get region lock %u\r\n", info->index);
-        _ASSERT_EQUAL_FUNC(1, qcc74x_flash_secreg_get_locked(info->index));
+        _ASSERT_EQUAL_FUNC(1, qcc74x_flash_secreg_get_locked(&flash_otp_cfg, info->index));
         LOG_I("Region %u get locked success\r\n", info->index);
         LOG_I("================================\r\n");
 
         LOG_I("Try to erase locked region %u\r\n", info->index);
-        _ASSERT_ZERO_FUNC(qcc74x_flash_secreg_opunlock());
         beg = qcc74x_mtimer_get_time_us();
-        _ASSERT_ZERO_FUNC(qcc74x_flash_secreg_erase_by_idx(info->index));
+        _ASSERT_ZERO_FUNC(qcc74x_flash_secreg_erase_by_idx(&flash_otp_cfg, info->index));
         end = qcc74x_mtimer_get_time_us();
-        _ASSERT_ZERO_FUNC(qcc74x_flash_secreg_oplock());
         LOG_I("Erase region %u done, bytes %u cost %u us\r\n", info->index, info->secreg_size, end - beg);
         LOG_I("================================\r\n");
 
@@ -137,7 +138,7 @@ bool ATTR_TCM_SECTION region_lock_test(const qcc74x_flash_secreg_region_info_t *
 
         LOG_I("Try to read after erase locked region %u\r\n", info->index);
         beg = qcc74x_mtimer_get_time_us();
-        _ASSERT_ZERO_FUNC(qcc74x_flash_secreg_read_by_idx(info->index, 0, erbuf, info->secreg_size));
+        _ASSERT_ZERO_FUNC(qcc74x_flash_secreg_read_by_idx(&flash_otp_cfg, info->index, 0, erbuf, info->secreg_size));
         end = qcc74x_mtimer_get_time_us();
         LOG_I("Read region %u done, bytes %u cost %u us\r\n", info->index, info->secreg_size, end - beg);
         LOG_I("================================\r\n");
@@ -155,11 +156,9 @@ bool ATTR_TCM_SECTION region_lock_test(const qcc74x_flash_secreg_region_info_t *
         memset(w2buf, 0, info->secreg_size);
 
         LOG_I("Try to write locked region %u\r\n", info->index);
-        _ASSERT_ZERO_FUNC(qcc74x_flash_secreg_opunlock());
         beg = qcc74x_mtimer_get_time_us();
-        _ASSERT_ZERO_FUNC(qcc74x_flash_secreg_write_by_idx(info->index, 0, w2buf, info->secreg_size));
+        _ASSERT_ZERO_FUNC(qcc74x_flash_secreg_write_by_idx(&flash_otp_cfg, info->index, 0, w2buf, info->secreg_size));
         end = qcc74x_mtimer_get_time_us();
-        _ASSERT_ZERO_FUNC(qcc74x_flash_secreg_oplock());
         LOG_I("Write locked region %u done, bytes %u cost %u us\r\n", info->index, info->secreg_size, end - beg);
         LOG_I("================================\r\n");
 
@@ -167,7 +166,7 @@ bool ATTR_TCM_SECTION region_lock_test(const qcc74x_flash_secreg_region_info_t *
 
         LOG_I("Try to read after write locked region %u\r\n", info->index);
         beg = qcc74x_mtimer_get_time_us();
-        _ASSERT_ZERO_FUNC(qcc74x_flash_secreg_read_by_idx(info->index, 0, wrbuf, info->secreg_size));
+        _ASSERT_ZERO_FUNC(qcc74x_flash_secreg_read_by_idx(&flash_otp_cfg, info->index, 0, wrbuf, info->secreg_size));
         end = qcc74x_mtimer_get_time_us();
         LOG_I("Read region %u done, bytes %u cost %u us\r\n", info->index, info->secreg_size, end - beg);
         LOG_I("================================\r\n");
@@ -192,6 +191,9 @@ bool ATTR_TCM_SECTION region_lock_test(const qcc74x_flash_secreg_region_info_t *
 int ATTR_TCM_SECTION main(void)
 {
     const qcc74x_flash_secreg_param_t *param;
+    uint8_t *p_flash_cfg = NULL;
+    uint32_t flash_cfg_len = 0;
+    uint32_t jedec_id = 0;
     uint8_t lb;
 
     board_init();
@@ -200,18 +202,22 @@ int ATTR_TCM_SECTION main(void)
     LOG_I("================================\r\n");
     qcc74x_mtimer_delay_ms(1000);
 
-    _ASSERT_ZERO_FUNC(qcc74x_flash_secreg_get_param(&param));
+    qcc74x_flash_get_cfg(&p_flash_cfg, &flash_cfg_len);
+    jedec_id = qcc74x_flash_get_jedec_id();
+    _ASSERT_ZERO_FUNC(qcc74x_flash_secreg_get_param(jedec_id, &param));
+
+    /* Initialize OTP configuration */
+    flash_otp_cfg.flash_cfg = (spi_flash_cfg_type *)p_flash_cfg;;
+    flash_otp_cfg.param = param;
     print_param(param);
 
-    _ASSERT_ZERO_FUNC(qcc74x_flash_secreg_get_param(&param));
-
-    _ASSERT_ZERO_FUNC(qcc74x_flash_secreg_get_lockbits(&lb));
+    _ASSERT_ZERO_FUNC(qcc74x_flash_secreg_get_lockbits(&flash_otp_cfg, &lb));
     LOG_I("lock bit is 0x%02x\r\n", lb);
     LOG_I("================================\r\n");
 
-    _ASSERT_ZERO_FUNC(qcc74x_flash_secreg_region_foreach(print_region, NULL));
+    _ASSERT_ZERO_FUNC(qcc74x_flash_secreg_region_foreach(&flash_otp_cfg, print_region, NULL));
 
-    _ASSERT_ZERO_FUNC(qcc74x_flash_secreg_region_foreach(region_lock_test, NULL));
+    _ASSERT_ZERO_FUNC(qcc74x_flash_secreg_region_foreach(&flash_otp_cfg, region_lock_test, NULL));
 
     LOG_I("All test success\r\n");
     LOG_I("================================\r\n");

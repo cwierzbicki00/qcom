@@ -23,9 +23,9 @@
   * @}
   */
 
-#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undefL)
+#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
 #define QCC74x_GLB_CGEN1_BASE (0x40000000 + 0x24)
-#elif defined(QCC743) || defined(QCC74x_undefP) || defined(QCC74x_undef) || defined(QCC74x_undef)
+#elif defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
 #define QCC74x_GLB_CGEN1_BASE (0x20000000 + 0x584)
 #define QCC74x_GLB_CGEN2_BASE (0x20000000 + 0x588)
 #endif
@@ -34,12 +34,14 @@
     do {                                                          \
         volatile uint32_t regval = getreg32(QCC74x_GLB_CGEN1_BASE); \
         regval |= (1 << 2);                                       \
+        regval |= (1 << 15);                                      \
         putreg32(regval, QCC74x_GLB_CGEN1_BASE);                    \
     } while (0)
 
 #define PERIPHERAL_CLOCK_SEC_ENABLE()                             \
     do {                                                          \
         volatile uint32_t regval = getreg32(QCC74x_GLB_CGEN1_BASE); \
+        regval |= (1 << 3);                                       \
         regval |= (1 << 4);                                       \
         putreg32(regval, QCC74x_GLB_CGEN1_BASE);                    \
     } while (0)
@@ -51,7 +53,7 @@
         putreg32(regval, QCC74x_GLB_CGEN1_BASE);                    \
     } while (0)
 
-#if defined(QCC74x_undefP) || defined(QCC74x_undef)
+#if defined(QCC74x_undef) || defined(QCC74x_undef)
 #define PERIPHERAL_CLOCK_DMA1_ENABLE()
 #define PERIPHERAL_CLOCK_DMA2_ENABLE()
 #endif
@@ -70,11 +72,20 @@
         putreg32(regval, QCC74x_GLB_CGEN1_BASE);                    \
     } while (0)
 
-#if defined(QCC74x_undefP) || defined(QCC74x_undef) || defined(QCC74x_undef)
+#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
 #define PERIPHERAL_CLOCK_UART2_ENABLE()
 #endif
 
-#if defined(QCC74x_undefP) || defined(QCC74x_undef)
+#if defined(QCC74x_undef)
+#define PERIPHERAL_CLOCK_UART3_ENABLE()                           \
+    do {                                                          \
+        volatile uint32_t regval = getreg32(QCC74x_GLB_CGEN1_BASE); \
+        regval |= (1 << 29);                                      \
+        putreg32(regval, QCC74x_GLB_CGEN1_BASE);                    \
+    } while (0)
+#endif
+
+#if defined(QCC74x_undef) || defined(QCC74x_undef)
 #define PERIPHERAL_CLOCK_SPI0_1_ENABLE()                          \
     do {                                                          \
         volatile uint32_t regval = getreg32(QCC74x_GLB_CGEN1_BASE); \
@@ -97,7 +108,7 @@
         putreg32(regval, QCC74x_GLB_CGEN1_BASE);                    \
     } while (0)
 
-#if defined(QCC74x_undefP) || defined(QCC74x_undef) || defined(QCC743) || defined(QCC74x_undef)
+#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
 #define PERIPHERAL_CLOCK_I2C1_ENABLE()                            \
     do {                                                          \
         volatile uint32_t regval = getreg32(QCC74x_GLB_CGEN1_BASE); \
@@ -135,14 +146,14 @@
         putreg32(regval, QCC74x_GLB_CGEN1_BASE);                    \
     } while (0)
 
-#if defined(QCC74x_undefP) || defined(QCC74x_undef)
+#if defined(QCC74x_undef) || defined(QCC74x_undef)
 #define PERIPHERAL_CLOCK_CAN_UART2_ENABLE()                       \
     do {                                                          \
         volatile uint32_t regval = getreg32(QCC74x_GLB_CGEN1_BASE); \
         regval |= (1 << 26);                                      \
         putreg32(regval, QCC74x_GLB_CGEN1_BASE);                    \
     } while (0)
-#elif defined(QCC743) || defined(QCC74x_undef)
+#elif defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
 #define PERIPHERAL_CLOCK_CAN_ENABLE()                             \
     do {                                                          \
         volatile uint32_t regval = getreg32(QCC74x_GLB_CGEN1_BASE); \
@@ -158,32 +169,47 @@
         regval |= (1 << 28);                                      \
         putreg32(regval, QCC74x_GLB_CGEN1_BASE);                    \
     } while (0)
-
-#define PERIPHERAL_CLOCK_I2S_ENABLE()                             \
-    do {                                                          \
-        volatile uint32_t regval = getreg32(QCC74x_GLB_CGEN1_BASE); \
-        regval |= (1 << 26);                                      \
-        putreg32(regval, QCC74x_GLB_CGEN1_BASE);                    \
-    } while (0)
-
-#elif defined(QCC743) || defined(QCC74x_undefP) || defined(QCC74x_undef)
+#elif defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
 #define PERIPHERAL_CLOCK_USB_ENABLE()                             \
     do {                                                          \
         volatile uint32_t regval = getreg32(QCC74x_GLB_CGEN1_BASE); \
         regval |= (1 << 13);                                      \
         putreg32(regval, QCC74x_GLB_CGEN1_BASE);                    \
     } while (0)
+#elif defined(QCC74x_undef)
+#define PERIPHERAL_CLOCK_USB_ENABLE()                             \
+    do {                                                          \
+        volatile uint32_t regval = getreg32(QCC74x_GLB_CGEN1_BASE); \
+        regval |= (1 << 14);                                      \
+        putreg32(regval, QCC74x_GLB_CGEN1_BASE);                    \
+    } while (0)
+#elif defined(QCC74x_undef)
+#define PERIPHERAL_CLOCK_USB_ENABLE()                             \
+    do {                                                          \
+        volatile uint32_t regval = getreg32(QCC74x_GLB_CGEN2_BASE); \
+        regval |= (1 << 19);                                      \
+        putreg32(regval, QCC74x_GLB_CGEN2_BASE);                    \
+    } while (0)
+#endif
 
+
+#if defined(QCC74x_undef)
+#define PERIPHERAL_CLOCK_I2S_ENABLE()                             \
+    do {                                                          \
+        volatile uint32_t regval = getreg32(QCC74x_GLB_CGEN1_BASE); \
+        regval |= (1 << 26);                                      \
+        putreg32(regval, QCC74x_GLB_CGEN1_BASE);                    \
+    } while (0)
+#elif defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undef)  || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
 #define PERIPHERAL_CLOCK_I2S_ENABLE()                             \
     do {                                                          \
         volatile uint32_t regval = getreg32(QCC74x_GLB_CGEN1_BASE); \
         regval |= (1 << 27);                                      \
         putreg32(regval, QCC74x_GLB_CGEN1_BASE);                    \
     } while (0)
-
 #endif
 
-#if defined(QCC743) || defined(QCC74x_undefP) || defined(QCC74x_undef) || defined(QCC74x_undef)
+#if defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
 #define PERIPHERAL_CLOCK_SDH_ENABLE()                             \
     do {                                                          \
         volatile uint32_t regval = getreg32(QCC74x_GLB_CGEN2_BASE); \
@@ -199,7 +225,7 @@
         regval |= (1 << 13);                                      \
         putreg32(regval, QCC74x_GLB_CGEN1_BASE);                    \
     } while (0)
-#elif defined(QCC743) || defined(QCC74x_undefP) || defined(QCC74x_undef)
+#elif defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
 #define PERIPHERAL_CLOCK_EMAC_ENABLE()                            \
     do {                                                          \
         volatile uint32_t regval = getreg32(QCC74x_GLB_CGEN2_BASE); \
@@ -208,12 +234,30 @@
     } while (0)
 #endif
 
-#if defined(QCC743)
+#if defined(QCC743) || defined(QCC74x_undef)
 #define PERIPHERAL_CLOCK_AUDIO_ENABLE()                           \
     do {                                                          \
         volatile uint32_t regval = getreg32(QCC74x_GLB_CGEN2_BASE); \
         regval |= (1 << 21);                                      \
         putreg32(regval, QCC74x_GLB_CGEN2_BASE);                    \
+    } while (0)
+#endif
+
+#if defined(QCC74x_undef)
+#define PERIPHERAL_CLOCK_SDU_ENABLE()                             \
+    do {                                                          \
+        volatile uint32_t regval = getreg32(QCC74x_GLB_CGEN1_BASE); \
+        regval |= (1 << 13);                                      \
+        putreg32(regval, QCC74x_GLB_CGEN1_BASE);                    \
+    } while (0)
+#endif
+
+#if defined(QCC743) || defined(QCC74x_undef)
+#define PERIPHERAL_CLOCK_DBI_ENABLE()                             \
+    do {                                                          \
+        volatile uint32_t regval = getreg32(QCC74x_GLB_CGEN1_BASE); \
+        regval |= (1 << 24);                                      \
+        putreg32(regval, QCC74x_GLB_CGEN1_BASE);                    \
     } while (0)
 #endif
 

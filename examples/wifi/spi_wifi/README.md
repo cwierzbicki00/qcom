@@ -291,6 +291,101 @@ Ensure that the PC and qcc74x are connected to the same router.
     iperf -u -c <remote_ip> -i 1 -b 20M -t 10
    ```
 
+# Antenna Diversity
+
+## Configuration Guide
+
+### Overview
+
+The QCC74x SDK provides antenna diversity capabilities to optimize wireless performance through two complementary features:
+
+* **Static Antenna Diversity**: Performs one-time antenna selection during connection setup using scan-based selection
+* **Dynamic Antenna Diversity**: Enables runtime RSSI-based antenna switching to adapt to changing RF conditions
+
+This guide explains how to configure and implement antenna diversity for QCC74x boards equipped with an RF switch.
+
+### Hardware Requirements
+
+* QCC74x development board with RF switch capability
+* Minimum of two physical antennas
+* RF switch for antenna selection
+* Required test equipment (for validation):
+
+  * RF shielding boxes
+  * Variable and fixed attenuators
+  * RF cables and connectors
+  * Test access points (APs)
+
+### Implementation Guide
+
+#### 1. Hardware Analysis
+
+Before implementation, gather the following information from your hardware design:
+
+1. Locate the RF switch control GPIO pin(s) in your schematic，We assume the control pin is GPIO0. The following modifications are required on the DVK\_V40 version hardware:
+
+    1. On the front side of the devkit, remove the corresponding jumpers based on the selected GPIO to disconnect GPIO0/1/3 from the CH347 JTAG connection and avoid conflicts.
+
+        ​![image-17374605152821](assets/image-17374605152821-20250123173819-1sxmozo.png)​
+    2. Back side of carrier board of QCC743–P there is cap on GPIO30 as highlighted in red box
+
+        ​![image](assets/image-20250123174052-v3rabnc.png)​
+    3. remove the cap highlighted in red box
+    4. cut the trace between via and green highlighted capacitor pad.
+
+        ​![image](assets/image-20250123174147-hxy9r7l.png)​
+    5. remove respective resistor on GPIO0 and GPIO1 as highlighted in yellow colored box.
+
+        ​![image](assets/image-20250123174242-1l3qrqf.png)​
+    6. for GPIO0 as control signal for antenna diversity switch , blue wire for GPIO0 resistor pad to GPIO30 capacitor pad as shown in yellow line in below picture
+
+        ​![image](assets/image-20250123174350-rcvd3pp.png)​
+2. Review the RF switch datasheet for:
+
+    * Control voltage requirements
+    * Switching timing specifications
+    * Logic level requirements (active high/low)
+
+#### 2. Dynamic Antenna Diversity
+
+HOST AT Command
+
+```bash
+ AT+CWANTENABLE=1,0,0
+ OK
+ 
+ AT+RST
+ OK
+
+ AT+CWMODE=1
+ OK
+
+ AT+CWJAP="SSID","password"
+ OK
+ ...
+```
+
+#### 3. Static Antenna Diversity
+
+HOST AT Command
+
+```bash
+ AT+CWANTENABLE=0,1,0
+ OK
+ 
+ AT+RST
+ OK
+
+ AT+CWMODE=1
+ OK
+
+ AT+CWJAP="SSID","password"
+ OK
+
+ AT+CWLAP
+ ...
+```
+
 # SPISync Brief Design
 
 ## Design Background
@@ -516,14 +611,16 @@ This chapter provides a comprehensive guide for configuring and testing the Targ
 ```shell
 wifi_mgmr_sta_twt_setup -s 1 -t 1 -e <WakeIntervalExponent> -n <WakeDuration> -m <WakeIntervalMantissa>
 ```
-- **Flow type (t):** Only support unannounce twt.
-- **Service Period (SP):** Determines the duration the device remains awake.
+- **Setup type (s):** 0:REQUEST, 1:SUGGEST, 2:DEMAND.
+- **Flow type (t):** 0:ANNOUNCED TWT, 1:UNANNOUNCED TWT. Only support unannounced twt.
 - **Wake Interval Exponent:** Specifies the wake interval. 
-- **Wake Duration (n):** Minimum wake duration in milliseconds.
+- **Wake Duration (n):** Minimum wake duration in microseconds.
 - **Wake Interval Mantissa (m):** Mantissa value for precise interval adjustments.
+- **Service Period (SP):** SP = WakeDuration * 256us.
+- **Wakeup Interval:** Wakeup Interval = wake_int_mantissa << WakeIntervalExponent us. 
 
 ### Example Commands(hostless):
-1. **SP = 12.8 ms, Wake Interval = 8.192 seconds:**
+1. **SP = 32.768 ms, Wake Interval = 8.192 seconds:**
    ```shell
    wifi_mgmr_sta_twt_setup -s 1 -t 1 -e 13 -n 128 -m 1000
    ```

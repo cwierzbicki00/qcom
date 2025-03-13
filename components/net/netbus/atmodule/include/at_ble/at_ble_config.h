@@ -14,7 +14,7 @@
 extern "C" {
 #endif
 
-#define BLE_CONN_MAX_NUM 1
+#define BLE_CONN_MAX_NUM 2
 
 #define BLE_SRV_MAX_NUM 3
 #define BLE_CHAR_MAX_NUM 5

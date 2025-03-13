@@ -114,6 +114,11 @@ void qcc74x_irq_set_nlbits(uint8_t nlbits);
  */
 void qcc74x_irq_set_priority(int irq, uint8_t preemptprio, uint8_t subprio);
 
+
+#if (defined(QCC74x_undef) && defined(CPU_LP))
+void qcc74x_undef_level2_irq_handler(int irq, void *arg0);
+#endif
+
 #ifdef __cplusplus
 }
 #endif

@@ -15,6 +15,9 @@ __RFTLV_SIZE_HOLE = 2K;
 __RFTLV_HEAD1_H = (0x46524C42); /* */
 __RFTLV_HEAD1_L = (0x41524150); /* PAPA */
 
+__lpfw_share_start = 0x63029000;
+__lpfw_share_end = __lpfw_share_start + 28K;
+
 VerOffset = 0xc00;
 
 MEMORY
@@ -120,6 +123,10 @@ SECTIONS
         *libgcc.a:_clzsi2.o*(.rodata)          
         *libgcc.a:_clz.o*(.text)               
         *libgcc.a:_clz.o*(.rodata)             
+        *liblhal.a:qcc74x_timer.c.o*(.text*)
+        *liblhal.a:qcc74x_timer.c.o*(.text.*)
+        *liblhal.a:qcc74x_timer.c.o*(.rodata*)
+        *liblhal.a:qcc74x_timer.c.o*(.rodata.*)
 
         INCLUDE run_in_function_high_performance.ld.in 
         
@@ -164,7 +171,9 @@ SECTIONS
         *at_core.c.o*(.text*)
         *at_core.c.o*(.rodata*)
         *at_net_main.c.o*(.text.at_net_client_is_connected)
-        *at_net_main.c.o*(.rodata.at_net_client_is_connected)
+        *at_net_main.c.o*(.rodata.at_net_client_is_connected*)
+        *at_net_main.c.o*(.rodata.net_socket_ipd*)
+        *at_net_main.c.o*(.text.net_socket_ipd*)
         *at_net_main.c.o*(.text.at_net_client_send_async)
         *at_net_main.c.o*(.rodata.at_net_client_send_async)
         *at_net_main.c.o*(.text.at_net_recvbuf_size_get)
@@ -267,9 +276,6 @@ SECTIONS
 
         PROVIDE( __global_pointer$ = . + 0x800 );
 
-        *libqcc74x_macsw*.a:*.o*(SORT_BY_NAME(.data*) SORT_BY_NAME(.sdata*))
-        *libqcc74x_fhost*.a:*.o*(SORT_BY_NAME(.data*) SORT_BY_NAME(.sdata*))
-        *libqcc74x_os_adapter.a:*.o*(SORT_BY_NAME(.data*) SORT_BY_NAME(.sdata*))
         *liblwip.a:*.o*(SORT_BY_NAME(.data*) SORT_BY_NAME(.sdata*))
         *libwifi6_lwip_adapter.a:*.o*(SORT_BY_NAME(.data*) SORT_BY_NAME(.sdata*))
         *libqcc743_phyrf.a:*.o*(SORT_BY_NAME(.data*) SORT_BY_NAME(.sdata*))
@@ -384,9 +390,6 @@ SECTIONS
         . = ALIGN(32);
         __bss_start__ = .;
 
-        *libqcc74x_macsw*.a:*.o*(SORT_BY_NAME(.bss*))
-        *libqcc74x_fhost*.a:*.o*(SORT_BY_NAME(.bss*))
-        *libqcc74x_os_adapter.a:*.o*(SORT_BY_NAME(.bss*))
         *liblwip.a:*.o*(SORT_BY_NAME(.bss*))
         *libwifi6_lwip_adapter.a:*.o*(SORT_BY_NAME(.bss*))
         *libqcc743_phyrf.a:*.o*(SORT_BY_NAME(.bss*))
@@ -490,9 +493,6 @@ SECTIONS
         . = ALIGN(32);
         __text_code_start__ = .;
 
-        *libqcc74x_macsw*.a:*.o*(SORT_BY_NAME(.text*) SORT_BY_NAME(.rodata*) SORT_BY_NAME(.srodata.*))
-        *libqcc74x_fhost*.a:*.o*(SORT_BY_NAME(.text*) SORT_BY_NAME(.rodata*) SORT_BY_NAME(.srodata.*))
-        *libqcc74x_os_adapter.a:*.o*(SORT_BY_NAME(.text*) SORT_BY_NAME(.rodata*) SORT_BY_NAME(.srodata.*))
         *liblwip.a:*.o*(SORT_BY_NAME(.text*) SORT_BY_NAME(.rodata*) SORT_BY_NAME(.srodata.*))
         *libwifi6_lwip_adapter.a:*.o*(SORT_BY_NAME(.text*) SORT_BY_NAME(.rodata*) SORT_BY_NAME(.srodata.*))
         *libqcc743_phyrf.a:*.o*(SORT_BY_NAME(.text*) SORT_BY_NAME(.rodata*) SORT_BY_NAME(.srodata.*))

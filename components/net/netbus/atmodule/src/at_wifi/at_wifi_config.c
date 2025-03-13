@@ -81,10 +81,8 @@ int at_wifi_config_init(void)
         at_wifi_config->auto_conn = WIFI_AUTOCONN_ENABLE;
     }
     if (!at_config_read(AT_CONFIG_KEY_WIFI_AP_PROTO, &at_wifi_config->ap_proto, sizeof(wifi_proto))) {
-        at_wifi_config->ap_proto.byte = 0x07;
-    }
+    } 
     if (!at_config_read(AT_CONFIG_KEY_WIFI_STA_PROTO, &at_wifi_config->sta_proto, sizeof(wifi_proto))) {
-        at_wifi_config->sta_proto.byte = 0x07;
     }
     if (!at_config_read(AT_CONFIG_KEY_WIFI_AP_IP, &at_wifi_config->ap_ip, sizeof(wifi_ip))) {
         at_wifi_config->ap_ip.ip = IP_SET_ADDR(192, 168, 4 , 1);
@@ -103,7 +101,11 @@ int at_wifi_config_init(void)
     if (!at_config_read(AT_CONFIG_KEY_WIFI_HOSTNAME, at_wifi_config->hostname, sizeof(at_wifi_config->hostname))) {
         strlcpy(at_wifi_config->hostname, "qcc74xWlan", sizeof(at_wifi_config->hostname));
     }
-
+    if (!at_config_read(AT_CONFIG_KEY_WIFI_ANTDIV, &at_wifi_config->ant_div, sizeof(at_wifi_config->ant_div))) {
+        at_wifi_config->ant_div.static_ant_div_enable = 0;
+        at_wifi_config->ant_div.dynamic_ant_div_enable = 0;
+        at_wifi_config->ant_div.ant_div_pin = 0;
+    }
     return 0;
 }
 
@@ -141,6 +143,8 @@ int at_wifi_config_save(const char *key)
         return at_config_write(key, at_wifi_config->hostname, sizeof(at_wifi_config->hostname));
     else if (strcmp(key, AT_CONFIG_KEY_WIFI_LAPOPT) == 0)
         return at_config_write(key, &at_wifi_config->scan_option, sizeof(at_wifi_config->scan_option));
+    else if (strcmp(key, AT_CONFIG_KEY_WIFI_ANTDIV) == 0)
+        return at_config_write(key, &at_wifi_config->ant_div, sizeof(at_wifi_config->ant_div));
     else
 
         return -1;
@@ -162,6 +166,9 @@ int at_wifi_config_default(void)
     ef_del_env(AT_CONFIG_KEY_WIFI_AP_IP);
     ef_del_env(AT_CONFIG_KEY_WIFI_STA_IP);
     ef_del_env(AT_CONFIG_KEY_WIFI_COUNTRY_CODE); 
+    ef_del_env(AT_CONFIG_KEY_WIFI_HOSTNAME); 
+    ef_del_env(AT_CONFIG_KEY_WIFI_LAPOPT); 
+    ef_del_env(AT_CONFIG_KEY_WIFI_ANTDIV); 
     return 0;
 }
 

@@ -34,13 +34,13 @@
   * @}
   */
 
-#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undefL)
+#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
 #define FLASH_XIP_BASE (0x23000000)
 #elif defined(QCC743)
 #define FLASH_XIP_BASE (0xA0000000)
-#elif defined(QCC74x_undef)
+#elif defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
 #define FLASH_XIP_BASE (0x80000000)
-#elif defined(QCC74x_undef) || defined(QCC74x_undefP)
+#elif defined(QCC74x_undef) || defined(QCC74x_undef)
 #define FLASH_XIP_BASE (0x58000000)
 #endif
 
@@ -80,7 +80,7 @@ uint32_t qcc74x_flash_get_jedec_id(void);
  */
 uint32_t qcc74x_flash_get_size(void);
 
-#if defined(QCC743) || defined(QCC74x_undef)
+#if defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
 /**
  * @brief get flash2 size
  *

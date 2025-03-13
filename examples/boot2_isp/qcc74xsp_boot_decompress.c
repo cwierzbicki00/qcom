@@ -228,6 +228,7 @@ int32_t qcc74xsp_boot2_update_fw(pt_table_id_type active_id, pt_table_stuff_conf
                                                        pt_entry->max_len[!(active_index & 0x01)], &new_fw_len)) {
         pt_entry->active_index = !(active_index & 0x01);
         pt_entry->len = new_fw_len;
+        /* use active age */
         pt_entry->age++;
         ret = pt_table_update_entry((pt_table_id_type)(!active_id), pt_stuff, pt_entry);
 

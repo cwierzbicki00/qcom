@@ -26,6 +26,9 @@
 #include "export/dbg/dbg_assert.h"
 #endif
 #include "export/csidma_cmd.h"
+#ifdef CONFIG_ANTDIV_STATIC
+#include "antenna_al.h"
+#endif
 
 void utils_al_parse_number_adv(const char *str, char sep, uint8_t *buf, int buflen, int base, int *count)
 {
@@ -714,6 +717,9 @@ void wifi_sta_info_cmd(int argc, char **argv)
     wifi_mgmr_sta_rssi_get(&rssi);
     wifi_mgmr_tpc_pwr_get(&power_table);
     fhost_print(RTOS_TASK_NULL, "================================================================\r\n");
+    #ifdef CONFIG_ANTDIV_STATIC
+    fhost_print(RTOS_TASK_NULL, "ANT :    %d\r\n", antenna_hal_get_current_antenna());
+    #endif
     fhost_print(RTOS_TASK_NULL, "RSSI:    %ddbm\r\n", rssi);
     fhost_print(RTOS_TASK_NULL, "IP  :    %s \r\n", ip4addr_ntoa(&addr));
     fhost_print(RTOS_TASK_NULL, "MASK:    %s \r\n", ip4addr_ntoa(&mask));
@@ -780,7 +786,7 @@ void wifi_mgmr_ap_start_cmd(int argc, char **argv)
     config.use_dhcpd = true;
 
     utils_al_getopt_init(&getopt_env, 0);
-    while ((opt = utils_al_getopt(&getopt_env, argc, argv, "b:s:k:c:a:d:t:h:i:I:S:L:")) != -1) {
+    while ((opt = utils_al_getopt(&getopt_env, argc, argv, "b:s:k:c:a:d:t:h:i:I:S:L:n:")) != -1) {
         switch (opt) {
 	case 'b':
 	    config.type = (uint8_t)atoi(getopt_env.optarg);
@@ -802,15 +808,15 @@ void wifi_mgmr_ap_start_cmd(int argc, char **argv)
 	    config.akm = getopt_env.optarg;
 	    break;
 
-        case 't':
+    case 't':
 	    config.ap_max_inactivity = (uint32_t)atoi(getopt_env.optarg);
 	    break;
 
-        case 'h':
+    case 'h':
 	    config.hidden_ssid = (uint32_t)atoi(getopt_env.optarg);
 	    break;
 
-        case 'i':
+    case 'i':
 	    config.isolation = (uint32_t)atoi(getopt_env.optarg);
 	    break;
 
@@ -825,13 +831,17 @@ void wifi_mgmr_ap_start_cmd(int argc, char **argv)
                 printf("ap mode ipaddr is not x.x.x.1 \r\n");
 	    break;
 
-        case 'S':
+    case 'S':
 	    config.start = atoi(getopt_env.optarg);
 	    break;
 
 	case 'L':
 	    config.limit = atoi(getopt_env.optarg);
 	    break;
+
+    case 'n':
+        config.bcn_interval = atoi(getopt_env.optarg);
+        break;
 
 	case '?':
 	    printf("unknow option: %c \r\n", getopt_env.optopt);
@@ -849,7 +859,7 @@ void wifi_mgmr_ap_start_cmd(int argc, char **argv)
     return;
 
  _ERROUT:
-    printf("[USAGE]: %s -s <ssid> [-k <key>] [-c <channel>] [-a <akm>] [-d 0/1 <start dhcp server>] [-I <ipv4_addr>] [-S <dhcpd_start>] [-L <dhcpd_limit>] \r\n", argv[0]);
+    printf("[USAGE]: %s -s <ssid> [-k <key>] [-c <channel>] [-a <akm>] [-d 0/1 <start dhcp server>] [-I <ipv4_addr>] [-S <dhcpd_start>] [-L <dhcpd_limit>] [-n <bcn_interval>]\r\n", argv[0]);
     return;
 }
 
@@ -1028,6 +1038,7 @@ SHELL_CMD_EXPORT_ALIAS(cmd_ac_set, ac_set, access_category config);
 #ifdef CFG_FOR_COEXISTENCE_TEST_STOPAP_PATCH
 SHELL_CMD_EXPORT_ALIAS(cmd_ap_stop, ap_stop, ap stop);
 #endif
+SHELL_CMD_EXPORT_ALIAS(wifi_ap_bcn_mode_set_cmd, bcn_mode_set, wifi ap bcn mode set);
 SHELL_CMD_EXPORT_ALIAS(wifi_scan_cmd, wifi_scan, wifi scan);
 SHELL_CMD_EXPORT_ALIAS(wifi_connect_cmd, wifi_sta_connect, wifi station connect);
 SHELL_CMD_EXPORT_ALIAS(wifi_disconnect_cmd, wifi_sta_disconnect, wifi station disconnect);
@@ -1069,6 +1080,7 @@ SHELL_CMD_EXPORT_ALIAS(cmd_iperf, iperf, iperf test throughput);
 #ifdef CFG_RAW_SEND_ENABLE
 SHELL_CMD_EXPORT_ALIAS(cmd_wifi_raw_send, wifi_raw_send, wifi raw send test);
 #endif
+SHELL_CMD_EXPORT_ALIAS(cmd_wifi_wps_pbc, wps_pbc, Start wps pbc for sta);
 SHELL_CMD_EXPORT_ALIAS(cmd_rc, rc, Print the Rate Control Table);
 SHELL_CMD_EXPORT_ALIAS(cmd_rate, rate, set g_fw_rate);
 SHELL_CMD_EXPORT_ALIAS(cmd_non_pref_chan, non_pref_chan, set non_pref_chan);

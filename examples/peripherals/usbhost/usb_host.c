@@ -1,3 +1,5 @@
+#include "qcc74x_mtimer.h"
+
 #include "usbh_core.h"
 #include "usbh_cdc_acm.h"
 #include "usbh_hid.h"
@@ -8,23 +10,32 @@
 #define TEST_USBH_CDC_ACM   1
 #define TEST_USBH_HID       1
 #define TEST_USBH_MSC       1
-#define TEST_USBH_MSC_FATFS 0
+#define TEST_USBH_MSC_FATFS 1
 #define TEST_USBH_CDC_ECM   1
 #define TEST_USBH_RNDIS     0
 
 #if TEST_USBH_CDC_ACM
-USB_NOCACHE_RAM_SECTION USB_MEM_ALIGNX uint8_t cdc_buffer[512];
 
-void usbh_cdc_acm_callback(void *arg, int nbytes)
+#define ACM_TEST_SIZE (2 * 1024)
+
+volatile uint32_t in_size = 0, in_offset = 0, out_size = 0;
+
+USB_NOCACHE_RAM_SECTION USB_MEM_ALIGNX uint8_t cdc_acm_in_buffer[ACM_TEST_SIZE];  /* <16K */
+USB_NOCACHE_RAM_SECTION USB_MEM_ALIGNX uint8_t cdc_acm_out_buffer[ACM_TEST_SIZE - 1]; /* <16K */
+
+void usbh_cdc_acm_out_callback(void *arg, int nbytes)
 {
     //struct usbh_cdc_acm *cdc_acm_class = (struct usbh_cdc_acm *)arg;
+    // USB_LOG_RAW("acm_out nbytes:%d\r\n", nbytes);
+    out_size += nbytes;
+}
 
-    if (nbytes > 0) {
-        for (size_t i = 0; i < nbytes; i++) {
-            USB_LOG_RAW("0x%02x ", cdc_buffer[i]);
-        }
-        USB_LOG_RAW("nbytes:%d\r\n", nbytes);
-    }
+void usbh_cdc_acm_in_callback(void *arg, int nbytes)
+{
+    //struct usbh_cdc_acm *cdc_acm_class = (struct usbh_cdc_acm *)arg;
+    // USB_LOG_RAW("acm_in nbytes:%d\r\n", nbytes);
+    in_size += nbytes;
+    in_offset += nbytes;
 }
 
 static void usbh_cdc_acm_thread(void *argument)
@@ -39,26 +50,49 @@ find_class:
         goto delete;
     }
 
-    memset(cdc_buffer, 0, 512);
-
-    const uint8_t data1[10] = { 0x02, 0x00, 0x00, 0x00, 0x02, 0x02, 0x08, 0x14 };
-
-    memcpy(cdc_buffer, data1, 10);
-    usbh_bulk_urb_fill(&cdc_acm_class->bulkout_urb, cdc_acm_class->hport, cdc_acm_class->bulkout, cdc_buffer, 10, 3000, NULL, NULL);
-    ret = usbh_submit_urb(&cdc_acm_class->bulkout_urb);
-    if (ret < 0) {
-        USB_LOG_RAW("bulk out error,ret:%d\r\n", ret);
-        goto find_class;
-    } else {
-        USB_LOG_RAW("send over:%d\r\n", cdc_acm_class->bulkout_urb.actual_length);
+    for (int i = 0; i < sizeof(cdc_acm_out_buffer); i++) {
+        cdc_acm_out_buffer[i] = (uint8_t)i;
     }
 
-    usbh_bulk_urb_fill(&cdc_acm_class->bulkin_urb, cdc_acm_class->hport, cdc_acm_class->bulkin, cdc_buffer, cdc_acm_class->bulkin->wMaxPacketSize, 3000, usbh_cdc_acm_callback, cdc_acm_class);
-    ret = usbh_submit_urb(&cdc_acm_class->bulkin_urb);
-    if (ret < 0) {
-        USB_LOG_RAW("bulk in error,ret:%d\r\n", ret);
-    } else {
+    out_size = 0;
+    in_size = 0;
+
+    /* clean input buff */
+    // usbh_bulk_urb_fill(&cdc_acm_class->bulkin_urb, cdc_acm_class->hport, cdc_acm_class->bulkin, cdc_acm_in_buffer, sizeof(cdc_acm_in_buffer), 100, usbh_cdc_acm_in_callback, cdc_acm_class);
+    // usbh_submit_urb(&cdc_acm_class->bulkin_urb);
+
+    uint32_t time_node = qcc74x_mtimer_get_time_ms();
+
+    for (int i = 0; i < 1000; i++) {
+        // USB_LOG_RAW("test cnt: %d\r\n", i);
+
+        usbh_bulk_urb_fill(&cdc_acm_class->bulkout_urb, cdc_acm_class->hport, cdc_acm_class->bulkout, cdc_acm_out_buffer, sizeof(cdc_acm_out_buffer), 3000, usbh_cdc_acm_out_callback, cdc_acm_class);
+        ret = usbh_submit_urb(&cdc_acm_class->bulkout_urb);
+        if (ret < 0) {
+            USB_LOG_RAW("bulk out error,ret:%d\r\n", ret);
+            goto delete;
+        }
+
+        for (in_offset = 0; in_offset < sizeof(cdc_acm_out_buffer);) {
+            usbh_bulk_urb_fill(&cdc_acm_class->bulkin_urb, cdc_acm_class->hport, cdc_acm_class->bulkin, &cdc_acm_in_buffer[in_offset], (sizeof(cdc_acm_in_buffer) - in_offset), 3000, usbh_cdc_acm_in_callback, cdc_acm_class);
+            ret = usbh_submit_urb(&cdc_acm_class->bulkin_urb);
+            if (ret < 0) {
+                USB_LOG_RAW("bulk in error,ret:%d\r\n", ret);
+                goto delete;
+            }
+        }
+
+        /* data check */
+        // for (int i = 0; i < sizeof(cdc_acm_in_buffer) / 4; i++) {
+        //     if (((uint32_t *)cdc_acm_in_buffer)[i] != ((uint32_t *)cdc_acm_out_buffer)[i]) {
+        //         USB_LOG_RAW("data error, i:%d, data:0x%08X->0x%08X\r\n", i, ((uint32_t *)cdc_acm_out_buffer)[i], ((uint32_t *)cdc_acm_in_buffer)[i]);
+        //     }
+        // }
     }
+
+    time_node = qcc74x_mtimer_get_time_ms() - time_node;
+    USB_LOG_RAW("time:%dms, in_size:%d, out_size:%d, speed:%dByte/s\r\n", time_node, in_size, out_size, (in_size + out_size) * 1000 / time_node);
+
     // clang-format off
 delete: 
     usb_osal_thread_delete(NULL);
@@ -110,66 +144,151 @@ delete:
 
 #if TEST_USBH_MSC_FATFS
 #include "ff.h"
-
-USB_NOCACHE_RAM_SECTION USB_MEM_ALIGNX uint8_t read_write_buffer[25 * 100];
-
 USB_NOCACHE_RAM_SECTION FATFS fs;
 USB_NOCACHE_RAM_SECTION FIL fnew;
-UINT fnum;
-FRESULT res_sd = 0;
 
-int usb_msc_fatfs_test()
+char test_data[] =
+    "I've been reading books of old \r\n\
+    The legends and the myths \r\n\
+    Achilles and his gold \r\n\
+    Hercules and his gifts \r\n\
+    Spiderman's control \r\n\
+    And Batman with his fists\r\n\
+    And clearly I don't see myself upon that list\r\n\
+    But she said, where'd you wanna go?\r\n\
+    How much you wanna risk?\r\n\
+    I'm not looking for somebody\r\n\
+    With some superhuman gifts\r\n\
+    Some superhero\r\n\
+    Some fairytale bliss\r\n\
+    Just something I can turn to\r\n\
+    Somebody I can kiss\r\n\
+    I want something just like this\r\n\r\n";
+
+USB_NOCACHE_RAM_SECTION BYTE RW_Buffer[32 * 1024] = { 0 };
+USB_NOCACHE_RAM_SECTION BYTE Check_Buffer[sizeof(RW_Buffer)] = { 0 };
+
+void fatfs_write_read_test()
 {
-    const char *tmp_data = "cherryusb fatfs demo...\r\n";
+    FRESULT ret;
+    UINT fnum;
 
-    USB_LOG_RAW("data len:%d\r\n", strlen(tmp_data));
-    for (uint32_t i = 0; i < 100; i++) {
-        memcpy(&read_write_buffer[i * 25], tmp_data, strlen(tmp_data));
+    uint32_t time_node, i, j;
+
+    /* full test data to buff */
+    for (uint32_t cnt = 0; cnt < (sizeof(RW_Buffer) / sizeof(test_data)); cnt++) {
+        memcpy(&RW_Buffer[cnt * sizeof(test_data)], test_data, sizeof(test_data));
+        memcpy(&Check_Buffer[cnt * sizeof(test_data)], test_data, sizeof(test_data));
     }
 
-    res_sd = f_mount(&fs, "/usb", 1);
-    if (res_sd != FR_OK) {
-        USB_LOG_RAW("mount fail,res:%d\r\n", res_sd);
-        return -1;
-    }
-
-    USB_LOG_RAW("test fatfs write\r\n");
-    res_sd = f_open(&fnew, "/usb/test.txt", FA_CREATE_ALWAYS | FA_WRITE);
-    if (res_sd == FR_OK) {
-        res_sd = f_write(&fnew, read_write_buffer, sizeof(read_write_buffer), &fnum);
-        if (res_sd == FR_OK) {
-            USB_LOG_RAW("write success, write len:%d\n", fnum);
-        } else {
-            USB_LOG_RAW("write fail\r\n");
-            goto unmount;
+    /* write test */
+    USB_LOG_RAW("\r\n");
+    USB_LOG_INFO("******************** be about to write test... **********************\r\n");
+    ret = f_open(&fnew, "/usb/test_file.txt", FA_CREATE_ALWAYS | FA_WRITE);
+    if (ret == FR_OK) {
+        time_node = (uint32_t)qcc74x_mtimer_get_time_ms();
+        /*write into file*/
+        // ret = f_write(&fnew, RW_Buffer, 1024, &fnum);
+        for (i = 0; i < 1024; i++) {
+            ret = f_write(&fnew, RW_Buffer, sizeof(RW_Buffer), &fnum);
+            if (ret) {
+                break;
+            }
         }
-        f_close(&fnew);
-    } else {
-        USB_LOG_RAW("open fail\r\n");
-        goto unmount;
-    }
-    USB_LOG_RAW("test fatfs read\r\n");
 
-    res_sd = f_open(&fnew, "/usb/test.txt", FA_OPEN_EXISTING | FA_READ);
-    if (res_sd == FR_OK) {
-        res_sd = f_read(&fnew, read_write_buffer, sizeof(read_write_buffer), &fnum);
-        if (res_sd == FR_OK) {
-            USB_LOG_RAW("read success, read len:%d\n", fnum);
+        /* close file */
+        ret |= f_close(&fnew);
+        /* get time */
+        time_node = (uint32_t)qcc74x_mtimer_get_time_ms() - time_node;
+
+        if (ret == FR_OK) {
+            USB_LOG_INFO("Write Test Succeed! \r\n");
+            USB_LOG_INFO("Single data size:%d Byte, Write the number:%d, Total size:%d KB\r\n", sizeof(RW_Buffer), i, sizeof(RW_Buffer) * i >> 10);
+            USB_LOG_INFO("Time:%dms, Write Speed:%d KB/s \r\n", time_node, ((sizeof(RW_Buffer) * i) >> 10) * 1000 / time_node);
         } else {
-            USB_LOG_RAW("read fail\r\n");
-            goto unmount;
+            USB_LOG_ERR("Fail to write files(%d) num:%d\n", ret, i);
+            return;
         }
-        f_close(&fnew);
     } else {
-        USB_LOG_RAW("open fail\r\n");
-        goto unmount;
+        USB_LOG_ERR("Fail to open or create files: %d.\r\n", ret);
+        return;
     }
-    f_mount(NULL, "/usb", 1);
-    return 0;
-unmount:
-    f_mount(NULL, "/usb", 1);
-    return -1;
+
+    /* read test */
+    USB_LOG_RAW("\r\n");
+    USB_LOG_INFO("******************** be about to read test... **********************\r\n");
+    ret = f_open(&fnew, "/usb/test_file.txt", FA_OPEN_EXISTING | FA_READ);
+    if (ret == FR_OK) {
+        time_node = (uint32_t)qcc74x_mtimer_get_time_ms();
+
+        // ret = f_read(&fnew, RW_Buffer, 1024, &fnum);
+        for (i = 0; i < 1024; i++) {
+            ret = f_read(&fnew, RW_Buffer, sizeof(RW_Buffer), &fnum);
+            if (ret) {
+                break;
+            }
+        }
+        /* close file */
+        ret |= f_close(&fnew);
+        /* get time */
+        time_node = (uint32_t)qcc74x_mtimer_get_time_ms() - time_node;
+
+        if (ret == FR_OK) {
+            USB_LOG_INFO("Read Test Succeed! \r\n");
+            USB_LOG_INFO("Single data size:%dByte, Read the number:%d, Total size:%d KB\r\n", sizeof(RW_Buffer), i, sizeof(RW_Buffer) * i >> 10);
+            USB_LOG_INFO("Time:%dms, Read Speed:%d KB/s \r\n", time_node, ((sizeof(RW_Buffer) * i) >> 10) * 1000 / time_node);
+        } else {
+            USB_LOG_ERR("Fail to read file: (%d), num:%d\n", ret, i);
+            return;
+        }
+    } else {
+        USB_LOG_ERR("Fail to open files.\r\n");
+        return;
+    }
+
+    /* check data */
+    USB_LOG_RAW("\r\n");
+    USB_LOG_INFO("******************** be about to check test... **********************\r\n");
+    ret = f_open(&fnew, "/usb/test_file.txt", FA_OPEN_EXISTING | FA_READ);
+    if (ret == FR_OK) {
+        // ret = f_read(&fnew, RW_Buffer, 1024, &fnum);
+        for (i = 0; i < 1024; i++) {
+            memset(RW_Buffer, 0x55, sizeof(RW_Buffer));
+            ret = f_read(&fnew, RW_Buffer, sizeof(RW_Buffer), &fnum);
+            if (ret) {
+                break;
+            }
+            for (j = 0; j < sizeof(RW_Buffer); j++) {
+                if (RW_Buffer[j] != Check_Buffer[j]) {
+                    break;
+                }
+            }
+            if (j < sizeof(RW_Buffer)) {
+                break;
+            }
+        }
+        /* close file */
+        ret |= f_close(&fnew);
+
+        if (ret == FR_OK) {
+            if (i < 1024 || j < sizeof(RW_Buffer)) {
+                USB_LOG_INFO("Check Test Error! \r\n");
+                USB_LOG_INFO("Data Error!  Num:%d/1024, Byte:%d/%d", i, j, sizeof(RW_Buffer));
+            } else {
+                USB_LOG_INFO("Check Test Succeed! \r\n");
+                USB_LOG_INFO("All Data Is Good! \r\n");
+            }
+
+        } else {
+            USB_LOG_ERR("Fail to read file: (%d), num:%d\n", ret, i);
+            return;
+        }
+    } else {
+        USB_LOG_ERR("Fail to open files.\r\n");
+        return;
+    }
 }
+
 #endif
 
 USB_NOCACHE_RAM_SECTION USB_MEM_ALIGNX uint8_t partition_table[512];
@@ -193,19 +312,28 @@ find_class:
         USB_LOG_RAW("scsi_read10 error,ret:%d\r\n", ret);
         goto find_class;
     }
-    for (uint32_t i = 0; i < 512; i++) {
-        if (i % 16 == 0) {
-            USB_LOG_RAW("\r\n");
-        }
-        USB_LOG_RAW("%02x ", partition_table[i]);
-    }
-    USB_LOG_RAW("\r\n");
+    // for (uint32_t i = 0; i < 512; i++) {
+    //     if (i % 16 == 0) {
+    //         USB_LOG_RAW("\r\n");
+    //     }
+    //     USB_LOG_RAW("%02x ", partition_table[i]);
+    // }
+    // USB_LOG_RAW("\r\n");
 #endif
 
 #if TEST_USBH_MSC_FATFS
     extern void fatfs_usbh_driver_register(void);
     fatfs_usbh_driver_register();
-    usb_msc_fatfs_test();
+
+    ret = f_mount(&fs, "/usb", 1);
+    if (FR_OK != ret) {
+        USB_LOG_RAW("mount fail, res: %d\r\n", ret);
+        goto delete;
+    }
+
+    fatfs_write_read_test();
+
+    f_mount(NULL, "/usb", 1);
 #endif
     // clang-format off
 delete: 

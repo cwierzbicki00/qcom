@@ -50,7 +50,7 @@
 #define EF_CTRL_EF_IF_0_CYC_MODIFY_LEN         (1U)
 #define EF_CTRL_EF_IF_0_CYC_MODIFY_MASK        (((1U << EF_CTRL_EF_IF_0_CYC_MODIFY_LEN) - 1) << EF_CTRL_EF_IF_0_CYC_MODIFY_POS)
 #define EF_CTRL_EF_IF_0_CYC_MODIFY_UMASK       (~(((1U << EF_CTRL_EF_IF_0_CYC_MODIFY_LEN) - 1) << EF_CTRL_EF_IF_0_CYC_MODIFY_POS))
-#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undefL)
+#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
 #define EF_CTRL_EF_CLK_SAHB_DATA_SEL       EF_CTRL_EF_CLK_SAHB_DATA_SEL
 #define EF_CTRL_EF_CLK_SAHB_DATA_SEL_POS   (7U)
 #define EF_CTRL_EF_CLK_SAHB_DATA_SEL_LEN   (1U)
@@ -67,7 +67,7 @@
 #define EF_CTRL_EF_IF_POR_DIG_LEN          (1U)
 #define EF_CTRL_EF_IF_POR_DIG_MASK         (((1U << EF_CTRL_EF_IF_POR_DIG_LEN) - 1) << EF_CTRL_EF_IF_POR_DIG_POS)
 #define EF_CTRL_EF_IF_POR_DIG_UMASK        (~(((1U << EF_CTRL_EF_IF_POR_DIG_LEN) - 1) << EF_CTRL_EF_IF_POR_DIG_POS))
-#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undefL)
+#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
 #define EF_CTRL_EF_CLK_SAHB_DATA_GATE       EF_CTRL_EF_CLK_SAHB_DATA_GATE
 #define EF_CTRL_EF_CLK_SAHB_DATA_GATE_POS   (17U)
 #define EF_CTRL_EF_CLK_SAHB_DATA_GATE_LEN   (1U)
@@ -111,8 +111,36 @@
 #define EF_CTRL_EF_IF_PROT_CODE_CYC_MASK    (((1U << EF_CTRL_EF_IF_PROT_CODE_CYC_LEN) - 1) << EF_CTRL_EF_IF_PROT_CODE_CYC_POS)
 #define EF_CTRL_EF_IF_PROT_CODE_CYC_UMASK   (~(((1U << EF_CTRL_EF_IF_PROT_CODE_CYC_LEN) - 1) << EF_CTRL_EF_IF_PROT_CODE_CYC_POS))
 
+/* 0x808*/
+#define EF_CTRL_EF_IF_CYC_PI                EF_CTRL_EF_IF_CYC_PI
+#define EF_CTRL_EF_IF_CYC_PI_POS            (0U)
+#define EF_CTRL_EF_IF_CYC_PI_LEN            (6U)
+#define EF_CTRL_EF_IF_CYC_PI_MASK           (((1U << EF_CTRL_EF_IF_CYC_PI_LEN) - 1) << EF_CTRL_EF_IF_CYC_PI_POS)
+#define EF_CTRL_EF_IF_CYC_PI_UMASK          (~(((1U << EF_CTRL_EF_IF_CYC_PI_LEN) - 1) << EF_CTRL_EF_IF_CYC_PI_POS))
+#define EF_CTRL_EF_IF_CYC_PP                EF_CTRL_EF_IF_CYC_PP
+#define EF_CTRL_EF_IF_CYC_PP_POS            (6U)
+#define EF_CTRL_EF_IF_CYC_PP_LEN            (8U)
+#define EF_CTRL_EF_IF_CYC_PP_MASK           (((1U << EF_CTRL_EF_IF_CYC_PP_LEN) - 1) << EF_CTRL_EF_IF_CYC_PP_POS)
+#define EF_CTRL_EF_IF_CYC_PP_UMASK          (~(((1U << EF_CTRL_EF_IF_CYC_PP_LEN) - 1) << EF_CTRL_EF_IF_CYC_PP_POS))
+#define EF_CTRL_EF_IF_CYC_WR_ADR            EF_CTRL_EF_IF_CYC_WR_ADR
+#define EF_CTRL_EF_IF_CYC_WR_ADR_POS        (14U)
+#define EF_CTRL_EF_IF_CYC_WR_ADR_LEN        (6U)
+#define EF_CTRL_EF_IF_CYC_WR_ADR_MASK       (((1U << EF_CTRL_EF_IF_CYC_WR_ADR_LEN) - 1) << EF_CTRL_EF_IF_CYC_WR_ADR_POS)
+#define EF_CTRL_EF_IF_CYC_WR_ADR_UMASK      (~(((1U << EF_CTRL_EF_IF_CYC_WR_ADR_LEN) - 1) << EF_CTRL_EF_IF_CYC_WR_ADR_POS))
+#define EF_CTRL_EF_IF_CYC_PS_CS             EF_CTRL_EF_IF_CYC_PS_CS
+#define EF_CTRL_EF_IF_CYC_PS_CS_POS         (20U)
+#define EF_CTRL_EF_IF_CYC_PS_CS_LEN         (6U)
+#define EF_CTRL_EF_IF_CYC_PS_CS_MASK        (((1U << EF_CTRL_EF_IF_CYC_PS_CS_LEN) - 1) << EF_CTRL_EF_IF_CYC_PS_CS_POS)
+#define EF_CTRL_EF_IF_CYC_PS_CS_UMASK       (~(((1U << EF_CTRL_EF_IF_CYC_PS_CS_LEN) - 1) << EF_CTRL_EF_IF_CYC_PS_CS_POS))
+#define EF_CTRL_EF_IF_CYC_PS_CS_H           EF_CTRL_EF_IF_CYC_PS_CS_H
+#define EF_CTRL_EF_IF_CYC_PS_CS_H_POS       (26U)
+#define EF_CTRL_EF_IF_CYC_PS_CS_H_LEN       (6U)
+#define EF_CTRL_EF_IF_CYC_PS_CS_H_MASK      (((1U << EF_CTRL_EF_IF_CYC_PS_CS_H_LEN) - 1) << EF_CTRL_EF_IF_CYC_PS_CS_H_POS)
+#define EF_CTRL_EF_IF_CYC_PS_CS_H_UMASK     (~(((1U << EF_CTRL_EF_IF_CYC_PS_CS_H_LEN) - 1) << EF_CTRL_EF_IF_CYC_PS_CS_H_POS))
+
+
 /* 0x80C : ef_if_0_manual, 606P and 808 manual config is the same but not need witch clock */
-#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undefL) || defined(QCC74x_undefP) || defined(QCC74x_undef)
+#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
 #define EF_CTRL_EF_IF_0_MANUAL_OFFSET        (0x80C)
 #define EF_CTRL_EF_IF_A                      EF_CTRL_EF_IF_A
 #define EF_CTRL_EF_IF_A_POS                  (0U)
@@ -162,11 +190,41 @@
 #else
 /* 0x80C : ef_if_0_manual_0 */
 #define EF_CTRL_EF_IF_0_MANUAL_0_OFFSET      (0x80C)
+
+#if defined(QCC74x_undef)
+#define EF_CTRL_EF_IF_A                      EF_CTRL_EF_IF_A
+#define EF_CTRL_EF_IF_A_POS                  (0U)
+#define EF_CTRL_EF_IF_A_LEN                  (10U)
+#define EF_CTRL_EF_IF_A_MASK                 (((1U << EF_CTRL_EF_IF_A_LEN) - 1) << EF_CTRL_EF_IF_A_POS)
+#define EF_CTRL_EF_IF_A_UMASK                (~(((1U << EF_CTRL_EF_IF_A_LEN) - 1) << EF_CTRL_EF_IF_A_POS))
+#define EF_CTRL_EF_IF_MR                     EF_CTRL_EF_IF_MR
+#define EF_CTRL_EF_IF_MR_POS                 (10U)
+#define EF_CTRL_EF_IF_MR_LEN                 (1U)
+#define EF_CTRL_EF_IF_MR_MASK                (((1U << EF_CTRL_EF_IF_MR_LEN) - 1) << EF_CTRL_EF_IF_MR_POS)
+#define EF_CTRL_EF_IF_MR_UMASK               (~(((1U << EF_CTRL_EF_IF_MR_LEN) - 1) << EF_CTRL_EF_IF_MR_POS))
+#define EF_CTRL_EF_IF_RDWL                   EF_CTRL_EF_IF_RDWL
+#define EF_CTRL_EF_IF_RDWL_POS               (11U)
+#define EF_CTRL_EF_IF_RDWL_LEN               (1U)
+#define EF_CTRL_EF_IF_RDWL_MASK              (((1U << EF_CTRL_EF_IF_RDWL_LEN) - 1) << EF_CTRL_EF_IF_RDWL_POS)
+#define EF_CTRL_EF_IF_RDWL_UMASK             (~(((1U << EF_CTRL_EF_IF_RDWL_LEN) - 1) << EF_CTRL_EF_IF_RDWL_POS))
+#define EF_CTRL_EF_IF_RDENB                  EF_CTRL_EF_IF_RDENB
+#define EF_CTRL_EF_IF_RDENB_POS              (12U)
+#define EF_CTRL_EF_IF_RDENB_LEN              (1U)
+#define EF_CTRL_EF_IF_RDENB_MASK             (((1U << EF_CTRL_EF_IF_RDENB_LEN) - 1) << EF_CTRL_EF_IF_RDENB_POS)
+#define EF_CTRL_EF_IF_RDENB_UMASK            (~(((1U << EF_CTRL_EF_IF_RDENB_LEN) - 1) << EF_CTRL_EF_IF_RDENB_POS))
+#define EF_CTRL_EF_IF_RDF                    EF_CTRL_EF_IF_RDF
+#define EF_CTRL_EF_IF_RDF_POS                (13U)
+#define EF_CTRL_EF_IF_RDF_LEN                (4U)
+#define EF_CTRL_EF_IF_RDF_MASK               (((1U << EF_CTRL_EF_IF_RDF_LEN) - 1) << EF_CTRL_EF_IF_RDF_POS)
+#define EF_CTRL_EF_IF_RDF_UMASK              (~(((1U << EF_CTRL_EF_IF_RDF_LEN) - 1) << EF_CTRL_EF_IF_RDF_POS))
+#else
 #define EF_CTRL_EF_IF_A                      EF_CTRL_EF_IF_A
 #define EF_CTRL_EF_IF_A_POS                  (0U)
 #define EF_CTRL_EF_IF_A_LEN                  (12U)
 #define EF_CTRL_EF_IF_A_MASK                 (((1U << EF_CTRL_EF_IF_A_LEN) - 1) << EF_CTRL_EF_IF_A_POS)
 #define EF_CTRL_EF_IF_A_UMASK                (~(((1U << EF_CTRL_EF_IF_A_LEN) - 1) << EF_CTRL_EF_IF_A_POS))
+#endif /* end of #if defined(QCC74x_undef) */
+
 #define EF_CTRL_EF_IF_PD                     EF_CTRL_EF_IF_PD
 #define EF_CTRL_EF_IF_PD_POS                 (18U)
 #define EF_CTRL_EF_IF_PD_LEN                 (1U)
@@ -204,7 +262,7 @@
 #define EF_CTRL_EF_IF_PROT_CODE_MANUAL_UMASK (~(((1U << EF_CTRL_EF_IF_PROT_CODE_MANUAL_LEN) - 1) << EF_CTRL_EF_IF_PROT_CODE_MANUAL_POS))
 #endif
 
-#if defined(QCC74x_undefP) || defined(QCC74x_undef)
+#if defined(QCC74x_undef) || defined(QCC74x_undef)
 /* 0x900 : ef_if_ctrl_1 */
 #define EF_CTRL_EF_IF_CTRL_1_OFFSET      (0x900)
 #define EF_CTRL_EF_IF_1_BUSY             EF_CTRL_EF_IF_1_BUSY

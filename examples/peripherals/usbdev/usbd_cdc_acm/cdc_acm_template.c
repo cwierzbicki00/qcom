@@ -106,11 +106,11 @@ static const uint8_t cdc_descriptor[] = {
     0x00
 };
 
-USB_NOCACHE_RAM_SECTION USB_MEM_ALIGNX uint8_t read_buffer[2048];
-USB_NOCACHE_RAM_SECTION USB_MEM_ALIGNX uint8_t write_buffer[2048];
+USB_NOCACHE_RAM_SECTION USB_MEM_ALIGNX uint8_t read_buffer[16 * 1024];
+USB_NOCACHE_RAM_SECTION USB_MEM_ALIGNX uint8_t write_buffer[16 * 1024];
 
 Ring_Buffer_Type loopback_rb;
-USB_NOCACHE_RAM_SECTION USB_MEM_ALIGNX uint8_t loopback_rb_buffer[4096];
+USB_NOCACHE_RAM_SECTION USB_MEM_ALIGNX uint8_t loopback_rb_buffer[64 * 1024];
 
 volatile bool ep_tx_busy_flag = false;
 
@@ -150,7 +150,7 @@ void usbd_event_handler(uint8_t event)
 
 void usbd_cdc_acm_bulk_out(uint8_t ep, uint32_t nbytes)
 {
-    USB_LOG_RAW("dnld done, size: %d\r\n", nbytes);
+    // USB_LOG_RAW("dnld done, size: %d\r\n", nbytes);
 
     if (Ring_Buffer_Get_Empty_Length(&loopback_rb) < nbytes) {
         USB_LOG_RAW("ringbuff FULL\r\n");
@@ -171,7 +171,7 @@ void usbd_cdc_acm_bulk_in(uint8_t ep, uint32_t nbytes)
         usbd_ep_start_write(CDC_IN_EP, NULL, 0);
     } else {
         ep_tx_busy_flag = false;
-        USB_LOG_RAW("upld done\r\n");
+        // USB_LOG_RAW("upld done\r\n");
     }
 }
 
@@ -227,7 +227,7 @@ void cdc_acm_data_send_poll(void)
 
     Ring_Buffer_Read(&loopback_rb, (uint8_t *)&write_buffer, size);
 
-    USB_LOG_RAW("upld size: %d\r\n", size);
+    // USB_LOG_RAW("upld size: %d\r\n", size);
 
     ep_tx_busy_flag = true;
     usbd_ep_start_write(CDC_IN_EP, write_buffer, size);

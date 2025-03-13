@@ -137,6 +137,9 @@ void wireless_spur_init(void);
 #define WL_CFG_LOG_LEVEL     WL_CFG_LOG_INFO  // Default to INFO level
 #endif
 
+#if 1
+#define WL_CFG_LOG(level, fmt, ...) do {} while(0)
+#else
 // Debug log macros
 #define WL_CFG_LOG(level, fmt, ...) \
     do { \
@@ -149,6 +152,7 @@ void wireless_spur_init(void);
                    ##__VA_ARGS__); \
         } \
     } while(0)
+#endif
 
 #define WL_CFG_ERROR(fmt, ...)   WL_CFG_LOG(WL_CFG_LOG_ERROR, fmt, ##__VA_ARGS__)
 #define WL_CFG_WARNING(fmt, ...) WL_CFG_LOG(WL_CFG_LOG_WARNING, fmt, ##__VA_ARGS__)

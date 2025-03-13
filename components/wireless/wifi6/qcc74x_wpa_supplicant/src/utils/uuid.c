@@ -10,7 +10,7 @@
 
 #include "common.h"
 #include "crypto/sha256.h"
-#include "uuid.h"
+#include "wpa_uuid.h"
 
 int uuid_str2bin(const char *str, u8 *bin)
 {

@@ -235,7 +235,12 @@ struct_func_dcl(mm_bcn_change_req, uint16_t, tim_oft);
 struct_func_dcl(mm_bcn_change_req, uint8_t, tim_len);
 struct_func_dcl(mm_bcn_change_req, uint8_t, inst_nbr);
 void mm_bcn_change_req_set_csa_oft(void *pa, uint8_t val, int i);;
-struct_func_len(mm_bcn_change_req);;
+struct_func_len(mm_bcn_change_req);
+
+struct_func_dcl(mm_bcn_control_req, uint8_t, bcn_tx_mode);
+struct_func_dcl(mm_bcn_control_req, int, bcn_tx_timer);
+struct_func_dcl(mm_bcn_control_req, bool, bcn_tx_stop);
+struct_func_len(mm_bcn_control_req);
 
 struct_func_dcl(me_sta_add_req, struct mac_addr, mac_addr);
 struct_func_dcl(me_sta_add_req, struct mac_rateset, rate_set);
