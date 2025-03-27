@@ -189,11 +189,11 @@ static int at_clock_source_set_cmd(int argc, const char **argv)
 
 static int at_clock_source_get_cmd(int argc, const char **argv)
 {
-    int source;
+    uint8_t source = 0;
 
     int app_get_clock_source(uint8_t *source);
     app_get_clock_source(&source);
-    printf("Clock source:%d\r\n", source);
+    at_response_string("+GET_CLOCK:%d\r\n", source);
 
     return AT_RESULT_CODE_OK;
 }

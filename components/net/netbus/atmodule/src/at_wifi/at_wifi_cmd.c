@@ -599,6 +599,9 @@ void at_scan_dump(uint32_t timeout)
             if (scan->mode&WIFI_MODE_802_11N_2_4) {
                 mode |= 0x04;
             }
+            if (scan->mode&WIFI_MODE_802_11AX_2_4) {
+                mode |= 0x08;
+            }
             snprintf(outbuf + strlen(outbuf), sizeof(outbuf) - strlen(outbuf), "%d,", mode);
         }
         if (BIT_ISSET(print_mask, 10)) {

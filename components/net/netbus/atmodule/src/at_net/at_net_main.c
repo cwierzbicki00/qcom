@@ -591,6 +591,9 @@ static int ssl_client_connect(int id, ip_addr_t *ipaddr, uint16_t port, void **p
     handle = mbedtls_ssl_connect(fd, &ssl_param);
     if (handle == NULL) {
         AT_NET_PRINTF("mbedtls_ssl_connect handle NULL, fd:%d\r\n", fd);
+		free(ssl_param.ca_cert);
+		free(ssl_param.own_cert);
+		free(ssl_param.private_cert);		
         close(fd);
         return -1;
     }
