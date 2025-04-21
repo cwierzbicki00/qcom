@@ -107,6 +107,9 @@ struct bt_conn *bt_conn_lookup_addr_le(u8_t id, const bt_addr_le_t *peer);
 #if defined(QCC74x_BLE)
 bool le_check_valid_conn(void);
 void notify_disconnected(struct bt_conn *conn);
+#if (CONFIG_BT_REMOTE_VERSION)
+void notify_remote_version(struct bt_conn *conn);
+#endif /* CONFIG_BT_REMOTE_VERSION */
 #if defined(QCC74x_HOST_ASSISTANT)
 void bt_notify_disconnected(void);
 #endif
@@ -535,6 +538,10 @@ struct bt_conn_cb {
 	void (*security_changed)(struct bt_conn *conn, bt_security_t level,
 				 enum bt_security_err err);
 #endif /* defined(CONFIG_BT_SMP) || defined(CONFIG_BT_BREDR) */
+#if (CONFIG_BT_REMOTE_VERSION)
+	void (*remote_version)(struct bt_conn *conn, u8_t version,
+		u16_t manufacturer, u16_t subversion);
+#endif /* CONFIG_BT_REMOTE_VERSION */
 	struct bt_conn_cb *_next;
 };
 

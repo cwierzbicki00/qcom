@@ -635,6 +635,8 @@ struct wpa_ssid {
 
     int bcn_timer;
 
+    int disable_wmm;
+
 	/**
 	 * freq_list - Array of allowed frequencies or %NULL for all
 	 *

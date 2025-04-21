@@ -15,10 +15,13 @@
 #include "at_core.h"
 
 #ifdef LP_APP
+#include "wifi_mgmr_ext.h"
+
 int lp_set_wakeup_by_io(uint8_t io, uint8_t mode);
 int lp_delete_wakeup_by_io(uint8_t io);
 void app_pm_enter_hbn(int level);
 int app_lp_timer_config(int mode, uint32_t ms);
+void app_pm_exit_pds15(void);
 
 static int at_pwr_cmd_pwrmode(int argc, const char **argv)
 {
@@ -32,6 +35,7 @@ static int at_pwr_cmd_pwrmode(int argc, const char **argv)
     AT_CMD_PARSE_OPT_NUMBER(1, &level, level_valid);
 
     if (pwr_mode  == 0) {
+        app_pm_exit_pds15();
     } else if (pwr_mode == 1) {
         app_pm_enter_hbn(level);
     } else if (pwr_mode == 2) {
@@ -169,6 +173,54 @@ static int at_twt_sleep_cmd(int argc, const char **argv)
     return AT_RESULT_CODE_OK;
 }
 
+static int at_twt_teardown_cmd(int argc, const char **argv)
+{
+    int neg_type = 0; 
+    int all_twt = 0; 
+    int flow_id = 0;  
+    int ret;
+
+    if (argc > 0) {
+        AT_CMD_PARSE_NUMBER(0, &neg_type);
+        if (neg_type != 0) {
+            printf("Warning: Only Individual negotiation type(0) supported\r\n");
+            neg_type = 0;
+        }
+    }
+
+    if (argc > 1) {
+        AT_CMD_PARSE_NUMBER(1, &all_twt);
+    }
+
+    if (!all_twt && argc > 2) {
+        AT_CMD_PARSE_NUMBER(2, &flow_id);
+    }
+
+    printf("TWT Teardown: neg_type=%d, all_twt=%d", neg_type, all_twt);
+    if (!all_twt) {
+        printf(", flow_id=%d", flow_id);
+    }
+    printf("\r\n");
+
+    twt_teardown_params_struct_t params;
+    memset(&params, 0, sizeof(params));
+    params.neg_type = neg_type;
+    params.all_twt = all_twt;
+    params.id = flow_id;
+
+    int wifi_mgmr_sta_twt_teardown(twt_teardown_params_struct_t *params);
+    ret = wifi_mgmr_sta_twt_teardown(&params);
+
+    if (ret == 0) {
+        wifi_mgmr_sta_ps_exit();
+        printf("TWT teardown request sent successfully\r\n");
+        return AT_RESULT_CODE_OK;
+    } else {
+        printf("TWT teardown request failed, error=%d\r\n", ret);
+        return AT_RESULT_CODE_ERROR;
+    }
+}
+
 static int at_clock_source_set_cmd(int argc, const char **argv)
 {
     int source;
@@ -193,6 +245,7 @@ static int at_clock_source_get_cmd(int argc, const char **argv)
 
     int app_get_clock_source(uint8_t *source);
     app_get_clock_source(&source);
+
     at_response_string("+GET_CLOCK:%d\r\n", source);
 
     return AT_RESULT_CODE_OK;
@@ -211,6 +264,7 @@ static const at_cmd_struct at_pwr_cmd[] = {
     {"+STOP_ARP", NULL, NULL, NULL, at_stop_arp_send_cmd, 0, 0},
     {"+TWT_PARAM", NULL, NULL, at_twt_param_cmd, NULL, 5, 5},
     {"+TWT_SLEEP", NULL, NULL, NULL, at_twt_sleep_cmd, 0, 0},
+    {"+TWT_TEARDOWN", NULL, NULL, at_twt_teardown_cmd, at_twt_teardown_cmd, 0, 3},
     {"+SET_CLOCK", NULL, NULL, at_clock_source_set_cmd, NULL, 1, 1},
     {"+GET_CLOCK", NULL, NULL, NULL, at_clock_source_get_cmd, 0, 0},
 };

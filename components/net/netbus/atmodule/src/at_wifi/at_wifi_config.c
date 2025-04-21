@@ -41,7 +41,7 @@ int at_wifi_config_init(void)
         wifi_mgmr_mac_set(&at_wifi_config->sta_mac.addr);
     }
     if (!at_config_read(AT_CONFIG_KEY_WIFI_MODE, &at_wifi_config->wifi_mode, sizeof(wifi_work_mode))) {
-        at_wifi_config->wifi_mode = WIFI_SOFTAP_MODE;
+        at_wifi_config->wifi_mode = WIFI_DISABLE;
     }
     at_wifi_config->switch_mode_auto_conn = WIFI_AUTOCONN_ENABLE;
     if (!at_config_read(AT_CONFIG_KEY_WIFI_STA_INFO, &at_wifi_config->sta_info, sizeof(wifi_sta_info))) {

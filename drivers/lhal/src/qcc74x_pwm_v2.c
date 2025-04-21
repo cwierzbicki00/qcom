@@ -199,16 +199,13 @@ float qcc74x_pwm_v2_get_frequency(struct qcc74x_device_s *dev)
     tmp = (regval & PWM_REG_CLK_SEL_MASK) >> PWM_REG_CLK_SEL_SHIFT;
     switch (tmp) {
         case 0:
-            src = (float)qcc74x_clk_get_system_clock(0); /* TODO: because this function has not been implemented */
+            src = (float)qcc74x_clk_get_system_clock(QCC74x_SYSTEM_XCLK);
             break;
         case 1:
-            src = (float)qcc74x_clk_get_system_clock(1); /* TODO: because this function has not been implemented */
-            break;
-        case 2:
-            src = (float)qcc74x_clk_get_system_clock(2); /* TODO: because this function has not been implemented */
+            src = (float)qcc74x_clk_get_system_clock(QCC74x_SYSTEM_PBCLK);
             break;
         default:
-            src = 0.0f;
+            src = (float)qcc74x_clk_get_system_clock(QCC74x_SYSTEM_32K_CLK);
             break;
     }
     /* get clock dividor */

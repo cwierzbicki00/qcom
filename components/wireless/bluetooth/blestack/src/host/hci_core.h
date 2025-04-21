@@ -109,12 +109,18 @@ struct bt_dev_le {
 #endif /* CONFIG_BT_WHITELIST */
 };
 
+enum {
+	BT_A2DP_SOURCE_ROLE,
+	BT_A2DP_SINK_ROLE,
+};
+
 #if defined(CONFIG_BT_BREDR)
 struct bt_dev_br {
 	/* Max controller's acceptable ACL packet length */
 	u16_t         mtu;
 	struct k_sem  pkts;
 	u16_t         esco_pkt_type;
+	u8_t         a2dp_role;
 };
 #endif
 

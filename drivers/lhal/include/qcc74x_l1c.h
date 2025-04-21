@@ -11,6 +11,14 @@
   * @{
   */
 
+#if (defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)) && !defined(CPU_LP)
+#if ((defined(QCC74x_undef) || defined(QCC74x_undef)) && defined(CPU_D0))
+#define QCC74x_CACHE_LINE_SIZE 64
+#else
+#define QCC74x_CACHE_LINE_SIZE 32
+#endif
+#endif
+
 /**
  * @brief
  *

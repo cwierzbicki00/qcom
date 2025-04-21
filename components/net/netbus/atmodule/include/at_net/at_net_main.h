@@ -37,17 +37,19 @@ static inline int at_net_client_id_is_valid(int id)
         return 1;
 }
 
-int at_net_client_tcp_connect(int id, ip_addr_t *remote_ip, uint16_t remote_port, int keepalive);
+int at_net_client_tcp_connect(int id, ip_addr_t *remote_ip, uint16_t remote_port, int keepalive, uint32_t timeout);
 
-int at_net_client_udp_connect(int id, ip_addr_t *remote_ip, uint16_t remote_port, uint16_t local_port, int mode);
+int at_net_client_udp_connect(int id, ip_addr_t *remote_ip, uint16_t remote_port, uint16_t local_port, int mode, uint32_t timeout);
 
-int at_net_client_ssl_connect(int id, ip_addr_t *remote_ip, uint16_t remote_port, int keepalive);
+int at_net_client_ssl_connect(int id, ip_addr_t *remote_ip, uint16_t remote_port, int keepalive, uint32_t timeout);
 
 int at_net_client_is_connected(int id);
 
 int at_net_client_set_remote(int id, ip_addr_t *ipaddr, uint16_t port);
 
 int at_net_client_get_info(int id, char *type, ip_addr_t *remote_ip, uint16_t *remote_port, uint16_t *local_port, uint8_t *tetype);
+
+int at_net_recvbuf_delete(int id);
 
 int at_net_client_get_recvsize(int id);
 
@@ -70,8 +72,6 @@ int at_net_sntp_start(void);
 int at_net_sntp_stop(void);
 
 int at_net_sntp_is_start(void);
-
-uint64_t at_current_ms_get();
 
 int at_net_recvbuf_size_set(int linkid, uint32_t size);
 
@@ -98,6 +98,8 @@ int at_net_ssl_psk_get(int linkid, char **psk, int *psk_len, char **pskhint, int
 int at_string_host_to_ip(char *host, ip_addr_t *ip);
 
 int at_net_dns_load(void);
+
+int at_lwip_heap_free_size(void);
 
 #ifdef __cplusplus
 }

@@ -84,6 +84,8 @@ struct reg_domain_info_t {
     int8_t nb_max_power;
     uint8_t nb_num_cpl_rules;
     const struct reg_power_limits_nb_t *nb_cpl_rules;
+    uint8_t nb_154_num_cpl_rules;
+    const struct reg_power_limits_nb_t *nb_154_cpl_rules;
 };
 
 // Regulatory database

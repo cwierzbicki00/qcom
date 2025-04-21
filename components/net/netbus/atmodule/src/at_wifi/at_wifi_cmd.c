@@ -742,7 +742,7 @@ static int at_setup_cmd_cwqap(int argc, const char **argv)
     }
 
     if (restore_valid && restore) {
-	    memset(&at_wifi_config->sta_info.ssid, 0, sizeof(at_wifi_config->sta_info.ssid));
+        memset(&at_wifi_config->sta_info.ssid, 0, sizeof(at_wifi_config->sta_info.ssid));
         ef_del_env(AT_CONFIG_KEY_WIFI_STA_INFO);
     }
     
@@ -789,7 +789,7 @@ static int at_setup_cmd_cwsap(int argc, const char **argv)
     if (channel < 1 || channel > 13) {
         return AT_RESULT_CODE_ERROR;
     }
-    if (!(ecn == AT_WIFI_ENC_OPEN || (ecn >= AT_WIFI_ENC_WPA_PSK && ecn <= AT_WIFI_ENC_WPA2_PSK)) || (ecn >= AT_WIFI_ENC_WPA_PSK  && ecn <= AT_WIFI_ENC_WPA2_PSK && strlen(pwd) < 8)) {
+    if (!(ecn == AT_WIFI_ENC_OPEN || (ecn >= AT_WIFI_ENC_WPA_PSK && ecn <= AT_WIFI_ENC_WPA3_PSK)) || (ecn >= AT_WIFI_ENC_WPA_PSK  && ecn <= AT_WIFI_ENC_WPA3_PSK && strlen(pwd) < 8)) {
         return AT_RESULT_CODE_ERROR;
     }
     if (max_conn_valid && (max_conn < 1 || max_conn > CFG_STA_MAX)) {
@@ -1288,6 +1288,7 @@ static int at_setup_cmd_cwapproto(int argc, const char **argv)
     if (proto >= 0 && proto <= 0xf) {
         at_wifi_config->ap_proto.byte = (uint8_t)proto;
         at_wifi_mode_set(1, at_wifi_config->ap_proto);
+        at_wifi_config->ap_proto = at_wifi_mode_get(1);
         if (at->store) {
             at_wifi_config_save(AT_CONFIG_KEY_WIFI_AP_PROTO);
         }
@@ -1313,6 +1314,7 @@ static int at_setup_cmd_cwstaproto(int argc, const char **argv)
     if (proto >= 0 && proto <= 0xf) {
         at_wifi_config->sta_proto.byte = (uint8_t)proto;
         at_wifi_mode_set(0, at_wifi_config->sta_proto);
+        at_wifi_config->sta_proto = at_wifi_mode_get(0);
         if (at->store) {
             at_wifi_config_save(AT_CONFIG_KEY_WIFI_STA_PROTO);
         }
@@ -1325,11 +1327,12 @@ static int at_setup_cmd_cwstaproto(int argc, const char **argv)
 
 int time_info_get(char *buffer, uint32_t buffer_len)
 {
-    struct timespec timespec;
+    struct timespec timespec = {0,0};
     struct tm *tm_info;
     int offset, len = 0;
-
+#ifdef CONFIG_NETWORK
     at_net_sntp_gettime(&timespec);
+#endif
     tm_info = localtime(&timespec.tv_sec);
 
     offset = strftime(buffer, buffer_len, "%Y-%m-%d:%H:%M:%S", tm_info);
@@ -1441,7 +1444,10 @@ static int at_setup_cmd_cwmonitor(int argc, const char **argv)
 static int at_setup_cmd_wps(int argc, const char **argv)
 {
     int enable = 0;
+    int auth = 0;
+    int auth_valid = 0;
     AT_CMD_PARSE_NUMBER(0, &enable);
+    AT_CMD_PARSE_OPT_NUMBER(1, &auth, auth_valid);
     
     if ((at_wifi_config->wifi_mode != WIFI_STATION_MODE) && (at_wifi_config->wifi_mode != WIFI_AP_STA_MODE)) {
         printf("err at_wifi_config\r\n");
@@ -1452,8 +1458,11 @@ static int at_setup_cmd_wps(int argc, const char **argv)
         wifi_mgmr_sta_disconnect();
         return AT_RESULT_CODE_OK;
     }
+    if (!auth_valid) {
+        auth = 0;
+    }
 
-    int ret = wifi_mgmr_sta_wps_pbc();
+    int ret = wifi_mgmr_sta_wps_pbc(auth);
     if (ret != 0) {
         return AT_RESULT_CODE_ERROR;
     }
@@ -1625,7 +1634,7 @@ static const at_cmd_struct at_wifi_cmd[] = {
     {"+CIPSTA",       NULL, at_query_cmd_cipsta,      at_setup_cmd_cipsta,       NULL,                    1, 3},
     {"+CIPAP",        NULL, at_query_cmd_cipap,       at_setup_cmd_cipap,        NULL,                    1, 3},
     {"+CWMONITOR",    NULL, NULL,                     at_setup_cmd_cwmonitor,    NULL,                    1, 4},
-    {"+WPS",          NULL, NULL,                     at_setup_cmd_wps,          NULL,                    1, 1},
+    {"+WPS",          NULL, NULL,                     at_setup_cmd_wps,          NULL,                    1, 2},
     {"+MDNS",         NULL, NULL,                     at_setup_cmd_mdns,         NULL,                    1, 4},
     {"+CWHOSTNAME",   NULL, at_query_cmd_cwhostname,  at_setup_cmd_cwhostname,   NULL,                    1, 1},
     {"+CWCOUNTRY",    NULL, at_query_cmd_cwcountry,   at_setup_cmd_cwcountry,    NULL,                    2, 2},

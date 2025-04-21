@@ -5,7 +5,9 @@
 
 #define VERSION_OT_UTILS_MAJOR 1
 #define VERSION_OT_UTILS_MINOR 6
-#define VERSION_OT_UTILS_PATCH 10
+#define VERSION_OT_UTILS_PATCH 16
+
+// #define VERSION_OT_UTILS_EXTRA_INFO "customer-1"
 
 #define VENDOR_IE_HEADER_ID                 0
 #define VENDOR_IE_THREAD_OUI                0xeab89b

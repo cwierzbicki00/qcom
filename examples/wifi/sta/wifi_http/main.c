@@ -170,20 +170,51 @@ int main(void)
 
 int cmd_gethostbyname(int argc, char **argv)
 {
-  struct hostent *hostinfo = gethostbyname(argv[1]);
-  char buffer[46];
+  struct addrinfo hints, *res, *p;
+  int status;
+  char ipstr[INET6_ADDRSTRLEN];
+  char *name = argv[1];
 
-  if (hostinfo) {
-    ip_addr_t addr = *(ip_addr_t *)hostinfo->h_addr;
-    if (ipaddr_ntoa_r(&addr, (char *)buffer, sizeof(buffer))) {
-      printf("Host found: ");
-      printf("%s\n", buffer);
-    } else {
-        printf("ipaddr_ntoa_r failed");
-    }
-  } else {
-    printf("No host found\n");
+  memset(&hints, 0, sizeof hints);
+  hints.ai_family = AF_UNSPEC;
+  if(!strcmp(argv[1], "-4")) {
+    hints.ai_family = AF_INET;
+    name = argv[2];
   }
+
+  if(!strcmp(argv[1], "-6")) {
+    hints.ai_family = AF_INET6;
+    name = argv[2];
+  }
+
+  hints.ai_socktype = SOCK_STREAM;
+
+  if ((status = getaddrinfo(name, NULL, &hints, &res)) != 0) {
+      fprintf(stderr, "getaddrinfo error: %d\r\n", status);
+      return 0;
+  }
+
+  printf("IP addresses for %s:\r\n", name);
+
+  for (p = res; p != NULL; p = p->ai_next) {
+      void *addr;
+      char *ipver;
+
+      if (p->ai_family == AF_INET) {
+          struct sockaddr_in *ipv4 = (struct sockaddr_in *)p->ai_addr;
+          addr = &(ipv4->sin_addr);
+          ipver = "IPv4";
+      } else {
+          struct sockaddr_in6 *ipv6 = (struct sockaddr_in6 *)p->ai_addr;
+          addr = &(ipv6->sin6_addr);
+          ipver = "IPv6";
+      }
+
+      inet_ntop(p->ai_family, addr, ipstr, sizeof ipstr);
+      printf("  %s: %s\r\n", ipver, ipstr);
+  }
+
+  freeaddrinfo(res);
   return 0;
 }
 

@@ -1,7 +1,18 @@
 sdk_generate_library()
 
-if("${CHIP}" STREQUAL "qcc743")
-  sdk_add_private_compile_definitions(-DQCC743)
+string(TOUPPER "${CHIP}" upper_case_chip)
+string(TOLOWER "${CHIP}" lower_case_chip)
+
+sdk_add_private_compile_definitions(-D${upper_case_chip})
+sdk_add_private_compile_definitions(-DCHIP_HDR=<${lower_case_chip}.h>)
+sdk_add_private_compile_definitions(-DCHIP_GLB_HDR=<${lower_case_chip}_glb.h>)
+sdk_add_private_compile_definitions(-DCHIP_SYS_HDR=<${lower_case_chip}_sys.h>)
+sdk_add_private_compile_definitions(-DCONFIG_QCC74x_SDK)
+
+if ("${upper_case_chip}" STREQUAL "QCC743")
+  sdk_add_private_compile_definitions(-DMAC_ADDRESS_MAX_NUM=3)
+else ()
+  sdk_add_private_compile_definitions(-DMAC_ADDRESS_MAX_NUM=2)
 endif()
 
 sdk_add_include_directories(./include)
@@ -20,7 +31,7 @@ if (NOT CONFIG_MATTER)
 endif()
 
 sdk_library_add_sources(./ot_sys_qcc74x.c)
-sdk_library_add_sources(./ot_alarm_qcc743.c)
+sdk_library_add_sources(./ot_alarm_${lower_case_chip}.c)
 sdk_library_add_sources(./ot_radio.c)
 sdk_library_add_sources(./ot_radio_qcc74x.c)
 

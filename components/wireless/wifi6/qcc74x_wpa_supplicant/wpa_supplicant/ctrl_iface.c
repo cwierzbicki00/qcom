@@ -12527,14 +12527,19 @@ static int wpa_supplicant_ctrl_iface_ap_sta_del(
        struct wpa_supplicant *wpa_s, char *cmd)
 {
     char *mac_addr;
+    u8 addr[ETH_ALEN];
 
 	/* cmd: "<network id> <mac_addr>" */
 	mac_addr = os_strchr(cmd, ' ');
 	if (mac_addr == NULL)
 		return -1;
 	mac_addr++;
+    if (hwaddr_aton(mac_addr, addr))
+        return -1;
 
-	wpa_drv_sta_remove(wpa_s, (u8 *)mac_addr);
+    hostapd_ctrl_iface_deauthenticate(wpa_s->ap_iface->bss[0],
+                         mac_addr);
+    wpa_drv_sta_remove(wpa_s, (u8 *)addr);
 
     return 0;
 }

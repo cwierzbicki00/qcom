@@ -129,6 +129,12 @@ void *qcc74x_get_no_cache_addr(const void *addr);
 
 #endif
 
+#if (defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)) && !defined(CPU_LP)
+bool qcc74x_check_cache_addr_aligned(uintptr_t addr);
+#else
+#define qcc74x_check_cache_addr_aligned(addr)  (true)
+#endif
+
 typedef struct
 {
     uint8_t anti_rollback; /* anti-rollback version */

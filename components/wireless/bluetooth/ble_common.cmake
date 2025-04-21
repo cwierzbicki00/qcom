@@ -579,7 +579,6 @@ if("${CHIP}" STREQUAL "qcc74x_undefl")
 		set(CONFIG_BT_ALLROLES 1)
 		set(CONFIG_DISABLE_BT_HOST_PRIVACY 1)
 		set(CONFIG_DISABLE_BLE_CONTROLLER_TEST_MODE 0)
-		set(CONFIG_DISABLE_CONTROLLER_BLE_PRIVACY 1)
 		set(CONFIG_BLE_HOST_DISABLE 1)
 		set(CONFIG_EM_SIZE 8)
 		set(CONFIG_LONG_RANG 0)
@@ -614,7 +613,6 @@ if("${CHIP}" STREQUAL "qcc74x_undefl")
 		set(CONFIG_BT_ALLROLES 1)
 		set(CONFIG_DISABLE_BT_HOST_PRIVACY 1)
 		set(CONFIG_DISABLE_BLE_CONTROLLER_TEST_MODE 0)
-		set(CONFIG_DISABLE_CONTROLLER_BLE_PRIVACY 1)
 		set(CONFIG_BLE_HOST_DISABLE 1)
 		set(CONFIG_EM_SIZE 8)
 		set(CONFIG_LONG_RANG 0)
@@ -643,7 +641,6 @@ endif()
 # CONFIG_BLE_ACT_MAX := 7
 # CONFIG_DISABLE_BT_ECC := 1
 # CONFIG_SEC_CONN := 0
-# CONFIG_DISABLE_CONTROLLER_BLE_PRIVACY := 1
 # CONFIG_ADV_EXTENSION := 0
 # CONFIG_CIS := 0
 # CONFIG_BIS := 0
@@ -667,7 +664,6 @@ if(("${CHIP}" STREQUAL "qcc743") OR ("${CHIP}" STREQUAL "qcc74x_undef"))
 		set(CONFIG_BLE_ACT_MAX 7)
 		set(CONFIG_DISABLE_BT_ECC 1)
 		set(CONFIG_SEC_CONN 0)
-		set(CONFIG_DISABLE_CONTROLLER_BLE_PRIVACY 1)
 		set(CONFIG_ADV_EXTENSION 0)
 		set(CONFIG_CIS 0)
 		set(CONFIG_BIS 0)
@@ -689,9 +685,7 @@ if(("${CHIP}" STREQUAL "qcc743") OR ("${CHIP}" STREQUAL "qcc74x_undef"))
 # CONFIG_BLE_TX_BUFF_DATA := 4
 # #Update le adv data and scan rsp data when LE adertising is active, sw need 4 adv buffer at least. 
 # CONFIG_BLE_ACT_MAX := 7
-# CONFIG_DISABLE_BT_ECC := 1
 # CONFIG_SEC_CONN := 0
-# CONFIG_DISABLE_CONTROLLER_BLE_PRIVACY := 1
 # CONFIG_ADV_EXTENSION := 0
 # CONFIG_CIS := 0
 # CONFIG_BIS := 0
@@ -712,9 +706,7 @@ if(("${CHIP}" STREQUAL "qcc743") OR ("${CHIP}" STREQUAL "qcc74x_undef"))
 		set(CONFIG_BLE_TX_BUFF_DATA 4)
 		#Update le adv data and scan rsp data when LE adertising is active, sw need 4 adv buffer at least. 
 		set(CONFIG_BLE_ACT_MAX 7)
-		set(CONFIG_DISABLE_BT_ECC 1)
 		set(CONFIG_SEC_CONN 0)
-		set(CONFIG_DISABLE_CONTROLLER_BLE_PRIVACY 1)
 		set(CONFIG_ADV_EXTENSION 0)
 		set(CONFIG_CIS 0)
 		set(CONFIG_BIS 0)
@@ -854,7 +846,6 @@ if(("${CHIP}" STREQUAL "qcc743") OR ("${CHIP}" STREQUAL "qcc74x_undef"))
 # CONFIG_BLE_TX_BUFF_DATA := 4
 # #Update le adv data and scan rsp data when LE adertising is active, sw need 4 adv buffer at least. 
 # CONFIG_BLE_ACT_MAX := 7
-# CONFIG_DISABLE_CONTROLLER_BLE_PRIVACY := 0
 # CONFIG_ADV_EXTENSION := 0
 # CONFIG_CIS := 0
 # CONFIG_BIS := 0
@@ -875,7 +866,6 @@ if(("${CHIP}" STREQUAL "qcc743") OR ("${CHIP}" STREQUAL "qcc74x_undef"))
 		set(CONFIG_BLE_TX_BUFF_DATA 4)
 		#Update le adv data and scan rsp data when LE adertising is active, sw need 4 adv buffer at least. 
 		set(CONFIG_BLE_ACT_MAX 7)
-		set(CONFIG_DISABLE_CONTROLLER_BLE_PRIVACY 0)
 		set(CONFIG_ADV_EXTENSION 0)
 		set(CONFIG_CIS 0)
 		set(CONFIG_BIS 0)
@@ -889,9 +879,8 @@ if(("${CHIP}" STREQUAL "qcc743") OR ("${CHIP}" STREQUAL "qcc74x_undef"))
 #CONFIG_EM_SIZE := 64
 #CONFIG_BT_ALLROLES := 1
 #CONFIG_DISABLE_BLE_CONTROLLER_TEST_MODE := 0
-#CONFIG_DISABLE_CONTROLLER_BLE_PRIVACY := 0
-#CONFIG_BT_CONN := 1
-#CONFIG_BLE_TX_BUFF_DATA := 2
+#CONFIG_BT_CONN := 2
+#CONFIG_BLE_TX_BUFF_DATA := 4
 #CONFIG_BLE_ACT_MAX := 7
 #CONFIG_CIS := 0
 #CONFIG_BIS := 0
@@ -904,13 +893,12 @@ if(("${CHIP}" STREQUAL "qcc743") OR ("${CHIP}" STREQUAL "qcc74x_undef"))
 		set(CONFIG_EM_SIZE 64)
 		set(CONFIG_BT_ALLROLES 1)
 		set(CONFIG_DISABLE_BLE_CONTROLLER_TEST_MODE 0)
-		set(CONFIG_DISABLE_CONTROLLER_BLE_PRIVACY 0)
-		set(CONFIG_BT_CONN 1)
-		set(CONFIG_BLE_TX_BUFF_DATA 2)
+		set(CONFIG_BT_CONN 2)
+		set(CONFIG_BLE_TX_BUFF_DATA 4)
 		set(CONFIG_BLE_ACT_MAX 7)
-		set(CONFIG_BIS 0)
+		set(CONFIG_BIS 1)
 		set(CONFIG_CTE 0)
-		set(CONFIG_CIS 0)
+		set(CONFIG_CIS 1)
 	endif()
 #	
 #ifeq ($(PRIV_CONFIG_GEN_BLE),mfg)
@@ -1171,6 +1159,7 @@ endif()
 # CONFIG_PHY_UPDATE ?= 1
 # CONFIG_CLK_ACC ?= 1
 # CONFIG_LE_PING ?= 1
+# CONFIG_BT_REMOTE_VERSION ?= 0
 sdk_ifndef(CONFIG_BT 1)
 sdk_ifndef(CONFIG_SCO_ESCO 1)
 sdk_ifndef(CONFIG_PCA 1)
@@ -1192,6 +1181,7 @@ sdk_ifndef(CONFIG_CTE 1)
 sdk_ifndef(CONFIG_PHY_UPDATE 1)
 sdk_ifndef(CONFIG_CLK_ACC 1)
 sdk_ifndef(CONFIG_LE_PING 1)
+sdk_ifndef(CONFIG_BT_REMOTE_VERSION 0)
 # 
 # #Update le adv data and scan rsp data when LE adertising is active, sw need 4 adv buffer at least. 
 # CONFIG_BLE_ACT_MAX ?= 7
@@ -1224,6 +1214,7 @@ sdk_ifndef(CONFIG_HW_SEC_ENG_DISABLE 0)
 # CONFIG_DISABLE_BT_HOST_PRIVACY?=1
 # CONFIG_BT_L2CAP_DYNAMIC_CHANNEL?=0
 # CONFIG_BT_GATT_CLIENT?=1
+# CONFIG_BT_DATA_LEN_UPDATE?=0
 # CONFIG_BT_MESH?=0
 # CONFIG_BT_MESH_MODEL?=0
 sdk_ifndef(CONFIG_BT_CONN 1)
@@ -1250,6 +1241,7 @@ sdk_ifndef(CONFIG_DISABLE_BT_SMP 0)
 sdk_ifndef(CONFIG_DISABLE_BT_HOST_PRIVACY 1)
 sdk_ifndef(CONFIG_BT_L2CAP_DYNAMIC_CHANNEL 0)
 sdk_ifndef(CONFIG_BT_GATT_CLIENT 1)
+sdk_ifndef(CONFIG_BT_DATA_LEN_UPDATE 0)
 sdk_ifndef(CONFIG_BT_MESH 0)
 sdk_ifndef(CONFIG_BT_MESH_MODEL 0)
 # ifeq ($(CONFIG_BT_MESH),1)
@@ -1482,6 +1474,11 @@ sdk_add_compile_definitions_ifdef(CONFIG_BT_L2CAP_DYNAMIC_CHANNEL -DCONFIG_BT_L2
 # endif
 sdk_add_compile_definitions_ifdef(CONFIG_BT_GATT_CLIENT -DCONFIG_BT_GATT_CLIENT)
 # 
+# ifeq ($(CONFIG_BT_DATA_LEN_UPDATE),1)
+# CFLAGS += -DCONFIG_BT_DATA_LEN_UPDATE=1
+# endif
+sdk_add_compile_definitions_ifdef(CONFIG_BT_DATA_LEN_UPDATE -DCONFIG_BT_DATA_LEN_UPDATE)
+# 
 # ifeq ($(CONFIG_BT_RESET),1)
 # CFLAGS   += -DCFG_BT_RESET
 # endif
@@ -1502,6 +1499,11 @@ if(NOT CONFIG_DISABLE_BT_SMP)
 	sdk_add_compile_definitions_ifdef(CONFIG_BT_FIXED_PASSKEY -DCONFIG_BT_FIXED_PASSKEY)
 	sdk_add_compile_definitions_ifdef(CONFIG_BT_SMP_ENFORCE_MITM -DCONFIG_BT_SMP_ENFORCE_MITM)
 endif()
+# 
+# ifeq ($(CONFIG_BT_REMOTE_VERSION), 1)
+# CFLAGS += -DCONFIG_BT_REMOTE_VERSION=1
+# endif
+sdk_add_compile_definitions_ifdef(CONFIG_BT_REMOTE_VERSION -DCONFIG_BT_REMOTE_VERSION=1)
 # 
 # ifneq ($(CONFIG_DISABLE_BT_ECC), 1)
 # CFLAGS += -DCONFIG_BT_ECC

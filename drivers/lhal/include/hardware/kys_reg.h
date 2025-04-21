@@ -10,7 +10,7 @@
 #define KYS_KS_INT_EN_OFFSET   (0x10)
 #define KYS_KS_INT_STS_OFFSET  (0x14)
 #define KYS_KEYCODE_CLR_OFFSET (0x18)
-#if defined(qcc74x_undef)
+#if defined(QCC74x_undef)
 #define KYS_KEYFIFO_VALUE_OFFSET (0x1C)
 #else
 #define KYS_KEYFIFO_IDX_OFFSET   (0x30)
@@ -30,7 +30,7 @@
 #define KYS_RC_EXT_MASK    (0x3 << KYS_RC_EXT_SHIFT)
 #define KYS_ROW_NUM_SHIFT  (16U)
 #define KYS_ROW_NUM_MASK   (0x7 << KYS_ROW_NUM_SHIFT)
-#if defined(qcc74x_undef)
+#if defined(QCC74x_undef)
 #define KYS_COL_NUM_SHIFT (20U)
 #define KYS_COL_NUM_MASK  (0x7 << KYS_COL_NUM_SHIFT)
 #else
@@ -41,7 +41,7 @@
 #endif
 
 /* 0x10 : ks_int_en */
-#if defined(qcc74x_undef)
+#if defined(QCC74x_undef)
 #define KYS_KS_INT_EN_SHIFT (0U)
 #define KYS_KS_INT_EN_MASK  (0x1 << KYS_KS_INT_EN_SHIFT)
 #else
@@ -60,7 +60,7 @@
 #endif
 
 /* 0x14 : ks_int_sts */
-#if defined(qcc74x_undef)
+#if defined(QCC74x_undef)
 #define KYS_KEYCODE_VALID_SHIFT (0U)
 #define KYS_KEYCODE_VALID_MASK  (0xf << KYS_KEYCODE_VALID_SHIFT)
 #else
@@ -79,7 +79,7 @@
 #endif
 
 /* 0x18 : keycode_clr */
-#if defined(qcc74x_undef)
+#if defined(QCC74x_undef)
 #define KYS_KEYCODE_CLR_SHIFT (0U)
 #define KYS_KEYCODE_CLR_MASK  (0xf << KYS_KEYCODE_CLR_SHIFT)
 #else
@@ -91,7 +91,7 @@
 #define KYS_GHOST_CLR_MASK         (0x1 << KYS_GHOST_CLR_SHIFT)
 #endif
 
-#if defined(qcc74x_undef)
+#if defined(QCC74x_undef)
 /* 0x1c : keycode value */
 #define KYS_KEYCODE0_SHIFT (0U)
 #define KYS_KEYCODE0_MASK  (0xff << KYS_KEYCODE0_SHIFT)
@@ -103,7 +103,7 @@
 #define KYS_KEYCODE3_MASK  (0xff << KYS_KEYCODE3_SHIFT)
 #endif
 
-#if defined(qcc74x_undef)
+#if defined(QCC74x_undef)
 /* 0x30 : keyfifo_idx */
 #define KYS_KEYFIFO_HEAD_SHIFT (0U)
 #define KYS_KEYFIFO_HEAD_MASK  (0x7 << KYS_KEYFIFO_HEAD_SHIFT)

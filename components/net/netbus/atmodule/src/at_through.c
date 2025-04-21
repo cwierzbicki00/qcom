@@ -27,6 +27,7 @@ static int g_through_report_tag = 0;
 
 int at_through_input(uint8_t *data, int32_t len)
 {
+#ifdef CONFIG_NETWORK
     int linkid = 0;
 
     if (len == strlen(AT_THROUGH_EXIT_CMD) && memcmp(data, AT_THROUGH_EXIT_CMD, strlen(AT_THROUGH_EXIT_CMD)) == 0) {
@@ -79,6 +80,9 @@ int at_through_input(uint8_t *data, int32_t len)
     else {
         return at_net_client_send(linkid, data, len);
     }
+#else  
+    return 0;
+#endif
 }
 
 int at_through_max_length(void)

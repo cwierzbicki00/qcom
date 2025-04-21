@@ -59,6 +59,10 @@
 #define tickless_fatal(...)
 #endif
 
+#define WAKEUP_AHEAD_US   5000 
+
+#define FIRST_RTC_EPILOGUE_TIME    180
+
 volatile int _ffag = 0;
 
 volatile uint32_t * const pulTimeHigh = ( volatile uint32_t * const ) ( ( configMTIME_BASE_ADDRESS ) + 4UL ); /* 8-byte typer so high 32-bit word is 4 bytes up. */
@@ -113,7 +117,7 @@ static uint64_t get_mtime(void) {
 #define ___WFI __WFI
 #endif
 
-#define PDS_MIN_SLEEP_TIME 4000
+#define PDS_MIN_SLEEP_TIME 2000
 
 int enable_tickless = 0;
 int g_tpre = 0;
@@ -150,7 +154,11 @@ void tickless_debug_who_wake_me(const char *name, TickType_t ticks) {
 
 /* Get the dynamic desired minimum sleep time. return ms */
 uint32_t expected_idle_before_sleep(void) {
-  return QCC74x_PDS_CNT_TO_MS(rtc_prologue_time_max) + (PDS_MIN_SLEEP_TIME / 1000) + QCC74x_PDS_CNT_TO_MS(rtc_epilogue_time_max);
+  if (rtc_epilogue_time_max) {
+    return QCC74x_PDS_CNT_TO_MS(rtc_prologue_time_max) + (PDS_MIN_SLEEP_TIME / 1000) + QCC74x_PDS_CNT_TO_MS(rtc_epilogue_time_max);
+  } else {
+    return QCC74x_PDS_CNT_TO_MS(rtc_prologue_time_max) + (PDS_MIN_SLEEP_TIME / 1000) + QCC74x_PDS_CNT_TO_MS(FIRST_RTC_EPILOGUE_TIME);
+  }
 }
 
 /* Foreach all task handle */
@@ -185,6 +193,7 @@ static void handle_resume(TaskHandle_t tsk, eTaskState state) {
     *vendor_flag = 0;
   }
 }
+
 #if defined(CFG_BLE_ENABLE)
 /* do recovery when ble crashed */
 static void recovery_ble(void) {
@@ -299,7 +308,7 @@ void lp_hook_post_sys(iot2lp_para_t *param) {
 
   /* Compensation Tick */
   tickless_info("early compensate tick: %" __PRI64(u), (uint64_t)pdMS_TO_TICKS(QCC74x_PDS_CNT_TO_MS(rtc_after_sleep - rtc_enter_tickless)));
-  vTaskStepTick(pdMS_TO_TICKS(QCC74x_PDS_CNT_TO_MS(rtc_after_sleep - rtc_enter_tickless)) + 1);
+  vTaskStepTick(pdMS_TO_TICKS(QCC74x_PDS_CNT_TO_MS(rtc_after_sleep - rtc_enter_tickless)));
 
   /* Init mtimer handler */
   vPortSetupTimerInterrupt();
@@ -447,18 +456,51 @@ void vApplicationSleep(TickType_t xExpectedIdleTime) {
     }
   }
 
+  extern uint64_t twt_get_next_wakeup_us(void);
+  int64_t twt_wakeup;
+  twt_wakeup = twt_get_next_wakeup_us();
+  if (twt_wakeup) {
+    if (twt_wakeup < WAKEUP_AHEAD_US) {
+        portENABLE_INTERRUPTS();
+        tickless_info("Sleep Abort! %d", __LINE__);
+        ___WFI();
+        return;
+    }
+    twt_wakeup = QCC74x_US_TO_PDS_CNT(twt_wakeup);
+
+    if (twt_wakeup < rtc_sleep_remain) {
+        rtc_sleep_remain = twt_wakeup;
+    }
+  }
+
   rwnxl_regs_save_ops();
-#if defined(CFG_BLE_ENABLE)
-  if(rtc_sleep_remain < rtc_epilogue_time_max + QCC74x_US_TO_PDS_CNT(6350))
+
+  uint64_t ahead_wakeup_cost;
+
+  if (rtc_epilogue_time_max) {
+      ahead_wakeup_cost = rtc_epilogue_time_max + QCC74x_US_TO_PDS_CNT(WAKEUP_AHEAD_US);
+  } else {
+      ahead_wakeup_cost = FIRST_RTC_EPILOGUE_TIME + QCC74x_US_TO_PDS_CNT(WAKEUP_AHEAD_US);
+  }
+
+  if(rtc_sleep_remain < ahead_wakeup_cost)
   {
     portENABLE_INTERRUPTS();
     tickless_info("Sleep Abort! %d", __LINE__);
     ___WFI();
     return;
   }
+
+#if 0
+  tickless_fatal("Next wake: %s, next tick:%" __PRI64(u) ", current tick:%" __PRI64(u),
+                  wake_task_name, (uint64_t)wake_next_tick, (uint64_t)xTaskGetTickCount());
 #endif
+
+  uint64_t should_wakeup = rtc_sleep_remain;
+  should_wakeup += rtc_enter_tickless; 
+
   /* How much time do we have to sleep? */
-  rtc_sleep_remain -= rtc_epilogue_time_max + QCC74x_US_TO_PDS_CNT(6350);
+  rtc_sleep_remain -= ahead_wakeup_cost;
   tickless_info("rtc_sleep_remain: %" __PRI64(d), rtc_sleep_remain);
   configASSERT((signed)rtc_sleep_remain > 0);
 
@@ -481,10 +523,10 @@ void vApplicationSleep(TickType_t xExpectedIdleTime) {
   /* } */
 
   delta = rtc_after_sleep - lpfw_cfg.rtc_wakeup_cmp_cnt;
-
+  
   /* update pds prologue max time */
   /* N.B. delta may be negative when "rtc_sleep_remain too small, dont enter pds" */
-  if ((signed)delta > (signed)rtc_epilogue_time_max && (signed)delta < 40) {
+  if ((signed)delta > (signed)rtc_epilogue_time_max && (signed)delta < 300) {
     rtc_epilogue_time_max = delta;
     tickless_info("rtc_epilogue_time_max: %" __PRI64(u), rtc_epilogue_time_max);
   }

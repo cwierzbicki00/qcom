@@ -708,6 +708,8 @@ int qcc74x_dma_feature_control(struct qcc74x_device_s *dev, int cmd, size_t arg)
             return getreg32(channel_base + DMA_CxCONTROL_OFFSET);
         case DMA_CMD_GET_LLI_COUNT:
             return (getreg32(channel_base + DMA_CxCONFIG_OFFSET) & DMA_LLICOUNTER_MASK) >> DMA_LLICOUNTER_SHIFT;
+        case DMA_CMD_GET_TRANSFER_PENDING:
+            return (getreg32(channel_base + DMA_CxCONTROL_OFFSET) & DMA_TRANSFERSIZE_MASK) >> DMA_TRANSFERSIZE_SHIFT;
 
 #if defined(QCC74x_undef)
         case DMA_CMD_SET_LLI_MUTEX:

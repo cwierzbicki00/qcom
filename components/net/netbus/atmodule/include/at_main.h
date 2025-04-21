@@ -96,6 +96,8 @@ int at_module_init(void);
 
 int at_module_deinit(void);
 
+uint64_t at_current_ms_get();
+
 int at_register_function(at_func restore, at_func stop);
 
 void at_response_result(uint8_t result_code);

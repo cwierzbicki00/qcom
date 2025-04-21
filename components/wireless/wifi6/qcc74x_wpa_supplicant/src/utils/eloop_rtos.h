@@ -6,7 +6,7 @@ extern "C" {
 #endif
 
 #define ELOOP_MSG_INBUF_LEN     600
-#define ELOOP_MSG_OUTBUF_LEN    128
+#define ELOOP_MSG_OUTBUF_LEN    260
 
 enum {
     ELOOP_EVT_WPA_IFACE_CTRL = 1,

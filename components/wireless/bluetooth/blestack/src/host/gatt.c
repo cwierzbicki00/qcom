@@ -1208,7 +1208,7 @@ static void db_changed(void)
 
 struct bt_gatt_attr *bt_gatt_find_attr(uint16_t handle)
 {
-    return find_attr(handle);
+    return (struct bt_gatt_attr *)find_attr(handle);
 }
 
 int bt_gatt_service_register(struct bt_gatt_service *svc)

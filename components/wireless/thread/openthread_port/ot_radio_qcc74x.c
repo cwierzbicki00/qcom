@@ -2,8 +2,8 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <qcc743.h>
-#include <qcc743_glb.h>
+#include CHIP_HDR
+#include CHIP_GLB_HDR
 #include <qcc74x_mtimer.h>
 #include <qcc74x_efuse.h>
 #include <qcc74x_flash.h>
@@ -20,7 +20,7 @@ void otPlatRadioGetIeeeEui64(otInstance *aInstance, uint8_t *aIeeeEui64)
     uint32_t flash_id = 0;
 
     memset(aIeeeEui64, 0, 8);
-    for (i = 2; i >= 0; i --) {
+    for (i = MAC_ADDRESS_MAX_NUM - 1; i >= 0; i --) {
         if (!qcc74x_efuse_is_mac_address_slot_empty(i, 0)) {
             qcc74x_efuse_read_mac_address_opt(i, aIeeeEui64, 0);
             return;
@@ -45,7 +45,8 @@ uint64_t otPlatRadioGetNow(otInstance *aInstance)
 otError otPlatRadioEnable(otInstance *aInstance) 
 {
     ot_radioEnable();
-
+    
+    qcc74x_irq_attach(M154_INT_IRQn, (irq_callback)lmac154_get2015InterruptHandler(), NULL);
     qcc74x_irq_enable(M154_INT_IRQn);
 
     return OT_ERROR_NONE;

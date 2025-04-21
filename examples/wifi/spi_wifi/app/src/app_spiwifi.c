@@ -46,9 +46,11 @@ int app_spiwifi_init(void)
     qcc74x_mtd_init();
     easyflash_init();
 
-     #ifdef LP_APP
-     app_pm_init();
-     #endif
+    #ifdef LP_APP
+    app_pm_init();
+    #else 
+    app_atmoudle_init();
+    #endif
 
     return 0;
 }

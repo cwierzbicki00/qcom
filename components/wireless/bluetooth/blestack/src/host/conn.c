@@ -239,6 +239,20 @@ void notify_disconnected(struct bt_conn *conn)
 	}
 }
 
+#if (CONFIG_BT_REMOTE_VERSION)
+void notify_remote_version(struct bt_conn *conn)
+{
+	struct bt_conn_cb *cb;
+
+	for (cb = callback_list; cb; cb = cb->_next) {
+		if (cb->remote_version) {
+			cb->remote_version(conn, conn->rv.version,
+				conn->rv.manufacturer, conn->rv.subversion);
+		}
+	}
+}
+#endif /* CONFIG_BT_REMOTE_VERSION */
+
 void notify_le_param_updated(struct bt_conn *conn)
 {
 	struct bt_conn_cb *cb;
@@ -516,6 +530,12 @@ static struct bt_conn *conn_new(void)
 	struct bt_conn *conn = NULL;
 	int i;
 
+	/* avoid function reentry, different connections use the same conn[i]*/
+	#ifdef QCC74x_BLE_PATCH_CONN_NEW_REENTRY_RISK
+	unsigned int key;
+	key = irq_lock();
+	#endif
+
 	for (i = 0; i < ARRAY_SIZE(conns); i++) {
 		if (!atomic_get(&conns[i].ref)) {
 			conn = &conns[i];
@@ -524,15 +544,26 @@ static struct bt_conn *conn_new(void)
 	}
 
 	if (!conn) {
+		#ifdef QCC74x_BLE_PATCH_CONN_NEW_REENTRY_RISK
+		irq_unlock(key);
+		#endif
 		return NULL;
 	}
 
 	(void)memset(conn, 0, sizeof(*conn));
+
+	#ifdef QCC74x_BLE_PATCH_CONN_NEW_REENTRY_RISK
+	atomic_set(&conn->ref, 1);
+	irq_unlock(key);
+	#endif
+
 	k_delayed_work_init(&conn->update_work, conn_update_timeout);
 
 	k_work_init(&conn->tx_complete_work, tx_complete_work);
 
+	#ifndef QCC74x_BLE_PATCH_CONN_NEW_REENTRY_RISK
 	atomic_set(&conn->ref, 1);
+	#endif
 
 	return conn;
 }
@@ -1796,7 +1827,9 @@ int bt_conn_prepare_events(struct k_poll_event events[])
 		/* when bt_conn_set_state set state to BT_CONN_CONNECTED. There is a risk the state is 
 		 * set, but tx_queue isn't init.
 		 */
-		 if(conn->tx_queue._queue.hdl == 0){
+		if((conn->tx_queue._queue.hdl == 0) 
+			|| (conn->tx_queue._queue.poll_events.head == 0) 
+			|| (conn->tx_queue._queue.poll_events.next == 0)){
 			BT_WARN("conn %p tx_queue is not vaild", conn);
 			continue;
 		}
@@ -2526,6 +2559,16 @@ struct bt_conn *bt_conn_create_le(const bt_addr_le_t *peer,
 		return NULL;
 	}
 
+	#if defined(QCC74x_BLE_RESTRICT_CONN_ACTION_NOT_EXCEED_MAX_CONN)
+	if (bt_conn_get_remote_dev_info(NULL) == CONFIG_BT_MAX_CONN ||
+		(atomic_test_bit(bt_dev.flags, BT_DEV_ADVERTISING) &&
+		atomic_test_bit(bt_dev.flags,BT_DEV_ADVERTISING_CONNECTABLE) &&
+		bt_conn_get_remote_dev_info(NULL) == (CONFIG_BT_MAX_CONN - 1))){
+		BT_ERR("Cannot create le conn because of conn resource limitation(max_conn:%u)",CONFIG_BT_MAX_CONN);
+		return NULL;
+	}
+	#endif
+
 	if (!bt_le_conn_params_valid(param)) {
 		return NULL;
 	}
@@ -2556,7 +2599,14 @@ struct bt_conn *bt_conn_create_le(const bt_addr_le_t *peer,
 			return conn;
 		case BT_CONN_DISCONNECTED:
 			BT_WARN("Found valid but disconnected conn object");
-			goto start_scan;
+			//fix by qcc74x:not ref if conn of this peer has existed.
+#if defined(QCC74x_BLE_PATCH_CONN_CREATE_LE_BEFORE_DISCONN_FULLY_COMPLETE_RISK)
+			bt_conn_unref(conn);
+			return NULL;
+#else
+			//fix end
+ 			goto start_scan;
+#endif
 		default:
 			bt_conn_unref(conn);
 			return NULL;
@@ -2577,7 +2627,9 @@ struct bt_conn *bt_conn_create_le(const bt_addr_le_t *peer,
 		return NULL;
 	}
 
+#ifndef QCC74x_BLE_PATCH_CONN_CREATE_LE_BEFORE_DISCONN_FULLY_COMPLETE_RISK
 start_scan:
+#endif
 	bt_conn_set_param_le(conn, param);
 
 	bt_conn_set_state(conn, BT_CONN_CONNECT_SCAN);

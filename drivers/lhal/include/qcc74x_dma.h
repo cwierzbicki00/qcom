@@ -248,6 +248,7 @@
 #define DMA_ADDR_SPI0_RDR    (0x2000A200 + 0x8C)
 #define DMA_ADDR_SPI1_TDR    (0x30008000 + 0x88)
 #define DMA_ADDR_SPI1_RDR    (0x30008000 + 0x8C)
+#define DMA_ADDR_DBI_TDR     (0x3001b000 + 0x88)
 #define DMA_ADDR_I2S_TDR     (0x2000AB00 + 0x88)
 #define DMA_ADDR_I2S_RDR     (0x2000AB00 + 0x8C)
 #define DMA_ADDR_ADC_RDR     (0x20002000 + 0x04)
@@ -280,6 +281,7 @@
 #define DMA_REQUEST_I2C1_TX  0x0000000F
 #define DMA_REQUEST_I2S_RX   0x00000010
 #define DMA_REQUEST_I2S_TX   0x00000011
+#define DMA_REQUEST_DBI_TX   0x00000014
 #define DMA_REQUEST_ADC      0x00000016
 #define DMA_REQUEST_DAC      0x00000017
 
@@ -436,17 +438,17 @@
 
 #endif
 
+#if defined(QCC74x_undef)
 /** @defgroup DMA_LLI_MUTEX dma lli mutex definition
   * @{
   */
-#if defined(QCC74x_undef)
 #define DMA_LLI_MUTEX_UNAVAILABLE   (0)
 #define DMA_LLI_MUTEX_NOT_LAST_NODE (1)
 #define DMA_LLI_MUTEX_LAST_NODE     (2)
-#endif
 /**
   * @}
   */
+#endif
 
 /** @defgroup DMA_CMD dma feature control cmd definition
   * @{
@@ -467,6 +469,7 @@
 #define DMA_CMD_READ_SW_USAGE         (0x0d)
 #define DMA_CMD_WRITE_SW_USAGE        (0x0e)
 #endif
+#define DMA_CMD_GET_TRANSFER_PENDING  (0x0f)
 /**
   * @}
   */

@@ -8,7 +8,6 @@
 |:------------|:-------------|:------------|:---------|
 | codec       | Requires only basic audio driver capabilities | Basic audio-level Demo, planning to support recording, playback, and loopback | Currently supports recording and playback, loopback support to be added later     |
 | player      | Extensive audio playback capabilities | Player-related Demo, planning to support audio streaming from memory, flash, SD card, WiFi, and BT | Currently supports memory and flash playback, also supports WiFi and BT, but not WiFi-BT coexistence (to be supported in a future system update)    |
-| player_bt   | Requires only BT playback capabilities | Player-related Demo, planning to support only BT audio streaming | Completed     |
 | player_wifi | Requires only WiFi playback capabilities | Player-related Demo, planning to support only WiFi audio streaming | Completed                       |
 | player_mp3  | Requires only alert capabilities and minimal resource usage | Simplified version, supports mp3 format playback only | Completed                    |
 

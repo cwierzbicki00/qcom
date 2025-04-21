@@ -3,10 +3,13 @@
 #include <rfparam_adapter.h>
 #endif
 
+#include <qcc74x_sys.h>
+
 #include <qcc74x_mtd.h>
 #if defined (CONFIG_EASYFLASH4)
 #include <easyflash.h>
 #endif
+
 #include <lmac154.h>
 #include <zb_timer.h>
 
@@ -30,7 +33,7 @@ static void ot_stateChangedCallback(otChangedFlags aFlags, void *aContext)
         otDeviceRole role = otThreadGetDeviceRole(otrGetInstance());
         const otNetifAddress *unicastAddrs = otIp6GetUnicastAddresses(otrGetInstance());
 
-        APP_PRINT ("st_role %ld %s, partition id %d\r\n", zb_timer_get_current_time(), 
+        APP_PRINT ("state_role_changed %ld %s, partition id %d\r\n", zb_timer_get_current_time(), 
                 otThreadDeviceRoleToString(role), otThreadGetPartitionId(otrGetInstance()));
 
         for (const otNetifAddress *addr = unicastAddrs; addr; addr = addr->mNext) {
@@ -43,7 +46,7 @@ static void ot_stateChangedCallback(otChangedFlags aFlags, void *aContext)
         otDeviceRole role = otThreadGetDeviceRole(otrGetInstance());
         const otNetifAddress *unicastAddrs = otIp6GetUnicastAddresses(otrGetInstance());
 
-        APP_PRINT ("st_addr %ld %s, partition id %d\r\n", zb_timer_get_current_time(), 
+        APP_PRINT ("state_address_changed %ld %s, partition id %d\r\n", zb_timer_get_current_time(), 
                 otThreadDeviceRoleToString(role), otThreadGetPartitionId(otrGetInstance()));
 
         for (const otNetifAddress *addr = unicastAddrs; addr; addr = addr->mNext) {
@@ -71,8 +74,10 @@ void otrInitUser(otInstance * instance)
 
 void vApplicationTickHook( void )
 {
+#ifdef QCC743
     lmac154_monitor();
-#if CONFIG_LMAC154_LOG_ENABLE
+#endif
+#if CONFIG_LMAC154_LOG
     lmac154_logs_output();
 #endif
 }
@@ -80,9 +85,13 @@ void vApplicationTickHook( void )
 int main(void)
 {
     otRadio_opt_t opt;
+    
+#if !defined(QCC74x_undefL)
+    qcc74x_sys_rstinfo_init();
+#endif
 
     board_init();
-
+    
     qcc74x_mtd_init();
 #if defined (CONFIG_EASYFLASH4)
     easyflash_init();
@@ -91,7 +100,6 @@ int main(void)
     configASSERT((configMAX_PRIORITIES > 4));
 
 #if defined(QCC743)
-    /* Init rf */
     if (0 != rfparam_init(0, NULL, 0)) {
         printf("PHY RF init failed!\r\n");
         return 0;
@@ -100,7 +108,7 @@ int main(void)
     
     __libc_init_array();
 
-#if CONFIG_LMAC154_LOG_ENABLE
+#if CONFIG_LMAC154_LOG
     lmac154_log_init();
 #endif
 
@@ -138,3 +146,4 @@ int main(void)
     while (1) {
     }
 }
+

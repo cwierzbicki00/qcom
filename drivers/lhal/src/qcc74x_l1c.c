@@ -80,7 +80,9 @@ ATTR_TCM_SECTION void qcc74x_l1c_dcache_clean_range(void *addr, uint32_t size)
 #ifdef romapi_qcc74x_l1c_dcache_clean_range
     romapi_qcc74x_l1c_dcache_clean_range(addr, size);
 #else
-    csi_dcache_clean_range(addr, size);
+    if (qcc74x_check_cache_addr(addr)) {
+        csi_dcache_clean_range(addr, size);
+    }
 #endif
 }
 
@@ -89,7 +91,9 @@ ATTR_TCM_SECTION void qcc74x_l1c_dcache_invalidate_range(void *addr, uint32_t si
 #ifdef romapi_qcc74x_l1c_dcache_invalidate_range
     romapi_qcc74x_l1c_dcache_invalidate_range(addr, size);
 #else
-    csi_dcache_invalid_range(addr, size);
+    if (qcc74x_check_cache_addr(addr)) {
+        csi_dcache_invalid_range(addr, size);
+    }
 #endif
 }
 
@@ -98,7 +102,9 @@ ATTR_TCM_SECTION void qcc74x_l1c_dcache_clean_invalidate_range(void *addr, uint3
 #ifdef romapi_qcc74x_l1c_dcache_clean_invalidate_range
     romapi_qcc74x_l1c_dcache_clean_invalidate_range(addr, size);
 #else
-    csi_dcache_clean_invalid_range(addr, size);
+    if (qcc74x_check_cache_addr(addr)) {
+        csi_dcache_clean_invalid_range(addr, size);
+    }
 #endif
 }
 #else
@@ -106,6 +112,8 @@ ATTR_TCM_SECTION void qcc74x_l1c_dcache_clean_invalidate_range(void *addr, uint3
 #if defined(QCC74x_undef) || defined(QCC74x_undef)
 extern void L1C_Cache_Enable_Set(uint8_t wayDisable);
 extern void L1C_Cache_Flush(void);
+#elif defined(QCC74x_undef)
+extern int qcc74x_sflash_cache_flush(void);
 #endif
 
 void qcc74x_l1c_icache_enable(void)
@@ -139,6 +147,8 @@ void qcc74x_l1c_dcache_invalidate_all(void)
 {
 #if defined(QCC74x_undef) || defined(QCC74x_undef)
     L1C_Cache_Flush();
+#elif defined(QCC74x_undef)
+    qcc74x_sflash_cache_flush();
 #endif
 }
 
@@ -146,6 +156,8 @@ void qcc74x_l1c_dcache_clean_invalidate_all(void)
 {
 #if defined(QCC74x_undef) || defined(QCC74x_undef)
     L1C_Cache_Flush();
+#elif defined(QCC74x_undef)
+    qcc74x_sflash_cache_flush();
 #endif
 }
 
@@ -157,6 +169,8 @@ ATTR_TCM_SECTION void qcc74x_l1c_dcache_invalidate_range(void *addr, uint32_t si
 {
 #if defined(QCC74x_undef) || defined(QCC74x_undef)
     L1C_Cache_Flush();
+#elif defined(QCC74x_undef)
+    qcc74x_sflash_cache_flush();
 #endif
 }
 
@@ -164,6 +178,8 @@ ATTR_TCM_SECTION void qcc74x_l1c_dcache_clean_invalidate_range(void *addr, uint3
 {
 #if defined(QCC74x_undef) || defined(QCC74x_undef)
     L1C_Cache_Flush();
+#elif defined(QCC74x_undef)
+    qcc74x_sflash_cache_flush();
 #endif
 }
 #if defined(QCC74x_undef) || defined(QCC74x_undef)

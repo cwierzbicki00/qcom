@@ -604,7 +604,7 @@ uint32_t qcc74x_flash2_get_size(void)
 #endif
 #endif
 
-void qcc74x_flash_get_cfg(uint8_t **cfg_addr, uint32_t *len)
+void ATTR_TCM_SECTION qcc74x_flash_get_cfg(uint8_t **cfg_addr, uint32_t *len)
 {
     *cfg_addr = (uint8_t *)&g_flash_cfg;
     *len = sizeof(spi_flash_cfg_type);

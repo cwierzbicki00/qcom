@@ -8,8 +8,8 @@
 #define EMAC_DRV_DBG(a, ...)
 #endif
 
-/* sdio int */
-static void qcc74x_emac_isr(int irq, void *arg);
+/* emac int */
+void qcc74x_emac_isr(int irq, void *arg);
 
 struct qcc74x_emac_queue_ctrl_s {
     uint32_t emac_tx_bd_head;
@@ -173,9 +173,11 @@ int qcc74x_emac_init(struct qcc74x_device_s *dev, const struct qcc74x_emac_confi
     regval &= ~(EMAC_TXC_M | EMAC_TXE_M | EMAC_TXB_M);               /* rx int */
     putreg32(regval, reg_base + EMAC_INT_MASK_OFFSET);
 
+#ifndef NOT_USE_QCC74x_LHAL_IRQ_ATTACH
     /* enable irq */
     qcc74x_irq_attach(dev->irq_num, qcc74x_emac_isr, dev);
     qcc74x_irq_enable(dev->irq_num);
+#endif
 
     return 0;
 }
@@ -728,7 +730,7 @@ static void qcc74x_emac_isr_cb_tx(struct qcc74x_device_s *dev)
     }
 }
 
-static void qcc74x_emac_isr(int irq, void *arg)
+void qcc74x_emac_isr(int irq, void *arg)
 {
     struct qcc74x_device_s *dev = (struct qcc74x_device_s *)arg;
     uint32_t reg_base;

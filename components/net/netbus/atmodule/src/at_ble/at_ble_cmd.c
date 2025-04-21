@@ -783,10 +783,11 @@ static int at_setup_cmd_ble_gatts_read(int argc, const char **argv)
     vPortFree(buffer);
 
     if (send_num != recv_num) {
-        return AT_RESULT_CODE_FAIL;
+        return AT_RESULT_CODE_IGNORE;
     }
 
-    return AT_RESULT_CODE_OK;
+    at_response_string("%s", AT_CMD_MSG_SEND_OK);
+    return AT_RESULT_CODE_PROCESS_DONE;
 }
 
 static int at_setup_cmd_ble_gattc_service_discover(int argc, const char **argv)

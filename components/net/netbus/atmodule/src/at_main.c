@@ -29,7 +29,6 @@
 #include "at_http_cmd.h"
 #include "at_through.h"
 #include "at_ble_cmd.h"
-#include "at_bredr_cmd.h"
 #define ATCMD_TASK_STACK_SIZE (896)
 #define ATCMD_TASK_PRIORITY 28
 #define AT_CMD_PRINTF printf
@@ -39,6 +38,17 @@
 #if AT_WORK_QUEUE
 static QueueHandle_t g_work_queue;
 #endif
+
+uint64_t at_current_ms_get()
+{
+    uint64_t current_ms;
+    TimeOut_t xCurrentTime = {0};
+    vTaskSetTimeOutState(&xCurrentTime);
+    current_ms = ( uint64_t ) ( xCurrentTime.xOverflowCount ) << ( sizeof( TickType_t ) * 8 );
+    current_ms += xCurrentTime.xTimeOnEntering;
+    current_ms = current_ms * portTICK_PERIOD_MS;
+    return current_ms;
+}
 
 void at_response_result(uint8_t result_code)
 {
@@ -276,9 +286,10 @@ int at_module_init(void)
         AT_CMD_PRINTF("ERROR: init at cmd device failed, ret = %d\r\n", ret);
         goto INIT_ERROR;
     }
+#ifdef CONFIG_NETWORK
     /* register network AT command */
     at_net_cmd_regist();
-
+#endif
     /* register at fs */
     at_fs_register();
 
@@ -290,15 +301,17 @@ int at_module_init(void)
     /* register wifi AT command */
     at_wifi_cmd_regist();
 
+#ifdef CONFIG_MQTT
     /* register mqtt AT command */
     at_mqtt_cmd_regist();
+#endif 
+#ifdef CONFIG_HTTP
     /* register http AT command */
     at_http_cmd_regist();
+#endif
 #if defined(CFG_BLE_ENABLE)
     /* register ble AT command */
     at_ble_cmd_regist();
-    /* register bredr AT command */
-    at_bredr_cmd_regist();
 #endif
 #ifdef LP_APP
     /* register pwr AT command */

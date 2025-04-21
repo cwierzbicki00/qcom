@@ -721,6 +721,15 @@ void board_i2s_gpio_init()
     qcc74x_gpio_init(gpio, GPIO_PIN_19, GPIO_FUNC_I2S | GPIO_ALTERNATE | GPIO_PULLUP | GPIO_SMT_EN | GPIO_DRV_1);
 }
 
+void board_timer_gpio_init()
+{
+    struct qcc74x_device_s *gpio;
+
+    gpio = qcc74x_device_get_by_name("gpio");
+    GLB_Sel_MCU_TMR_GPIO_Clock(GPIO_PIN_0);
+    qcc74x_gpio_init(gpio, GPIO_PIN_0, GPIO_FUNC_CLKOUT | GPIO_ALTERNATE | GPIO_PULLDOWN | GPIO_SMT_EN | GPIO_DRV_1);
+}
+
 void board_acomp_init()
 {
     struct qcc74x_device_s *gpio;

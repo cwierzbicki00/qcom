@@ -585,6 +585,10 @@
 #define CONFIG_BT_ID_MAX 1
 #endif
 
+#ifndef CONFIG_BT_REMOTE_VERSION
+#define CONFIG_BT_REMOTE_VERSION 0
+#endif
+
 //#define PTS_GAP_SLAVER_CONFIG_NOTIFY_CHARC 1
 
 #ifndef CONFIG_BT_L2CAP_TX_FRAG_COUNT
@@ -789,7 +793,7 @@ then it does disconnected flow once more. This will cause hardfault issue becaus
 #define QCC74x_BLE_AUTO_CLEAN_KEY_WHEN_KEY_MISSING
 #define QCC74x_BLE_AUTO_CANCEL_RELIABLE_WRITE_CHARACTERISTIC
 #define QCC74x_BLE_FREE_CONN_UPDATE_WORK_WHEN_DISCONNECT_IN_CONN_SCAN_STATE
-#define QCC74x_BLE_REJECT_CONNECTABLE_ADV_IF_MAX_LINKS_REACH
+#define QCC74x_BLE_RESTRICT_CONN_ACTION_NOT_EXCEED_MAX_CONN
 /* If there are multiple subscriptions, and host's acl tx buffer is not enough, it will block receive task to wait for host's 
  * available tx buffer with timout 30s, this make receive task cannot handle att response for last write ccc req to release tx buffer. 
  * ATT_TIMEOUT will happen because there is no available tx buffer.
@@ -820,5 +824,11 @@ then it does disconnected flow once more. This will cause hardfault issue becaus
  *excute conn_cleanup if conn->ref is 0.This will cause memory leak issue.
 */
 #define QCC74x_BLE_PATCH_AVOID_CONN_CLEANUP_FAILED_EXCUTED_RISK
+
+/* Fix the issue that bt_conn_create_le (to the samve address) is called before hci_disconn_complete fully completed, the new ref is not start from 0.*/
+#define QCC74x_BLE_PATCH_CONN_CREATE_LE_BEFORE_DISCONN_FULLY_COMPLETE_RISK
+
+/* Fix the issue that conn_new reentry before atomic_set is completed, then different connections may be use the same conns[i]*/
+#define QCC74x_BLE_PATCH_CONN_NEW_REENTRY_RISK
 
 #endif /* BLE_CONFIG_H */

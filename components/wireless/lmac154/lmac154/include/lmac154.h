@@ -8,11 +8,14 @@
 
 #define VERSION_LMAC154_MAJOR 1
 #define VERSION_LMAC154_MINOR 6
-#define VERSION_LMAC154_PATCH 7
+#define VERSION_LMAC154_PATCH 12
+
+// #define VERSION_LMAC154_SRC_EXTRA_INFO "customer-1"
 
 typedef void (*lmac154_isr_t)(void);
 
 typedef enum {
+    LMAC154_CHANNEL_NONE = -1,
     LMAC154_CHANNEL_11 = 0,
     LMAC154_CHANNEL_12,
     LMAC154_CHANNEL_13,
@@ -208,6 +211,7 @@ typedef enum {
 
 #define LMAC154_FRAME_IS_MPP_ACK_REQ(x)             (LMAC154_FRAME_IS_MPP(x) && LMAC154_FRAME_IS_MPP_LONG_FRAME(x) && ((x) & LMAC154_FRAME_MPP_ACK_REQ) == LMAC154_FRAME_MPP_ACK_REQ)
 #define LMAC154_FRAME_IS_ENH_ACK_REQ(x)             (LMAC154_FRAME_IS_MPP_ACK_REQ(x) || (LMAC154_FRAME_IS_ACK_REQ(x) && LMAC154_FRAME_IS_FRAME_2015(x)))
+#define LMAC154_FRAME_IS_IMM_ACK_REQ(x)             (LMAC154_FRAME_IS_ACK_REQ(x) && !LMAC154_FRAME_IS_FRAME_2015(x))
 
 #define LMAC154_FRAME_IS_SECURITY_ENABLED(x)        (LMAC154_FRAME_IS_MPP(x) ?                                                          \
                                                         (LMAC154_FRAME_IS_MPP_SECURITY(x) : LMAC154_FRAME_IS_NORMAL_SECURITY(x))
@@ -261,6 +265,15 @@ void lmac154_init(void);
 *******************************************************************************/
 void lmac154_enable2015Feature(void);
 
+/****************************************************************************//**
+ * @brief  Disable MAC 15.4 feature for 2015 version
+ *
+ * @param  None
+ *
+ * @return None
+ *
+*******************************************************************************/
+void lmac154_disable2015Feature(void);
 
 /****************************************************************************//**
  * @brief  Enable second stack for dual stack
@@ -528,6 +541,15 @@ void lmac154_runTxCW(void);
 *******************************************************************************/
 void lmac154_resetTx(void);
 
+/****************************************************************************//**
+ * @brief  Reset rx state machine
+ *
+ * @param  None
+ *
+ * @return None
+ *
+*******************************************************************************/
+void lmac154_resetRx(void);
 
 /****************************************************************************//**
  * @brief  Set the channel (default LMAC154_CHANNEL_11)
@@ -594,6 +616,15 @@ uint8_t lmac154_getSFDCorrelation(void);
 *******************************************************************************/
 int lmac154_getFrequencyOffset(void);
 
+/****************************************************************************//**
+ * @brief  Set country code for tx power adjustment
+ *
+ * @param  country_code: country code, for example: CN
+ *
+ * @return true, if country code is valid.
+ *
+*******************************************************************************/
+bool lmac154_setCountryCode(const char * country_code);
 
 /****************************************************************************//**
  * @brief  Set tx power (no default value)
@@ -605,6 +636,19 @@ int lmac154_getFrequencyOffset(void);
 *******************************************************************************/
 void lmac154_setTxPower(lmac154_tx_power_t power_dbm);
 
+/****************************************************************************//**
+ * @brief  Set tx power (no default value)
+ *
+ * @param  power_dbm: tx power ranging from LMAC154_TX_POWER_0dBm to LMAC154_TX_POWER_14dBm
+ *
+ * @param  ch_ind: channel index ranging from LMAC154_CHANNEL_11 to LMAC154_CHANNEL_26
+ *
+ * @param country_code: country code, for example: CN
+ *
+ * @return None
+ *
+*******************************************************************************/
+void lmac154_setTxPowerWithPowerLimit(lmac154_tx_power_t power_dbm, lmac154_channel_t ch_ind, const char *country_code);
 
 /****************************************************************************//**
  * @brief  Get tx power
@@ -1101,6 +1145,35 @@ void lmac154_readRxCrc(uint8_t crc[2]);
 *******************************************************************************/
 void lmac154_setAckWaitTime(uint16_t time_us);
 
+/****************************************************************************//**
+ * @brief  Get the maximum wait time for imm-ack frame
+ *
+ * @param  None
+ *
+ * @return time_us: maximum wait time
+ *
+*******************************************************************************/
+uint16_t lmac154_getAckWaitTime(void);
+
+/****************************************************************************//**
+ * @brief  Set the maximum wait time for enh-ack ack frame (default 1500us)
+ *
+ * @param  time_us: maximum wait time
+ *
+ * @return None
+ *
+*******************************************************************************/
+void lmac154_setEnhAckWaitTime(uint16_t time_us);
+
+/****************************************************************************//**
+ * @brief  Get the maximum wait time for enh-ack ack frame
+ *
+ * @param  None
+ *
+ * @return time_us: maximum wait time
+ *
+*******************************************************************************/
+uint16_t lmac154_getEnhAckWaitTime(void);
 
 /****************************************************************************//**
  * @brief  Set the maximum and minimum CSMA-CA backoff exponent
@@ -1428,7 +1501,7 @@ void lmac154_rxMhrEvent(uint8_t *rx_buf, uint8_t rx_len, uint8_t pkt_len);
 *******************************************************************************/
 void lmac154_rxSecMhrEvent(uint8_t *rx_buf, uint8_t rx_len, uint8_t pkt_len);
 
-#if CONFIG_LMAC154_LOG_ENABLE
+#if CONFIG_LMAC154_LOG
 void lmac154_log_init(void);
 void lmac154_log(const char *format, ...);
 void lmac154_logs_output(void);

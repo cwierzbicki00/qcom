@@ -1,5 +1,30 @@
 # change log on lmac154 module
 
+## 2025/3/12
+- Version: 1.6.12
+- Changes
+  - QCC743: Apply TX power limit with channel and country code if phyrf lib supported
+
+## 2025/2/8
+- Version: 1.6.11
+- Changes
+  - Put nbr & fp table search function in  RAM
+
+## 2024/12/13
+- Version: 1.6.10
+- Changes
+  - QCC743: Improve large network stability
+
+## 2024/11/18
+- Version: 1.6.9
+- Changes
+  - QCC743: Improve tx abort for ack transmition
+
+## 2024/10/25
+- Version: 1.6.8
+- Changes
+  - QCC743: Parse recieved packets and drop packets with wrong destination for standard 2015 enabled
+
 ## 2024/09/05
 - Version: 1.6.7
 - Changes

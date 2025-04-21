@@ -211,7 +211,7 @@ void *qcc74x_get_no_cache_addr(const void *addr)
 
     return NULL;
 }
-#elif defined(QCC74x_undef)
+#elif defined(QCC74x_undef) || defined(QCC74x_undef)
 bool qcc74x_check_cache_addr(const void *addr)
 {
     uintptr_t a = (uintptr_t)addr;
@@ -297,6 +297,18 @@ void *qcc74x_get_no_cache_addr(const void *addr)
     return NULL;
 }
 #endif
+
+#if (defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)) && !defined(CPU_LP)
+bool qcc74x_check_cache_addr_aligned(uintptr_t addr)
+{
+    if (addr & (QCC74x_CACHE_LINE_SIZE - 1)) {
+        return false;
+    } else {
+        return true;
+    }
+}
+#endif
+
 // ---------------- POPULAR POLYNOMIALS ----------------
 // CCITT:      x^16 + x^12 + x^5 + x^0                 (0x1021,init 0x0000)
 // CRC-16:     x^16 + x^15 + x^2 + x^0                 (0x8005,init 0xFFFF)

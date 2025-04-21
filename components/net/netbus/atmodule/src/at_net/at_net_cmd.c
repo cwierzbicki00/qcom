@@ -323,6 +323,7 @@ static int at_setup_cmd_cipstart(int argc, const char **argv)
     int keepalive_valid = 0, keepalive = 0;
     int local_port_valid = 0, local_port = 0;
     int mode_valid = 0, mode = 0;
+    int timeout_valid = 0, timeout = 0;
     char local_ip[16];
     int local_ip_valid = 0;
     ip_addr_t remote_ipaddr;
@@ -390,7 +391,14 @@ static int at_setup_cmd_cipstart(int argc, const char **argv)
     } else {
         return AT_RESULT_CODE_ERROR;
     }
-    if (keepalive_valid && (keepalive < 0 || keepalive > 7200)) {
+        
+    AT_CMD_PARSE_OPT_NUMBER(argc_index, &timeout, timeout_valid);
+    argc_index++;
+
+    if (timeout_valid && (timeout < 0 || timeout > 20000)) {
+        return AT_RESULT_CODE_ERROR;
+    }
+    if (timeout_valid && (timeout < 0 || timeout > 20000)) {
         return AT_RESULT_CODE_ERROR;
     }
     if (local_port_valid && (local_port < 0 || local_port > 65535)) {
@@ -401,11 +409,11 @@ static int at_setup_cmd_cipstart(int argc, const char **argv)
     }
 
     if (strcasecmp(type, "TCP") == 0 || strcasecmp(type, "TCPv6") == 0) {
-        ret = at_net_client_tcp_connect(linkid, &remote_ipaddr, (uint16_t)remote_port, keepalive);
+        ret = at_net_client_tcp_connect(linkid, &remote_ipaddr, (uint16_t)remote_port, keepalive, timeout);
     } else if (strcasecmp(type, "UDP") == 0 || strcasecmp(type, "UDPv6") == 0) {
-        ret = at_net_client_udp_connect(linkid, &remote_ipaddr, (uint16_t)remote_port, (uint16_t)local_port, mode);
+        ret = at_net_client_udp_connect(linkid, &remote_ipaddr, (uint16_t)remote_port, (uint16_t)local_port, mode, timeout);
     } else if (strcasecmp(type, "SSL") == 0 || strcasecmp(type, "SSLv6") == 0) {
-        ret = at_net_client_ssl_connect(linkid, &remote_ipaddr, (uint16_t)remote_port, keepalive);
+        ret = at_net_client_ssl_connect(linkid, &remote_ipaddr, (uint16_t)remote_port, keepalive, timeout);
     }
 
     if (ret != 0) {
@@ -424,6 +432,7 @@ static int at_setup_cmd_cipstartex(int argc, const char **argv)
     int keepalive_valid = 0, keepalive = 0;
     int local_port_valid = 0, local_port = 0;
     int mode_valid = 0, mode = 0;
+    int timeout_valid = 0, timeout = 0;
     char local_ip[16];
     int local_ip_valid = 0;
     ip_addr_t remote_ipaddr = {0};
@@ -481,6 +490,13 @@ static int at_setup_cmd_cipstartex(int argc, const char **argv)
     } else {
         return AT_RESULT_CODE_ERROR;
     }
+        
+    AT_CMD_PARSE_OPT_NUMBER(argc_index, &timeout, timeout_valid);
+    argc_index++;
+
+    if (timeout_valid && (timeout < 0 || timeout > 7200)) {
+        return AT_RESULT_CODE_ERROR;
+    }
     if (keepalive_valid && (keepalive < 0 || keepalive > 7200)) {
         return AT_RESULT_CODE_ERROR;
     }
@@ -492,11 +508,11 @@ static int at_setup_cmd_cipstartex(int argc, const char **argv)
     }
  
     if (strcasecmp(type, "TCP") == 0 || strcasecmp(type, "TCPv6") == 0) {
-        ret = at_net_client_tcp_connect(linkid, &remote_ipaddr, (uint16_t)remote_port, keepalive);
+        ret = at_net_client_tcp_connect(linkid, &remote_ipaddr, (uint16_t)remote_port, keepalive, timeout);
     } else if (strcasecmp(type, "UDP") == 0 || strcasecmp(type, "UDPv6") == 0) {
-        ret = at_net_client_udp_connect(linkid, &remote_ipaddr, (uint16_t)remote_port, (uint16_t)local_port, mode);
+        ret = at_net_client_udp_connect(linkid, &remote_ipaddr, (uint16_t)remote_port, (uint16_t)local_port, mode, timeout);
     } else if (strcasecmp(type, "SSL") == 0 || strcasecmp(type, "SSLv6") == 0) {
-        ret = at_net_client_ssl_connect(linkid, &remote_ipaddr, (uint16_t)remote_port, keepalive);
+        ret = at_net_client_ssl_connect(linkid, &remote_ipaddr, (uint16_t)remote_port, keepalive, timeout);
     }
 
     if (ret != 0) {
@@ -673,7 +689,7 @@ static int at_setup_cmd_cipsend(int argc, const char **argv)
     }
 
     if (remote_host_valid && remote_port_valid && (!at_net_client_is_connected(linkid))) {
-        if (at_net_client_udp_connect(linkid, &remote_ipaddr, (uint16_t)remote_port, 0, 0) != 0) {
+        if (at_net_client_udp_connect(linkid, &remote_ipaddr, (uint16_t)remote_port, 0, 0, 0) != 0) {
             return AT_RESULT_CODE_FAIL;
         }
     }
@@ -779,7 +795,7 @@ static int at_setup_cmd_cipsendl(int argc, const char **argv)
     }
 
     if (remote_host_valid && remote_port_valid && (!at_net_client_is_connected(linkid))) {
-        if (at_net_client_udp_connect(linkid, &remote_ipaddr, (uint16_t)remote_port, 0, 0) != 0) {
+        if (at_net_client_udp_connect(linkid, &remote_ipaddr, (uint16_t)remote_port, 0, 0, 0) != 0) {
             return AT_RESULT_CODE_FAIL;
         }
     }
@@ -899,7 +915,7 @@ static int at_setup_cmd_cipsendex(int argc, const char **argv)
     }
 
     if (remote_host_valid && remote_port_valid && (!at_net_client_is_connected(linkid))) {
-        if (at_net_client_udp_connect(linkid, &remote_ipaddr, (uint16_t)remote_port, 0, 0) != 0) {
+        if (at_net_client_udp_connect(linkid, &remote_ipaddr, (uint16_t)remote_port, 0, 0, 0) != 0) {
             return AT_RESULT_CODE_FAIL;
         }
     }
@@ -1035,6 +1051,9 @@ static int at_setup_cmd_ciprecvmode(int argc, const char **argv)
         if (at_net_client_is_connected(linkid)) {
             return AT_RESULT_CODE_ERROR;
         }
+        if (mode == NET_RECV_MODE_ACTIVE) {
+            at_net_recvbuf_delete(linkid);
+        }
     }
     
     at_net_config->recv_mode = mode;
@@ -1140,6 +1159,7 @@ static int at_setup_cmd_ciprecvbuf(int argc, const char **argv)
         AT_CMD_PARSE_NUMBER(0, &linkid);
         AT_CMD_PARSE_NUMBER(1, &size);
     }
+
     /* Reserve some size to prevent fragmented memory */
     if (size <= 0 || (size + 10240 > kfree_size())) {
         return AT_RESULT_CODE_ERROR;

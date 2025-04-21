@@ -218,7 +218,6 @@ static int ip_multicast_enable(int fd, ip_addr_t *ipaddr)
         }
     }
 
-    AT_NET_PRINTF("sock add membership\r\n");
 #endif
     return 0;
 }
@@ -247,7 +246,6 @@ static int so_keepalive_enable(int fd, int idle, int interval, int count)
         return -1;
     }
 
-    AT_NET_PRINTF("sock:%d enable keepalive:%d\r\n", fd, keepIdle);
     return 0;
 }
 
@@ -259,7 +257,6 @@ static int so_keepalive_disable(int fd)
         return -1;
     }
 
-    AT_NET_PRINTF("sock disable keepalive\r\n");
     return 0;
 }
 
@@ -273,7 +270,6 @@ static int so_linger_enable(int fd, int linger)
         return -1;
     }
 
-    AT_NET_PRINTF("sock enable so_linger\r\n");
     return 0;
 }
 
@@ -287,7 +283,6 @@ static int so_linger_disable(int fd)
         return -1;
     }
 
-    AT_NET_PRINTF("sock disable so_linger\r\n");
     return 0;
 }
 
@@ -302,7 +297,6 @@ static int so_sndtimeo_enable(int fd, int timeout_ms)
         return -1;
     }
 
-    AT_NET_PRINTF("sock enable sndtimeo\r\n");
     return 0;
 }
 
@@ -333,7 +327,6 @@ static int tcp_nodelay_enable(int fd)
         return -1;
     }
 
-    AT_NET_PRINTF("sock enable tcp_nodelay\r\n");
     return 0;
 }
 
@@ -346,7 +339,6 @@ static int tcp_nodelay_disable(int fd)
         return -1;
     }
 
-    AT_NET_PRINTF("sock disable tcp_nodelay\r\n");
     return 0;
 }
 
@@ -356,7 +348,7 @@ static uint16_t udp_localport_rand(void)
     return port;
 }
 
-static int tcp_client_connect(ip_addr_t *ipaddr, uint16_t port)
+static int tcp_client_connect(ip_addr_t *ipaddr, uint16_t port, uint32_t timeout)
 {
     int fd;
     int res;
@@ -398,30 +390,69 @@ static int tcp_client_connect(ip_addr_t *ipaddr, uint16_t port)
         addr.sin_addr.s_addr = ip_addr_get_ip4_u32(ipaddr);
     }
 
-    AT_NET_DEBUG("tcp_client_connect fd:%d\r\n", fd);
-
     int on= 1;
     res = setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on) );
     if (res != 0) {
         AT_NET_PRINTF("setsockopt failed, res:%d\r\n", res);
     }
 
+    if (timeout) {
+
+        int flag;
+        flag = fcntl(fd, F_GETFL, 0);
+        fcntl(fd, F_SETFL, flag | O_NONBLOCK);
 #if CFG_IPV6
-    if(IP_IS_V6(ipaddr)) {
-        res = connect(fd, (struct sockaddr *)&addr6, sizeof(addr6));
-    } else 
+        if(IP_IS_V6(ipaddr)) {
+            res = connect(fd, (struct sockaddr *)&addr6, sizeof(addr6));
+        } else 
 #endif 
-    {
-        res = connect(fd, (struct sockaddr *)&addr, sizeof(addr));
-    }
+        {
+            res = connect(fd, (struct sockaddr *)&addr, sizeof(addr));
+        }
 
-    if (res < 0) {
-        AT_NET_PRINTF("connect failed, res:%d\r\n", res);
-        close(fd);
-        return -3;
-    }
+        if (res < 0 && errno != EINPROGRESS) {
+            goto _fail;
+        }
 
+        fd_set writefds;
+        FD_ZERO(&writefds);
+        FD_SET(fd, &writefds);
+
+        struct timeval tv;  
+        tv.tv_sec = timeout/1000;
+        tv.tv_usec = (timeout%1000)*1000;
+
+        res = select(fd + 1, NULL, &writefds, NULL, &tv);
+        if (res <= 0) {
+            goto _fail;
+        }
+
+        socklen_t len = sizeof(res);
+        getsockopt(fd, SOL_SOCKET, SO_ERROR, &res, &len);
+        if (res != 0) {
+            goto _fail;
+        }
+        fcntl(fd, F_SETFL, flag);
+    } else {
+#if CFG_IPV6
+        if(IP_IS_V6(ipaddr)) {
+            res = connect(fd, (struct sockaddr *)&addr6, sizeof(addr6));
+        } else 
+#endif 
+        {
+            res = connect(fd, (struct sockaddr *)&addr, sizeof(addr));
+        }
+
+        if (res < 0) {
+            goto _fail;
+        }
+    }
     return fd;
+
+_fail:
+    AT_NET_PRINTF("connect failed:%d\r\n", res);
+    close(fd);
+    return -3;
 }
 
 static int tcp_connected()
@@ -566,7 +597,7 @@ static int udp_client_send(int fd, void *buffer, int length, ip_addr_t *ipaddr, 
     return 0;
 }
 
-static int ssl_client_connect(int id, ip_addr_t *ipaddr, uint16_t port, void **priv)
+static int ssl_client_connect(int id, ip_addr_t *ipaddr, uint16_t port, void **priv, uint32_t timeout)
 {
     int fd;
     void *handle;
@@ -574,7 +605,7 @@ static int ssl_client_connect(int id, ip_addr_t *ipaddr, uint16_t port, void **p
 
     AT_NET_PRINTF("ssl client connect %s:%d\r\n", ipaddr_ntoa(ipaddr), port);
 
-    fd = tcp_client_connect(ipaddr, port);
+    fd = tcp_client_connect(ipaddr, port, timeout);
     if (fd < 0) {
         AT_NET_PRINTF("tcp_client_connect fd:%d\r\n", fd);
         return -1;
@@ -591,10 +622,10 @@ static int ssl_client_connect(int id, ip_addr_t *ipaddr, uint16_t port, void **p
     handle = mbedtls_ssl_connect(fd, &ssl_param);
     if (handle == NULL) {
         AT_NET_PRINTF("mbedtls_ssl_connect handle NULL, fd:%d\r\n", fd);
-		free(ssl_param.ca_cert);
-		free(ssl_param.own_cert);
-		free(ssl_param.private_cert);		
         close(fd);
+        free(ssl_param.ca_cert);
+        free(ssl_param.own_cert);
+        free(ssl_param.private_cert);
         return -1;
     }
 
@@ -894,7 +925,7 @@ static int net_socket_setopt(int fd, int keepalive, int so_linger, int tcp_nodel
     return 0;
 }
 
-static int net_socket_connect(int id, net_client_type type, ip_addr_t *ipaddr, uint16_t port, int keepalive, uint16_t local_port, int mode)
+static int net_socket_connect(int id, net_client_type type, ip_addr_t *ipaddr, uint16_t port, int keepalive, uint16_t local_port, int mode, uint32_t timeout)
 {
     int fd;
     void *priv = NULL;
@@ -909,7 +940,7 @@ static int net_socket_connect(int id, net_client_type type, ip_addr_t *ipaddr, u
     }
 
     if (type == NET_CLIENT_TCP) {
-        fd = tcp_client_connect(ipaddr, port);
+        fd = tcp_client_connect(ipaddr, port, timeout);
         AT_NET_PRINTF("tcp_client_connect fd:%d\r\n", fd);
         if (fd >= 0) {
             keep_alive = (keepalive>0)?keepalive:at_net_config->tcp_opt[id].keep_alive;
@@ -928,7 +959,7 @@ static int net_socket_connect(int id, net_client_type type, ip_addr_t *ipaddr, u
         ip_multicast_enable(fd, ipaddr);
     }
     else if (type == NET_CLIENT_SSL) {
-        fd = ssl_client_connect(id, ipaddr, port, &priv);
+        fd = ssl_client_connect(id, ipaddr, port, &priv, timeout);
         if (fd >= 0) {
             if (keepalive) {
                 so_keepalive_enable(fd, keepalive, 1, 3);
@@ -968,9 +999,10 @@ static int net_socket_connect(int id, net_client_type type, ip_addr_t *ipaddr, u
 
     if (at_net_config->recv_mode == NET_RECV_MODE_PASSIVE) {
         if (g_at_client_handle[id].recv_buf) {
-            vStreamBufferDelete(g_at_client_handle[id].recv_buf);
-        }
-        g_at_client_handle[id].recv_buf = xStreamBufferCreate(g_at_client_handle[id].recvbuf_size, 1);
+		xStreamBufferReset(g_at_client_handle[id].recv_buf);
+	} else {
+		g_at_client_handle[id].recv_buf = xStreamBufferCreate(g_at_client_handle[id].recvbuf_size, 1);
+	}
     }
     net_unlock();
     net_socket_ipd(NET_IPDINFO_CONNECTED, id, NULL, 0, &g_at_client_handle[id].remote_ip, g_at_client_handle[id].remote_port, 0);
@@ -1227,9 +1259,10 @@ static int net_socket_accept(int fd, int type, uint16_t port, uint16_t timeout, 
 
         if (at_net_config->recv_mode == NET_RECV_MODE_PASSIVE) {
             if (g_at_client_handle[id].recv_buf) {
-                vStreamBufferDelete(g_at_client_handle[id].recv_buf);
-            }
-            g_at_client_handle[id].recv_buf = xStreamBufferCreate(g_at_client_handle[id].recvbuf_size, 1);
+		    xStreamBufferReset(g_at_client_handle[id].recv_buf);
+            } else {
+		    g_at_client_handle[id].recv_buf = xStreamBufferCreate(g_at_client_handle[id].recvbuf_size, 1);
+	    }
         }
         net_unlock();
 
@@ -1281,7 +1314,7 @@ static void net_poll_reconnect(void)
         local_port = g_at_client_handle[id].local_port;
     
         if (g_at_client_handle[id].type == NET_CLIENT_TCP) {
-            fd = tcp_client_connect(&ipaddr, port);
+            fd = tcp_client_connect(&ipaddr, port, 5000);
             if (fd >= 0) {
                 net_socket_setopt(fd, g_at_client_handle[id].keep_alive, g_at_client_handle[id].so_linger, g_at_client_handle[id].tcp_nodelay, g_at_client_handle[id].so_sndtimeo);
                 local_port = so_localport_get(fd);
@@ -1294,7 +1327,7 @@ static void net_poll_reconnect(void)
             ip_multicast_enable(fd, &ipaddr);
         }
         else if (g_at_client_handle[id].type == NET_CLIENT_SSL) {
-            fd = ssl_client_connect(id, &ipaddr, port, &priv);
+            fd = ssl_client_connect(id, &ipaddr, port, &priv, 5000);
             if (fd >= 0) {
                 if (g_at_client_handle[id].keep_alive)
                     so_keepalive_enable(fd, g_at_client_handle[id].keep_alive, 1, 3);
@@ -1315,9 +1348,10 @@ static void net_poll_reconnect(void)
         g_at_client_handle[id].local_port = local_port;
         if (at_net_config->recv_mode == NET_RECV_MODE_PASSIVE) {
             if (g_at_client_handle[id].recv_buf) {
-                vStreamBufferDelete(g_at_client_handle[id].recv_buf);
-            }
-            g_at_client_handle[id].recv_buf = xStreamBufferCreate(g_at_client_handle[id].recvbuf_size, 1);
+		    xStreamBufferReset(g_at_client_handle[id].recv_buf);
+            } else {
+		    g_at_client_handle[id].recv_buf = xStreamBufferCreate(g_at_client_handle[id].recvbuf_size, 1);
+	    }
         }
         net_unlock();
     }
@@ -1531,25 +1565,25 @@ int at_net_client_get_valid_id(void)
     return -1;
 }
 
-int at_net_client_tcp_connect(int id, ip_addr_t *remote_ip, uint16_t remote_port, int keepalive)
+int at_net_client_tcp_connect(int id, ip_addr_t *remote_ip, uint16_t remote_port, int keepalive, uint32_t timeout)
 {
     CHECK_NET_CLIENT_ID_VALID(id);
 
-    return net_socket_connect(id, NET_CLIENT_TCP, remote_ip, remote_port, keepalive, 0, 0);
+    return net_socket_connect(id, NET_CLIENT_TCP, remote_ip, remote_port, keepalive, 0, 0, timeout);
 }
 
-int at_net_client_udp_connect(int id, ip_addr_t *remote_ip, uint16_t remote_port, uint16_t local_port, int mode)
+int at_net_client_udp_connect(int id, ip_addr_t *remote_ip, uint16_t remote_port, uint16_t local_port, int mode, uint32_t timeout)
 {
     CHECK_NET_CLIENT_ID_VALID(id);
 
-    return net_socket_connect(id, NET_CLIENT_UDP, remote_ip, remote_port, 0, local_port, mode);
+    return net_socket_connect(id, NET_CLIENT_UDP, remote_ip, remote_port, 0, local_port, mode, timeout);
 }
 
-int at_net_client_ssl_connect(int id, ip_addr_t *remote_ip, uint16_t remote_port, int keepalive)
+int at_net_client_ssl_connect(int id, ip_addr_t *remote_ip, uint16_t remote_port, int keepalive, uint32_t timeout)
 {
     CHECK_NET_CLIENT_ID_VALID(id);
 
-    return net_socket_connect(id, NET_CLIENT_SSL, remote_ip, remote_port, keepalive, 0, 0);
+    return net_socket_connect(id, NET_CLIENT_SSL, remote_ip, remote_port, keepalive, 0, 0, timeout);
 }
 
 int at_net_client_is_connected(int id)
@@ -1629,6 +1663,19 @@ int at_net_client_get_recvsize(int id)
     else
         return 0;
 }
+
+int at_net_recvbuf_delete(int id)
+{
+    CHECK_NET_CLIENT_ID_VALID(id);
+    net_lock();
+    if (g_at_client_handle[id].recv_buf) {
+        vStreamBufferDelete(g_at_client_handle[id].recv_buf);
+        g_at_client_handle[id].recv_buf = NULL;
+    }
+    net_unlock();
+    return 0;
+}
+
 
 int at_net_client_send(int id, void * buffer, int length)
 {
@@ -1876,17 +1923,6 @@ int at_net_sntp_start(void)
     return 0;
 }
 
-uint64_t at_current_ms_get()
-{
-    uint64_t current_ms;
-    TimeOut_t xCurrentTime = {0};
-    vTaskSetTimeOutState(&xCurrentTime);
-    current_ms = ( uint64_t ) ( xCurrentTime.xOverflowCount ) << ( sizeof( TickType_t ) * 8 );
-    current_ms += xCurrentTime.xTimeOnEntering;
-    current_ms = current_ms * portTICK_PERIOD_MS;
-    return current_ms;
-}
-
 int at_net_sntp_stop(void)
 {
     sntp_stop();
@@ -2092,3 +2128,14 @@ int at_net_dns_load(void)
     }
     return 0;
 }
+
+int at_lwip_heap_free_size(void)
+{
+    int lwip_heap = 0;
+#if MEM_STATS 
+    extern struct stats_ lwip_stats;
+    lwip_heap = lwip_stats.mem.avail - lwip_stats.mem.used;
+#endif 
+    return lwip_heap;
+}
+

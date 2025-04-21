@@ -303,8 +303,12 @@ static void ble_connected(struct bt_conn *conn, u8_t err)
                 ble_conn_data_set(0, (uint8_t *)info[0].le.remote->a.val, info[0].le.remote->type, conn, 0, 0, info[0].le.interval, BLE_CONN_STATE_CONNECTED);
         }
         g_ble_tp_conn = conn;
+        
+        struct ble_conn_data *conn_data = ble_conn_data_get_by_conn(conn);
+        if (!conn_data)
+            return;
         at_response_string("+BLE:CONNECTED:%d,\"%02x:%02x:%02x:%02x:%02x:%02x\"\r\n",
-                        0,
+                        conn_data->idx,
                         info[0].le.remote->a.val[5],
                         info[0].le.remote->a.val[4],
                         info[0].le.remote->a.val[3],
@@ -452,7 +456,7 @@ static void ble_notification_all_cb(struct bt_conn *conn, u16_t handle,const voi
         return;
     }
     memset(rdata,0,(32 + length));
-    data_len = sprintf(rdata, "+BLE:%d,NOTIDATA:%d,",conn_data->idx,length);
+    data_len = sprintf(rdata, "+BLE:NOTIDATA:%d,%d",conn_data->idx,length);
     memcpy(rdata + data_len, data, length);
     data_len += length;
     memcpy(rdata + data_len, "\r\n", 2);
@@ -683,7 +687,7 @@ static void ble_write_callback(int srv_idx, int char_idx, void *buf, u16_t len)
         return;
     }
 
-    data_len = sprintf(data, "+BLE:GATTWRITE:%d,%d,%d,%d,", 0, srv_idx, char_idx, len);
+    data_len = sprintf(data, "+BLE:GATTWRITE:%d,%d,%d,%d", 0, srv_idx, char_idx, len);
     memcpy(data + data_len, buf, len);
     data_len += len;
     memcpy(data + data_len, "\r\n", 2);
@@ -715,7 +719,7 @@ void ble_dynamic_rd_cb(const struct bt_gatt_attr* attr,u8_t *data, int *length)
         AT_BLE_PRINTF("%s,%d\r\n",g_ble_srv_data[srv_idx].srv_char[char_idx].read_data,read_len);
     }
     *length=read_len;
-    at_response_string("+BLEGATTREAD:%d,%d,%d,%d\r\n", 0, srv_idx, char_idx, read_len);
+    at_response_string("+BLE:GATTREAD:%d,%d,%d,%d\r\n", 0, srv_idx, char_idx, read_len);
 }
 void ble_dynamic_noti_cb(const struct bt_gatt_attr* attr ,u8_t data)
 {
@@ -1085,8 +1089,8 @@ int at_ble_get_idx_by_conn(struct bt_conn *conn)
         
         struct ble_conn_data *conn_data = ble_conn_data_get_by_idx(i);
 
-	if(conn_data == NULL)
-		continue;
+        if(conn_data == NULL)
+            continue;
 
         if (conn_data->conn != NULL)
         {
@@ -1292,7 +1296,7 @@ static void exchange_func(struct bt_conn *conn, u8_t err,
 	AT_BLE_PRINTF("Exchange %s MTU Size =%d \r\n", err == 0U ? "successful" : "failed", bt_gatt_get_mtu(conn));
     if(err == 0U)
     {
-        at_response_string("+BLE:%d,MTUSIZE:%d\r\n",conn_data->idx,bt_gatt_get_mtu(conn));
+        at_response_string("+BLE:MTUSIZE:%d,%d\r\n",conn_data->idx,bt_gatt_get_mtu(conn));
     }
 }
 
@@ -2030,7 +2034,7 @@ int at_ble_gattc_service_write(int idx, int srv_idx, int char_idx, void * buffer
         return 0;
     }
 }
-static void ble_read_callback(int srv_idx, int char_idx, void *buf, u16_t len)
+static void ble_read_callback(int idx, int srv_idx, int char_idx, void *buf, u16_t len)
 {
     char *data = (char *)pvPortMalloc(32 + len);
     int data_len = 0;
@@ -2039,7 +2043,7 @@ static void ble_read_callback(int srv_idx, int char_idx, void *buf, u16_t len)
         return;
     }
 
-    data_len = sprintf(data, "+BLE:GATTREAD:%d,%d,%d,%d,", 0, srv_idx, char_idx, len);
+    data_len = sprintf(data, "+BLE:GATTREAD:%d,%d,%d,%d", idx, srv_idx, char_idx, len);
     memcpy(data + data_len, buf, len);
     data_len += len;
     memcpy(data + data_len, "\r\n", 2);
@@ -2053,7 +2057,11 @@ static u8_t ble_read_func(struct bt_conn *conn, u8_t err, struct bt_gatt_read_pa
 {
     AT_BLE_PRINTF("AT_BLE_PRINTF complete: err %u length %u \r\n", err, length);
 
-    ble_read_callback( g_ble_read_service_index, g_ble_read_char_index, (void *)data, length);
+    struct ble_conn_data *conn_data = ble_conn_data_get_by_conn(conn);
+
+    if (!conn_data)
+        return;
+    ble_read_callback( conn_data->idx, g_ble_read_service_index, g_ble_read_char_index, (void *)data, length);
     g_ble_read_finish = 1;
 
     if (!data) {
@@ -2116,7 +2124,7 @@ static void at_bt_gatt_mtu_changed_cb(struct bt_conn *conn, int mtu)
     struct ble_conn_data *conn_data = ble_conn_data_get_by_conn(conn);
     if (!conn_data)
         return;
-    at_response_string("+BLE:%d,MTUSIZE:%d\r\n",conn_data->idx,bt_gatt_get_mtu(conn));
+    at_response_string("+BLE:MTUSIZE:%d,%d\r\n",conn_data->idx,bt_gatt_get_mtu(conn));
 }
 
 #if defined(CONFIG_BT_BAS_SERVER)

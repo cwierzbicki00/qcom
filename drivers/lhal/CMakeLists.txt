@@ -197,13 +197,3 @@ if(CONFIG_LHAL_BOOTROM_ROMDRIVER)
 sdk_add_compile_definitions(-D CONFIG_LHAL_BOOTROM_ROMDRIVER)
 sdk_library_add_sources(config/${CHIP}/qcc74x_lhal_romdriver.c)
 endif()
-
-# check VERSION file
-set(LHAL_VERSION "version-unknown-panic")
-
-configure_file(
-  "${CMAKE_CURRENT_SOURCE_DIR}/config/lhal_version.h.in"
-  "${CMAKE_BINARY_DIR}/generated/lhal_version.h"
-)
-sdk_add_include_directories("${CMAKE_BINARY_DIR}/generated")
-sdk_library_add_sources(config/lhal_version.c)

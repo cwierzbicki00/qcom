@@ -2,7 +2,6 @@
 #include "task.h"
 
 #include <app_wifi.h>
-#include <app_bt.h>
 #include <app_player.h>
 
 #include "rfparam_adapter.h"
@@ -47,10 +46,6 @@ void app_main_entry(void *arg)
         return 0;
     }
 
-    /* For bt status save */
-    qcc74x_mtd_init();
-    easyflash_init();
-
     /* romsfs init mount use media factory*/
     romfs_mount(0x378000);
 
@@ -61,9 +56,6 @@ void app_main_entry(void *arg)
 
     /* Init player */
     app_player_init();
-
-    /* Init bt */
-    app_bt_init();
 
 #if CONFIG_CODEC_USE_I2S_RX || CONFIG_CODEC_USE_I2S_TX
     extern msp_i2s_port_init(void);

@@ -14,6 +14,7 @@ void board_sdh_gpio_init();
 void board_ir_gpio_init();
 void board_dvp_gpio_init();
 void board_i2s_gpio_init();
+void board_timer_gpio_init();
 void board_acomp_init();
 
 int board_device_info_version();

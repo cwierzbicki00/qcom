@@ -887,6 +887,18 @@ uint32_t Clock_Audio_ADC_Clock_Get(void)
 
 /****************************************************************************/ /**
 
+ * @brief  Get RTC Clock
+ *
+ * @return RTC clock value
+ *
+*******************************************************************************/
+static inline uint32_t Clock_RTC_Clock_Get(void)
+{
+    return 32768;
+}
+
+/****************************************************************************/ /**
+
  * @brief  Get Peripheral1 Clock
  *
  * @param  type: Peripheral1 clock type
@@ -996,6 +1008,10 @@ uint32_t Clock_Peripheral_Clock_Get(QCC74x_Peripheral_Type type)
         /*!< PKA clock */
         case QCC74x_PERIPHERAL_CLOCK_PKA:
             return Clock_PKA_Clk_Mux_Output(Clock_Get_PKA_Clk_Sel_Val());
+
+        /*!< RTC clock */
+        case QCC74x_PERIPHERAL_CLOCK_RTC:
+            return Clock_RTC_Clock_Get();
 
         default:
             return 0;

@@ -93,12 +93,12 @@ struct spp_callback_t spp_conn_callbacks={
 };
 #endif
 #if CONFIG_BT_A2DP
-struct k_thread media_transport;
 static void a2dp_chain(struct bt_conn *conn, uint8_t state);
 static void a2dp_stream(uint8_t state);
+#if CONFIG_BT_A2DP_SOURCE
+struct k_thread media_transport;
 static void a2dp_start_cfm(void);
-static bool media_task_create = false;
-
+#endif
 static struct a2dp_callback a2dp_callbacks =
 {
     .chain = a2dp_chain,
@@ -113,8 +113,7 @@ static struct a2dp_callback a2dp_callbacks =
 static void avrcp_chain(struct bt_conn *conn, uint8_t state);
 static void avrcp_absvol(uint8_t vol);
 static void avrcp_play_status(uint32_t song_len, uint32_t song_pos, uint8_t status);
-static void avrcp_passthrough_response(bool released, u8_t option_id);
-static void avrcp_passthrough_handler(bool released, u8_t option_id);
+static void avrcp_passthrough_handler(uint8_t released, u8_t option_id);
 static void avrcp_handle_play(void);
 static void avrcp_handle_stop(void);
 static void avrcp_handle_pause(void);
@@ -139,8 +138,8 @@ static struct avrcp_callback avrcp_callbacks =
     .chain = avrcp_chain,
     .abs_vol = avrcp_absvol,
     .play_status = avrcp_play_status,
-    .rp_passthrough = NULL,//avrcp_passthrough_response,
-    .passthrough_handler=avrcp_passthrough_handler,
+    .rp_passthrough = NULL,
+    .passthrough_handler = avrcp_passthrough_handler,
 };
 #endif
 
@@ -178,9 +177,11 @@ BT_AVDTP_CLI(set_conf_reject);
 
 #if CONFIG_BT_A2DP
 BT_A2DP_CLI(connect);
+#if CONFIG_BT_A2DP_SOURCE
 BT_A2DP_CLI(discovery);
 BT_A2DP_CLI(suspend);
 BT_A2DP_CLI(resume);
+#endif
 #if BR_EDR_PTS_TEST
 BT_A2DP_CLI(disconnect);
 BT_A2DP_CLI(start_discovery);
@@ -776,7 +777,7 @@ typedef struct {
     uint8_t *data;
 } eir_data_t;
 
-static void bredr_parse_eir_data(const uint8_t *eir, size_t eir_len)
+static void bredr_parse_eir_data(u8_t *eir, size_t eir_len)
 {
     size_t pos = 0;
     while (pos < eir_len) {
@@ -817,7 +818,7 @@ void bt_br_discv_cb(struct bt_br_discovery_result *results,
         bt_addr_to_str(&results[i].addr, addr_str, sizeof(addr_str));
         printf("addr %s,class 0x%lx,rssi %d\r\n",addr_str,
                      dev_class,results[i].rssi);
-        bredr_parse_eir_data(&results[i].eir,240);
+        bredr_parse_eir_data((u8_t*)results[i].eir, 240);
     }
 }
 
@@ -929,6 +930,7 @@ static void a2dp_stream(uint8_t state)
 }
 
 #if CONFIG_BT_A2DP_SOURCE
+static bool media_task_create = false;
 static void media_thread(void *args)
 {
    while (1) 
@@ -1219,6 +1221,9 @@ static void avrcp_chain(struct bt_conn *conn, uint8_t state)
         #if CONFIG_BT_A2DP_SOURCE
         avrcp_send_volume_notification(NULL);
         #endif
+        #if CONFIG_BT_A2DP_SINK
+        avrcp_reg_play_status_notification(NULL);
+        #endif
         printf("avrcp connected. \n");
     } else if (state == BT_AVRCP_CHAIN_DISCONNECTED) {
         printf("avrcp disconnected. \n");
@@ -1235,18 +1240,7 @@ static void avrcp_play_status(uint32_t song_len, uint32_t song_pos, uint8_t stat
     printf("%s, song length: %lu, song position: %lu, play status: %u \n", __func__, song_len, song_pos, status);
 }
 
-static void avrcp_passthrough_response(bool released, u8_t option_id)
-{
-	BT_WARN("released: %d option id: 0x%x \n",released, option_id);
-
-	if(released == 0)
-	{
-		//user todo 
-
-	}
-}
-
-static void avrcp_passthrough_handler(bool released, u8_t option_id)
+static void avrcp_passthrough_handler(uint8_t released, u8_t option_id)
 {
     BT_WARN("released: %d option id: 0x%x \n",released, option_id);
     if(released==PASTHR_STATE_RELEASED)

@@ -30,6 +30,7 @@
 #define QCC74x_GLB_CGEN2_BASE (0x20000000 + 0x588)
 #endif
 
+#if defined(QCC74x_undef)
 #define PERIPHERAL_CLOCK_ADC_DAC_ENABLE()                         \
     do {                                                          \
         volatile uint32_t regval = getreg32(QCC74x_GLB_CGEN1_BASE); \
@@ -37,6 +38,14 @@
         regval |= (1 << 15);                                      \
         putreg32(regval, QCC74x_GLB_CGEN1_BASE);                    \
     } while (0)
+#else
+#define PERIPHERAL_CLOCK_ADC_DAC_ENABLE()                         \
+    do {                                                          \
+        volatile uint32_t regval = getreg32(QCC74x_GLB_CGEN1_BASE); \
+        regval |= (1 << 2);                                       \
+        putreg32(regval, QCC74x_GLB_CGEN1_BASE);                    \
+    } while (0)
+#endif
 
 #define PERIPHERAL_CLOCK_SEC_ENABLE()                             \
     do {                                                          \

@@ -3,6 +3,12 @@
 
 #include "otbr_err.h"
 
+#define VERSION_OT_BR_MAJOR 1
+#define VERSION_OT_BR_MINOR 6
+#define VERSION_OT_BR_PATCH 17
+
+// #define VERSION_OT_BR_EXTRA_INFO "customer-1"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -22,6 +28,7 @@ void otbr_netif_init(void);
 err_t otbr_netif_output6_forward(uint8_t *aBuffer, uint32_t aLength);
 
 bool otbr_netif_request_action(otbr_action_cb_t cb, uint32_t arg);
+bool otbr_netif_request_frame_handle(otbr_action_cb_t cb, struct pbuf * p);
 
 #ifdef __cplusplus
 }

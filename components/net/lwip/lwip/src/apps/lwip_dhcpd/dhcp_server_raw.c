@@ -163,13 +163,9 @@ dhcp_client_find(struct dhcp_server *dhcpserver, struct dhcp_msg *msg,
 {
     u8_t *opt;
     //u32_t ipaddr;
-    struct dhcp_client_node *node;
+    struct dhcp_client_node *node, *m_node = NULL;
 
-    node = dhcp_client_find_by_mac(dhcpserver, msg->chaddr, msg->hlen);
-    if (node != NULL)
-    {
-        return node;
-    }
+    m_node = dhcp_client_find_by_mac(dhcpserver, msg->chaddr, msg->hlen);
 
     opt = dhcp_server_option_find(opt_buf, len, DHCP_OPTION_REQUESTED_IP);
     if (opt != NULL)
@@ -183,10 +179,19 @@ dhcp_client_find(struct dhcp_server *dhcpserver, struct dhcp_msg *msg,
                 puts("IP Found, but MAC address is NOT the same\r\n");
                 // return node;  //FIXME use hostname instead of mac address
             }
+        } else {
+            u32_t ipval;
+            memcpy(&ipval, &opt[2], sizeof(ipval));
+            if (lwip_ntohl(ipval) < lwip_ntohl(dhcpserver->start.addr) || lwip_ntohl(ipval) > lwip_ntohl(dhcpserver->end.addr)) {
+                /* IP address exceeds the address range */
+                printf("IP address exceeds\r\n");
+                return m_node;
+            }
+            return NULL;
         }
     }
 
-    return NULL;
+    return m_node;
 }
 
 /**
@@ -203,13 +208,9 @@ dhcp_client_alloc(struct dhcp_server *dhcpserver, struct dhcp_msg *msg,
 {
     u8_t *opt;
     u32_t ipaddr;
-    struct dhcp_client_node *node;
+    struct dhcp_client_node *node = NULL, *m_node = NULL;
 
-    node = dhcp_client_find_by_mac(dhcpserver, msg->chaddr, msg->hlen);
-    if (node != NULL)
-    {
-        return node;
-    }
+    m_node = dhcp_client_find_by_mac(dhcpserver, msg->chaddr, msg->hlen);
 
     opt = dhcp_server_option_find(opt_buf, len, DHCP_OPTION_REQUESTED_IP);
     if (opt != NULL)
@@ -221,10 +222,41 @@ dhcp_client_alloc(struct dhcp_server *dhcpserver, struct dhcp_msg *msg,
             if (0 == memcmp(node->chaddr, msg->chaddr, msg->hlen)) {
                 return node;
             }
+        } else {
+
+            u32_t ipval;
+            memcpy(&ipval, &opt[2], sizeof(ipval));
+
+            if (lwip_ntohl(ipval) < lwip_ntohl(dhcpserver->start.addr) || lwip_ntohl(ipval) > lwip_ntohl(dhcpserver->end.addr)) {
+                /* IP address exceeds the address range */
+                printf("IP address exceeds\r\n");
+                goto dhcp_alloc_again;
+            }
+
+            if (m_node) {
+                ip4_addr_set_u32(&m_node->ipaddr, ipval);
+
+            } else {
+
+                node = (struct dhcp_client_node *)mem_malloc(sizeof(struct dhcp_client_node));
+                if (node == NULL)
+                {
+                    return NULL;
+                }
+                SMEMCPY(node->chaddr, msg->chaddr, msg->hlen);
+                ip4_addr_set_u32(&node->ipaddr, ipval);
+
+                node->next = dhcpserver->node_list;
+                dhcpserver->node_list = node;
+                return node;
+            }
         }
     }
-
 dhcp_alloc_again:
+    if (m_node) {
+        return m_node;
+    }
+
     node = dhcp_client_find_by_ip(dhcpserver, (uint8_t*)&dhcpserver->current);
     if (node != NULL)
     {

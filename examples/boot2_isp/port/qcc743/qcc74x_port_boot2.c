@@ -205,7 +205,8 @@ static uint16_t hal_boot2_x8_psram_calibration(int32_t *psram_dqs_win_num)
         *psram_dqs_win_num = right_flag - left_flag;
         // printf("ef window: 0x%02x ~ 0x%02x; c_val: 0x%02x; dqs:0x%04x; code num:%d\r\n", left_flag, right_flag, c_val, dqs_val[c_val], (right_flag - left_flag));
         psram_id = psram_winbond_init_dqs(PSRAM_WINBOND_BURST_LENGTH_64_BYTES, 0, PSRAM_WINBOND_6_CLOCKS_LATENCY, dqs_val[c_val]);
-        if ((psram_id != HAL_BOOT2_PSRAM_ID1_WINBOND_4MB) && (psram_id != HAL_BOOT2_PSRAM_ID2_WINBOND_32MB) && (psram_id != HAL_BOOT2_PSRAM_ID3_WINBOND_16MB)) {
+        if ((psram_id != HAL_BOOT2_PSRAM_ID1_WINBOND_4MB) && (psram_id != HAL_BOOT2_PSRAM_ID2_WINBOND_32MB) && \
+            (psram_id != HAL_BOOT2_PSRAM_ID3_WINBOND_16MB) && (psram_id != HAL_BOOT2_PSRAM_ID4_WINBOND_8MB)) {
             return ERROR;
         }
     } else {
@@ -214,7 +215,8 @@ static uint16_t hal_boot2_x8_psram_calibration(int32_t *psram_dqs_win_num)
             // #if (!CONFIG_BUILD_TYPE)
             //             printf("psram id:%04x\r\n", psram_id);
             // #endif
-            if ((psram_id == HAL_BOOT2_PSRAM_ID1_WINBOND_4MB) || (psram_id == HAL_BOOT2_PSRAM_ID2_WINBOND_32MB) || (psram_id != HAL_BOOT2_PSRAM_ID3_WINBOND_16MB)) {
+            if ((psram_id == HAL_BOOT2_PSRAM_ID1_WINBOND_4MB) || (psram_id == HAL_BOOT2_PSRAM_ID2_WINBOND_32MB) || \
+                (psram_id != HAL_BOOT2_PSRAM_ID3_WINBOND_16MB) || (psram_id != HAL_BOOT2_PSRAM_ID4_WINBOND_8MB)) {
                 if (psram_rw_check() == SUCCESS) {
                     if (dqs_index < dqs_win_min) {
                         dqs_win_min = dqs_index;
@@ -242,7 +244,8 @@ static uint16_t hal_boot2_x8_psram_calibration(int32_t *psram_dqs_win_num)
             return ERROR;
         }
         psram_id = psram_winbond_init_dqs(PSRAM_WINBOND_BURST_LENGTH_64_BYTES, 0, PSRAM_WINBOND_6_CLOCKS_LATENCY, dqs_val[c_val]);
-        if ((psram_id != HAL_BOOT2_PSRAM_ID1_WINBOND_4MB) && (psram_id != HAL_BOOT2_PSRAM_ID2_WINBOND_32MB) && (psram_id != HAL_BOOT2_PSRAM_ID3_WINBOND_16MB)) {
+        if ((psram_id != HAL_BOOT2_PSRAM_ID1_WINBOND_4MB) && (psram_id != HAL_BOOT2_PSRAM_ID2_WINBOND_32MB) && \
+            (psram_id != HAL_BOOT2_PSRAM_ID3_WINBOND_16MB) && (psram_id != HAL_BOOT2_PSRAM_ID4_WINBOND_8MB)) {
             return ERROR;
         }
         /* to do write efuse psram dqs delay */
@@ -632,7 +635,7 @@ int32_t hal_boot_parse_bootheader(boot2_image_config *boot_img_cfg, uint8_t *dat
     arch_memcpy_fast(&boot_img_cfg->basic_cfg, &header->basic_cfg,
                      sizeof(header->basic_cfg));
 
-#if BLSP_BOOT2_SUPPORT_SIGN_ENCRYPT
+#if QCC74xSP_BOOT2_SUPPORT_SIGN_ENCRYPT
     BOOT2_MSG_DBG("Encrypt mode:%d\r\n", g_efuse_cfg.app_encrypt_type);
     BOOT2_MSG_DBG("Sign mode:%d\r\n", g_efuse_cfg.app_sign_type);
     /* Check encrypt and sign match*/

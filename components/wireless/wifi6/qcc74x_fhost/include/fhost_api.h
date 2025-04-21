@@ -628,6 +628,9 @@ struct fhost_vif_ap_cfg
 
     /// Beacon transmission is stopped again if no STA is associated for more than bcn_timer seconds.
     int bcn_timer;
+
+    /// Disable advertising WME/WMM Information Element in Beacon/ProbeResponse frames
+    bool disable_wmm;
 };
 
 /**

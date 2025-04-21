@@ -11,8 +11,8 @@
   * @{
   */
 
-#define QCC74x_RTC_SEC2TIME(s)    (s * 32768)
-#define QCC74x_RTC_TIME2SEC(time) (time / 32768)
+#define QCC74x_RTC_SEC2TIME(s)    (s * qcc74x_clk_get_peripheral_clock(QCC74x_DEVICE_TYPE_RTC, 0))
+#define QCC74x_RTC_TIME2SEC(time) (time / qcc74x_clk_get_peripheral_clock(QCC74x_DEVICE_TYPE_RTC, 0))
 
 /* This struct is the same with struct tm */
 struct qcc74x_tm {

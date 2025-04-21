@@ -66,11 +66,10 @@ void k_queue_init(struct k_queue *queue, int size)
     //int size = 20;
     uint8_t blk_size = sizeof(void *);
 
-
+    sys_dlist_init(&queue->poll_events);
     queue->hdl = xQueueCreate(size, blk_size);
     BT_ASSERT(queue->hdl != NULL);
 
-    sys_dlist_init(&queue->poll_events);
 }
 
 void k_queue_insert(struct k_queue *queue, void *prev, void *data)

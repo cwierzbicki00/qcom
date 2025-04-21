@@ -164,6 +164,10 @@ static int at_exe_cmd_restore(int argc, const char **argv)
 
     /* stop all service */
     for (i = 0; i < AT_CMD_MAX_FUNC; i++) {
+
+        if (at->function_ops[i].stop_func)
+            at->function_ops[i].stop_func();
+
         if (at->function_ops[i].restore_func)
             at->function_ops[i].restore_func();
     }
@@ -333,10 +337,16 @@ static int at_setup_cmd_sleep(int argc, const char **argv)
     return AT_RESULT_CODE_OK;
 }
 #endif
+
 static int at_query_cmd_sysram(int argc, const char **argv)
 {
+    int lwip_heap = 0;
+
+#ifdef CONFIG_NETWORK
+    lwip_heap = at_lwip_heap_free_size();
+#endif
     //at_response_string("+SYSRAM:%d,%d", info.free_size, info.total_size);
-    at_response_string("+SYSRAM:%d", kfree_size());
+    at_response_string("+SYSRAM:%d,%d", kfree_size(), lwip_heap);
     return AT_RESULT_CODE_OK;
 }
 

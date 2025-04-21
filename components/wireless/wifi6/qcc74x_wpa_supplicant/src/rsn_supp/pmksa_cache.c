@@ -178,6 +178,7 @@ pmksa_cache_add(struct rsn_pmksa_cache *pmksa, const u8 *pmk, size_t pmk_len,
 	struct rsn_pmksa_cache_entry *entry;
 	struct os_reltime now;
 
+#ifdef CONFIG_WFA
 	if (pmk_len > PMK_LEN_MAX)
 		return NULL;
 
@@ -210,6 +211,9 @@ pmksa_cache_add(struct rsn_pmksa_cache *pmksa, const u8 *pmk, size_t pmk_len,
 	entry->network_ctx = network_ctx;
 
 	return pmksa_cache_add_entry(pmksa, entry);
+#else 
+    return NULL;
+#endif
 }
 
 

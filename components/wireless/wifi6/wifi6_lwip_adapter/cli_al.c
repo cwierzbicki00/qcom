@@ -786,7 +786,7 @@ void wifi_mgmr_ap_start_cmd(int argc, char **argv)
     config.use_dhcpd = true;
 
     utils_al_getopt_init(&getopt_env, 0);
-    while ((opt = utils_al_getopt(&getopt_env, argc, argv, "b:s:k:c:a:d:t:h:i:I:S:L:n:")) != -1) {
+    while ((opt = utils_al_getopt(&getopt_env, argc, argv, "b:s:k:c:a:d:t:h:i:I:S:L:n:w:")) != -1) {
         switch (opt) {
 	case 'b':
 	    config.type = (uint8_t)atoi(getopt_env.optarg);
@@ -843,6 +843,10 @@ void wifi_mgmr_ap_start_cmd(int argc, char **argv)
         config.bcn_interval = atoi(getopt_env.optarg);
         break;
 
+    case 'w':
+        config.disable_wmm = (uint32_t)atoi(getopt_env.optarg);
+        break;
+
 	case '?':
 	    printf("unknow option: %c \r\n", getopt_env.optopt);
 	    goto _ERROUT;
@@ -859,7 +863,7 @@ void wifi_mgmr_ap_start_cmd(int argc, char **argv)
     return;
 
  _ERROUT:
-    printf("[USAGE]: %s -s <ssid> [-k <key>] [-c <channel>] [-a <akm>] [-d 0/1 <start dhcp server>] [-I <ipv4_addr>] [-S <dhcpd_start>] [-L <dhcpd_limit>] [-n <bcn_interval>]\r\n", argv[0]);
+    printf("[USAGE]: %s -s <ssid> [-k <key>] [-c <channel>] [-a <akm>] [-d 0/1 <start dhcp server>] [-I <ipv4_addr>] [-S <dhcpd_start>] [-L <dhcpd_limit>] [-n <bcn_interval>] [-w 1/0 <disable_wmm, 1:disable 0:enable>] [-i 1/0 <isolation, 1:enable 0:disable>]\r\n", argv[0]);
     return;
 }
 
@@ -1039,6 +1043,7 @@ SHELL_CMD_EXPORT_ALIAS(cmd_ac_set, ac_set, access_category config);
 SHELL_CMD_EXPORT_ALIAS(cmd_ap_stop, ap_stop, ap stop);
 #endif
 SHELL_CMD_EXPORT_ALIAS(wifi_ap_bcn_mode_set_cmd, bcn_mode_set, wifi ap bcn mode set);
+SHELL_CMD_EXPORT_ALIAS(wifi_mgmr_ap_acl_set_cmd, ap_acl_set, wifi ap acl set);
 SHELL_CMD_EXPORT_ALIAS(wifi_scan_cmd, wifi_scan, wifi scan);
 SHELL_CMD_EXPORT_ALIAS(wifi_connect_cmd, wifi_sta_connect, wifi station connect);
 SHELL_CMD_EXPORT_ALIAS(wifi_disconnect_cmd, wifi_sta_disconnect, wifi station disconnect);

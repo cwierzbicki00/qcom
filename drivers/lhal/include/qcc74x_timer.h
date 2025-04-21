@@ -48,18 +48,18 @@
   * @}
   */
 
+#if defined(QCC74x_undef)
 /** @defgroup TIMER_DMA_COMP_ID timer dma request compare id definition
   * @{
   */
-#if defined(QCC74x_undef)
 #define TIMER_DMA_REQUEST_COMP_ID_0 (1 << 0)
 #define TIMER_DMA_REQUEST_COMP_ID_1 (1 << 1)
 #define TIMER_DMA_REQUEST_COMP_ID_2 (1 << 2)
 #define TIMER_DMA_REQUEST_COMP_NONE (0)
-#endif
 /**
   * @}
   */
+#endif
 
 /** @defgroup TIMER_GPIO_PULSE_POLARITY timer gpio pulse polarity definition
   * @{
@@ -70,34 +70,34 @@
   * @}
   */
 
+#if defined(QCC74x_undef)
 /** @defgroup TIMER_GPIO_PULSE_INT_MODE timer gpio pulse measure interrupt trigger mode definition
   * @{
   */
-#if defined(QCC74x_undef)
 #define TIMER_GPIO_PULSE_INT_EVERY_FALLING_EDGE 0
 #define TIMER_GPIO_PULSE_INT_EVEN_FALLING_EDGE  1
-#endif
 /**
   * @}
   */
+#endif
 
+#if defined(QCC74x_undef)
 /** @defgroup TIMER_GPIO_PULSE_VALUE timer gpio pulse value definition
   * @{
   */
-#if defined(QCC74x_undef)
 #define TIMER_GPIO_PULSE_VALUE_0 0
 #define TIMER_GPIO_PULSE_VALUE_1 1
 #define TIMER_GPIO_PULSE_VALUE_2 2
 #define TIMER_GPIO_PULSE_VALUE_3 3
-#endif
 /**
   * @}
   */
+#endif
 
+#if defined(QCC74x_undef)
 /** @defgroup TIMER_CMD timer feature control cmd definition
   * @{
   */
-#if defined(QCC74x_undef)
 #define TIMER_CMD_DMA_REQUEST_SET_COMPARE_ID (0x01)
 #define TIMER_CMD_GPIO_PULSE_SET_ENABLE      (0x02)
 #define TIMER_CMD_GPIO_PULSE_SET_INT_MODE    (0x03)
@@ -109,10 +109,10 @@
 #define TIMER_CMD_READ_HW_VERSION            (0x09)
 #define TIMER_CMD_READ_SW_USAGE              (0x0a)
 #define TIMER_CMD_WRITE_SW_USAGE             (0x0b)
-#endif
 /**
   * @}
   */
+#endif
 
 // clang-format off
 
@@ -125,6 +125,8 @@
                                   ((type) == TIMER_COMP_ID_1) || \
                                   ((type) == TIMER_COMP_ID_2) || \
                                   ((type) == TIMER_COMP_NONE))
+
+#define IS_TIMER_COMP_VAL(value) ((value) >= 2)
 
 #define IS_TIMER_CLOCK_DIV(type) ((type) <= 255)
 

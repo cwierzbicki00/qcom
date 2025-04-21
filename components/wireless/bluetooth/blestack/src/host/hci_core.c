@@ -1230,7 +1230,31 @@ advertise:
 		set_advertise_enable(true);
 	}
 }
+#if (CONFIG_BT_REMOTE_VERSION)
+static int hci_bt_read_version_info(struct bt_conn *conn)
+{
+	struct net_buf *buf;
+	struct bt_hci_cp_read_remote_version_info *cp;
 
+	if (!BT_CMD_TEST(bt_dev.supported_commands, 2, 7)) {
+		BT_WARN("HCI_Read_Remote_Version_Information command is "
+			"not supported");
+		return -ENOTSUP;
+	}
+
+	buf = bt_hci_cmd_create(BT_HCI_OP_READ_REMOTE_VERSION_INFO, sizeof(*cp));
+	if (!buf) {
+		return -ENOBUFS;
+	}
+
+	cp = net_buf_add(buf, sizeof(*cp));
+	cp->handle = sys_cpu_to_le16(conn->handle);
+
+	bt_hci_cmd_send_sync(BT_HCI_OP_READ_REMOTE_VERSION_INFO, buf, NULL);
+
+	return 0;
+}
+#endif
 static int hci_le_read_remote_features(struct bt_conn *conn)
 {
 	struct bt_hci_cp_le_read_remote_features *cp;
@@ -1599,7 +1623,7 @@ static void enh_conn_complete(struct bt_hci_evt_le_enh_conn_complete *evt)
 		 */
 		if (atomic_test_bit(bt_dev.flags, BT_DEV_KEEP_ADVERTISING) &&
 			BT_LE_STATES_SLAVE_CONN_ADV(bt_dev.le.states)
-			#if defined(QCC74x_BLE_REJECT_CONNECTABLE_ADV_IF_MAX_LINKS_REACH)
+			#if defined(QCC74x_BLE_RESTRICT_CONN_ACTION_NOT_EXCEED_MAX_CONN)
 			 && atomic_test_bit(bt_dev.flags,BT_DEV_ADVERTISING_CONNECTABLE) &&
 			(bt_conn_get_remote_dev_info(NULL) < CONFIG_BT_MAX_CONN)
 			#endif
@@ -1658,7 +1682,7 @@ static void enh_conn_complete(struct bt_hci_evt_le_enh_conn_complete *evt)
 		goto done;
 	}
 
-	#if defined(QCC74x_BLE_REJECT_CONNECTABLE_ADV_IF_MAX_LINKS_REACH)
+	#if defined(QCC74x_BLE_RESTRICT_CONN_ACTION_NOT_EXCEED_MAX_CONN)
 	if ((evt->role == BT_HCI_ROLE_MASTER) &&
 		atomic_test_bit(bt_dev.flags, BT_DEV_ADVERTISING) &&
 		atomic_test_bit(bt_dev.flags,BT_DEV_ADVERTISING_CONNECTABLE) &&
@@ -1666,6 +1690,9 @@ static void enh_conn_complete(struct bt_hci_evt_le_enh_conn_complete *evt)
 		err = bt_le_adv_stop();
 	}
 	#endif
+	#if (CONFIG_BT_REMOTE_VERSION)
+	hci_bt_read_version_info(conn);
+	#endif /* CONFIG_BT_REMOTE_VERSION */
 
 	if ((evt->role == BT_HCI_ROLE_MASTER) ||
 	    BT_FEAT_LE_SLAVE_FEATURE_XCHG(bt_dev.le.features)) {
@@ -3278,7 +3305,38 @@ static void read_remote_features_complete(struct net_buf *buf)
 done:
 	bt_conn_unref(conn);
 }
+#endif /* CONFIG_BT_BREDR */
 
+#if (CONFIG_BT_REMOTE_VERSION)
+static void read_remote_version_complete(struct net_buf *buf)
+{
+	struct bt_hci_evt_remote_version_info *evt = (void *)buf->data;
+	u16_t handle = sys_le16_to_cpu(evt->handle);
+	struct bt_conn *conn;
+
+	BT_DBG("status 0x%02x handle %u", evt->status, handle);
+
+	conn = bt_conn_lookup_handle(handle);
+	if (!conn) {
+		BT_ERR("Can't find conn for handle %u", handle);
+		return;
+	}
+
+	if (evt->status) {
+		goto done;
+	}
+
+	conn->rv.version = evt->version;
+	conn->rv.manufacturer = evt->manufacturer;
+	conn->rv.subversion = sys_le16_to_cpu(evt->subversion);
+	notify_remote_version(conn);
+
+done:
+	bt_conn_unref(conn);
+}
+#endif /* CONFIG_BT_REMOTE_VERSION */
+
+#if defined(CONFIG_BT_BREDR)
 static void read_remote_ext_features_complete(struct net_buf *buf)
 {
 	struct bt_hci_evt_remote_ext_features *evt = (void *)buf->data;
@@ -4400,6 +4458,13 @@ static const struct event_handler normal_events[] = {
 	EVENT_HANDLER(BT_HCI_EVT_REMOTE_FEATURES,
 		      read_remote_features_complete,
 		      sizeof(struct bt_hci_evt_remote_features)),
+#endif /* CONFIG_BT_BREDR */
+#if (CONFIG_BT_REMOTE_VERSION)
+	EVENT_HANDLER(BT_HCI_EVT_REMOTE_VERSION_INFO,
+		      read_remote_version_complete,
+		      sizeof(struct bt_hci_evt_remote_version_info)),
+#endif /* CONFIG_BT_REMOTE_VERSION */
+#if defined(CONFIG_BT_BREDR)
 	EVENT_HANDLER(BT_HCI_EVT_REMOTE_EXT_FEATURES,
 		      read_remote_ext_features_complete,
 		      sizeof(struct bt_hci_evt_remote_ext_features)),
@@ -6090,6 +6155,7 @@ int bt_disable_action(void)
     net_buf_deinit(&br_sig_pool);
     net_buf_deinit(&sdp_pool);
     net_buf_deinit(&dummy_pool);
+    k_sem_delete(&bt_dev.br.pkts);
     #if defined CONFIG_BT_HFP
     net_buf_deinit(&hf_pool);
     #endif
@@ -6227,7 +6293,7 @@ int bt_set_name(const char *name)
 
 	#if defined(CONFIG_BT_BREDR)
     if(atomic_test_bit(bt_dev.flags, BT_DEV_READY))
-	    bt_br_write_local_name(name);
+	    bt_br_write_local_name((char*)name);
 	#endif
 
 	return 0;
@@ -6938,11 +7004,13 @@ int set_adv_enable(bool enable)
 		return -EALREADY;
 	}
     
-	#if defined(QCC74x_BLE_REJECT_CONNECTABLE_ADV_IF_MAX_LINKS_REACH)
-	if (enable && atomic_test_bit(bt_dev.flags,BT_DEV_ADVERTISING_CONNECTABLE) && bt_conn_get_remote_dev_info(NULL) == CONFIG_BT_MAX_CONN)
+	#if defined(QCC74x_BLE_RESTRICT_CONN_ACTION_NOT_EXCEED_MAX_CONN)
+	if (enable && atomic_test_bit(bt_dev.flags,BT_DEV_ADVERTISING_CONNECTABLE) && bt_conn_get_remote_dev_info(NULL) == CONFIG_BT_MAX_CONN){
+		BT_ERR("Cannot do connectable adv because of conn resource limitation(max_conn:%u)",CONFIG_BT_MAX_CONN);
 		return -EACCES;
+	}
 	#endif
-    
+
 	err = set_advertise_enable(enable);
 	if (err) {
 		return err;
@@ -7253,9 +7321,10 @@ int bt_le_adv_start(const struct bt_le_adv_param *param,
 	}
 	#endif
 
-	#if defined(QCC74x_BLE_REJECT_CONNECTABLE_ADV_IF_MAX_LINKS_REACH)
+	#if defined(QCC74x_BLE_RESTRICT_CONN_ACTION_NOT_EXCEED_MAX_CONN)
 	if(param->options & BT_LE_ADV_OPT_CONNECTABLE && bt_conn_get_remote_dev_info(NULL) == CONFIG_BT_MAX_CONN)
 	{
+		BT_ERR("Cannot do connectable adv because of conn resource limitation(max_conn:%u)",CONFIG_BT_MAX_CONN);
 		return -EACCES;
 	}
 	#endif

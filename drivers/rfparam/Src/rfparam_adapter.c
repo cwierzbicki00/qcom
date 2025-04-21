@@ -645,9 +645,16 @@ int8_t rfparam_load(struct wl_param_t *param)
     }
 
     if (rfparam_tlv_get(g_tlv_base_addr,RFTLV_TYPE_COUNTRY_CODE, RFTLV_MAXLEN_COUNTRY_CODE, tmp_buf) > 0) {
-        param->country_code = (int8_t)(tmp_buf[0] | (tmp_buf[1] << 8));
+        // param->country_code = (int8_t)(tmp_buf[0] | (tmp_buf[1] << 8));
+        // rfparam_printf("country_code = %d \r\n", (int)param->country_code);
 
-        rfparam_printf("country_code = %d \r\n", (int)param->country_code);
+        if ((tmp_buf[0] >= 65) && (tmp_buf[1] >= 65) && (tmp_buf[0] <= 90) && (tmp_buf[0] <= 90)) {
+            param->country_code = (tmp_buf[0] | (tmp_buf[1] << 8));
+            rfparam_printf("country_code = %c%c \r\n", tmp_buf[0], tmp_buf[1]);
+        } else {
+            param->country_code = (tmp_buf[0] | (tmp_buf[1] << 8));
+            rfparam_printf("country_code = %d \r\n", (int)param->country_code);
+        }
 
     }else{
         rfparam_printf("country_code null\r\n");

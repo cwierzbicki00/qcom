@@ -13,6 +13,12 @@ void qcc74x_timer_init(struct qcc74x_device_s *dev, const struct qcc74x_timer_co
     LHAL_PARAM_ASSERT(IS_TIMER_CLOCK_DIV(config->clock_div));
     LHAL_PARAM_ASSERT(IS_TIMER_COMP_ID(config->trigger_comp_id));
 
+    if (!IS_TIMER_COMP_VAL(config->comp0_val) ||
+        !IS_TIMER_COMP_VAL(config->comp1_val) ||
+        !IS_TIMER_COMP_VAL(config->comp2_val)) {
+        qcc74x_lhal_assert_func(__FILE__, __LINE__, __func__, "comp value is error");
+    }
+
 #ifdef romapi_qcc74x_timer_init
     romapi_qcc74x_timer_init(dev, config);
 #else

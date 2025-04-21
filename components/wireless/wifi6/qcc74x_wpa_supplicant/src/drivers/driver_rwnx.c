@@ -2314,7 +2314,7 @@ static int wpa_rwnx_driver_sta_deauth(void *priv, const u8 *own_addr, const u8 *
 {
 	struct ieee80211_mgmt mgmt;
     int ret;
-
+ 
 	os_memset(&mgmt, 0, sizeof(mgmt));
 	mgmt.frame_control = IEEE80211_FC(WLAN_FC_TYPE_MGMT,
 					  WLAN_FC_STYPE_DEAUTH);

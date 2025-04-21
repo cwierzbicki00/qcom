@@ -12,4 +12,7 @@ CROSS_COMPILE ?= riscv64-unknown-elf-
 CONFIG_BLUETOOTH_APP ?= 0
 cmake_definition+=-DCONFIG_BLUETOOTH_APP=$(CONFIG_BLUETOOTH_APP)
 
+CONFIG_BREDR_APP ?= 0
+cmake_definition+=-DCONFIG_BREDR_APP=$(CONFIG_BREDR_APP)
+
 include $(QCC74x_SDK_BASE)/project.build 

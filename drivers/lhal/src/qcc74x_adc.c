@@ -111,6 +111,10 @@ void qcc74x_adc_init(struct qcc74x_device_s *dev, const struct qcc74x_adc_config
         regval |= AON_GPADC_VREF_SEL;
     }
 
+    if (config->differential_mode) {
+        regval |= AON_GPADC_DIFF_MODE;
+    }
+
     putreg32(regval, reg_base + AON_GPADC_REG_CONFIG2_OFFSET);
 
     regval = getreg32(reg_base + AON_GPADC_REG_CMD_OFFSET);
@@ -269,6 +273,14 @@ void qcc74x_update_adc_trim(struct qcc74x_device_s *dev, const struct qcc74x_adc
         regval |= AON_GPADC_SCAN_EN;
     }
     putreg32(regval, reg_base + AON_GPADC_REG_CONFIG1_OFFSET);
+
+    regval = getreg32(reg_base + AON_GPADC_REG_CONFIG2_OFFSET);
+    if (config->differential_mode) {
+        regval |= AON_GPADC_DIFF_MODE;
+    } else {
+        regval &= ~AON_GPADC_DIFF_MODE;
+    }
+    putreg32(regval, reg_base + AON_GPADC_REG_CONFIG2_OFFSET);
 
     regval = getreg32(reg_base + AON_GPADC_REG_CMD_OFFSET);
     if (config->differential_mode) {

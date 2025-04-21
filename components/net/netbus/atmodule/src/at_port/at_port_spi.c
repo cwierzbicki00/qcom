@@ -127,50 +127,24 @@ void at_port_debug_gpio_set(uint8_t val)
 #define AT_PORT_WRITE_TIMEOUT      (30000)// 30s
 int at_port_write_data(uint8_t *data, int len)
 {
+    uint32_t remain_len = len;
+    uint32_t write_len;
+    
     if (at->fakeoutput) {
-        //printf("[AT_WRITE]:%d-->", len);
         for (int i = 0; i < len; i++) {
             putchar(data[i]);
         }
-        //printf("\r\n");
-    }
-    if (at->fakeoutput) {
         return len;
     }
-#if 0
-    int msg_len;
-    spisync_msg_t msg;
-
     if (!data) {
-    	return 0;
+        return 0;
     }
-
-    SPISYNC_MSGINIT(&msg,
-                SPISYNC_TYPESTREAM_AT,  /* type */
-                1,                      /* copy */
-                AT_PORT_WRITE_TIMEOUT,  /* timeout */
-                data, len,              /* buf buf_len */
-                NULL,                   /* cb */
-                NULL);                  /* cb_arg */
-
-    msg_len = spisync_write(at_spisync, &msg, 0);
-    if (msg_len > 0) {
-        return msg_len;
-    }
-    return 0;
-#else
-#if 0
-        for (int i = 0; i < len; i++) {
-            putchar(data[i]);
-        }
-#endif
-#if 1
-    return nxspi_write(data, len, portMAX_DELAY);
-#else
-    vTaskDelay(portMAX_DELAY);
-    return len;
-#endif
-#endif
+    do {
+        write_len = remain_len > NXBD_MTU ? NXBD_MTU : remain_len;
+        nxspi_write(data + len - remain_len, write_len, portMAX_DELAY);
+        remain_len -= write_len;
+    } while (remain_len > 0);
+    return (len - remain_len);
 }
 
 int at_port_para_set(int baudrate, uint8_t databits, uint8_t stopbits, uint8_t parity, uint8_t flow_control)

@@ -258,6 +258,24 @@ uint32_t qcc74x_ef_ctrl_get_common_trim_list(const qcc74x_ef_ctrl_com_trim_cfg_t
     return sizeof(trim_list) / sizeof(trim_list[0]);
 }
 
+static char * ATTR_TCM_SECTION qcc74x_efuse_print_number(char *buffer, uint8_t number)
+{
+    uint8_t i = 0;
+
+    if (number >= 100) {
+        buffer[i++] = '1';
+        buffer[i++] = '0';
+        buffer[i++] = '0';
+    } else if (number >= 10) {
+        buffer[i++] = number / 10 + '0';
+        buffer[i++] = number % 10 + '0';
+    } else { /* (number < 10) */
+        buffer[i++] = number + '0';
+    }
+
+    return buffer + i;
+}
+
 /****************************************************************************/ /**
  * @brief  Efuse read device info
  *
@@ -266,9 +284,10 @@ uint32_t qcc74x_ef_ctrl_get_common_trim_list(const qcc74x_ef_ctrl_com_trim_cfg_t
  * @return None
  *
 *******************************************************************************/
-void qcc74x_efuse_get_device_info(qcc74x_efuse_device_info_type *device_info)
+void ATTR_TCM_SECTION qcc74x_efuse_get_device_info(qcc74x_efuse_device_info_type *device_info)
 {
     uint32_t tmpval;
+    char *idx;
 
     qcc74x_ef_ctrl_read_direct(NULL, EF_DATA_EF_WIFI_MAC_HIGH_OFFSET, &tmpval, 1, 1);
     device_info->package = (tmpval >> 22) & 3;
@@ -338,22 +357,29 @@ void qcc74x_efuse_get_device_info(qcc74x_efuse_device_info_type *device_info)
     tmpval = QCC74x_RD_REG(GLB_BASE, GLB_PROC_MON);
     tmpval = QCC74x_GET_REG_BITS_VAL(tmpval, GLB_RING_FREQ);
     device_info->process_corner = tmpval;
+    idx = device_info->process_corner_name;
     if (device_info->process_corner <= 480) {
-        snprintf(device_info->process_corner_name, sizeof(device_info->process_corner_name), "%s", "SS");
+        arch_memcpy(device_info->process_corner_name, "SS", sizeof("SS"));
     } else if (device_info->process_corner < 540) {
         uint16_t ss, tt;
         ss = ((device_info->process_corner - 480) * 100 + 30) / 60;
         tt = 100 - ss;
-        snprintf(device_info->process_corner_name, sizeof(device_info->process_corner_name), "%d%%TT+%d%%SS", ss, tt);
+        idx = qcc74x_efuse_print_number(device_info->process_corner_name, ss);
+        arch_memcpy(idx, "%TT+", sizeof("%TT+"));
+        idx = qcc74x_efuse_print_number(idx + sizeof("%TT+") - 1, tt);
+        arch_memcpy(idx, "%SS", sizeof("%SS"));
     } else if (device_info->process_corner == 540) {
-        snprintf(device_info->process_corner_name, sizeof(device_info->process_corner_name), "%s", "TT");
+        arch_memcpy(device_info->process_corner_name, "TT", 3);
     } else if (device_info->process_corner < 610) {
         uint16_t tt, ff;
         tt = ((device_info->process_corner - 540) * 100 + 35) / 70;
         ff = 100 - tt;
-        snprintf(device_info->process_corner_name, sizeof(device_info->process_corner_name), "%d%%TT+%d%%FF", ff, tt);
+        idx = qcc74x_efuse_print_number(device_info->process_corner_name, ff);
+        arch_memcpy(idx, "%TT+", sizeof("%TT+"));
+        idx = qcc74x_efuse_print_number(idx + sizeof("%TT+") - 1, tt);
+        arch_memcpy(idx, "%FF", sizeof("%FF"));
     } else { /* >= 610 */
-        snprintf(device_info->process_corner_name, sizeof(device_info->process_corner_name), "%s", "FF");
+        arch_memcpy(device_info->process_corner_name, "FF", 3);
     }
 }
 
@@ -542,9 +568,9 @@ float qcc74x_efuse_get_adc_trim(void)
                 tmp = ~tmp;
                 tmp += 1;
                 tmp = tmp & 0xfff;
-                coe = (1.0 + ((float)tmp / 2048.0));
+                coe = (1.0f + ((float)tmp / 2048.0f));
             } else {
-                coe = (1.0 - ((float)tmp / 2048.0));
+                coe = (1.0f - ((float)tmp / 2048.0f));
             }
         }
     }
@@ -582,7 +608,7 @@ int qcc74x_efuse_enable_aes(uint8_t aes_type, uint8_t xts_mode)
     if(xts_mode){
         tmpval |= (xts_mode<<2);
     }
-    
+
     qcc74x_ef_ctrl_write_direct(NULL, 0x00, &tmpval, 1, 1);
 
     return 0;
@@ -595,7 +621,7 @@ int qcc74x_efuse_rw_lock_aes_key(uint8_t key_index, uint8_t rd_lock, uint8_t wr_
     if(0 == key_index){
         if(wr_lock){
             tmpval |= (1 << 19);
-        }        
+        }
         if(rd_lock){
             tmpval |= (1 << 29);
         }
@@ -603,7 +629,7 @@ int qcc74x_efuse_rw_lock_aes_key(uint8_t key_index, uint8_t rd_lock, uint8_t wr_
     }else if(1 == key_index){
         if(wr_lock){
             tmpval |= (1 << 20);
-        }        
+        }
         if(rd_lock){
             tmpval |= (1 << 30);
         }
@@ -611,7 +637,7 @@ int qcc74x_efuse_rw_lock_aes_key(uint8_t key_index, uint8_t rd_lock, uint8_t wr_
     }else if(2 == key_index){
         if(wr_lock){
             tmpval |= (1 << 15);
-        }        
+        }
         if(rd_lock){
             tmpval |= (1 << 25);
         }
@@ -619,7 +645,7 @@ int qcc74x_efuse_rw_lock_aes_key(uint8_t key_index, uint8_t rd_lock, uint8_t wr_
     }else if(3 == key_index){
         if(wr_lock){
             tmpval |= (1 << 16);
-        }        
+        }
         if(rd_lock){
             tmpval |= (1 << 26);
         }
@@ -636,11 +662,11 @@ int qcc74x_efuse_rw_lock_dbg_key(uint8_t rd_lock, uint8_t wr_lock)
     if(wr_lock){
         tmpval |= (1 << 15);
     }
-    
+
     if(rd_lock){
         tmpval |= (1 << 26);
-    } 
-    
+    }
+
     qcc74x_ef_ctrl_write_direct(NULL, 0x7C, &tmpval, 1, 1);
 
     return 0;
@@ -649,13 +675,13 @@ int qcc74x_efuse_rw_lock_dbg_key(uint8_t rd_lock, uint8_t wr_lock)
 int qcc74x_efuse_write_lock_pk_hash(uint32_t pkhash_len)
 {
     uint32_t tmpval = 0;
-    
+
     if(256 == pkhash_len){
        tmpval = (1 << 17) | (1 << 18);
     }else{
        tmpval = (1 << 17);
     }
-    
+
     qcc74x_ef_ctrl_write_direct(NULL, 0x7C, &tmpval, 1, 1);
 
     return 0;

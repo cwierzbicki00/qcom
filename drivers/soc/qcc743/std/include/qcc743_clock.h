@@ -89,6 +89,7 @@ typedef enum {
     QCC74x_PERIPHERAL_CLOCK_CAM,      /*!< CAM clock */
     QCC74x_PERIPHERAL_CLOCK_SDH,      /*!< SDH clock */
     QCC74x_PERIPHERAL_CLOCK_PKA,      /*!< PKA clock */
+    QCC74x_PERIPHERAL_CLOCK_RTC,      /*!< RTC clock */
     QCC74x_PERIPHERAL_CLOCK_MAX,
 } QCC74x_Peripheral_Type;
 

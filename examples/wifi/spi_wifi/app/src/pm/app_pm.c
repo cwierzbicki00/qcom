@@ -41,7 +41,6 @@
 #include "app_clock_manager.h"
 
 extern int enable_tickless;
-static TaskHandle_t twt_time_update_task_hd = NULL;
 
 #define APP_PM_IELD_TASK_STACK_SIZE (512)
 
@@ -130,7 +129,6 @@ static int lp_exit(void *arg)
     qcc74x_irq_attach(uart_shell->irq_num, uart_shell_isr, NULL);
     qcc74x_irq_enable(uart_shell->irq_num);
 
-    vTaskNotifyGiveFromISR(twt_time_update_task_hd, &xHigherPriorityTaskWoken);
     portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 
     //GLB_GPIO_Func_Init(GPIO_FUN_JTAG, pinList, 4);
@@ -438,10 +436,7 @@ static void lp_io_wakeup_callback(uint64_t wake_up_io_bits)
     //spisync_ps_wakeup(NULL, &wakeup_arg);
 }
 
-static qcc74x_lp_io_cfg_t lp_wake_io_cfg = {
-    .io_16_ie = QCC74x_LP_IO_INPUT_ENABLE,
-    .io_20_34_ie = QCC74x_LP_IO_INPUT_ENABLE,
-};
+static qcc74x_lp_io_cfg_t lp_wake_io_cfg;
 
 int lp_set_wakeup_by_io(uint8_t io, uint8_t mode)
 {
@@ -456,6 +451,7 @@ int lp_set_wakeup_by_io(uint8_t io, uint8_t mode)
     } 
 
     if (io == 16) {
+        lp_wake_io_cfg.io_16_ie = QCC74x_LP_IO_INPUT_ENABLE;
         if (mode == 0) {
             lp_wake_io_cfg.io_16_19_aon_trig_mode = QCC74x_LP_PDS_IO_TRIG_SYNC_HIGH_LEVEL;
         } else{
@@ -463,7 +459,7 @@ int lp_set_wakeup_by_io(uint8_t io, uint8_t mode)
         }
         lp_wake_io_cfg.io_16_res = QCC74x_LP_IO_RES_PULL_DOWN;
     } else {
-        printf("set gpio 28 wakeup.\r\n");
+        lp_wake_io_cfg.io_20_34_ie = QCC74x_LP_IO_INPUT_ENABLE;
         if (mode == 0) {
             lp_wake_io_cfg.io_28_34_pds_trig_mode = QCC74x_LP_PDS_IO_TRIG_SYNC_HIGH_LEVEL;
         } else if (mode == 1) {
@@ -471,14 +467,6 @@ int lp_set_wakeup_by_io(uint8_t io, uint8_t mode)
         }
         lp_wake_io_cfg.io_20_34_res = QCC74x_LP_IO_RES_PULL_DOWN;
     }
-
-#if 0
-    if (mode == 1) {
-        lp_wake_io_cfg.io_20_34_res = QCC74x_LP_IO_RES_PULL_UP;
-    } else {
-    }
-#endif
-
 
     lp_wake_io_cfg.io_wakeup_unmask |= ((uint64_t)1 << io);
 
@@ -612,15 +600,6 @@ SHELL_CMD_EXPORT_ALIAS(cmd_delete_arp_timer, delete_arp_timer, cmd delete arp ti
 #endif
 
 static TaskHandle_t xtal32k_check_entry_task_hd = NULL;
-
-static void twt_time_update_task(void *pvParameters)
-{
-    while(1) {
-        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-        void twt_update_next_sp(void);
-        twt_update_next_sp();
-    }
-}
 
 void timerCallback(TimerHandle_t xTimer)
 {
@@ -787,6 +766,12 @@ int app_delete_keepalive_timer(void)
     return 0;
 }
 
+void app_pm_exit_pds15(void)
+{
+    enable_tickless = 0;
+    wifi_mgmr_sta_ps_exit();
+}
+
 int qcc74x_pm_app_check(void)
 {
     return nxspi_ps_get();
@@ -812,8 +797,6 @@ int app_pm_init(void)
 
     app_clock_init();
     app_atmoudle_init();
-
-    xTaskCreate(twt_time_update_task, (char*)"twt_time_update_entry", 256, NULL, 25, &twt_time_update_task_hd);
 
     return 0;
 }

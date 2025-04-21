@@ -25,6 +25,7 @@
 #include <lwip/altcp_tls.h>
 #include <lwip/err.h>
 #include <lwip/netif.h>
+#include <lwip/netifapi.h>
 
 #include "export/qcc74x_fw_api.h"
 #include <wifi_mgmr.h>
@@ -84,6 +85,8 @@ struct wifi_ap_sta_info
 };
 
 struct wifi_ap_sta_info g_wifi_ap_sta_info[AT_WIFI_MAX_STA_NUM];
+
+static int wifi_ap_get_sta_ip(uint8_t mac[6], uint32_t *ip);
 
 /* todo: wifi_mgmr_ext.c */
 int wifi_mgmr_sta_disconnect(void)
@@ -357,6 +360,14 @@ static void wifi_sta_enable_reconnect(int enable)
 
 static void _wifi_ap_status_callback(struct netif *netif)
 {
+    uint32_t ipaddr;
+    if (wifi_ap_get_sta_ip((uint8_t *)netif->hwaddr, &ipaddr) == 0) {
+        if (ipaddr == ip4_addr_get_u32(ip_2_ip4(&netif->ip_addr))) {
+            printf("skip %s\r\n", ipaddr_ntoa(netif_ip4_addr(netif)));
+            return;
+        }
+    }
+
     wifi_ap_update_sta_ip((uint8_t *)netif->hwaddr, ip4_addr_get_u32(ip_2_ip4(&netif->ip_addr)));
 
     if (at_get_work_mode() != AT_WORK_MODE_THROUGHPUT ||  at_base_config->sysmsg_cfg.bit.link_state_msg) {
@@ -400,6 +411,8 @@ static int wifi_ap_start(void)
         config.akm = "WPA";
     } else if (at_wifi_config->ap_info.ecn == AT_WIFI_ENC_WPA2_PSK) {
         config.akm = "WPA2";
+    } else if (at_wifi_config->ap_info.ecn == AT_WIFI_ENC_WPA3_PSK) {
+        config.akm = "WPA3";
     }
 
     struct netif *netif = fhost_to_net_if(MGMR_VIF_AP);
@@ -408,6 +421,8 @@ static int wifi_ap_start(void)
     wifi_mgmr_conf_max_sta(at_wifi_config->ap_info.max_conn);
     vTaskDelay(100);
     dhcpd_status_callback_set(netif, _wifi_ap_status_callback);
+    /* Set STA netif as default netif */
+    netifapi_netif_set_default((struct netif *)fhost_to_net_if(MGMR_VIF_STA));
     g_wifi_ap_is_start = 1;
 
     return 0;
@@ -541,8 +556,7 @@ static void at_wifi_event_cb(uint32_t code, void *private_data)
         case CODE_WIFI_ON_MGMR_DONE: {
             //wifi_sta_enable_reconnect(1);
             if (at_wifi_config->wifi_mode == WIFI_SOFTAP_MODE || at_wifi_config->wifi_mode == WIFI_AP_STA_MODE) {
-            	//FIXME: This is Timer context, not allowed call block API
-                //wifi_ap_start();
+                wifi_ap_start();
             }
             if (at_wifi_config->wifi_mode == WIFI_STATION_MODE || at_wifi_config->wifi_mode == WIFI_AP_STA_MODE) {
                 if (at_wifi_config->auto_conn == WIFI_AUTOCONN_ENABLE) {
@@ -632,7 +646,9 @@ static void at_wifi_event_cb(uint32_t code, void *private_data)
 
                 g_wifi_sta_disconnect_reason = 0;
             }
+#ifdef CONFIG_NETWORK
             at_net_dns_load();
+#endif
         }
         break;
 
@@ -783,18 +799,21 @@ int at_wifi_set_mode(void)
         }
     } else if(at_wifi_config->wifi_mode == WIFI_SOFTAP_MODE) {
         wifiopt_sta_disconnect(0);
-	if (!wifi_mgmr_ap_state_get()) {
-		wifi_ap_start();
-	}
+        if (!wifi_mgmr_ap_state_get()) {
+            wifi_ap_start();
+        }
     } else if(at_wifi_config->wifi_mode == WIFI_AP_STA_MODE) {
-	    if (!wifi_mgmr_ap_state_get()) {
-		    wifi_ap_start();
-	    }
+        if (!wifi_mgmr_ap_state_get()) {
+            wifi_ap_start();
+        }
         if (at_wifi_config->switch_mode_auto_conn == WIFI_AUTOCONN_ENABLE) {
             if (!wifi_is_connected()) {
                 wifiopt_sta_connect();
             }
         }
+    } else if (at_wifi_config->wifi_mode == WIFI_DISABLE) {
+        wifiopt_ap_stop(0);
+        wifiopt_sta_disconnect(0);
     }
 
     return 0;
@@ -885,16 +904,28 @@ int at_wifi_mode_set(uint8_t ap_or_sta, wifi_proto proto)
     if (proto.bit.b_mode) {
         mode |= WIFI_MODE_802_11B;
     }
+
     if (proto.bit.g_mode) {
+        mode |= WIFI_MODE_802_11B;
         mode |= WIFI_MODE_802_11G;
     }
+
     if (proto.bit.n_mode) {
+        mode |= WIFI_MODE_802_11B;
+        mode |= WIFI_MODE_802_11G;
         mode |= WIFI_MODE_802_11N_2_4;
     }
+
     if (proto.bit.ax_mode) {
+        mode |= WIFI_MODE_802_11B;
+        mode |= WIFI_MODE_802_11G;
+        mode |= WIFI_MODE_802_11N_2_4;
         mode |= WIFI_MODE_802_11AX_2_4;
     }
-    wifi_mgmr_set_mode(ap_or_sta, mode);
+    
+    if (wifi_mgmr_set_mode(ap_or_sta, mode) != 0) {
+        printf("set mode error\r\n");
+    }
     return 0;
 }
 

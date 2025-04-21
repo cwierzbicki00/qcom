@@ -607,6 +607,17 @@ altcp_mbedtls_setup_callbacks(struct altcp_pcb *conn, struct altcp_pcb *inner_co
   /* listen is set totally different :-) */
 }
 
+#if defined(MBEDTLS_DEBUG_C)
+static void ssl_debug(void *ctx, int level, const char *file, int line, const char *str)
+{
+    (void)ctx;
+    (void) level;
+
+    puts(str);
+    return;
+}
+#endif
+
 static err_t
 altcp_mbedtls_setup(void *conf, struct altcp_pcb *conn, struct altcp_pcb *inner_conn)
 {
@@ -625,6 +636,16 @@ altcp_mbedtls_setup(void *conf, struct altcp_pcb *conn, struct altcp_pcb *inner_
   }
   /* initialize mbedtls context: */
   mbedtls_ssl_init(&state->ssl_context);
+
+#if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
+  mbedtls_ssl_conf_max_frag_len(&config->conf, MBEDTLS_SSL_MAX_FRAG_LEN_4096);
+#endif
+
+#if defined(MBEDTLS_DEBUG_C)
+    mbedtls_debug_set_threshold(3);
+    mbedtls_ssl_conf_dbg(&config->conf, ssl_debug, NULL);
+#endif
+   
   ret = mbedtls_ssl_setup(&state->ssl_context, &config->conf);
   if (ret != 0) {
     LWIP_DEBUGF(ALTCP_MBEDTLS_DEBUG, ("mbedtls_ssl_setup failed\n"));

@@ -95,6 +95,14 @@ static const struct reg_power_limits_nb_t nb_fcc_cpl_rules[] = {
     */
 };
 
+static const struct reg_power_limits_nb_t nb_154_fcc_cpl_rules[] = {
+    /* Example rules */
+    /*
+    DEFINE_NARROWBAND_CHANNEL_POWER(2400, 2410-1, 8),
+    DEFINE_NARROWBAND_CHANNEL_POWER(2470, 2485-1, 8),
+    */
+};
+
 static const int8_t nb_srrc_max_power = 20;
 static const struct reg_power_limits_nb_t nb_srrc_cpl_rules[] = {
     /* Example rules for SRRC */
@@ -105,6 +113,14 @@ static const struct reg_power_limits_nb_t nb_srrc_cpl_rules[] = {
     */
 };
 
+
+static const struct reg_power_limits_nb_t nb_154_srrc_cpl_rules[] = {
+    /* Example rules */
+    /*
+    DEFINE_NARROWBAND_CHANNEL_POWER(2400, 2410-1, 8),
+    DEFINE_NARROWBAND_CHANNEL_POWER(2470, 2485-1, 6),
+    */
+};
 
 // Define regulatory domain database
 static const struct reg_domain_info_t reg_domains[] = {
@@ -118,6 +134,8 @@ static const struct reg_domain_info_t reg_domains[] = {
         .nb_max_power = nb_fcc_max_power,
         .nb_cpl_rules = nb_fcc_cpl_rules,
         .nb_num_cpl_rules = sizeof(nb_fcc_cpl_rules) / sizeof(nb_fcc_cpl_rules[0]),
+        .nb_154_cpl_rules = nb_154_fcc_cpl_rules,
+        .nb_154_num_cpl_rules = sizeof(nb_154_fcc_cpl_rules) / sizeof(nb_154_fcc_cpl_rules[0]),
     },
     {
         .domain = REG_DOMAIN_ETSI,
@@ -135,6 +153,8 @@ static const struct reg_domain_info_t reg_domains[] = {
         .nb_max_power = nb_srrc_max_power,
         .nb_cpl_rules = nb_srrc_cpl_rules,
         .nb_num_cpl_rules = sizeof(nb_srrc_cpl_rules) / sizeof(nb_srrc_cpl_rules[0]),
+        .nb_154_cpl_rules = nb_154_srrc_cpl_rules,
+        .nb_154_num_cpl_rules = sizeof(nb_154_srrc_cpl_rules) / sizeof(nb_154_srrc_cpl_rules[0]),
     },
     {
         .domain = REG_DOMAIN_NCC,

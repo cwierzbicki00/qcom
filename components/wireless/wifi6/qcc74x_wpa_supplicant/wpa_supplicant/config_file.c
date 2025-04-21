@@ -830,6 +830,7 @@ static void wpa_config_write_network(FILE *f, struct wpa_ssid *ssid)
 	INT(ignore_broadcast_ssid);
     INT(bcn_mode);
     INT(bcn_timer);
+    INT(disable_wmm);
 #ifdef CONFIG_DPP
 	STR(dpp_connector);
 	STR(dpp_netaccesskey);

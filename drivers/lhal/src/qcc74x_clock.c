@@ -15,6 +15,8 @@
 #include "qcc74x_undef_clock.h"
 #elif defined(QCC74x_undef)
 #include "qcc74x_undef_clock.h"
+#elif defined(QCC74x_undef)
+#include "qcc74x_undef_clock.h"
 #endif
 
 /****************************************************************************/ /**

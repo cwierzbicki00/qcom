@@ -9,14 +9,13 @@ sdk_add_compile_definitions(-DCONFIG_CLI_CMD_ENABLE)
 
 target_sources(app PRIVATE
                    app/app_main.c
-                   app/bt/app_bt.c
                    app/wifi/app_wifi.c
                    app/player/app_player.c
                    app/player/cli_player.c
                    multimedia_port.c
                    )
 
-sdk_add_include_directories(. app app/bt app/wifi app/player)
+sdk_add_include_directories(. app app/wifi app/player)
 
 sdk_set_main_file(main.c)
 

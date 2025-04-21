@@ -24,8 +24,6 @@ void write_register(uint32_t *reg_addr, uint32_t value) {
     *reg_addr = value;
 }
 
-static uint32_t xtal_reg_val;
-
 // Read clock source from flash using EasyFlash
 int clock_source_read(uint8_t *clock_source)
 {
@@ -275,15 +273,17 @@ static int xtal32k_check_entry_task(int crystal_flag)
 
     gpioCfg.gpioPin = 17;
     GLB_GPIO_Init(&gpioCfg);
+    *(uint32_t*)(0x2000F204) = 0x210288;
 
     if (crystal_flag) {
-        *(uint32_t*)(0x2000F204) = xtal_reg_val;
         /* power on */
         HBN_Set_Xtal_32K_Inverter_Amplify_Strength(3);
         HBN_Power_On_Xtal_32K();
     } else {
+        HBN_Power_On_Xtal_32K();
         xtal32k_input();
     }
+
 
     timeout_start = qcc74x_mtimer_get_time_us();
 
@@ -435,8 +435,6 @@ int app_clock_init(void)
     uint32_t rc_cal_data = 0;
     int rc_success = 0, xtal_success = 0;
 
-    xtal_reg_val = *(uint32_t*)(0x2000F204);
-    
     // Read clock source setting
     if (clock_source_read(&clock_source) != 0 || clock_source == 0) {
         // First boot or no settings - perform full calibration and use RC

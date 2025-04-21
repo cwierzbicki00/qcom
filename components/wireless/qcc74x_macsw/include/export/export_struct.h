@@ -20,6 +20,7 @@ struct_func_dcl(sm_connect_ind, uint8_t, vif_idx);
 struct_func_dcl(sm_connect_ind, uint16_t, status_code);
 struct_func_dcl(sm_connect_ind, uint16_t, ieeetypes_code);
 void *sm_connect_ind_getp_bssid(void* param);
+void *sm_connect_ind_getp_ssid(void* param);
 struct_func_dcl(sm_connect_ind, uint16_t, assoc_req_ie_len);
 struct_func_dcl(sm_connect_ind, uint16_t, assoc_rsp_ie_len);
 struct_func_dcl(sm_connect_ind, uint8_t, security);

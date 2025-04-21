@@ -171,6 +171,7 @@ static void peripheral_clock_init_lp(void)
 }
 #endif
 
+#ifdef CONFIG_PSRAM
 static void qcc74x_init_psram_gpio(void)
 {
     struct qcc74x_device_s *gpio;
@@ -181,12 +182,27 @@ static void qcc74x_init_psram_gpio(void)
     }
 }
 
-static void psram_winbond_default_init(void)
+static void psram_winbond_default_init(uint8_t psram_info)
 {
+    PSRAM_Ctrl_Size_Type psram_size = PSRAM_SIZE_4MB;
+    switch (psram_info) {
+        case 1:
+            psram_size = PSRAM_SIZE_4MB;
+            break;
+        case 2:
+            psram_size = PSRAM_SIZE_8MB;
+            break;
+        case 3:
+            psram_size = PSRAM_SIZE_16MB;
+            break;
+        default:
+            break;
+    }
+
     PSRAM_Ctrl_Cfg_Type default_psram_ctrl_cfg = {
         .vendor = PSRAM_CTRL_VENDOR_WINBOND,
         .ioMode = PSRAM_CTRL_X8_MODE,
-        .size = PSRAM_SIZE_4MB,
+        .size = psram_size,
         .dqs_delay = 0xfff0,
     };
 
@@ -210,7 +226,7 @@ static void psram_winbond_default_init(void)
     PSram_Ctrl_Winbond_Write_Reg(PSRAM0_ID, PSRAM_WINBOND_REG_CR0, &default_winbond_cfg);
 }
 
-uint32_t board_psram_x8_init(void)
+uint32_t board_psram_x8_init(uint8_t psram_info)
 {
     uint16_t reg_read = 0;
 
@@ -219,11 +235,12 @@ uint32_t board_psram_x8_init(void)
     qcc74x_init_psram_gpio();
 
     /* psram init*/
-    psram_winbond_default_init();
+    psram_winbond_default_init(psram_info);
     /* check psram work or not */
     PSram_Ctrl_Winbond_Read_Reg(PSRAM0_ID, PSRAM_WINBOND_REG_ID0, &reg_read);
     return reg_read;
 }
+#endif
 
 void qcc74x_show_log(void)
 {
@@ -422,7 +439,7 @@ void board_init(void)
     }
 
     if (QCC743_PSRAM_INIT_DONE == 0) {
-        board_psram_x8_init();
+        board_psram_x8_init(device_info.psram_info);
         Tzc_Sec_PSRAMB_Access_Release();
     }
 
@@ -489,8 +506,8 @@ void board_spi0_gpio_init()
     struct qcc74x_device_s *gpio;
 
     gpio = qcc74x_device_get_by_name("gpio");
-     
-    /* spi cs */ 
+
+    /* spi cs */
     qcc74x_gpio_init(gpio, GPIO_PIN_28, GPIO_FUNC_SPI0 | GPIO_ALTERNATE | GPIO_FLOAT | GPIO_SMT_EN | GPIO_DRV_1);
     /* spi clk */
     qcc74x_gpio_init(gpio, GPIO_PIN_29, GPIO_FUNC_SPI0 | GPIO_ALTERNATE | GPIO_FLOAT | GPIO_SMT_EN | GPIO_DRV_1);
@@ -505,7 +522,7 @@ void board_spi0_gpio_3pin_init()
     struct qcc74x_device_s *gpio;
 
     gpio = qcc74x_device_get_by_name("gpio");
-    
+
     /* spi clk */
     qcc74x_gpio_init(gpio, GPIO_PIN_29, GPIO_FUNC_SPI0 | GPIO_ALTERNATE | GPIO_FLOAT | GPIO_SMT_EN | GPIO_DRV_1);
     /* spi miso */
@@ -696,6 +713,15 @@ void board_i2s_gpio_init()
     qcc74x_gpio_init(gpio, GPIO_PIN_17, GPIO_FUNC_I2S | GPIO_ALTERNATE | GPIO_PULLUP | GPIO_SMT_EN | GPIO_DRV_1);
     qcc74x_gpio_init(gpio, GPIO_PIN_18, GPIO_FUNC_I2S | GPIO_ALTERNATE | GPIO_PULLUP | GPIO_SMT_EN | GPIO_DRV_1);
     qcc74x_gpio_init(gpio, GPIO_PIN_19, GPIO_FUNC_I2S | GPIO_ALTERNATE | GPIO_PULLUP | GPIO_SMT_EN | GPIO_DRV_1);
+}
+
+void board_timer_gpio_init()
+{
+    struct qcc74x_device_s *gpio;
+
+    gpio = qcc74x_device_get_by_name("gpio");
+    GLB_Sel_MCU_TMR_GPIO_Clock(GPIO_PIN_0);
+    qcc74x_gpio_init(gpio, GPIO_PIN_0, GPIO_FUNC_CLKOUT | GPIO_ALTERNATE | GPIO_PULLDOWN | GPIO_SMT_EN | GPIO_DRV_1);
 }
 
 void board_acomp_init()

@@ -1,8 +1,13 @@
 # OpenThread Border Router Over Wi-Fi Infrastructure network
-OpenThread porting is over `components/wireless/lmac154` module.
 
 Please refer to document [Introduction](./Introduction.md) for solution introduction.
 
+**Limitations**
+
+- This solution may have not enough capability to communicate with SSED.
+- Higher DTIM in AP may lead higher latency to communicate between Thread network and Wi-Fi network.
+
+OTBR with Ethernet infrastructure does't have above two limitations.
 
 ## Support CHIP
 
@@ -17,7 +22,6 @@ Please refer to document [Introduction](./Introduction.md) for solution introduc
 ```
 make CHIP=qcc743 BOARD=qcc743dk
 ```
-
 
 ## Flash
 

@@ -1,5 +1,75 @@
 # change log on Thread module
 
+## 2025/3/12
+
+- openthread_utils: 1.6.16
+- openthread_br: 1.6.17
+- openthread/openthread_port/openthread_rest: 1.6.17
+  - QCC743: update API to do system reset
+
+## 2025/2/8
+
+- openthread_utils: 1.6.16
+  - fix frame pending bit set for ack frame preparation
+- openthread_br: 1.6.17
+- openthread/openthread_port/openthread_rest: 1.6.16
+
+## 2025/1/8
+
+- openthread_br: 1.6.17
+- Changes:
+  - fix to receive multicast ICMPv6 neighbor discovery packets on infrastructure network
+
+- openthread/openthread_port/openthread_rest: 1.6.16
+
+## 2024/12/31
+
+- openthread_br: 1.6.16
+- Changes:
+  - fix a crash issue using a message pointer which message has been recalled
+  - fix an interlocking issue between lwip task and thread task
+
+- openthread/openthread_port/openthread_rest: 1.6.16
+- Changes:
+  - add interface to get stack idle state for sleepy device
+
+## 2024/12/16
+
+- openthread_utils: 1.6.15
+- Changes:
+  - use a specific version to release this module
+
+- openthread_br: 1.6.15
+- Changes:
+  - use a specific version to release this module
+
+- openthread/openthread_port/openthread_rest: 1.6.15
+- Changes:
+  - use a specific version to release these modules
+
+## 2024/12/13
+
+- Version: 1.6.14
+- Changes:
+  - QCC743: Improve large network stability
+
+## 2024/11/26
+
+- Version: 1.6.13
+- Changes:
+  - OTBR: fix memory leak when handle multicast ICMPv6
+
+## 2024/11/18
+
+- Version: 1.6.12
+- Changes:
+  - QCC743: Support to get boot reason
+
+## 2024/10/25
+
+- Version: 1.6.11
+- Changes:
+
 ## 2024/10/09
 
 - Version: 1.6.10

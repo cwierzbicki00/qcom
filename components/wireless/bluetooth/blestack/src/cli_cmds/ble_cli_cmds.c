@@ -29,7 +29,28 @@
 #include "bluetooth.h"
 #include "hci_driver.h"
 
+#define BLE_CLI_QUEUE_LEN   10
+#define CLI_PRIO (CONFIG_BT_RX_PRIO - 2)
+static struct k_thread ble_cli_task_h;
+static struct k_fifo ble_cli_queue;
+typedef enum{
+    CLI_MSG_ENABLE_ADV,
+    CLI_MSG_DISCONNECT,
+    CLI_MSG_MULTI_ADV_STOP,
+    CLI_MSG_GATT_CANCEL_PREPARE_WRITES,
+}ble_cli_msg_type_t;
 
+typedef struct{
+    ble_cli_msg_type_t msg_type;
+    struct bt_conn *conn;
+    uint8_t reason;
+}ble_disconnect_params;
+
+typedef struct{
+    ble_cli_msg_type_t msg_type;
+    struct bt_conn *conn;
+    struct bt_gatt_write_params *write_params;
+}ble_gatt_cancel_prepare_writes_params;
 
 #define 		PASSKEY_MAX  		0xF423F
 #define 		NAME_LEN 			30
@@ -556,8 +577,14 @@ static void connected(struct bt_conn *conn, u8_t err)
     bt_addr_le_to_str(bt_conn_get_dst(conn), addr, sizeof(addr));
 
 #if defined(CONFIG_BLE_MULTI_ADV)
-    if(ble_adv_id && !bt_le_multi_adv_stop(ble_adv_id)){
-        ble_adv_id = 0;
+    if(ble_adv_id){
+        uint8_t *msg = k_malloc(sizeof(uint8_t));
+        if(!msg){
+            vOutputString("Fail to allocate buffer.");
+            return;
+        }
+        *msg = CLI_MSG_MULTI_ADV_STOP;
+        k_fifo_put(&ble_cli_queue, (void *)msg);
     }
 #endif /* CONFIG_BLE_MULTI_ADV */
 
@@ -574,11 +601,15 @@ static void connected(struct bt_conn *conn, u8_t err)
 
 #if defined(CONFIG_BLE_RECONNECT_TEST)
     if (conn->role == BT_CONN_ROLE_MASTER) {
-        if(bt_conn_disconnect(conn, BT_HCI_ERR_REMOTE_USER_TERM_CONN)) {
-            vOutputString("Disconnection fail. \r\n");
-        }else{
-            vOutputString("Disconnect success. \r\n");
+        ble_disconnect_params *params = k_malloc(sizeof(ble_disconnect_params));
+        if(!params){
+            vOutputString("Fail to allocate buffer.");
+            return;
         }
+        params->msg_type = CLI_MSG_DISCONNECT;
+        params->conn = conn;
+        params->reason = BT_HCI_ERR_REMOTE_USER_TERM_CONN;
+        k_fifo_put(&ble_cli_queue, (void *)params);
     }
 #endif
 }
@@ -597,11 +628,13 @@ static void disconnected(struct bt_conn *conn, u8_t reason)
 
 #if defined(CONFIG_BLE_RECONNECT_TEST)
     if(conn->role == BT_CONN_ROLE_SLAVE) {
-        if(set_adv_enable(true)) {
-            vOutputString("Restart adv fail. \r\n");
-        } else {
-            vOutputString("Restart adv success. \r\n");
+        uint8_t *msg = k_malloc(sizeof(uint8_t));
+        if(!msg){
+            vOutputString("Fail to allocate buffer.");
+            return;
         }
+        *msg = CLI_MSG_ENABLE_ADV;
+        k_fifo_put(&ble_cli_queue, (void *)msg);
     }
 #endif
 
@@ -655,6 +688,14 @@ static void security_changed(struct bt_conn *conn, bt_security_t level, enum bt_
 }
 #endif
 
+#if (CONFIG_BT_REMOTE_VERSION)
+static void remote_version(struct bt_conn *conn, u8_t version,
+		u16_t manufacturer, u16_t subversion)
+{
+    printf("Remote Version: %d, Manufacturer: %d, Subversion: %d \r\n", version, manufacturer, subversion);
+}
+#endif /* CONFIG_BT_REMOTE_VERSION */
+
 static struct bt_conn_cb conn_callbacks = {
 	.connected = connected,
 	.disconnected = disconnected,
@@ -664,6 +705,9 @@ static struct bt_conn_cb conn_callbacks = {
 	.identity_resolved = identity_resolved,
 	.security_changed = security_changed,
 #endif
+#if (CONFIG_BT_REMOTE_VERSION)
+	.remote_version = remote_version,
+#endif /* CONFIG_BT_REMOTE_VERSION */
 };
 #endif //CONFIG_BT_CONN
 
@@ -1261,6 +1305,11 @@ BLE_CLI(start_multi_advertise)
     size_t ad_len_1, ad_len_2;
     int err_1, err_2;
     int instant_id_1, instant_id_2;
+    char *adv_name = (char*)bt_get_name();
+    struct bt_data ad_discov[2] = {
+        BT_DATA_BYTES(BT_DATA_FLAGS, BT_LE_AD_NO_BREDR | BT_LE_AD_GENERAL),
+        BT_DATA(BT_DATA_NAME_COMPLETE, adv_name, strlen(adv_name)),
+    };
 
     param_1.id = 0;
     param_1.interval_min = 0x00A0;
@@ -2149,20 +2198,25 @@ BLE_CLI(read)
 }
 
 static struct bt_gatt_write_params write_params;
-
+static u8_t *gatt_write_buf = NULL;
 static void write_func(struct bt_conn *conn, u8_t err,
 		       struct bt_gatt_write_params *params)
 {
-    int ret = 0;
 	vOutputString("Write complete: err %u \r\n", err);
-
+    if(gatt_write_buf != NULL){
+        k_free(gatt_write_buf);
+        gatt_write_buf = NULL;
+    }
     if(err == BT_ATT_ERR_PREPARE_QUEUE_FULL){
-        ret = bt_gatt_cancle_prepare_writes(conn, params);
-        if(ret){
-            vOutputString("Fail to cancel prepare writes(err %d)\r\n", ret);
-        }else{
-            vOutputString("Cancel prepare writes pending\r\n");
+        ble_gatt_cancel_prepare_writes_params *cancel_params = k_malloc(sizeof(ble_gatt_cancel_prepare_writes_params));
+        if(!cancel_params){
+            vOutputString("Fail to allocate buffer");
+            return;
         }
+        cancel_params->msg_type = CLI_MSG_GATT_CANCEL_PREPARE_WRITES;
+        cancel_params->conn = conn;
+        cancel_params->write_params = params;
+        k_fifo_put(&ble_cli_queue, (void *)cancel_params);
     }else
         memset(params, 0, sizeof(struct bt_gatt_write_params));
 }
@@ -2171,7 +2225,6 @@ BLE_CLI(write)
 {
 	int err;
     uint16_t data_len;
-    u8_t *gatt_write_buf;
 
     if(argc != 5){
         vOutputString("Number of Parameters is not correct\r\n");
@@ -2203,10 +2256,8 @@ BLE_CLI(write)
 	write_params.data = gatt_write_buf;
 	write_params.length = data_len;
 	write_params.func = write_func;
-	
-	err = bt_gatt_write(default_conn, &write_params);
 
-    k_free(gatt_write_buf);
+	err = bt_gatt_write(default_conn, &write_params);
     
 	if (err) {
 		vOutputString("Write failed (err %d)\r\n", err);
@@ -2260,7 +2311,6 @@ static u8_t notify_func(struct bt_conn *conn,
 #if defined(CONFIG_BLE_TP_TEST)
     static u32_t time = 0;
     static int len = 0;
-    static int8_t rssi;
 #endif  
 
     if (!params->value) {
@@ -2275,8 +2325,7 @@ static u8_t notify_func(struct bt_conn *conn,
     }
     len += length;
     if(k_now_ms()- time >= 1000){
-        bt_le_read_rssi(default_conn->handle, &rssi);
-        vOutputString("data rate = [%d byte], rssi = [%d dbm]\r\n", len, rssi);
+        vOutputString("data rate = [%d byte]\r\n", len);
         time = k_now_ms();
         len = 0;
     }
@@ -2534,11 +2583,83 @@ BLE_CLI(gatts_get_desp)
 }
 #endif /* CONFIG_BT_PERIPHERAL */
 #endif /* QCC74x_BLE_DYNAMIC_SERVICE */
+
+static void ble_cli_task(void *pvParameters)
+{
+    int ret = 0;
+
+    while(1){
+         uint8_t *msg = k_fifo_get(&ble_cli_queue, K_FOREVER);
+         if(msg == NULL)
+             continue;
+
+         switch(*msg){
+             case CLI_MSG_ENABLE_ADV:
+             {
+                 ret = set_adv_enable(true);
+                if(ret) {
+                    vOutputString("Fail to enable adv.\r\n");
+                }else{
+                    vOutputString("Enable adv success.\r\n");
+                }
+             }
+             break;
+             case CLI_MSG_DISCONNECT:
+             {
+                 ble_disconnect_params *params = (ble_disconnect_params *)msg;
+                 if(params->conn != NULL){
+                     ret = bt_conn_disconnect(params->conn, params->reason);
+                     if(ret) {
+                         vOutputString("Disconnection fail. \r\n");
+                     }else{
+                         vOutputString("Disconnect success. \r\n");
+                     }
+                 }else{
+                     vOutputString("Invalid parameters in CLI_MSG_DISCONNECT,conn=%p", params->conn);
+                 }
+             }
+             break;
+             #if defined(CONFIG_BLE_MULTI_ADV)
+             case CLI_MSG_MULTI_ADV_STOP:
+             {
+                  if(ble_adv_id && !bt_le_multi_adv_stop(ble_adv_id))
+                       ble_adv_id = 0;
+             }
+             break;
+             #endif
+             case CLI_MSG_GATT_CANCEL_PREPARE_WRITES:
+             {
+                ble_gatt_cancel_prepare_writes_params *gatt_cancel_params = (ble_gatt_cancel_prepare_writes_params *)msg;
+                if(gatt_cancel_params->conn != NULL && gatt_cancel_params->write_params != NULL)
+                {
+                    ret = bt_gatt_cancle_prepare_writes(gatt_cancel_params->conn, gatt_cancel_params->write_params);
+                    if(ret){
+                        vOutputString("Fail to cancel prepare writes(err %d)\r\n", ret);
+                    }else{
+                        vOutputString("Cancel prepare writes pending\r\n");
+                    }
+                }else{
+                    vOutputString("Invalid parameters in CLI_MSG_GATT_CANCEL_PREPARE_WRITES,conn=%p,write_params=%p", gatt_cancel_params->conn, gatt_cancel_params->write_params);
+                }
+             }
+             break;
+
+             default:
+             break;
+         }
+
+         k_free(msg);
+    }
+}
+
 int ble_cli_register(void)
 {
     // static command(s) do NOT need to call aos_cli_register_command(s) to register.
     // However, calling aos_cli_register_command(s) here is OK but is of no effect as cmds_user are included in cmds list.
     // XXX NOTE: Calling this *empty* function is necessary to make cmds_user in this file to be kept in the final link.
     //aos_cli_register_commands(btStackCmdSet, sizeof(btStackCmdSet)/sizeof(btStackCmdSet[0]));
+     k_fifo_init(&ble_cli_queue, BLE_CLI_QUEUE_LEN);
+     if(ble_cli_queue._queue.hdl)
+         k_thread_create(&ble_cli_task_h, "blecli", 1024,(k_thread_entry_t)ble_cli_task, CLI_PRIO);
     return 0;
 }

@@ -52,6 +52,7 @@ struct at_http_ctx {
     char cert_file[32];
     char key_file[32];
 
+    int http_tcp_wnd;
     char *url;
     uint32_t url_size;
     uint32_t recv_avail;
@@ -204,7 +205,11 @@ static ssize_t httpc_buffer_read(struct at_http_ctx *ctx, void *mem, int len, in
 _recv_http_done:
 	AT_HTTP_UNLOCK(ctx->mutex);
     if (recvd > 0 && ctx->altcp_conn) {
-        altcp_recved(ctx->altcp_conn, recvd);
+        ctx->http_tcp_wnd += recvd;
+        if (ctx->http_tcp_wnd >= MAC_RXQ_DEPTH * TCP_MSS) {
+            altcp_recved(ctx->altcp_conn, recvd);
+            ctx->http_tcp_wnd -= recvd;
+        }
     }
     return recvd;
 }
@@ -224,10 +229,10 @@ static err_t cb_altcp_recv_fn(void *arg, struct altcp_pcb *conn, struct pbuf *p,
     struct at_http_ctx *ctx = (struct at_http_ctx *)arg;
 
     if (g_https_cfg.recv_mode == AT_HTTPC_RECV_MODE_ACTIVE) {
-        altcp_recved(conn, p->tot_len);
         if (p->tot_len) {
             AT_CMD_DATA_SEND(p->payload, p->tot_len);
         }
+        altcp_recved(conn, p->tot_len);
         pbuf_free(p);
     } else {
         ctx->altcp_conn = conn;
@@ -245,9 +250,9 @@ static void cb_httpc_result(void *arg, httpc_result_t httpc_result, u32_t rx_con
     
     if ((err == 0 && httpc_result == HTTPC_RESULT_OK) || 
         (ctx->settings.req_type == REQ_TYPE_HEAD && httpc_result == HTTPC_RESULT_ERR_CONTENT_LEN)) {
-        at_response_string("\r\n+HTTPSTATUS:%d,OK\r\n", ctx->linkid);
+        at_response_string("\r\n+HTTPSTATUS:%d,0\r\n", ctx->linkid);
     } else {
-        at_response_string("\r\n+HTTPSTATUS:%d,ERROR\r\n", ctx->linkid);
+        at_response_string("\r\n+HTTPSTATUS:%d,%d\r\n", ctx->linkid, httpc_result);
     }
     free(ctx->data);
     ctx->data = NULL;
@@ -288,7 +293,7 @@ static int at_httpc_request(struct at_http_ctx *ctx,
                             altcp_recv_fn recv_fn,
                             void *parg)
 {
-
+	int ret;
     char *param, *host_name, *url;
     httpc_state_t *req = NULL;
     ip_addr_t ip_addr;
@@ -307,6 +312,7 @@ static int at_httpc_request(struct at_http_ctx *ctx,
     ctx->settings.result_fn = result_fn;
     ctx->settings.headers_done_fn = headers_done_fn;
 
+    ctx->http_tcp_wnd = 0;
     if (0 == strncmp(url_buf, "http://", 7)) {
         port = 80;
         url = url_buf + 7;
@@ -375,7 +381,7 @@ static int at_httpc_request(struct at_http_ctx *ctx,
 
     if (ipaddr_aton(host_name, &ip_addr)) {
         printf("host_name:%s port:%d uri:%s\r\n", ipaddr_ntoa(&ip_addr), port, param);
-        at_httpc_get_file((const ip_addr_t* )&ip_addr,
+        ret = at_httpc_get_file((const ip_addr_t* )&ip_addr,
                         port,
                         param,
                         &ctx->settings,
@@ -384,7 +390,7 @@ static int at_httpc_request(struct at_http_ctx *ctx,
                         &req);
     } else {
         printf("host_name:%s port:%d uri:%s\r\n", host_name, port, param);
-        at_httpc_get_file_dns(
+        ret = at_httpc_get_file_dns(
                 host_name,
                 port,
                 param,
@@ -395,6 +401,10 @@ static int at_httpc_request(struct at_http_ctx *ctx,
     }
 
     free(host_name);
+    if (ret != ERR_OK) {
+    	free_ctx(ctx);
+    	return AT_RESULT_CODE_ERROR;
+    }
 
     return AT_RESULT_CODE_OK;
 }
@@ -963,7 +973,7 @@ static int at_setup_cmd_httprecvbuf(int argc, const char **argv)
         
     AT_CMD_PARSE_NUMBER(0, &size);
  
-    if (size <= 0 || size > MEM_SIZE) {
+    if (size <= 0 || size > at_lwip_heap_free_size()) {
         return AT_RESULT_CODE_ERROR;
     }
 

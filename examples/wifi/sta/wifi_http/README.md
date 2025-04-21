@@ -44,6 +44,8 @@ TODO
 
 ### gethostbyname(DNSv6, DNSv4)
 ```bash
-qcc74x />gethostbyname bt.byr.cn
-qcc74x />gethostbyname baidu.com
+qcc74x />gethostbyname 6.ipw.cn
+qcc74x />gethostbyname 4.ipw.cn
+qcc74x />gethostbyname -4 test.ipw.cn
+qcc74x />gethostbyname -6 test.ipw.cn
 ```

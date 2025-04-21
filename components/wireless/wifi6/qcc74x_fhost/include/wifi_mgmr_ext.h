@@ -71,7 +71,9 @@ typedef enum
 typedef enum
 {
     ADD_ACL,
-    DELETE_ACL
+    DELETE_ACL,
+    SHOW_ACL,
+    CLEAR_ACL
 } ap_action_type;
 
 typedef enum
@@ -241,6 +243,8 @@ typedef struct wifi_mgmr_ap_params {
 
     uint8_t bcn_mode;
     int bcn_timer;
+    /// Disable advertising WME/WMM Information Element in Beacon/ProbeResponse frames
+    bool disable_wmm;
 } wifi_mgmr_ap_params_t;
 
 /**
@@ -595,7 +599,41 @@ int wifi_mgmr_sta_connect_ind_stat_get(wifi_mgmr_connect_ind_stat_info_t *wifi_m
  */
 int wifi_mgmr_sta_scan(const wifi_mgmr_scan_params_t *config);
 
+/**
+ * wifi_mgmr_ap_bcn_mode_set
+ * Beacon Transmission Control Setting in the SAP modex
+ *
+ * Attention:
+ *  MUST called before ap start
+ * param:
+ *  bcn_mode : Configuration of beacon transmissions mode
+ *      0 : Start/Stop beacon transmissions automatically
+ *              a.Beacon transmission is NOT started when SAP is started.
+ *              b.Once a Probe Request frame having the same SSID is received, replies with a Probe Response frame, then Beacon transmission is started.
+ *              c.Beacon transmission is stopped again if no STA is associated for more than bcn_timer (configurable) seconds.
+ *      1 : Do not transmit beacon frames
+ *              Not transmit beacon frames even while in an operational state.
+ *      2 : Transmit beacon frames (Default)
+ *              Transmit beacon frames while in an operational state.
+ *  bcn_timer : Beacon Transmission Duration after all STAs are disconnected (unit: seconds)
+ *
+ * return:
+ *  0 : Success
+ *  -1 : Failed
+ *  Others is Failed
+ */
 int wifi_mgmr_ap_bcn_mode_set(uint8_t bcn_mode, int bcn_timer);
+
+/**
+ * wifi_mgmr_ap_bcn_mode_get
+ * Get Beacon Transmission Control Setting in the SAP modex
+ *
+ * param:
+ *  bcn_mode: refer to wifi_mgmr_ap_bcn_mode_set
+ *  bcn_timer: refer to wifi_mgmr_ap_bcn_mode_set
+ */
+void wifi_mgmr_ap_bcn_mode_get(uint8_t *bcn_mode, int *bcn_timer);
+
 /**
  * wifi_mgmr_sta_scanlist
  * List the scan results in last scan
@@ -784,7 +822,7 @@ int wifi_mgmr_sta_autoconnect_disable(void);
  *  -1 : Failed
  *  Others is Failed
  */
-int wifi_mgmr_sta_wps_pbc(void);
+int wifi_mgmr_sta_wps_pbc(uint8_t auth);
 
 /**
  * wifi_mgmr_sta_non_pref_chan_set - Set the non-preferred channel list for Wi-Fi management
@@ -1115,6 +1153,17 @@ void wifi_mgmr_coex_enable(bool en);
  */
 int wifi_mgmr_set_ht40_enable(uint8_t value);
 
+/*
+ * wifi_mgmr_sta_ap_tx_power_set
+ * Set value of Tx power in unit of 0.5dBm for sta/ap mode
+*/
+int wifi_mgmr_sta_ap_tx_power_set(int tx_power);
+
+/*
+ * wifi_mgmr_sta_ap_tx_power_set
+ * Get value of Tx power in unit of 0.5dBm for sta/ap mode
+*/
+int wifi_mgmr_sta_ap_tx_power_get(void);
 /**
  * wifi_mgmr_sta_ap_retry_limit_set
  * Set tx retry limit for ap/sta mode

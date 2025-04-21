@@ -27,8 +27,6 @@ __attribute__((weak)) void vApplicationMallocFailedHook(void)
 {
     printf("vApplicationMallocFailedHook\r\n");
 
-    while (1)
-        ;
 }
 
 __attribute__((weak)) void vApplicationGetIdleTaskMemory(StaticTask_t **ppxIdleTaskTCBBuffer, StackType_t **ppxIdleTaskStackBuffer, uint32_t *pulIdleTaskStackSize)

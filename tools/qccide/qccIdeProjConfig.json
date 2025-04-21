@@ -2013,7 +2013,7 @@
     "elfPath": "",
     "gdbInitFilePath": "",
     "openocdGdbServerFilePath": "",
-    "buildArgs": "CHIP=qcc743 BOARD=qcc743dk CONFIG_BLUETOOTH_APP=1",
+    "buildArgs": "CHIP=qcc743 BOARD=qcc743dk CONFIG_BREDR_APP=1",
     "boardList": [],
     "incPaths": [
       "${demoPath}"
@@ -2241,70 +2241,6 @@
   },
   {
     "36": "Used and updated by extension, you should not change it manually if you don't know why",
-    "prjName": "audio_player_bt",
-    "IDEVer": "^0.5.6",
-    "sdkName": "qccsdk_qcc740",
-    "sdkVer": "1.0.0",
-    "activated": true,
-    "chipID": "QCC740",
-    "chipVersion": "v2",
-    "chipTarget": "QCC740",
-    "toolchainName": "riscv64-unknown-elf-gcc",
-    "demoPath": "examples/audio/player_bt",
-    "sdkPath": "",
-    "demoRTOS": "f",
-    "demoChipBoard": "qcc743dk",
-    "demoBuildScriptWin": "make",
-    "demoBuildScriptLinux": "make",
-    "demoFlashScriptWin": "make",
-    "demoFlashScriptLinux": "make",
-    "cfgSetScriptWin": "",
-    "cfgSetScriptLinux": "",
-    "defaultDemo": "",
-    "defaultDemoPathName": "",
-    "buildRunPath": "",
-    "flashRunPath": "",
-    "entryFun": "app_start",
-    "elfName": "",
-    "elfPath": "",
-    "gdbInitFilePath": "",
-    "openocdGdbServerFilePath": "",
-    "buildArgs": "CHIP=qcc743 BOARD=qcc744dk",
-    "boardList": [],
-    "incPaths": [
-      "${demoPath}"
-    ],
-    "SET_CFG_PATTERN": {
-      "win": [
-        "",
-        "",
-        "",
-        ""
-      ],
-      "linux": []
-    },
-    "BUILD_IMAGE_PATTERN": {
-      "win": [
-        "./tools/make/make.exe -C ${demoPath} ${buildArgs}"
-      ],
-      "linux": []
-    },
-    "CLEAN_IMAGE_PATTERN": {
-      "win": [
-        "./tools/make/make.exe -C ${demoPath} clean"
-      ],
-      "linux": []
-    },
-    "FLASH_PATTERN": {
-      "win": [
-        "./tools/qccide/flash_select_port.exe ${demoPath}",
-        "./tools/qccide/flash_select_port.exe ${demoPath}"
-      ],
-      "linux": []
-    }
-  },
-  {
-    "37": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "audio_player_mp3",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -2368,7 +2304,7 @@
     }
   },
   {
-    "38": "Used and updated by extension, you should not change it manually if you don't know why",
+    "37": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "audio_player_wifi",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -2432,7 +2368,7 @@
     }
   },
   {
-    "39": "Used and updated by extension, you should not change it manually if you don't know why",
+    "38": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "shell_no_os",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -2496,7 +2432,7 @@
     }
   },
   {
-    "40": "Used and updated by extension, you should not change it manually if you don't know why",
+    "39": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "shell_os",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -2560,7 +2496,7 @@
     }
   },
   {
-    "41": "Used and updated by extension, you should not change it manually if you don't know why",
+    "40": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "hbn_acomp",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -2624,7 +2560,7 @@
     }
   },
   {
-    "42": "Used and updated by extension, you should not change it manually if you don't know why",
+    "41": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "hbn_io_wakeup",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -2688,7 +2624,7 @@
     }
   },
   {
-    "43": "Used and updated by extension, you should not change it manually if you don't know why",
+    "42": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "hbn_rtc",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -2752,7 +2688,7 @@
     }
   },
   {
-    "44": "Used and updated by extension, you should not change it manually if you don't know why",
+    "43": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "pds_io_wakeup",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -2816,7 +2752,7 @@
     }
   },
   {
-    "45": "Used and updated by extension, you should not change it manually if you don't know why",
+    "44": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "psd_rtc",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -2880,7 +2816,7 @@
     }
   },
   {
-    "46": "Used and updated by extension, you should not change it manually if you don't know why",
+    "45": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "printf",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -2944,7 +2880,7 @@
     }
   },
   {
-    "47": "Used and updated by extension, you should not change it manually if you don't know why",
+    "46": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "lvgl",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -3008,7 +2944,7 @@
     }
   },
   {
-    "48": "Used and updated by extension, you should not change it manually if you don't know why",
+    "47": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "wo_console",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -3072,7 +3008,7 @@
     }
   },
   {
-    "49": "Used and updated by extension, you should not change it manually if you don't know why",
+    "48": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "wo_int",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -3136,7 +3072,7 @@
     }
   },
   {
-    "50": "Used and updated by extension, you should not change it manually if you don't know why",
+    "49": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "wo_dma",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -3200,7 +3136,7 @@
     }
   },
   {
-    "51": "Used and updated by extension, you should not change it manually if you don't know why",
+    "50": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "wo_uart",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -3264,7 +3200,7 @@
     }
   },
   {
-    "52": "Used and updated by extension, you should not change it manually if you don't know why",
+    "51": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "lua",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -3328,7 +3264,7 @@
     }
   },
   {
-    "53": "Used and updated by extension, you should not change it manually if you don't know why",
+    "52": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "wdg_clksource_check",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -3392,7 +3328,7 @@
     }
   },
   {
-    "54": "Used and updated by extension, you should not change it manually if you don't know why",
+    "53": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "wdg_int",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -3456,7 +3392,7 @@
     }
   },
   {
-    "55": "Used and updated by extension, you should not change it manually if you don't know why",
+    "54": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "wdg_reset",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -3520,7 +3456,7 @@
     }
   },
   {
-    "56": "Used and updated by extension, you should not change it manually if you don't know why",
+    "55": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "qcc74x_block_pool",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -3584,7 +3520,7 @@
     }
   },
   {
-    "57": "Used and updated by extension, you should not change it manually if you don't know why",
+    "56": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "barebone_sync",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -3648,7 +3584,7 @@
     }
   },
   {
-    "58": "Used and updated by extension, you should not change it manually if you don't know why",
+    "57": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "freertos_async",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -3712,7 +3648,7 @@
     }
   },
   {
-    "59": "Used and updated by extension, you should not change it manually if you don't know why",
+    "58": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "boot2_isp",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -3776,7 +3712,7 @@
     }
   },
   {
-    "60": "Used and updated by extension, you should not change it manually if you don't know why",
+    "59": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "blemesh_cli",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -3840,7 +3776,7 @@
     }
   },
   {
-    "61": "Used and updated by extension, you should not change it manually if you don't know why",
+    "60": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "blemesh_cli",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -3904,7 +3840,7 @@
     }
   },
   {
-    "62": "Used and updated by extension, you should not change it manually if you don't know why",
+    "61": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "btble_cli",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -3968,7 +3904,7 @@
     }
   },
   {
-    "63": "Used and updated by extension, you should not change it manually if you don't know why",
+    "62": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "btble_pts",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -4032,7 +3968,7 @@
     }
   },
   {
-    "64": "Used and updated by extension, you should not change it manually if you don't know why",
+    "63": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "btblecontroller_test",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -4096,7 +4032,7 @@
     }
   },
   {
-    "65": "Used and updated by extension, you should not change it manually if you don't know why",
+    "64": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "central",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -4160,7 +4096,7 @@
     }
   },
   {
-    "66": "Used and updated by extension, you should not change it manually if you don't know why",
+    "65": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "peripheral",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -4224,7 +4160,7 @@
     }
   },
   {
-    "67": "Used and updated by extension, you should not change it manually if you don't know why",
+    "66": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "remote_control",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -4288,7 +4224,7 @@
     }
   },
   {
-    "68": "Used and updated by extension, you should not change it manually if you don't know why",
+    "67": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "dsp",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -4352,7 +4288,7 @@
     }
   },
   {
-    "69": "Used and updated by extension, you should not change it manually if you don't know why",
+    "68": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "easyflash",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -4416,7 +4352,7 @@
     }
   },
   {
-    "70": "Used and updated by extension, you should not change it manually if you don't know why",
+    "69": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "fatfs",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -4480,7 +4416,7 @@
     }
   },
   {
-    "71": "Used and updated by extension, you should not change it manually if you don't know why",
+    "70": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "freertos",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -4544,7 +4480,7 @@
     }
   },
   {
-    "72": "Used and updated by extension, you should not change it manually if you don't know why",
+    "71": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "helloworld",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -4608,7 +4544,7 @@
     }
   },
   {
-    "73": "Used and updated by extension, you should not change it manually if you don't know why",
+    "72": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "littlefs",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -4672,7 +4608,7 @@
     }
   },
   {
-    "74": "Used and updated by extension, you should not change it manually if you don't know why",
+    "73": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "lmac154",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -4736,7 +4672,7 @@
     }
   },
   {
-    "75": "Used and updated by extension, you should not change it manually if you don't know why",
+    "74": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "log_dbg_assert",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -4800,7 +4736,7 @@
     }
   },
   {
-    "76": "Used and updated by extension, you should not change it manually if you don't know why",
+    "75": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "mbedtls",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -4864,7 +4800,7 @@
     }
   },
   {
-    "77": "Used and updated by extension, you should not change it manually if you don't know why",
+    "76": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "mfg_test",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -4928,7 +4864,7 @@
     }
   },
   {
-    "78": "Used and updated by extension, you should not change it manually if you don't know why",
+    "77": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "partition",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -4992,7 +4928,7 @@
     }
   },
   {
-    "79": "Used and updated by extension, you should not change it manually if you don't know why",
+    "78": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "adc_dma",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -5056,7 +4992,7 @@
     }
   },
   {
-    "80": "Used and updated by extension, you should not change it manually if you don't know why",
+    "79": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "adc_int",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -5120,7 +5056,7 @@
     }
   },
   {
-    "81": "Used and updated by extension, you should not change it manually if you don't know why",
+    "80": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "adc_poll",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -5184,7 +5120,7 @@
     }
   },
   {
-    "82": "Used and updated by extension, you should not change it manually if you don't know why",
+    "81": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "adc_poll_diff_mode",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -5248,7 +5184,7 @@
     }
   },
   {
-    "83": "Used and updated by extension, you should not change it manually if you don't know why",
+    "82": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "adc_poll_onechan",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -5312,7 +5248,7 @@
     }
   },
   {
-    "84": "Used and updated by extension, you should not change it manually if you don't know why",
+    "83": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "adc_tsen",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -5376,7 +5312,7 @@
     }
   },
   {
-    "85": "Used and updated by extension, you should not change it manually if you don't know why",
+    "84": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "adc_vbat",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -5440,7 +5376,7 @@
     }
   },
   {
-    "86": "Used and updated by extension, you should not change it manually if you don't know why",
+    "85": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "auadc_audac_loopback",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -5504,7 +5440,7 @@
     }
   },
   {
-    "87": "Used and updated by extension, you should not change it manually if you don't know why",
+    "86": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "auadc_record_to_mem",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -5568,7 +5504,7 @@
     }
   },
   {
-    "88": "Used and updated by extension, you should not change it manually if you don't know why",
+    "87": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "audac_play_from_mem",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -5632,7 +5568,7 @@
     }
   },
   {
-    "89": "Used and updated by extension, you should not change it manually if you don't know why",
+    "88": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "cam_crop",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -5696,7 +5632,7 @@
     }
   },
   {
-    "90": "Used and updated by extension, you should not change it manually if you don't know why",
+    "89": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "cam_dbi",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -5760,7 +5696,7 @@
     }
   },
   {
-    "91": "Used and updated by extension, you should not change it manually if you don't know why",
+    "90": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "cam_int",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -5824,7 +5760,7 @@
     }
   },
   {
-    "92": "Used and updated by extension, you should not change it manually if you don't know why",
+    "91": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "cam_normal",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -5888,7 +5824,7 @@
     }
   },
   {
-    "93": "Used and updated by extension, you should not change it manually if you don't know why",
+    "92": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "cam_yuv420",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -5952,7 +5888,7 @@
     }
   },
   {
-    "94": "Used and updated by extension, you should not change it manually if you don't know why",
+    "93": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "cks_dma",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -6016,7 +5952,7 @@
     }
   },
   {
-    "95": "Used and updated by extension, you should not change it manually if you don't know why",
+    "94": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "cks_normal",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -6080,7 +6016,7 @@
     }
   },
   {
-    "96": "Used and updated by extension, you should not change it manually if you don't know why",
+    "95": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "dac_dma",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -6144,7 +6080,7 @@
     }
   },
   {
-    "97": "Used and updated by extension, you should not change it manually if you don't know why",
+    "96": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "dac_polling",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -6208,7 +6144,7 @@
     }
   },
   {
-    "98": "Used and updated by extension, you should not change it manually if you don't know why",
+    "97": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "dma_normal",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -6272,7 +6208,7 @@
     }
   },
   {
-    "99": "Used and updated by extension, you should not change it manually if you don't know why",
+    "98": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "dma_normal_cycle",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -6336,7 +6272,7 @@
     }
   },
   {
-    "100": "Used and updated by extension, you should not change it manually if you don't know why",
+    "99": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "dma_reduce_or_add",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -6400,7 +6336,7 @@
     }
   },
   {
-    "101": "Used and updated by extension, you should not change it manually if you don't know why",
+    "100": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "efuse_getinfo",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -6464,7 +6400,7 @@
     }
   },
   {
-    "102": "Used and updated by extension, you should not change it manually if you don't know why",
+    "101": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "efuse_rw",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -6528,7 +6464,7 @@
     }
   },
   {
-    "103": "Used and updated by extension, you should not change it manually if you don't know why",
+    "102": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "efuse_trim",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -6592,7 +6528,7 @@
     }
   },
   {
-    "104": "Used and updated by extension, you should not change it manually if you don't know why",
+    "103": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "emac_basic",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -6656,7 +6592,7 @@
     }
   },
   {
-    "105": "Used and updated by extension, you should not change it manually if you don't know why",
+    "104": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "lwip_http_server",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -6720,7 +6656,7 @@
     }
   },
   {
-    "106": "Used and updated by extension, you should not change it manually if you don't know why",
+    "105": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "lwip_iperf",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -6784,7 +6720,7 @@
     }
   },
   {
-    "107": "Used and updated by extension, you should not change it manually if you don't know why",
+    "106": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "lwip_tcp",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -6848,7 +6784,7 @@
     }
   },
   {
-    "108": "Used and updated by extension, you should not change it manually if you don't know why",
+    "107": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "lwip_udp",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -6912,7 +6848,7 @@
     }
   },
   {
-    "109": "Used and updated by extension, you should not change it manually if you don't know why",
+    "108": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "flash_dma",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -6976,7 +6912,7 @@
     }
   },
   {
-    "110": "Used and updated by extension, you should not change it manually if you don't know why",
+    "109": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "flash_get_image_hash",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -7040,7 +6976,7 @@
     }
   },
   {
-    "111": "Used and updated by extension, you should not change it manually if you don't know why",
+    "110": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "flash_iomode",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -7104,7 +7040,7 @@
     }
   },
   {
-    "112": "Used and updated by extension, you should not change it manually if you don't know why",
+    "111": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "flash_read_write",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -7168,7 +7104,7 @@
     }
   },
   {
-    "113": "Used and updated by extension, you should not change it manually if you don't know why",
+    "112": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "flash_secure_read_write",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -7232,7 +7168,7 @@
     }
   },
   {
-    "114": "Used and updated by extension, you should not change it manually if you don't know why",
+    "113": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "flash_xip_read",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -7296,7 +7232,7 @@
     }
   },
   {
-    "115": "Used and updated by extension, you should not change it manually if you don't know why",
+    "114": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "gpio_input_output",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -7360,7 +7296,7 @@
     }
   },
   {
-    "116": "Used and updated by extension, you should not change it manually if you don't know why",
+    "115": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "gpio_interrupt",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -7424,7 +7360,7 @@
     }
   },
   {
-    "117": "Used and updated by extension, you should not change it manually if you don't know why",
+    "116": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "gpio_output_with_input",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -7488,7 +7424,7 @@
     }
   },
   {
-    "118": "Used and updated by extension, you should not change it manually if you don't know why",
+    "117": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "i2c_10_bit",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -7552,7 +7488,7 @@
     }
   },
   {
-    "119": "Used and updated by extension, you should not change it manually if you don't know why",
+    "118": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "i2c_eeprom",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -7616,7 +7552,7 @@
     }
   },
   {
-    "120": "Used and updated by extension, you should not change it manually if you don't know why",
+    "119": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "i2c_eeprom_dma",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -7680,7 +7616,7 @@
     }
   },
   {
-    "121": "Used and updated by extension, you should not change it manually if you don't know why",
+    "120": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "i2c_eeprom_interrupt",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -7744,7 +7680,7 @@
     }
   },
   {
-    "122": "Used and updated by extension, you should not change it manually if you don't know why",
+    "121": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "i2s_dma",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -7808,7 +7744,7 @@
     }
   },
   {
-    "123": "Used and updated by extension, you should not change it manually if you don't know why",
+    "122": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "i2s_es8311",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -7872,7 +7808,7 @@
     }
   },
   {
-    "124": "Used and updated by extension, you should not change it manually if you don't know why",
+    "123": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "i2s_es8388",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -7936,7 +7872,7 @@
     }
   },
   {
-    "125": "Used and updated by extension, you should not change it manually if you don't know why",
+    "124": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "i2s_wm8978",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -8000,7 +7936,7 @@
     }
   },
   {
-    "126": "Used and updated by extension, you should not change it manually if you don't know why",
+    "125": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "mjpeg_cam_normal",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -8064,7 +8000,7 @@
     }
   },
   {
-    "127": "Used and updated by extension, you should not change it manually if you don't know why",
+    "126": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "mjpeg_no_camera",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -8128,7 +8064,7 @@
     }
   },
   {
-    "128": "Used and updated by extension, you should not change it manually if you don't know why",
+    "127": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "mtimer",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -8192,7 +8128,7 @@
     }
   },
   {
-    "129": "Used and updated by extension, you should not change it manually if you don't know why",
+    "128": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "psram",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -8256,7 +8192,7 @@
     }
   },
   {
-    "130": "Used and updated by extension, you should not change it manually if you don't know why",
+    "129": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "pwm_6step",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -8320,7 +8256,7 @@
     }
   },
   {
-    "131": "Used and updated by extension, you should not change it manually if you don't know why",
+    "130": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "pwm_all_channels",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -8384,7 +8320,7 @@
     }
   },
   {
-    "132": "Used and updated by extension, you should not change it manually if you don't know why",
+    "131": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "pwm_basic",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -8448,7 +8384,7 @@
     }
   },
   {
-    "133": "Used and updated by extension, you should not change it manually if you don't know why",
+    "132": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "pwm_config_channel",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -8512,7 +8448,7 @@
     }
   },
   {
-    "134": "Used and updated by extension, you should not change it manually if you don't know why",
+    "133": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "pwm_deadtime",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -8576,7 +8512,7 @@
     }
   },
   {
-    "135": "Used and updated by extension, you should not change it manually if you don't know why",
+    "134": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "pwm_foc_curr",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -8640,7 +8576,7 @@
     }
   },
   {
-    "136": "Used and updated by extension, you should not change it manually if you don't know why",
+    "135": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "pwm_foc_hall",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -8704,7 +8640,7 @@
     }
   },
   {
-    "137": "Used and updated by extension, you should not change it manually if you don't know why",
+    "136": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "pwm_int",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -8768,7 +8704,7 @@
     }
   },
   {
-    "138": "Used and updated by extension, you should not change it manually if you don't know why",
+    "137": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "pwm_spwm",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -8832,7 +8768,7 @@
     }
   },
   {
-    "139": "Used and updated by extension, you should not change it manually if you don't know why",
+    "138": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "pwm_svpwm",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -8896,7 +8832,7 @@
     }
   },
   {
-    "140": "Used and updated by extension, you should not change it manually if you don't know why",
+    "139": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "rtc",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -8960,7 +8896,7 @@
     }
   },
   {
-    "141": "Used and updated by extension, you should not change it manually if you don't know why",
+    "140": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "ram_speed",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -9024,7 +8960,7 @@
     }
   },
   {
-    "142": "Used and updated by extension, you should not change it manually if you don't know why",
+    "141": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "sec_eng_aes_link_sw_key",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -9088,7 +9024,7 @@
     }
   },
   {
-    "143": "Used and updated by extension, you should not change it manually if you don't know why",
+    "142": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "sec_eng_aes_sw_key",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -9152,7 +9088,7 @@
     }
   },
   {
-    "144": "Used and updated by extension, you should not change it manually if you don't know why",
+    "143": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "sec_eng_aes_sw_key_costtime",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -9216,7 +9152,7 @@
     }
   },
   {
-    "145": "Used and updated by extension, you should not change it manually if you don't know why",
+    "144": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "sec_eng_dsa",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -9280,7 +9216,7 @@
     }
   },
   {
-    "146": "Used and updated by extension, you should not change it manually if you don't know why",
+    "145": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "sec_eng_ecdh",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -9344,7 +9280,7 @@
     }
   },
   {
-    "147": "Used and updated by extension, you should not change it manually if you don't know why",
+    "146": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "sec_eng_ecdsa",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -9408,7 +9344,7 @@
     }
   },
   {
-    "148": "Used and updated by extension, you should not change it manually if you don't know why",
+    "147": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "sec_eng_sha",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -9472,7 +9408,7 @@
     }
   },
   {
-    "149": "Used and updated by extension, you should not change it manually if you don't know why",
+    "148": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "sec_eng_sha_costtime",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -9536,7 +9472,7 @@
     }
   },
   {
-    "150": "Used and updated by extension, you should not change it manually if you don't know why",
+    "149": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "sec_eng_sha_link",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -9600,7 +9536,7 @@
     }
   },
   {
-    "151": "Used and updated by extension, you should not change it manually if you don't know why",
+    "150": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "trng_random",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -9664,7 +9600,7 @@
     }
   },
   {
-    "152": "Used and updated by extension, you should not change it manually if you don't know why",
+    "151": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "spi_dma",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -9728,7 +9664,7 @@
     }
   },
   {
-    "153": "Used and updated by extension, you should not change it manually if you don't know why",
+    "152": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "spi_int",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -9792,7 +9728,7 @@
     }
   },
   {
-    "154": "Used and updated by extension, you should not change it manually if you don't know why",
+    "153": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "spi_poll",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -9856,7 +9792,7 @@
     }
   },
   {
-    "155": "Used and updated by extension, you should not change it manually if you don't know why",
+    "154": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "timer_clksource_check",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -9920,7 +9856,7 @@
     }
   },
   {
-    "156": "Used and updated by extension, you should not change it manually if you don't know why",
+    "155": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "timer_int",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -9984,7 +9920,7 @@
     }
   },
   {
-    "157": "Used and updated by extension, you should not change it manually if you don't know why",
+    "156": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "openthread_cli_ftd",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -10048,7 +9984,7 @@
     }
   },
   {
-    "158": "Used and updated by extension, you should not change it manually if you don't know why",
+    "157": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "openthread_ncp_ftd",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -10112,7 +10048,7 @@
     }
   },
   {
-    "159": "Used and updated by extension, you should not change it manually if you don't know why",
+    "158": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "openthread_cli",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -10176,7 +10112,7 @@
     }
   },
   {
-    "160": "Used and updated by extension, you should not change it manually if you don't know why",
+    "159": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "openthread_rcp",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -10240,7 +10176,7 @@
     }
   },
   {
-    "161": "Used and updated by extension, you should not change it manually if you don't know why",
+    "160": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "openthread_otbr",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -10304,7 +10240,7 @@
     }
   },
   {
-    "162": "Used and updated by extension, you should not change it manually if you don't know why",
+    "161": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "wl_lp",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -10368,7 +10304,7 @@
     }
   },
   {
-    "163": "Used and updated by extension, you should not change it manually if you don't know why",
+    "162": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "wl_ble_lp",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -10432,7 +10368,7 @@
     }
   },
   {
-    "164": "Used and updated by extension, you should not change it manually if you don't know why",
+    "163": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "crash",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -10496,7 +10432,7 @@
     }
   },
   {
-    "165": "Used and updated by extension, you should not change it manually if you don't know why",
+    "164": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "iso11898_2board",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -10560,7 +10496,7 @@
     }
   },
   {
-    "166": "Used and updated by extension, you should not change it manually if you don't know why",
+    "165": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "iso11898_filter",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -10624,7 +10560,7 @@
     }
   },
   {
-    "167": "Used and updated by extension, you should not change it manually if you don't know why",
+    "166": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "iso11898_selftest",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -10688,7 +10624,7 @@
     }
   },
   {
-    "168": "Used and updated by extension, you should not change it manually if you don't know why",
+    "167": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "sdio2_test",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -10752,7 +10688,7 @@
     }
   },
   {
-    "169": "Used and updated by extension, you should not change it manually if you don't know why",
+    "168": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "sec_dbg_password",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -10816,7 +10752,7 @@
     }
   },
   {
-    "170": "Used and updated by extension, you should not change it manually if you don't know why",
+    "169": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "wifi_tcp",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -10880,7 +10816,7 @@
     }
   },
   {
-    "171": "Used and updated by extension, you should not change it manually if you don't know why",
+    "170": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "wifi_tcp_PSRAM",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -10944,7 +10880,7 @@
     }
   },
   {
-    "172": "Used and updated by extension, you should not change it manually if you don't know why",
+    "171": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "wifi_wfa",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",
@@ -11008,7 +10944,7 @@
     }
   },
   {
-    "173": "Used and updated by extension, you should not change it manually if you don't know why",
+    "172": "Used and updated by extension, you should not change it manually if you don't know why",
     "prjName": "wifi_adhoc",
     "IDEVer": "^0.5.6",
     "sdkName": "qccsdk_qcc740",

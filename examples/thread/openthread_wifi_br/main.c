@@ -3,6 +3,7 @@
 
 #include <qcc743_glb.h>
 #include <rfparam_adapter.h>
+#include <qcc74x_sys.h>
 #include <qcc74x_wdg.h>
 #include <qcc74x_mtd.h>
 #if defined (CONFIG_EASYFLASH4)
@@ -16,12 +17,16 @@
 #include <mem.h>
 
 #include <lmac154.h>
-#include <zb_timer.h>
 
 #include <lwip/tcpip.h>
 #include <lwip/dhcp6.h>
 
+#if __has_include("qcc74x_fw_api.h")
+#include <qcc74x_fw_api.h>
+#else
 #include <export/qcc74x_fw_api.h>
+#endif
+
 #include <wifi_mgmr_ext.h>
 #undef __INLINE
 #undef __PACKED
@@ -74,8 +79,10 @@ static void netif_status_callback(struct netif *netif);
 
 void vApplicationTickHook( void )
 {
+#ifdef QCC743
     lmac154_monitor();
-#if CONFIG_LMAC154_LOG_ENABLE
+#endif
+#if CONFIG_LMAC154_LOG
     lmac154_logs_output();
 #endif
 }
@@ -157,7 +164,6 @@ static void netif_status_callback(struct netif *netif)
         ADDRESS_SHOW_IDX_IPV6 = 1,
     } address_shown_t;
     static address_shown_t address_show_msk = 0;
-    bool isIPv6AddressAssigend = false;
     bool isIPv4AddressAssigned = false;
 
     if (netif->flags & NETIF_FLAG_UP) {
@@ -187,8 +193,8 @@ static void netif_status_callback(struct netif *netif)
                     if (0 == (address_show_msk & (1 << (i + ADDRESS_SHOW_IDX_IPV6)))) {
                         printf("IPv6 address %d: %s\r\n", i, ip6addr_ntoa(ip6addr));
                     }
-                    isIPv6AddressAssigend = true;
                 }
+
                 address_show_msk |= (1 << (i + ADDRESS_SHOW_IDX_IPV6));
             }
         }
@@ -217,11 +223,10 @@ static void netif_status_callback(struct netif *netif)
                     otPlatSettingsSet(NULL, 0xff02, (uint8_t *)otbr_wifi_pass, sizeof(otbr_wifi_pass));
                 }
             }
-        }
 
-        if (isIPv6AddressAssigend) {
             otbr_instance_routing_init();
         }
+
     }
     else {
         address_show_msk = 0;
@@ -279,6 +284,10 @@ int main(void)
 {
     otRadio_opt_t opt;
 
+#if !defined(QCC74x_undefL)
+    qcc74x_sys_rstinfo_init();
+#endif
+
     board_init();
 
     qcc74x_mtd_init();
@@ -296,7 +305,7 @@ int main(void)
 
     __libc_init_array();
 
-#if CONFIG_LMAC154_LOG_ENABLE
+#if CONFIG_LMAC154_LOG
     lmac154_log_init();
 #endif
 

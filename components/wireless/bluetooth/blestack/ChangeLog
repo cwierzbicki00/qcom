@@ -1,9 +1,29 @@
 # Changes
+## 2025-04-02
+1. Fixed some compilation warnings to enhance code stability.
+2. Enable CONFIG_BT_ECC at ble1m2s1bredr0. 
+## 2025-03-31
+1.[blestack]Fix conn_new reentry issue, avoid different connections use the same conn[i].
+2.[blestack]Fix BT_CONN_CONNECTED issue, there is a risk that conn->tx_queue._queue didn't finish when conn->state is set to BT_CONN_CONNECTED.
+3.[blestack]Fix bt_conn_create_le issue，there is a risk that conn create a connect to same address before disconnect complete, and new ref is not start from 0.
+
+## 2025-03-26
+1.[blestack]Fix memory leak issue because bt_dev.br.pkts semaphore does not be freed.
+
+## 2025-03-25
+1.[blestack] In ble_cli_cmds.c, do not make it call blestack APIs to send hci commands or hci data in recv_thread context.
+
+## 2025-03-07
+1.[blestack] Avoid conflict when ble slave and master are accessing the last resource at the same time.
+
+## 2025-02-28
+1.[blestack] Add reading remote version function. Setting CONFIG_BT_REMOTE_VERSION to 1 in proj_config.mk to enable this function.
+
 ## 2025-02-10
 1.[blestack] Add CONFIG_BT_WORK_QUEUE_STACK_SIZE to config work_q thread size.
 
 ## 2025-02-08
-[blestack] Fix build error when enable CONFIG_BT_TP_CLI
+1.[blestack] Fix build error when enable CONFIG_BT_TP_CLI
 
 ## 2025-02-08
 1.[blestack] Add CONFIG_BT_RX_STACK_SIZE to config ble rx thread stack size.

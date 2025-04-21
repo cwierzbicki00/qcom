@@ -1055,8 +1055,8 @@ int wpa_supplicant_create_ap(struct wpa_supplicant *wpa_s,
 		  sizeof(wpa_s->conf->tx_queue));
 
 	if (params.uapsd > 0) {
-		conf->bss[0]->wmm_enabled = 1;
-		conf->bss[0]->wmm_uapsd = 1;
+		conf->bss[0]->wmm_enabled = !ssid->disable_wmm;
+		conf->bss[0]->wmm_uapsd = !ssid->disable_wmm;
 	}
 
 	if (wpa_supplicant_conf_ap(wpa_s, ssid, conf)) {
@@ -1530,7 +1530,7 @@ int ap_ctrl_iface_acl_add_mac(struct wpa_supplicant *wpa_s, bool accept, const c
 {
     if (wpa_s->ap_iface == NULL)
         return -1;
-    struct hostapd_data *hapd = wpa_s->ap_iface->bss[0]; 
+    struct hostapd_data *hapd = wpa_s->ap_iface->bss[0];
 
     if (accept) {
         return hostapd_ctrl_iface_acl_add_mac(
@@ -1549,11 +1549,11 @@ int ap_ctrl_iface_acl_del_mac(struct wpa_supplicant *wpa_s, bool accept, const c
 		return -1;
     struct hostapd_data *hapd = wpa_s->ap_iface->bss[0];
     if (accept) {
-        return hostapd_ctrl_iface_acl_add_mac(
+        return hostapd_ctrl_iface_acl_del_mac(
             &hapd->conf->accept_mac,
             &hapd->conf->num_accept_mac, txtaddr);
     } else {
-        return hostapd_ctrl_iface_acl_add_mac(
+        return hostapd_ctrl_iface_acl_del_mac(
             &hapd->conf->deny_mac,
             &hapd->conf->num_deny_mac, txtaddr);
     }

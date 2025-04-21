@@ -91,6 +91,9 @@ typedef struct wifi_mgmr {
     int ap_bcn_mode;
     /// Beacon transmission is stopped again if no STA is associated for more than ap_bcn_timer seconds.
     int ap_bcn_timer;
+
+    /// Wi-Fi authentication mode floor. sta will not connect to the AP whose authmode is lower than this floor.
+    uint8_t wps_auth;
 } wifi_mgmr_t;
 extern wifi_mgmr_t wifiMgmr;
 
