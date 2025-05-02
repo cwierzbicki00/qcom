@@ -127,6 +127,8 @@
 #define SPI_CMD_WRITE_SW_USAGE       (0x15)
 #endif
 #define SPI_CMD_RX_IGNORE_DISABLE    (0x16)
+#define SPI_CMD_SET_ROLE             (0x17)
+#define SPI_CMD_GET_ROLE             (0x18)
 
 /**
   * @}
@@ -157,6 +159,10 @@
 #endif
 
 #define IS_SPI_THRESHOLD(type)  ((type) < 4)
+
+#ifndef QCC74x_SPI_IDEL_DATA
+#define QCC74x_SPI_IDEL_DATA 0xFFFFFFFF
+#endif
 
 // clang-format on
 

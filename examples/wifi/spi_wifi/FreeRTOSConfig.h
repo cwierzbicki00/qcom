@@ -104,6 +104,7 @@ static inline void resetCycleCounter() {
 #define configUSE_COUNTING_SEMAPHORES           1
 #define configUSE_PORT_OPTIMISED_TASK_SELECTION 1
 #define configUSE_POSIX_ERRNO                   1
+#define configTHREAD_LOCAL_STORAGE_DELETE_CALLBACKS 1
 
 #ifndef configUSE_TICKLESS_IDLE
 #define configUSE_TICKLESS_IDLE                 0

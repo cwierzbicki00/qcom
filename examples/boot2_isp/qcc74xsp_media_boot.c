@@ -29,7 +29,7 @@ static int32_t qcc74xsp_mediaboot_cal_hash(uint32_t start_addr, uint32_t total_l
     // int32_t ret;
     uint32_t *p;
     p = (uint32_t *)hal_boot2_get_xip_addr(start_addr);
-#if defined(CHIP_QCC743) || defined(CHIP_QCC74x_undef) ||  defined(CHIP_QCC74x_undefP) || defined(CHIP_QCC74x_undef)
+#if defined(CHIP_QCC743) || defined(CHIP_QCC74x_undef) ||  defined(CHIP_QCC74x_undef) || defined(CHIP_QCC74x_undef)
     qcc74x_l1c_dcache_clean_invalidate_range(p, total_len);
 #endif
     while (deal_len < total_len) {
@@ -175,7 +175,7 @@ static int32_t qcc74xsp_mediaboot_parse_one_group(boot2_image_config *boot_img_c
         addr += sizeof(boot_pk_config);
         /* Read signature*/
         BOOT2_MSG("R SIG1\r\n");
-        qcc74xsp_mediaboot_read_signaure(addr, &sig_len);
+        ret = qcc74xsp_mediaboot_read_signaure(addr, &sig_len);
         if (ret != QCC74x_BOOT2_SUCCESS) {
             return ret;
         }
@@ -191,7 +191,7 @@ static int32_t qcc74xsp_mediaboot_parse_one_group(boot2_image_config *boot_img_c
         if (hal_boot2_get_grp_count() > 1) {
             /* Read signature2*/
             BOOT2_MSG("R SIG2\r\n");
-            qcc74xsp_mediaboot_read_signaure(addr, &sig_len);
+            ret = qcc74xsp_mediaboot_read_signaure(addr, &sig_len);
             if (ret != QCC74x_BOOT2_SUCCESS) {
                 return ret;
             }
@@ -362,7 +362,7 @@ int32_t qcc74xsp_mediaboot_parse_one_group_xz(boot2_image_config *boot_img_cfg, 
             if (!boot_img_cfg->basic_cfg.hash_ignore) {
                 //MSG("xz Cal hash len %d\r\n",boot_img_cfg->basic_cfg.img_len_cnt);
                 if(input != NULL){
-#if CONFIG_ANTI_ROLLBACK
+#ifdef CONFIG_ANTI_ROLLBACK
                     if (g_boot2_parse_xz_image_status == 1) {
                         ret = qcc74xsp_mediaboot_version_check(input, NULL);
                         if (ret != SUCCESS) {
@@ -525,7 +525,7 @@ int32_t qcc74xsp_mediaboot_main(uint32_t group_boot_header_addr[QCC74xSP_BOOT2_C
                                              boot_header_addr[i] + QCC74x_FW_IMG_OFFSET_AFTER_HEADER);
 
         if (ret != QCC74x_BOOT2_SUCCESS) {
-            BOOT2_MSG_ERR("Group %d parse fail\r\n", i);
+            BOOT2_MSG_ERR("Group %d parse fail ret 0x%x\r\n", i, ret);
             group_roll_back[i] = 1;
         } else {
             valid_group_found++;
@@ -558,7 +558,7 @@ int32_t qcc74xsp_mediaboot_main(uint32_t group_boot_header_addr[QCC74xSP_BOOT2_C
         for (core = 0; core < QCC74xSP_BOOT2_CPU_MAX; core++) {
             if (g_boot_img_cfg[i].cpu_cfg[core].boot_entry == 0) {
 #ifdef ARCH_RISCV
-                g_boot_img_cfg[i].cpu_cfg[core].boot_entry = QCC74x_FLASH_XIP_BASE;
+                g_boot_img_cfg[i].cpu_cfg[core].boot_entry = HAL_BOOT2_FLASH_XIP_BASE;
 #endif
             }
         }
@@ -580,7 +580,7 @@ int32_t qcc74xsp_mediaboot_main(uint32_t group_boot_header_addr[QCC74xSP_BOOT2_C
         }
     }
 
-#if CONFIG_ANTI_ROLLBACK
+#ifdef CONFIG_ANTI_ROLLBACK
     if(ERROR == qcc74xsp_mediaboot_version_check(NULL, group_roll_back)) {
         for (i = 0; i < QCC74xSP_BOOT2_CPU_GROUP_MAX; i++) {
             if (g_boot_img_cfg[i].img_valid) {

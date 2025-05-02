@@ -1,5 +1,3 @@
-
-
 #ifndef _QCC74x_SDIO2_H
 #define _QCC74x_SDIO2_H
 

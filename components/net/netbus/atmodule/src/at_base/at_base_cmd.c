@@ -79,7 +79,7 @@ static int at_exe_cmd_gmr(int argc, const char **argv)
     size_t outbuf_len = 1024;
     outbuf = (char *)pvPortMalloc(outbuf_len);
     if (!outbuf)
-        return AT_RESULT_CODE_FAIL;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_NO_MEMORY);
 
     extern const char* qcc74x_sys_version(const char ***ctx);
 
@@ -195,148 +195,10 @@ static int at_exe_fakeout(int argc, const char **argv)
     if (enable == 0 || enable == 1) {
         at->fakeoutput = enable;
     } else {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     }
     return AT_RESULT_CODE_OK;
 }
-
-#if 0
-static int at_query_cmd_uart_cur(int argc, const char **argv)
-{
-    int baudrate;
-    uint8_t databits, stopbits, parity, flow_control;
-    if (at_port_para_get(&baudrate, &databits, &stopbits, &parity, &flow_control) != 0)
-        return AT_RESULT_CODE_FAIL;
-
-    at_response_string("+UART_CUR:%d,%d,%d,%d,%d\r\n", baudrate, databits, stopbits, parity, flow_control);
-    return AT_RESULT_CODE_OK;
-}
-
-static int at_setup_cmd_uart_cur(int argc, const char **argv)
-{
-    int baudrate, databits, stopbits, parity, flow_control;
-    int ret;
-
-    AT_CMD_PARSE_NUMBER(0, &baudrate);
-    AT_CMD_PARSE_NUMBER(1, &databits);
-    AT_CMD_PARSE_NUMBER(2, &stopbits);
-    AT_CMD_PARSE_NUMBER(3, &parity);
-    AT_CMD_PARSE_NUMBER(4, &flow_control);
-
-    if (baudrate < 80 || baudrate > 5000000)
-        return AT_RESULT_CODE_ERROR;
-    if (databits < 5 || databits > 8)
-        return AT_RESULT_CODE_ERROR;
-    if (stopbits < 1 || stopbits > 3)
-        return AT_RESULT_CODE_ERROR;
-    if (parity < 0 || parity > 2)
-        return AT_RESULT_CODE_ERROR;
-    if (flow_control < 0 || flow_control > 3)
-        return AT_RESULT_CODE_ERROR;
-
-    at_response_string(AT_CMD_MSG_OK);
-    vTaskDelay(pdMS_TO_TICKS(100));
-    ret = at_port_para_set(baudrate, (uint8_t)databits, (uint8_t)stopbits, (uint8_t)parity, (uint8_t)flow_control);
-    if (ret != 0)
-        return AT_RESULT_CODE_FAIL;
-    else
-        return AT_RESULT_CODE_MAX;
-}
-
-static int at_query_cmd_uart_def(int argc, const char **argv)
-{
-    at_response_string("+UART_DEF:%d,%d,%d,%d,%d\r\n", at_base_config->uart_cfg.baudrate,
-            at_base_config->uart_cfg.databits,
-            at_base_config->uart_cfg.stopbits,
-            at_base_config->uart_cfg.parity,
-            at_base_config->uart_cfg.flow_control);
-    return AT_RESULT_CODE_OK;
-}
-
-static int at_setup_cmd_uart_def(int argc, const char **argv)
-{
-    int baudrate, databits, stopbits, parity, flow_control;
-
-    AT_CMD_PARSE_NUMBER(0, &baudrate);
-    AT_CMD_PARSE_NUMBER(1, &databits);
-    AT_CMD_PARSE_NUMBER(2, &stopbits);
-    AT_CMD_PARSE_NUMBER(3, &parity);
-    AT_CMD_PARSE_NUMBER(4, &flow_control);
-
-    if (baudrate < 80 || baudrate > 5000000)
-        return AT_RESULT_CODE_ERROR;
-    if (databits < 5 || databits > 8)
-        return AT_RESULT_CODE_ERROR;
-    if (stopbits < 1 || stopbits > 3)
-        return AT_RESULT_CODE_ERROR;
-    if (parity < 0 || parity > 2)
-        return AT_RESULT_CODE_ERROR;
-    if (flow_control < 0 || flow_control > 3)
-        return AT_RESULT_CODE_ERROR;
-
-    at_base_config->uart_cfg.baudrate = baudrate;
-    at_base_config->uart_cfg.databits = (uint8_t)databits;
-    at_base_config->uart_cfg.stopbits = (uint8_t)stopbits;
-    at_base_config->uart_cfg.parity = (uint8_t)parity;
-    at_base_config->uart_cfg.flow_control = (uint8_t)flow_control;
-    at_base_config_save(AT_CONFIG_KEY_UART_CFG);
-    return AT_RESULT_CODE_OK;
-}
-
-static int at_query_cmd_sleep(int argc, const char **argv)
-{
-    at_response_string("+SLEEP:%d\r\n", at_base_config->sleep_mode);
-    return 0;
-}
-
-static int at_setup_cmd_sleep(int argc, const char **argv)
-{
-    int sleep_mode;
-
-    AT_CMD_PARSE_NUMBER(0, &sleep_mode);
-
-    if (sleep_mode == BASE_SLEEP_MODE_DISABLE) {
-        if (at_base_config->sleep_mode != BASE_SLEEP_MODE_DISABLE) {
-            at_base_config->sleep_mode = BASE_SLEEP_MODE_DISABLE;
-        }
-    }
-    else if (sleep_mode == BASE_SLEEP_MODE_MODEM) {
-        if (at_base_config->sleep_mode != BASE_SLEEP_MODE_MODEM) {
-            at_base_config->sleep_mode = BASE_SLEEP_MODE_MODEM;
-        }
-    }
-    else if (sleep_mode == BASE_SLEEP_MODE_LIGHT) {
-        if (!at_base_config->sleepwk_cfg.wakeup_valid)
-            return AT_RESULT_CODE_ERROR;
-
-        if (at_base_config->sleep_mode != BASE_SLEEP_MODE_LIGHT) {
-            at_base_config->sleep_mode = BASE_SLEEP_MODE_LIGHT;
-
-            uint32_t sleep_time = 0;
-            uint8_t weakup_pin = 0xFF;
-
-            if (at_base_config->sleepwk_cfg.wakeup_source == 0) {
-                sleep_time = at_base_config->sleepwk_cfg.wakeup_sleep_time;
-            }
-            else if (at_base_config->sleepwk_cfg.wakeup_source == 2) {
-                weakup_pin = at_base_config->sleepwk_cfg.wakeup_gpio;
-                if (at_base_config->sleepwk_cfg.wakeup_level)
-                    weakup_pin |= 0x80;
-            }
-
-            at_response_string(AT_CMD_MSG_OK);
-            vTaskDelay(pdMS_TO_TICKS(100));
-
-            hal_hbn_init(&weakup_pin, 1);
-            hal_hbn_enter((uint32_t)sleep_time);
-        }
-    }
-    else
-        return AT_RESULT_CODE_ERROR;
-
-    return AT_RESULT_CODE_OK;
-}
-#endif
 
 static int at_query_cmd_sysram(int argc, const char **argv)
 {
@@ -368,7 +230,7 @@ static int at_setup_cmd_sysmsg(int argc, const char **argv)
             at_base_config_save(AT_CONFIG_KEY_SYS_MSG);
         }
     } else {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     }
 
     return AT_RESULT_CODE_OK;
@@ -434,51 +296,16 @@ static int at_setup_cmd_syslog(int argc, const char **argv)
 
     if (enable == 0 || enable == 1) {
         at->syslog = enable;
+        at_base_config->sysmsg_cfg.syslog = enable;
     } else {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
+    }
+
+    if (at->store) {
+        at_base_config_save(AT_CONFIG_KEY_SYS_MSG);
     }
     return AT_RESULT_CODE_OK;
 }
-
-#if 0
-static int at_setup_cmd_sleepwkcfg(int argc, const char **argv)
-{
-    int wakeup_source;
-    int wakeup_para1;
-    int wakeup_para2;
-
-    AT_CMD_PARSE_NUMBER(0, &wakeup_source);
-    if (wakeup_source == 0) {
-        if (argc != 2)
-            return AT_RESULT_CODE_ERROR;
-        AT_CMD_PARSE_NUMBER(1, &wakeup_para1);
-    }
-    else if (wakeup_source == 2) {
-        if (argc != 3)
-            return AT_RESULT_CODE_ERROR;
-        AT_CMD_PARSE_NUMBER(1, &wakeup_para1);
-        AT_CMD_PARSE_NUMBER(2, &wakeup_para2);
-        if (wakeup_para1 != 7 && wakeup_para1 != 8)
-            return AT_RESULT_CODE_ERROR;
-        if (wakeup_para2 != 0 && wakeup_para2 != 1)
-            return AT_RESULT_CODE_ERROR;
-    }
-    else
-        return AT_RESULT_CODE_ERROR;
-
-    at_base_config->sleepwk_cfg.wakeup_valid = 1;
-    at_base_config->sleepwk_cfg.wakeup_source = (uint8_t)wakeup_source;
-    if (wakeup_source == 0) {
-        at_base_config->sleepwk_cfg.wakeup_sleep_time = (uint32_t)wakeup_para1;
-    }
-    else {
-        at_base_config->sleepwk_cfg.wakeup_gpio = (uint8_t)wakeup_para1;
-        at_base_config->sleepwk_cfg.wakeup_level = (uint8_t)wakeup_para2;
-    }
-
-    return AT_RESULT_CODE_OK;
-}
-#endif
 
 static int at_query_cmd_sysstore(int argc, const char **argv)
 {
@@ -495,7 +322,7 @@ static int at_setup_cmd_sysstore(int argc, const char **argv)
     if (store == 0 || store == 1) {
         at->store = (uint8_t)store;
     } else {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     }
 
     return AT_RESULT_CODE_OK;
@@ -552,13 +379,13 @@ static int at_setup_efuse_write(int argc, const char **argv)
     address = strtoul(addr, &endptr, 16);
     
     if (nbytes <= 0 || nbytes > 8192) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     }
 
     word = ((nbytes + 3) & ~3) >> 2;
     char *buffer = (char *)pvPortMalloc(word * 4);
     if (!buffer) {
-        return AT_RESULT_CODE_FAIL;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_NO_MEMORY);
     }
     memset(buffer, 0, word * 4);
     
@@ -594,13 +421,13 @@ static int at_setup_efuse_read(int argc, const char **argv)
     address = strtoul(addr, &endptr, 16);
     
     if (nbytes <= 0 || nbytes > 8192) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     }
     
     word = ((nbytes + 3) & ~3) >> 2;
     char *buffer = (char *)pvPortMalloc(word * 4 + 2);
     if (!buffer) {
-        return AT_RESULT_CODE_FAIL;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_NO_MEMORY);
     }
     memset(buffer, 0, word * 4 + 2);
 
@@ -620,7 +447,7 @@ static int at_setup_efuse_read(int argc, const char **argv)
     if (send_num == nbytes) {
         return AT_RESULT_CODE_OK;
     } else {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_LENGTH_MISMATCH);
     }
 }
 
@@ -649,12 +476,12 @@ static int at_setup_flash_write(int argc, const char **argv)
     address = strtoul(addr, &endptr, 16);
 
     if (nbytes <= 0 || nbytes > 8192) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     }
 
     char *buffer = (char *)pvPortMalloc(nbytes);
     if (!buffer) {
-        return AT_RESULT_CODE_FAIL;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_NO_MEMORY);
     }
     memset(buffer, 0, nbytes);
 
@@ -690,12 +517,12 @@ static int at_setup_flash_read(int argc, const char **argv)
     address = strtoul(addr, &endptr, 16);
 
     if (nbytes <= 0 || nbytes > 8192) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     }
 
     char *buffer = (char *)pvPortMalloc(nbytes + 2);
     if (!buffer) {
-        return AT_RESULT_CODE_FAIL;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_NO_MEMORY);
     }
     memset(buffer, 0, nbytes);
 
@@ -704,7 +531,7 @@ static int at_setup_flash_read(int argc, const char **argv)
 
     if (ret) {
         vPortFree(buffer);
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_NO_MEMORY);
     }
     at_write("+FLASH-R:%d,", nbytes);
     buffer[nbytes] = '\r';
@@ -717,7 +544,7 @@ static int at_setup_flash_read(int argc, const char **argv)
     if (send_num == nbytes) {
         return AT_RESULT_CODE_OK;
     } else {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_LENGTH_MISMATCH);
     }
 }
 
@@ -737,7 +564,7 @@ static int at_setup_flash_erase(int argc, const char **argv)
     ret = qcc74x_flash_erase(address, nbytes);
 
     if (ret) {
-        return AT_RESULT_CODE_FAIL;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_IO_ERROR);
     }
     return AT_RESULT_CODE_OK;
 }
@@ -757,7 +584,7 @@ static int at_setup_gpio_output(int argc, const char **argv)
     } else if (pull_state == AT_GPIO_PULL_DOWN) {
         cfgset = GPIO_OUTPUT | GPIO_PULLDOWN | GPIO_SMT_EN | GPIO_DRV_0;
     } else {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     }
     qcc74x_gpio_init(gpio, pin, cfgset);
 
@@ -796,7 +623,7 @@ static int at_setup_gpio_input(int argc, const char **argv)
     } else if (pull_state == AT_GPIO_PULL_DOWN) {
         cfgset = GPIO_INPUT | GPIO_PULLDOWN | GPIO_SMT_EN | GPIO_DRV_0;
     } else {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     }
     qcc74x_gpio_init(gpio, pin, cfgset);
 
@@ -808,9 +635,6 @@ static int at_query_gpio_input(int argc, const char **argv)
     int pin;
     struct qcc74x_device_s *gpio = qcc74x_device_get_by_name("gpio");
 
-    if (argc != 1) {
-        return AT_RESULT_CODE_ERROR;
-    }
     AT_CMD_PARSE_NUMBER(0, &pin);
     at_response_string("+IOIN=%d:%d\r\n", pin, qcc74x_gpio_read(gpio, pin));
 
@@ -922,6 +746,7 @@ static int ota_finish_process(int id, void *arg)
         return 0;
     }
     vTaskDelay(pdMS_TO_TICKS(100));
+    at_wifi_sta_disconnect();
     qcc74x_sys_reset_por();
     return 0;
 }
@@ -939,7 +764,7 @@ static int at_setup_ota_start(int argc, const char **argv)
     AT_CMD_PARSE_NUMBER(0, &ota);
 
     if (ota != 0 && ota != 1 ) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     }
 
     struct at_workq wq = {
@@ -952,6 +777,7 @@ static int at_setup_ota_start(int argc, const char **argv)
 
     return AT_RESULT_CODE_OK;
 }
+
 static int at_setup_ota_send(int argc, const char **argv)
 {
     int ret = 0;
@@ -960,18 +786,21 @@ static int at_setup_ota_send(int argc, const char **argv)
 
     AT_CMD_PARSE_NUMBER(0, &len);
 
-    if (len <=0 || len > OTA_BUFFER_LEN || g_ota_start == 0) {
-        return AT_RESULT_CODE_FAIL;
+    if (g_ota_start == 0) {
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_INIT);
+    }
+    if (len <=0 || len > OTA_BUFFER_LEN) {
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     }
 
     if (g_ota_handle == NULL && len < sizeof(at_ota_header_t)) {
         printf("OTA head size is not enough\r\n");
-        return AT_RESULT_CODE_FAIL;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     }
 
     buffer = pvPortMalloc(sizeof(struct ota_buf) + len);
     if (!buffer) {
-        return AT_RESULT_CODE_FAIL;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_NO_MEMORY);
     }
     memset(buffer, 0, sizeof(struct ota_buf) + len);
 
@@ -1001,7 +830,7 @@ static int at_setup_ota_send(int argc, const char **argv)
 static int at_setup_ota_finish_reset(int argc, const char **argv)
 {
     if (!g_ota_handle) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_INIT);
     }
 
     struct at_workq wq = {
@@ -1012,104 +841,6 @@ static int at_setup_ota_finish_reset(int argc, const char **argv)
 
     return AT_RESULT_CODE_OK;
 }
-
-#if 0
-static int at_setup_cmd_sysreg(int argc, const char **argv)
-{
-    int direct = 0;
-    uint32_t regAddr, regValue;
-    volatile uint32_t *reg = NULL;
-
-    AT_CMD_PARSE_NUMBER(0, &direct);
-
-    get_uint32_from_string((char **)&argv[1], &regAddr);
-    reg = (volatile uint32_t *)regAddr;
-
-    if (direct == 0 && argc == 2) {
-        at_response_string("+SYSREG:0x%lx\r\n", *reg);
-    }
-    else if (direct == 1 && argc == 3) {
-        get_uint32_from_string((char **)&argv[2], &regValue);
-        *reg = regValue;
-    }
-    else
-        return AT_RESULT_CODE_ERROR;
-
-    return AT_RESULT_CODE_OK;
-}
-
-static int at_query_cmd_systemp(int argc, const char **argv)
-{
-    int temp = 0;
-
-#ifdef CONF_ADC_ENABLE_TSEN
-    hosal_adc_dev_t *adc;
-    adc = wifi_hosal_adc_device_get();
-    if (NULL == adc) {
-        return AT_RESULT_CODE_FAIL;
-    }
-    temp = wifi_hosal_adc_tsen_value_get(adc);
-
-    printf("temp is %u\r\n", temp);
-    
-#endif
-    at_response_string("+SYSTEMP:%d.00", temp);
-
-    return AT_RESULT_CODE_OK;
-}
-
-static int at_query_cmd_flash(int argc, const char **argv)
-{
-    int flash_size = 0;
-    char flash_type[16] = {0};
-
-    uint32_t usage;
-    EF_Ctrl_Read_Sw_Usage(0, &usage);
-    if(((usage>>16)&0x03) == 0) {
-        Efuse_Device_Info_Type deviceInfo;
-        EF_Ctrl_Read_Device_Info(&deviceInfo);
-
-        if(deviceInfo.memoryInfo == 1)
-            flash_size = 1;
-        else if(deviceInfo.memoryInfo == 2)
-            flash_size = 2;
-        else if(deviceInfo.memoryInfo == 3)
-            flash_size = 4;
-        else
-            flash_size = 0;
-        strlcpy(flash_type, "IntFlash");
-    }
-    else {
-        uint8_t jedecID[3] = {0, 0, 0};
-        uint32_t flags = bx_irq_save();
-        SPI_Flash_Cfg_Type *flash_info = (SPI_Flash_Cfg_Type *)bx_flash_get_flashCfg();
-        XIP_SFlash_GetJedecId_Need_Lock(flash_info, jedecID);
-        bx_irq_restore(flags);
-
-        printf("flash jedec id: 0x%02X 0x%02X 0x%02X\r\n", jedecID[0], jedecID[1], jedecID[2]);
-        if (jedecID[2] == 0x17 && jedecID[0] == 0xC8 && jedecID[1] == 0x40) {
-            flash_size = 8;
-            strlcpy(flash_type, "GD25Q64C");
-        }
-        else if(jedecID[2] == 0x17 && jedecID[0] == 0x5E && jedecID[1] == 0x40) {
-            flash_size = 2;
-            strlcpy(flash_type, "ZB25VQ64B");
-        }
-        else if(jedecID[2] == 0x15 && jedecID[0] == 0x5E && jedecID[1] == 0x60) {
-            flash_size = 2;
-            strlcpy(flash_type, "ZB25VQ16A");
-        }
-        else
-            flash_size = 0;
-    }
-
-    if (flash_size == 0)
-        at_response_string("+FLASH:%s\r\n", "unknown flash info");
-    else
-        at_response_string("+FLASH:%dMB, %s\r\n", flash_size, flash_type);
-    return AT_RESULT_CODE_OK;
-}
-#endif
 
 static int at_setup_fs(int argc, const char **argv)
 {
@@ -1129,7 +860,7 @@ static int at_setup_fs(int argc, const char **argv)
     AT_CMD_PARSE_OPT_NUMBER(4, &len, len_valid);
 
     if (type != AT_FS_TYPE_LFS) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     }
 
     switch (opt) {
@@ -1147,12 +878,12 @@ static int at_setup_fs(int argc, const char **argv)
         case AT_FS_WRITE:
 
             if (!offset_valid || !len_valid) {
-                return AT_RESULT_CODE_ERROR;
+                return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
             }
 
             buffer = calloc(len, 1);
             if (!buffer) {
-                return AT_RESULT_CODE_ERROR;
+                return AT_RESULT_WITH_SUB_CODE(AT_SUB_NO_MEMORY);
             }
             at_response_result(AT_RESULT_CODE_OK);
             AT_CMD_RESPONSE(AT_CMD_MSG_WAIT_DATA);
@@ -1165,7 +896,7 @@ static int at_setup_fs(int argc, const char **argv)
 
             if (at_write_file(filename, offset, buffer, len) != len) {
                 free(buffer);
-                return AT_RESULT_CODE_ERROR;
+                return AT_RESULT_WITH_SUB_CODE(AT_SUB_IO_ERROR);
             }
             free(buffer);
 
@@ -1177,22 +908,25 @@ static int at_setup_fs(int argc, const char **argv)
         break;
         case AT_FS_READ:
             if (!offset_valid || !len_valid) {
-                return AT_RESULT_CODE_ERROR;
+                return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
             }
 
             buffer = calloc(len + 1, 1);
             if (!buffer) {
-                return AT_RESULT_CODE_ERROR;
+                return AT_RESULT_WITH_SUB_CODE(AT_SUB_NO_MEMORY);
             }
 
             buf = malloc(len + 32);
             if (!buf) {
-                return AT_RESULT_CODE_ERROR;
+                free(buffer);
+                return AT_RESULT_WITH_SUB_CODE(AT_SUB_NO_MEMORY);
             }
 
             ret = at_read_file(filename, offset, buffer, len); 
             if (ret < 0) {
-                return AT_RESULT_CODE_ERROR;
+                free(buf);
+                free(buffer);
+                return AT_RESULT_WITH_SUB_CODE(AT_SUB_IO_ERROR);
             }
             ret = snprintf(buf, len + 32, "+FS:READ,%d,%s\r\n", ret, buffer);
             AT_CMD_DATA_SEND(buf, ret);
@@ -1203,7 +937,7 @@ static int at_setup_fs(int argc, const char **argv)
         case AT_FS_QUERY_SIZE:
             ret = at_filesize_get(filename);
             if (ret < 0) {
-                return AT_RESULT_CODE_ERROR;
+                return AT_RESULT_WITH_SUB_CODE(AT_SUB_IO_ERROR);
             }
             at_response_string("+FS:SIZE,%d\r\n", ret);
             ret = AT_RESULT_CODE_OK;
@@ -1211,7 +945,7 @@ static int at_setup_fs(int argc, const char **argv)
         case AT_FS_QUERY_LIST:
             dir = at_fs_opendir(filename);
             if (!dir) {
-                return AT_RESULT_CODE_ERROR;
+                return AT_RESULT_WITH_SUB_CODE(AT_SUB_IO_ERROR);
             }
             at_response_string("+FS:LIST\r\n");
             while (at_fs_readdir(dir, &dir_res) == 0) {
@@ -1247,7 +981,7 @@ static int at_query_gmac(int argc, const char **argv)
     uint8_t mac0[6], mac1[6], mac2[6];
 
     if (otp_get_mac_addr(mac0, mac1, mac2) != 0) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_COMMON_ERROR);
     }
     at_response_string("+GMACSLOT0:%02x:%02x:%02x:%02x:%02x:%02x\r\n",
                       mac0[0], mac0[1], mac0[2], mac0[3], mac0[4], mac0[5]);
@@ -1445,7 +1179,7 @@ static const at_cmd_struct at_base_cmd[] = {
     {"+FLASH-E", NULL, NULL, at_setup_flash_erase, NULL, 2, 2},
     {"+IOPUPD", NULL, NULL, at_setup_gpio_output, NULL, 2, 2},
     {"+IOOUT", NULL, NULL, at_setup_gpio_set, NULL, 2, 2},
-    {"+IOIN", NULL, at_query_gpio_input, at_setup_gpio_input, NULL, 2, 2},
+    {"+IOIN", NULL, at_query_gpio_input, at_setup_gpio_input, NULL, 1, 2},
     {"+IORST", NULL, NULL, at_setup_gpio_analog_input, NULL, 1, 1},
     {"+PART", NULL, at_query_part, NULL, NULL, 0, 0},
     {"+OTASTART", NULL, at_query_ota_start, at_setup_ota_start, NULL, 1, 1},

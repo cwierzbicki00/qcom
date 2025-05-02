@@ -12,6 +12,7 @@
 #include <qcc74x_gpio.h>
 #include <qcc74x_core.h>
 #include <nxspi.h>
+#include <nxspi_net.h>
 #include <nxspi_log.h>
 
 #include <shell.h>
@@ -50,7 +51,7 @@ int cmd_nxspiwrite_test(int argc, char **argv)
 
     memset(buf, 0x5F, NXBD_MTU);
 
-    res = nxspi_write(buf, NXBD_MTU, portMAX_DELAY);
+    res = nxspi_write(NXSPI_TYPE_AT, buf, NXBD_MTU, portMAX_DELAY);
     if (res != NXBD_MTU) {
         NX_LOGE("res:%d, real:%d\r\n", res, NXBD_MTU);
     }
@@ -73,7 +74,7 @@ int nxspiwrite_variable_entry(void *arg)
     for (int m = 0; m < 600; m++) {
         for (int i = 1; i <= NXBD_MTU; i++) {
             memset(buf, i%256, i);
-            res = nxspi_write(buf, i, portMAX_DELAY);
+            res = nxspi_write(NXSPI_TYPE_AT, buf, i, portMAX_DELAY);
             if (res != i) {
                 NX_LOGE("res:%d, real:%d\r\n", res, i);
             }
@@ -112,7 +113,7 @@ void nx_wm_task(void *arg)
     memset(buf, 0xF, NXBD_MTU);
     while (1) {
         //vTaskDelay(3);
-        res = nxspi_write(buf, NXBD_MTU, portMAX_DELAY);
+        res = nxspi_write(NXSPI_TYPE_AT, buf, NXBD_MTU, portMAX_DELAY);
         NX_LOGD("app write :%d Bytes\r\n", res);
     }
     free(buf);
@@ -149,7 +150,7 @@ int nxspiread_variable_entry(void *arg)
     for (int m = 0; m < 600; m++) {
         for (int i = 1; i <= NXBD_MTU; i++) {
             g_real_len =  i;
-            res = nxspi_read(buf, NXBD_MTU, portMAX_DELAY);
+            res = nxspi_read(NXSPI_TYPE_AT, buf, NXBD_MTU, portMAX_DELAY);
 
             if (res != i) {
                 NX_LOGE("res:%d, error\r\n", res);
@@ -214,7 +215,7 @@ int cmd_nxspiread_test(int argc, char **argv)
         return -1;
     }
 
-    res = nxspi_read(buf, NXBD_MTU, 10000);
+    res = nxspi_read(NXSPI_TYPE_AT, buf, NXBD_MTU, 10000);
 
     if (res > 0) {
         printf("res[%d]: ", res);
@@ -248,7 +249,7 @@ void nx_rm_task(void *arg)
     }
 
     while (1) {
-        res = nxspi_read(buf, NXBD_MTU, portMAX_DELAY);
+        res = nxspi_read(NXSPI_TYPE_AT, buf, NXBD_MTU, portMAX_DELAY);
 
         if (res > 0) {
             //NX_LOGI("recv[%d]: \r\n", res);
@@ -336,7 +337,7 @@ int nx_iperf_task(void *arg)
     last_time = xTaskGetTickCount();
     while (1) {
         //xTaskGetTickCount();
-        res = nxspi_read(buf, NXBD_MTU, 100);
+        res = nxspi_read(NXSPI_TYPE_AT, buf, NXBD_MTU, 100);
         //NX_LOGD("res:%d\r\n", res);
         if (res > 0) {
             NX_LOGD("res:%d\r\n", res);
@@ -427,10 +428,10 @@ int cmd_nxperf(int argc, char **argv)
 
             if (is_read) {
                 // Perform a read operation
-                result = nxspi_read(buf, read_length, timeout);
+                result = nxspi_read(NXSPI_TYPE_AT, buf, read_length, timeout);
             } else {
                 // Perform a write operation
-                result = nxspi_write(buf, packet_size, timeout);
+                result = nxspi_write(NXSPI_TYPE_AT, buf, packet_size, timeout);
             }
 
             // Log throughput information for debugging
@@ -533,8 +534,9 @@ int cmd_nx(int argc, char *argv[])
             up_header.reset, up_header.flags, up_header.type, up_header.rsvd);
 #endif
 
-    NX_LOGP("dn vq:%d, fq:%d, dnmsg:%p, buf:%d*%d",
-            uxQueueMessagesWaiting(g_nxspi.dnvq),
+    NX_LOGP("dn (at+net):(%d+%d), fq:%d, dnmsg:%p, buf:%d*%d",
+            uxQueueMessagesWaiting(g_nxspi.dnat),
+            uxQueueMessagesWaiting(g_nxspi.dnnet),
             uxQueueMessagesWaiting(g_nxspi.dnfq),
             g_nxspi.dnmsg,
             NXBD_ITEMS, NXBD_MTU);
@@ -566,6 +568,9 @@ int cmd_nx(int argc, char *argv[])
     NX_LOGP("nxspi write cnt:%d, bytes:%d\r\n", g_nxspi.write_cnt, g_nxspi.write_bytes);
     NX_LOGP("nxspi read  cnt:%d, bytes:%d\r\n", g_nxspi.read_cnt, g_nxspi.read_bytes);
     NX_LOGP("ps entercnt:%d, exitcnt:%d\r\n", g_nxspi.ps_entercnt, g_nxspi.ps_exitcnt);
+    NX_LOGP("dn rx_stall_cnt:%d\r\n", g_nxspi.rx_stall_cnt);
+    NX_LOGP("dn discard cnt:%d, bytes:%d\r\n", g_nxspi.discard_cnt, g_nxspi.discard_bytes);
+    NX_LOGP("state machine start2complete_cnt:%d\r\n", g_nxspi.start2complete_cnt);
 #endif
 
     int _bdreceived(void);
@@ -584,6 +589,23 @@ int cmd_nx(int argc, char *argv[])
 #endif
 #if GPIO_TIME_ENABLE
     nx_print_stats(&g_nxspi.stats);
+#endif
+
+#ifdef NXSPI_NET
+    {
+    extern spinet_t g_spinet;
+    NX_LOGP("net upld vq:%d  total:%d\r\n",
+            uxQueueMessagesWaiting(g_spinet.upvq),
+            NXBD_UPLD_ITEMS);
+    NX_LOGP("net dnld fq:%d  total:%d\r\n",
+            uxQueueMessagesWaiting(g_spinet.dnfq),
+            NXBD_DNLD_ITEMS);
+    NX_LOGP("spinet write cnt:%d, bytes:%d\r\n", g_spinet.write_cnt, g_spinet.write_bytes);
+    NX_LOGP("spinet read  cnt:%d, bytes:%d\r\n", g_spinet.read_cnt, g_spinet.read_bytes);
+    NX_LOGP("spinet net stream: to %s\r\n", (g_spinet.netstream==SPINET_NETSTREAM_TO_LOCAL)?"local":"host");
+    NX_LOGP("spinet pktcnt local:%d, host:%d, oth:%d\r\n",
+            g_spinet.local_pktcnt, g_spinet.host_pktcnt, g_spinet.oth_pktcnt);
+    }
 #endif
 
     return 0;
@@ -625,4 +647,30 @@ void app_nxspicli_init(void)
     }
 #endif
 }
+
+#ifdef NXSPI_NET
+int cmd_netstream(int argc, char **argv)
+{
+    extern spinet_t g_spinet;
+
+    if (argc != 2) {
+        printf("Usage: netstream [1|2]\n");
+        return -1;
+    }
+
+    if (strcmp(argv[1], "local") == 0) {
+        g_spinet.netstream = SPINET_NETSTREAM_TO_LOCAL;
+        printf("to local\r\n");
+    } else if (strcmp(argv[1], "host") == 0) {
+        g_spinet.netstream = SPINET_NETSTREAM_TO_HOST;
+        printf("to host\r\n");
+    } else {
+        printf("Invalid argument. Use 1 or 2.\n");
+        return -1;
+    }
+
+    return 0;
+}
+SHELL_CMD_EXPORT_ALIAS(cmd_netstream, netstream, netstream command to ctrl to host or local);
+#endif
 

@@ -3598,7 +3598,7 @@ static int32_t mfg_cmd_set_cap_code(uint8_t *data, uint16_t len)
     }
     int capcode;
     capcode = atoi((char *)&data[0]);
-    if((capcode > 0) && (capcode <= 255)){
+    if((capcode >= 0) && (capcode <= 255)){
         AON_Set_Xtal_CapCode((uint8_t)capcode,(uint8_t)capcode);
         mfg_print("capcode %d\r\n",capcode);
     }else if(-1 == capcode){
@@ -3891,6 +3891,11 @@ void mfg_temp_trim(void *pvParameters)
                 mfg_print("Not do tcal:%d\r\n",(int)temperature);
             }
         }
+
+        if (temperature>=-100 && temperature<=250) {
+            wl_rf_temp_optimize(temperature);
+        }
+
 #if 0
         else{
             /* Do a recovery to normal*/

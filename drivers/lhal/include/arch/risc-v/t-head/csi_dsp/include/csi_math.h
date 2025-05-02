@@ -23,7 +23,6 @@
  * @date     Feb. 2020
  ******************************************************************************/
 
-
 #ifndef _CSI_MATH_H
 #define _CSI_MATH_H
 
@@ -32,14 +31,12 @@ extern "C"
 {
 #endif
 
-
 #include <string.h>
 #include <math.h>
 #include <float.h>
 #include <limits.h>
 #include <unistd.h>
 #include "csi_instance.h"
-
 
 /**
  * @brief Processing function for the Q7 FIR filter.
@@ -181,7 +178,6 @@ void csi_fir_init_f32(
     const float32_t * pCoeffs,
     float32_t * pState,
     uint32_t blockSize);
-
 
 /**
  * @brief Processing function for the Q15 Biquad cascade filter.
@@ -610,7 +606,6 @@ void csi_mat_init_f32(
     uint16_t nColumns,
     float32_t * pData);
 
-
 /**
  * @brief  Initialization function for the floating-point PID Control.
  * @param[in,out] S               points to an instance of the PID structure.
@@ -620,14 +615,12 @@ void csi_pid_init_f32(
     csi_pid_instance_f32 * S,
     int32_t resetStateFlag);
 
-
 /**
  * @brief  Reset function for the floating-point PID Control.
  * @param[in,out] S  is an instance of the floating-point PID Control structure
  */
 void csi_pid_reset_f32(
     csi_pid_instance_f32 * S);
-
 
 /**
  * @brief  Initialization function for the Q31 PID Control.
@@ -638,7 +631,6 @@ void csi_pid_init_q31(
     csi_pid_instance_q31 * S,
     int32_t resetStateFlag);
 
-
 /**
  * @brief  Reset function for the Q31 PID Control.
  * @param[in,out] S   points to an instance of the Q31 PID Control structure
@@ -646,7 +638,6 @@ void csi_pid_init_q31(
 
 void csi_pid_reset_q31(
     csi_pid_instance_q31 * S);
-
 
 /**
  * @brief  Initialization function for the Q15 PID Control.
@@ -656,7 +647,6 @@ void csi_pid_reset_q31(
 void csi_pid_init_q15(
     csi_pid_instance_q15 * S,
     int32_t resetStateFlag);
-
 
 /**
  * @brief  Reset function for the Q15 PID Control.
@@ -678,7 +668,6 @@ void csi_mult_q7(
     q7_t * pDst,
     uint32_t blockSize);
 
-
 /**
  * @brief Q15 vector multiplication.
  * @param[in]  pSrcA      points to the first input vector
@@ -698,7 +687,6 @@ void csi_mult_rnd_q15(
     q15_t * pDst,
     uint32_t blockSize);
 
-
 /**
  * @brief Q31 vector multiplication.
  * @param[in]  pSrcA      points to the first input vector
@@ -711,7 +699,6 @@ void csi_mult_q31(
     const q31_t * pSrcB,
     q31_t * pDst,
     uint32_t blockSize);
-
 
 /**
  * @brief Floating-point vector multiplication.
@@ -726,7 +713,6 @@ void csi_mult_f32(
     float32_t * pDst,
     uint32_t blockSize);
 
-
 /* Deprecated */
 csi_status csi_cfft_radix2_init_q15(
     csi_cfft_radix2_instance_q15 * S,
@@ -738,7 +724,6 @@ csi_status csi_cfft_radix2_init_q15(
 void csi_cfft_radix2_q15(
     const csi_cfft_radix2_instance_q15 * S,
     q15_t * pSrc);
-
 
 /* Deprecated */
 csi_status csi_cfft_radix4_init_q15(
@@ -764,7 +749,6 @@ void csi_cfft_radix2_q31(
     const csi_cfft_radix2_instance_q31 * S,
     q31_t * pSrc);
 
-
 /* Deprecated */
 void csi_cfft_radix4_q31(
     const csi_cfft_radix4_instance_q31 * S,
@@ -776,7 +760,6 @@ csi_status csi_cfft_radix4_init_q31(
     uint16_t fftLen,
     uint8_t ifftFlag,
     uint8_t bitReverseFlag);
-
 
 /* Deprecated */
 csi_status csi_cfft_radix2_init_f32(
@@ -792,7 +775,6 @@ csi_status csi_cfft_radix2_init_f32(
   uint8_t ifftFlag,
   uint8_t bitReverseFlag,
   float32_t onebyfftLen);
-
 
 /* Deprecated */
 csi_status csi_cfft_radix4_init_f32(
@@ -815,7 +797,6 @@ csi_status csi_cfft_radix4_init_f32(
   uint8_t ifftFlag,
   uint8_t bitReverseFlag,
   float32_t onebyfftLen);
-
 
 void csi_cfft_q15(
     const csi_cfft_instance_q15 * S,
@@ -841,13 +822,11 @@ void csi_cfft_fast_q31(
     uint8_t ifftFlag,
     uint8_t bitReverseFlag);
 
-
 void csi_cfft_f32(
     const csi_cfft_instance_f32 * S,
     float32_t * p1,
     uint8_t ifftFlag,
     uint8_t bitReverseFlag);
-
 
 csi_status csi_rfft_init_q15(
     csi_rfft_instance_q15 * S,
@@ -865,7 +844,6 @@ void csi_rfft_fast_q15(
     q15_t * pSrc,
     q15_t * pDst);
 
-
 csi_status csi_rfft_init_q31(
     csi_rfft_instance_q31 * S,
     uint32_t fftLenReal,
@@ -882,7 +860,6 @@ void csi_rfft_fast_q31(
   q31_t * pSrc,
   q31_t * pDst);
 
-
 csi_status csi_rfft_init_f32(
     csi_rfft_instance_f32 * S,
     csi_cfft_radix4_instance_f32 * S_CFFT,
@@ -894,7 +871,6 @@ void csi_rfft_f32(
     const csi_rfft_instance_f32 * S,
     float32_t * pSrc,
     float32_t * pDst);
-
 
 csi_status csi_rfft_fast_init_f32 (
     csi_rfft_fast_instance_f32 * S,
@@ -916,12 +892,10 @@ csi_status csi_rfft_2048_fast_init_f32 ( csi_rfft_fast_instance_f32 * S );
 
 csi_status csi_rfft_4096_fast_init_f32 ( csi_rfft_fast_instance_f32 * S );
 
-
 void csi_rfft_fast_f32(
     csi_rfft_fast_instance_f32 * S,
     float32_t * p, float32_t * pOut,
     uint8_t ifftFlag);
-
 
 /**
  * @brief  Initialization function for the floating-point DCT4/IDCT4.
@@ -941,7 +915,6 @@ csi_status csi_dct4_init_f32(
     uint16_t Nby2,
     float32_t normalize);
 
-
 /**
  * @brief Processing function for the floating-point DCT4/IDCT4.
  * @param[in]     S              points to an instance of the floating-point DCT4/IDCT4 structure.
@@ -952,8 +925,6 @@ void csi_dct4_f32(
     const csi_dct4_instance_f32 * S,
     float32_t * pState,
     float32_t * pInlineBuffer);
-
-
 
 /**
  * @brief  Initialization function for the Q31 DCT4/IDCT4.
@@ -973,7 +944,6 @@ csi_status csi_dct4_init_q31(
     uint16_t Nby2,
     q31_t normalize);
 
-
 /**
  * @brief Processing function for the Q31 DCT4/IDCT4.
  * @param[in]     S              points to an instance of the Q31 DCT4 structure.
@@ -989,7 +959,6 @@ void csi_dct4_fast_q31(
     const csi_dct4_fast_instance_q31 * S,
     q31_t * pState,
     q31_t * pInlineBuffer);
-
 
 /**
  * @brief  Initialization function for the Q15 DCT4/IDCT4.
@@ -1009,7 +978,6 @@ csi_status csi_dct4_init_q15(
     uint16_t Nby2,
     q15_t normalize);
 
-
 /**
  * @brief Processing function for the Q15 DCT4/IDCT4.
  * @param[in]     S              points to an instance of the Q15 DCT4 structure.
@@ -1026,7 +994,6 @@ void csi_dct4_fast_q15(
     q15_t * pState,
     q15_t * pInlineBuffer);
 
-
 /**
  * @brief Floating-point vector addition.
  * @param[in]  pSrcA      points to the first input vector
@@ -1039,7 +1006,6 @@ void csi_add_f32(
     const float32_t * pSrcB,
     float32_t * pDst,
     uint32_t blockSize);
-
 
 /**
  * @brief Q7 vector addition.
@@ -1054,7 +1020,6 @@ void csi_add_q7(
     q7_t * pDst,
     uint32_t blockSize);
 
-
 /**
  * @brief Q15 vector addition.
  * @param[in]  pSrcA      points to the first input vector
@@ -1067,7 +1032,6 @@ void csi_add_q15(
     const q15_t * pSrcB,
     q15_t * pDst,
     uint32_t blockSize);
-
 
 /**
  * @brief Q31 vector addition.
@@ -1082,7 +1046,6 @@ void csi_add_q31(
     q31_t * pDst,
     uint32_t blockSize);
 
-
 /**
  * @brief Floating-point vector subtraction.
  * @param[in]  pSrcA      points to the first input vector
@@ -1095,7 +1058,6 @@ void csi_sub_f32(
     const float32_t * pSrcB,
     float32_t * pDst,
     uint32_t blockSize);
-
 
 /**
  * @brief Q7 vector subtraction.
@@ -1110,7 +1072,6 @@ void csi_sub_q7(
     q7_t * pDst,
     uint32_t blockSize);
 
-
 /**
  * @brief Q15 vector subtraction.
  * @param[in]  pSrcA      points to the first input vector
@@ -1123,7 +1084,6 @@ void csi_sub_q15(
     const q15_t * pSrcB,
     q15_t * pDst,
     uint32_t blockSize);
-
 
 /**
  * @brief Q31 vector subtraction.
@@ -1138,7 +1098,6 @@ void csi_sub_q31(
     q31_t * pDst,
     uint32_t blockSize);
 
-
 /**
  * @brief Multiplies a floating-point vector by a scalar.
  * @param[in]  pSrc       points to the input vector
@@ -1151,7 +1110,6 @@ void csi_scale_f32(
     float32_t scale,
     float32_t * pDst,
     uint32_t blockSize);
-
 
 /**
  * @brief Multiplies a Q7 vector by a scalar.
@@ -1168,7 +1126,6 @@ void csi_scale_q7(
     q7_t * pDst,
     uint32_t blockSize);
 
-
 /**
  * @brief Multiplies a Q15 vector by a scalar.
  * @param[in]  pSrc        points to the input vector
@@ -1183,7 +1140,6 @@ void csi_scale_q15(
     int8_t shift,
     q15_t * pDst,
     uint32_t blockSize);
-
 
 /**
  * @brief Multiplies a Q31 vector by a scalar.
@@ -1200,7 +1156,6 @@ void csi_scale_q31(
     q31_t * pDst,
     uint32_t blockSize);
 
-
 /**
  * @brief Q7 vector absolute value.
  * @param[in]  pSrc       points to the input buffer
@@ -1211,7 +1166,6 @@ void csi_abs_q7(
     const q7_t * pSrc,
     q7_t * pDst,
     uint32_t blockSize);
-
 
 /**
  * @brief Floating-point vector absolute value.
@@ -1224,7 +1178,6 @@ void csi_abs_f32(
     float32_t * pDst,
     uint32_t blockSize);
 
-
 /**
  * @brief Q15 vector absolute value.
  * @param[in]  pSrc       points to the input buffer
@@ -1235,7 +1188,6 @@ void csi_abs_q15(
     const q15_t * pSrc,
     q15_t * pDst,
     uint32_t blockSize);
-
 
 /**
  * @brief Q31 vector absolute value.
@@ -1258,7 +1210,6 @@ void csi_abs_q31(
   q31_t * pDst,
   uint32_t blockSize);
 
-
 /**
  * @brief Dot product of floating-point vectors.
  * @param[in]  pSrcA      points to the first input vector
@@ -1271,7 +1222,6 @@ void csi_dot_prod_f32(
     const float32_t * pSrcB,
     uint32_t blockSize,
     float32_t * result);
-
 
 /**
  * @brief Dot product of Q7 vectors.
@@ -1286,7 +1236,6 @@ void csi_dot_prod_q7(
     uint32_t blockSize,
     q31_t * result);
 
-
 /**
  * @brief Dot product of Q15 vectors.
  * @param[in]  pSrcA      points to the first input vector
@@ -1299,7 +1248,6 @@ void csi_dot_prod_q15(
     const q15_t * pSrcB,
     uint32_t blockSize,
     q63_t * result);
-
 
 /**
  * @brief Dot product of Q31 vectors.
@@ -1314,7 +1262,6 @@ void csi_dot_prod_q31(
     uint32_t blockSize,
     q63_t * result);
 
-
 /**
  * @brief  Shifts the elements of a Q7 vector a specified number of bits.
  * @param[in]  pSrc       points to the input vector
@@ -1327,7 +1274,6 @@ void csi_shift_q7(
     int8_t shiftBits,
     q7_t * pDst,
     uint32_t blockSize);
-
 
 /**
  * @brief  Shifts the elements of a Q15 vector a specified number of bits.
@@ -1342,7 +1288,6 @@ void csi_shift_q15(
     q15_t * pDst,
     uint32_t blockSize);
 
-
 /**
  * @brief  Shifts the elements of a Q31 vector a specified number of bits.
  * @param[in]  pSrc       points to the input vector
@@ -1355,7 +1300,6 @@ void csi_shift_q31(
     int8_t shiftBits,
     q31_t * pDst,
     uint32_t blockSize);
-
 
 /**
  * @brief  Adds a constant offset to a floating-point vector.
@@ -1370,7 +1314,6 @@ void csi_offset_f32(
     float32_t * pDst,
     uint32_t blockSize);
 
-
 /**
  * @brief  Adds a constant offset to a Q7 vector.
  * @param[in]  pSrc       points to the input vector
@@ -1383,7 +1326,6 @@ void csi_offset_q7(
     q7_t offset,
     q7_t * pDst,
     uint32_t blockSize);
-
 
 /**
  * @brief  Adds a constant offset to a Q15 vector.
@@ -1398,7 +1340,6 @@ void csi_offset_q15(
     q15_t * pDst,
     uint32_t blockSize);
 
-
 /**
  * @brief  Adds a constant offset to a Q31 vector.
  * @param[in]  pSrc       points to the input vector
@@ -1412,7 +1353,6 @@ void csi_offset_q31(
     q31_t * pDst,
     uint32_t blockSize);
 
-
 /**
  * @brief  Negates the elements of a floating-point vector.
  * @param[in]  pSrc       points to the input vector
@@ -1423,7 +1363,6 @@ void csi_negate_f32(
     const float32_t * pSrc,
     float32_t * pDst,
     uint32_t blockSize);
-
 
 /**
  * @brief  Negates the elements of a Q7 vector.
@@ -1436,7 +1375,6 @@ void csi_negate_q7(
     q7_t * pDst,
     uint32_t blockSize);
 
-
 /**
  * @brief  Negates the elements of a Q15 vector.
  * @param[in]  pSrc       points to the input vector
@@ -1447,7 +1385,6 @@ void csi_negate_q15(
     const q15_t * pSrc,
     q15_t * pDst,
     uint32_t blockSize);
-
 
 /**
  * @brief  Negates the elements of a Q31 vector.
@@ -1460,7 +1397,6 @@ void csi_negate_q31(
     q31_t * pDst,
     uint32_t blockSize);
 
-
 /**
  * @brief  Copies the elements of a floating-point vector.
  * @param[in]  pSrc       input pointer
@@ -1471,7 +1407,6 @@ void csi_copy_f32(
     const float32_t * pSrc,
     float32_t * pDst,
     uint32_t blockSize);
-
 
 /**
  * @brief  Copies the elements of a Q7 vector.
@@ -1484,7 +1419,6 @@ void csi_copy_q7(
     q7_t * pDst,
     uint32_t blockSize);
 
-
 /**
  * @brief  Copies the elements of a Q15 vector.
  * @param[in]  pSrc       input pointer
@@ -1495,7 +1429,6 @@ void csi_copy_q15(
     const q15_t * pSrc,
     q15_t * pDst,
     uint32_t blockSize);
-
 
 /**
  * @brief  Copies the elements of a Q31 vector.
@@ -1508,7 +1441,6 @@ void csi_copy_q31(
     q31_t * pDst,
     uint32_t blockSize);
 
-
 /**
  * @brief  Fills a constant value into a floating-point vector.
  * @param[in]  value      input value to be filled
@@ -1519,7 +1451,6 @@ void csi_fill_f32(
     float32_t value,
     float32_t * pDst,
     uint32_t blockSize);
-
 
 /**
  * @brief  Fills a constant value into a Q7 vector.
@@ -1532,7 +1463,6 @@ void csi_fill_q7(
     q7_t * pDst,
     uint32_t blockSize);
 
-
 /**
  * @brief  Fills a constant value into a Q15 vector.
  * @param[in]  value      input value to be filled
@@ -1544,7 +1474,6 @@ void csi_fill_q15(
     q15_t * pDst,
     uint32_t blockSize);
 
-
 /**
  * @brief  Fills a constant value into a Q31 vector.
  * @param[in]  value      input value to be filled
@@ -1555,7 +1484,6 @@ void csi_fill_q31(
     q31_t value,
     q31_t * pDst,
     uint32_t blockSize);
-
 
 /**
  * @brief Convolution of floating-point sequences.
@@ -1571,7 +1499,6 @@ void csi_conv_f32(
     const float32_t * pSrcB,
     uint32_t srcBLen,
     float32_t * pDst);
-
 
 /**
  * @brief Convolution of Q15 sequences.
@@ -1592,7 +1519,6 @@ void csi_conv_opt_q15(
     q15_t * pScratch1,
     q15_t * pScratch2);
 
-
 /**
  * @brief Convolution of Q15 sequences.
  * @param[in]  pSrcA    points to the first input sequence.
@@ -1608,7 +1534,6 @@ void csi_conv_q15(
     uint32_t srcBLen,
     q15_t * pDst);
 
-
 /**
  * @brief Convolution of Q15 sequences (fast version) for Cortex-M3 and Cortex-M4
  * @param[in]  pSrcA    points to the first input sequence.
@@ -1623,7 +1548,6 @@ void csi_conv_fast_q15(
     const q15_t * pSrcB,
     uint32_t srcBLen,
     q15_t * pDst);
-
 
 /**
  * @brief Convolution of Q15 sequences (fast version) for Cortex-M3 and Cortex-M4
@@ -1644,7 +1568,6 @@ void csi_conv_fast_opt_q15(
     q15_t * pScratch1,
     q15_t * pScratch2);
 
-
 /**
  * @brief Convolution of Q31 sequences.
  * @param[in]  pSrcA    points to the first input sequence.
@@ -1660,7 +1583,6 @@ void csi_conv_q31(
     uint32_t srcBLen,
     q31_t * pDst);
 
-
 /**
  * @brief Convolution of Q31 sequences (fast version) for Cortex-M3 and Cortex-M4
  * @param[in]  pSrcA    points to the first input sequence.
@@ -1675,7 +1597,6 @@ void csi_conv_fast_q31(
     const q31_t * pSrcB,
     uint32_t srcBLen,
     q31_t * pDst);
-
 
 /**
 * @brief Convolution of Q7 sequences.
@@ -1696,7 +1617,6 @@ void csi_conv_opt_q7(
     q15_t * pScratch1,
     q15_t * pScratch2);
 
-
 /**
  * @brief Convolution of Q7 sequences.
  * @param[in]  pSrcA    points to the first input sequence.
@@ -1711,7 +1631,6 @@ void csi_conv_q7(
     const q7_t * pSrcB,
     uint32_t srcBLen,
     q7_t * pDst);
-
 
 /**
  * @brief Partial convolution of floating-point sequences.
@@ -1732,7 +1651,6 @@ csi_status csi_conv_partial_f32(
     float32_t * pDst,
     uint32_t firstIndex,
     uint32_t numPoints);
-
 
 /**
  * @brief Partial convolution of Q15 sequences.
@@ -1758,7 +1676,6 @@ csi_status csi_conv_partial_opt_q15(
     q15_t * pScratch1,
     q15_t * pScratch2);
 
-
 /**
  * @brief Partial convolution of Q15 sequences.
  * @param[in]  pSrcA       points to the first input sequence.
@@ -1779,7 +1696,6 @@ csi_status csi_conv_partial_q15(
     uint32_t firstIndex,
     uint32_t numPoints);
 
-
 /**
  * @brief Partial convolution of Q15 sequences (fast version) for Cortex-M3 and Cortex-M4
  * @param[in]  pSrcA       points to the first input sequence.
@@ -1799,7 +1715,6 @@ csi_status csi_conv_partial_fast_q15(
     q15_t * pDst,
     uint32_t firstIndex,
     uint32_t numPoints);
-
 
 /**
  * @brief Partial convolution of Q15 sequences (fast version) for Cortex-M3 and Cortex-M4
@@ -1825,7 +1740,6 @@ csi_status csi_conv_partial_fast_opt_q15(
     q15_t * pScratch1,
     q15_t * pScratch2);
 
-
 /**
  * @brief Partial convolution of Q31 sequences.
  * @param[in]  pSrcA       points to the first input sequence.
@@ -1846,7 +1760,6 @@ csi_status csi_conv_partial_q31(
     uint32_t firstIndex,
     uint32_t numPoints);
 
-
 /**
  * @brief Partial convolution of Q31 sequences (fast version) for Cortex-M3 and Cortex-M4
  * @param[in]  pSrcA       points to the first input sequence.
@@ -1866,7 +1779,6 @@ csi_status csi_conv_partial_fast_q31(
     q31_t * pDst,
     uint32_t firstIndex,
     uint32_t numPoints);
-
 
 /**
  * @brief Partial convolution of Q7 sequences
@@ -1892,7 +1804,6 @@ csi_status csi_conv_partial_opt_q7(
     q15_t * pScratch1,
     q15_t * pScratch2);
 
-
 /**
    * @brief Partial convolution of Q7 sequences.
    * @param[in]  pSrcA       points to the first input sequence.
@@ -1913,8 +1824,6 @@ csi_status csi_conv_partial_q7(
     uint32_t firstIndex,
     uint32_t numPoints);
 
-
-
 /**
   @brief         Processing function for floating-point FIR decimator.
   @param[in]     S         points to an instance of the floating-point FIR decimator structure
@@ -1927,7 +1836,6 @@ void csi_fir_decimate_f32(
     const float32_t * pSrc,
     float32_t * pDst,
     uint32_t blockSize);
-
 
 /**
   @brief         Initialization function for the floating-point FIR decimator.
@@ -1949,7 +1857,6 @@ csi_status csi_fir_decimate_init_f32(
     float32_t * pState,
     uint32_t blockSize);
 
-
 /**
  * @brief Processing function for the Q15 FIR decimator.
  * @param[in]  S          points to an instance of the Q15 FIR decimator structure.
@@ -1963,7 +1870,6 @@ void csi_fir_decimate_q15(
     q15_t * pDst,
     uint32_t blockSize);
 
-
 /**
  * @brief Processing function for the Q15 FIR decimator (fast variant) for Cortex-M3 and Cortex-M4.
  * @param[in]  S          points to an instance of the Q15 FIR decimator structure.
@@ -1976,7 +1882,6 @@ void csi_fir_decimate_fast_q15(
     const q15_t * pSrc,
     q15_t * pDst,
     uint32_t blockSize);
-
 
 /**
  * @brief  Initialization function for the Q15 FIR decimator.
@@ -1996,7 +1901,6 @@ csi_status csi_fir_decimate_init_q15(
     const q15_t * pCoeffs,
     q15_t * pState,
     uint32_t blockSize);
-
 
 /**
  * @brief Processing function for the Q31 FIR decimator.
@@ -2024,7 +1928,6 @@ void csi_fir_decimate_fast_q31(
     q31_t * pDst,
     uint32_t blockSize);
 
-
 /**
  * @brief  Initialization function for the Q31 FIR decimator.
  * @param[in,out] S          points to an instance of the Q31 FIR decimator structure.
@@ -2044,8 +1947,6 @@ csi_status csi_fir_decimate_init_q31(
     q31_t * pState,
     uint32_t blockSize);
 
-
-
 /**
  * @brief Processing function for the Q15 FIR interpolator.
  * @param[in]  S          points to an instance of the Q15 FIR interpolator structure.
@@ -2058,7 +1959,6 @@ void csi_fir_interpolate_q15(
     const q15_t * pSrc,
     q15_t * pDst,
     uint32_t blockSize);
-
 
 /**
  * @brief  Initialization function for the Q15 FIR interpolator.
@@ -2079,7 +1979,6 @@ csi_status csi_fir_interpolate_init_q15(
     q15_t * pState,
     uint32_t blockSize);
 
-
 /**
  * @brief Processing function for the Q31 FIR interpolator.
  * @param[in]  S          points to an instance of the Q15 FIR interpolator structure.
@@ -2092,7 +1991,6 @@ void csi_fir_interpolate_q31(
     const q31_t * pSrc,
     q31_t * pDst,
     uint32_t blockSize);
-
 
 /**
  * @brief  Initialization function for the Q31 FIR interpolator.
@@ -2113,7 +2011,6 @@ csi_status csi_fir_interpolate_init_q31(
     q31_t * pState,
     uint32_t blockSize);
 
-
 /**
  * @brief Processing function for the floating-point FIR interpolator.
  * @param[in]  S          points to an instance of the floating-point FIR interpolator structure.
@@ -2126,7 +2023,6 @@ void csi_fir_interpolate_f32(
     const float32_t * pSrc,
     float32_t * pDst,
     uint32_t blockSize);
-
 
 /**
  * @brief  Initialization function for the floating-point FIR interpolator.
@@ -2147,7 +2043,6 @@ csi_status csi_fir_interpolate_init_f32(
     float32_t * pState,
     uint32_t blockSize);
 
-
 /**
  * @param[in]  S          points to an instance of the high precision Q31 Biquad cascade filter structure.
  * @param[in]  pSrc       points to the block of input data.
@@ -2159,7 +2054,6 @@ void csi_biquad_cas_df1_32x64_q31(
     const q31_t * pSrc,
     q31_t * pDst,
     uint32_t blockSize);
-
 
 /**
  * @param[in,out] S          points to an instance of the high precision Q31 Biquad cascade filter structure.
@@ -2175,7 +2069,6 @@ void csi_biquad_cas_df1_32x64_init_q31(
     q63_t * pState,
     uint8_t postShift);
 
-
 /**
  * @brief Processing function for the floating-point transposed direct form II Biquad cascade filter.
  * @param[in]  S          points to an instance of the filter data structure.
@@ -2188,7 +2081,6 @@ void csi_biquad_cascade_df2T_f32(
     const float32_t * pSrc,
     float32_t * pDst,
     uint32_t blockSize);
-
 
 /**
  * @brief Processing function for the floating-point transposed direct form II Biquad cascade filter. 2 channels
@@ -2203,7 +2095,6 @@ void csi_biquad_cascade_stereo_df2T_f32(
     float32_t * pDst,
     uint32_t blockSize);
 
-
 /**
  * @brief Processing function for the floating-point transposed direct form II Biquad cascade filter.
  * @param[in]  S          points to an instance of the filter data structure.
@@ -2216,7 +2107,6 @@ void csi_biquad_cascade_df2T_f64(
     float64_t * pSrc,
     float64_t * pDst,
     uint32_t blockSize);
-
 
 #if defined(CSI_MATH_NEON)
 void csi_biquad_cascade_df2T_compute_coefs_f32(
@@ -2237,7 +2127,6 @@ void csi_biquad_cascade_df2T_init_f32(
     const float32_t * pCoeffs,
     float32_t * pState);
 
-
 /**
  * @brief  Initialization function for the floating-point transposed direct form II Biquad cascade filter.
  * @param[in,out] S          points to an instance of the filter data structure.
@@ -2250,7 +2139,6 @@ void csi_biquad_cascade_stereo_df2T_init_f32(
     uint8_t numStages,
     const float32_t * pCoeffs,
     float32_t * pState);
-
 
 /**
  * @brief  Initialization function for the floating-point transposed direct form II Biquad cascade filter.
@@ -2265,7 +2153,6 @@ void csi_biquad_cascade_df2T_init_f64(
     float64_t * pCoeffs,
     float64_t * pState);
 
-
 /**
  * @brief Initialization function for the Q15 FIR lattice filter.
  * @param[in] S          points to an instance of the Q15 FIR lattice structure.
@@ -2278,7 +2165,6 @@ void csi_fir_lattice_init_q15(
     uint16_t numStages,
     const q15_t * pCoeffs,
     q15_t * pState);
-
 
 /**
  * @brief Processing function for the Q15 FIR lattice filter.
@@ -2293,7 +2179,6 @@ void csi_fir_lattice_q15(
     q15_t * pDst,
     uint32_t blockSize);
 
-
 /**
  * @brief Initialization function for the Q31 FIR lattice filter.
  * @param[in] S          points to an instance of the Q31 FIR lattice structure.
@@ -2306,7 +2191,6 @@ void csi_fir_lattice_init_q31(
     uint16_t numStages,
     const q31_t * pCoeffs,
     q31_t * pState);
-
 
 /**
  * @brief Processing function for the Q31 FIR lattice filter.
@@ -2321,7 +2205,6 @@ void csi_fir_lattice_q31(
     q31_t * pDst,
     uint32_t blockSize);
 
-
 /**
  * @brief Initialization function for the floating-point FIR lattice filter.
  * @param[in] S          points to an instance of the floating-point FIR lattice structure.
@@ -2334,7 +2217,6 @@ void csi_fir_lattice_init_f32(
     uint16_t numStages,
     const float32_t * pCoeffs,
     float32_t * pState);
-
 
 /**
  * @brief Processing function for the floating-point FIR lattice filter.
@@ -2349,7 +2231,6 @@ void csi_fir_lattice_f32(
     float32_t * pDst,
     uint32_t blockSize);
 
-
 /**
  * @brief Processing function for the floating-point IIR lattice filter.
  * @param[in]  S          points to an instance of the floating-point IIR lattice structure.
@@ -2362,7 +2243,6 @@ void csi_iir_lattice_f32(
     const float32_t * pSrc,
     float32_t * pDst,
     uint32_t blockSize);
-
 
 /**
  * @brief Initialization function for the floating-point IIR lattice filter.
@@ -2381,7 +2261,6 @@ void csi_iir_lattice_init_f32(
     float32_t * pState,
     uint32_t blockSize);
 
-
 /**
  * @brief Processing function for the Q31 IIR lattice filter.
  * @param[in]  S          points to an instance of the Q31 IIR lattice structure.
@@ -2394,7 +2273,6 @@ void csi_iir_lattice_q31(
     const q31_t * pSrc,
     q31_t * pDst,
     uint32_t blockSize);
-
 
 /**
  * @brief Initialization function for the Q31 IIR lattice filter.
@@ -2413,7 +2291,6 @@ void csi_iir_lattice_init_q31(
     q31_t * pState,
     uint32_t blockSize);
 
-
 /**
  * @brief Processing function for the Q15 IIR lattice filter.
  * @param[in]  S          points to an instance of the Q15 IIR lattice structure.
@@ -2426,7 +2303,6 @@ void csi_iir_lattice_q15(
     const q15_t * pSrc,
     q15_t * pDst,
     uint32_t blockSize);
-
 
 /**
  * @brief Initialization function for the Q15 IIR lattice filter.
@@ -2445,7 +2321,6 @@ void csi_iir_lattice_init_q15(
     q15_t * pState,
     uint32_t blockSize);
 
-
 /**
  * @brief Processing function for floating-point LMS filter.
  * @param[in]  S          points to an instance of the floating-point LMS filter structure.
@@ -2463,7 +2338,6 @@ void csi_lms_f32(
     float32_t * pErr,
     uint32_t blockSize);
 
-
 /**
  * @brief Initialization function for floating-point LMS filter.
  * @param[in] S          points to an instance of the floating-point LMS filter structure.
@@ -2480,7 +2354,6 @@ void csi_lms_init_f32(
     float32_t * pState,
     float32_t mu,
     uint32_t blockSize);
-
 
 /**
  * @brief Initialization function for the Q15 LMS filter.
@@ -2501,7 +2374,6 @@ void csi_lms_init_q15(
     uint32_t blockSize,
     uint32_t postShift);
 
-
 /**
  * @brief Processing function for Q15 LMS filter.
  * @param[in]  S          points to an instance of the Q15 LMS filter structure.
@@ -2519,7 +2391,6 @@ void csi_lms_q15(
     q15_t * pErr,
     uint32_t blockSize);
 
-
 /**
  * @brief Processing function for Q31 LMS filter.
  * @param[in]  S          points to an instance of the Q15 LMS filter structure.
@@ -2536,7 +2407,6 @@ void csi_lms_q31(
     q31_t * pOut,
     q31_t * pErr,
     uint32_t blockSize);
-
 
 /**
  * @brief Initialization function for Q31 LMS filter.
@@ -2557,7 +2427,6 @@ void csi_lms_init_q31(
     uint32_t blockSize,
     uint32_t postShift);
 
-
 /**
  * @brief Processing function for floating-point normalized LMS filter.
  * @param[in]  S          points to an instance of the floating-point normalized LMS filter structure.
@@ -2574,7 +2443,6 @@ void csi_lms_norm_f32(
     float32_t * pOut,
     float32_t * pErr,
     uint32_t blockSize);
-
 
 /**
  * @brief Initialization function for floating-point normalized LMS filter.
@@ -2593,7 +2461,6 @@ void csi_lms_norm_init_f32(
     float32_t mu,
     uint32_t blockSize);
 
-
 /**
  * @brief Processing function for Q31 normalized LMS filter.
  * @param[in]  S          points to an instance of the Q31 normalized LMS filter structure.
@@ -2610,7 +2477,6 @@ void csi_lms_norm_q31(
     q31_t * pOut,
     q31_t * pErr,
     uint32_t blockSize);
-
 
 /**
  * @brief Initialization function for Q31 normalized LMS filter.
@@ -2631,7 +2497,6 @@ void csi_lms_norm_init_q31(
     uint32_t blockSize,
     uint8_t postShift);
 
-
 /**
  * @brief Processing function for Q15 normalized LMS filter.
  * @param[in]  S          points to an instance of the Q15 normalized LMS filter structure.
@@ -2648,7 +2513,6 @@ void csi_lms_norm_q15(
     q15_t * pOut,
     q15_t * pErr,
     uint32_t blockSize);
-
 
 /**
  * @brief Initialization function for Q15 normalized LMS filter.
@@ -2669,7 +2533,6 @@ void csi_lms_norm_init_q15(
     uint32_t blockSize,
     uint8_t postShift);
 
-
 /**
  * @brief Correlation of floating-point sequences.
  * @param[in]  pSrcA    points to the first input sequence.
@@ -2684,7 +2547,6 @@ void csi_correlate_f32(
     const float32_t * pSrcB,
     uint32_t srcBLen,
     float32_t * pDst);
-
 
 /**
  @brief Correlation of Q15 sequences
@@ -2703,7 +2565,6 @@ void csi_correlate_opt_q15(
     q15_t * pDst,
     q15_t * pScratch);
 
-
 /**
   @brief Correlation of Q15 sequences.
   @param[in]  pSrcA    points to the first input sequence
@@ -2718,7 +2579,6 @@ void csi_correlate_q15(
     const q15_t * pSrcB,
     uint32_t srcBLen,
     q15_t * pDst);
-
 
 /**
   @brief         Correlation of Q15 sequences (fast version).
@@ -2735,7 +2595,6 @@ void csi_correlate_fast_q15(
     const q15_t * pSrcB,
     uint32_t srcBLen,
     q15_t * pDst);
-
 
 /**
   @brief Correlation of Q15 sequences (fast version).
@@ -2754,7 +2613,6 @@ void csi_correlate_fast_opt_q15(
     q15_t * pDst,
     q15_t * pScratch);
 
-
 /**
  * @brief Correlation of Q31 sequences.
  * @param[in]  pSrcA    points to the first input sequence.
@@ -2770,7 +2628,6 @@ void csi_correlate_q31(
     uint32_t srcBLen,
     q31_t * pDst);
 
-
 /**
   @brief Correlation of Q31 sequences (fast version).
   @param[in]  pSrcA    points to the first input sequence
@@ -2785,7 +2642,6 @@ void csi_correlate_fast_q31(
     const q31_t * pSrcB,
     uint32_t srcBLen,
     q31_t * pDst);
-
 
 /**
   * @brief Correlation of Q7 sequences.
@@ -2805,7 +2661,6 @@ void csi_correlate_opt_q7(
     q7_t * pDst,
     q15_t * pScratch1,
     q15_t * pScratch2);
-
 
 /**
  * @brief Correlation of Q7 sequences.
@@ -2837,7 +2692,6 @@ void csi_fir_sparse_f32(
     float32_t * pScratchIn,
     uint32_t blockSize);
 
-
 /**
  * @brief  Initialization function for the floating-point sparse FIR filter.
  * @param[in,out] S          points to an instance of the floating-point sparse FIR structure.
@@ -2857,7 +2711,6 @@ void csi_fir_sparse_init_f32(
     uint16_t maxDelay,
     uint32_t blockSize);
 
-
 /**
  * @brief Processing function for the Q31 sparse FIR filter.
  * @param[in]  S           points to an instance of the Q31 sparse FIR structure.
@@ -2872,7 +2725,6 @@ void csi_fir_sparse_q31(
     q31_t * pDst,
     q31_t * pScratchIn,
     uint32_t blockSize);
-
 
 /**
  * @brief  Initialization function for the Q31 sparse FIR filter.
@@ -2893,7 +2745,6 @@ void csi_fir_sparse_init_q31(
     uint16_t maxDelay,
     uint32_t blockSize);
 
-
 /**
  * @brief Processing function for the Q15 sparse FIR filter.
  * @param[in]  S            points to an instance of the Q15 sparse FIR structure.
@@ -2910,7 +2761,6 @@ void csi_fir_sparse_q15(
     q15_t * pScratchIn,
     q31_t * pScratchOut,
     uint32_t blockSize);
-
 
 /**
  * @brief  Initialization function for the Q15 sparse FIR filter.
@@ -2931,7 +2781,6 @@ void csi_fir_sparse_init_q15(
     uint16_t maxDelay,
     uint32_t blockSize);
 
-
 /**
  * @brief Processing function for the Q7 sparse FIR filter.
  * @param[in]  S            points to an instance of the Q7 sparse FIR structure.
@@ -2948,7 +2797,6 @@ void csi_fir_sparse_q7(
     q7_t * pScratchIn,
     q31_t * pScratchOut,
     uint32_t blockSize);
-
 
 /**
  * @brief  Initialization function for the Q7 sparse FIR filter.
@@ -2969,7 +2817,6 @@ void csi_fir_sparse_init_q7(
     uint16_t maxDelay,
     uint32_t blockSize);
 
-
 /**
  * @brief  Floating-point sin_cos function.
  * @param[in]  theta   input value in degrees
@@ -2981,7 +2828,6 @@ void csi_sin_cos_f32(
     float32_t * pSinVal,
     float32_t * pCosVal);
 
-
 /**
  * @brief  Q31 sin_cos function.
  * @param[in]  theta    scaled input value in degrees
@@ -2992,7 +2838,6 @@ void csi_sin_cos_q31(
     q31_t theta,
     q31_t * pSinVal,
     q31_t * pCosVal);
-
 
 /**
  * @brief  Floating-point complex conjugate.
@@ -3016,7 +2861,6 @@ void csi_cmplx_conj_q31(
     q31_t * pDst,
     uint32_t numSamples);
 
-
 /**
  * @brief  Q15 complex conjugate.
  * @param[in]  pSrc        points to the input vector
@@ -3028,7 +2872,6 @@ void csi_cmplx_conj_q15(
     q15_t * pDst,
     uint32_t numSamples);
 
-
 /**
  * @brief  Floating-point complex magnitude squared
  * @param[in]  pSrc        points to the complex input vector
@@ -3039,7 +2882,6 @@ void csi_cmplx_mag_squared_f32(
     const float32_t * pSrc,
     float32_t * pDst,
     uint32_t numSamples);
-
 
 /**
  * @brief  Q31 complex magnitude squared
@@ -3057,7 +2899,6 @@ void csi_cmplx_mag_squared_q31_basic(
     q63_t * pDst,
     uint32_t numSamples);
 
-
 /**
  * @brief  Q15 complex magnitude squared
  * @param[in]  pSrc        points to the complex input vector
@@ -3068,7 +2909,6 @@ void csi_cmplx_mag_squared_q15(
     const q15_t * pSrc,
     q15_t * pDst,
     uint32_t numSamples);
-
 
 /**
   * @ingroup groupController
@@ -3196,7 +3036,6 @@ __STATIC_FORCEINLINE q31_t csi_pid_q31(
     return (out);
 }
 
-
 /**
   @brief         Process function for the Q15 PID Control.
   @param[in,out] S   points to an instance of the Q15 PID Control structure
@@ -3246,7 +3085,6 @@ __STATIC_FORCEINLINE q15_t csi_pid_q15(
  * @} end of PID group
  */
 
-
 /**
  * @brief Floating-point matrix inverse.
  * @param[in]  src   points to the instance of the input floating-point matrix structure.
@@ -3258,7 +3096,6 @@ csi_status csi_mat_inverse_f32(
     const csi_matrix_instance_f32 * src,
     csi_matrix_instance_f32 * dst);
 
-
 /**
  * @brief Floating-point matrix inverse.
  * @param[in]  src   points to the instance of the input floating-point matrix structure.
@@ -3269,8 +3106,6 @@ csi_status csi_mat_inverse_f32(
 csi_status csi_mat_inverse_f64(
     const csi_matrix_instance_f64 * src,
     csi_matrix_instance_f64 * dst);
-
-
 
 /**
  * @ingroup groupController
@@ -3324,7 +3159,6 @@ __STATIC_FORCEINLINE void csi_clarke_f32(
     *pIbeta = ((float32_t) 0.57735026919 * Ia + (float32_t) 1.15470053838 * Ib);
 }
 
-
 /**
   @brief  Clarke transform for Q31 version
   @param[in]  Ia       input three-phase coordinate <code>a</code>
@@ -3358,7 +3192,6 @@ __STATIC_FORCEINLINE void csi_clarke_q31(
 /**
  * @} end of clarke group
  */
-
 
 /**
  * @ingroup groupController
@@ -3405,7 +3238,6 @@ __STATIC_FORCEINLINE void csi_inv_clarke_f32(
     *pIb = -0.5f * Ialpha + 0.8660254039f * Ibeta;
 }
 
-
 /**
   @brief  Inverse Clarke transform for Q31 version
   @param[in]  Ialpha  input two-phase orthogonal vector axis alpha
@@ -3439,8 +3271,6 @@ __STATIC_FORCEINLINE void csi_inv_clarke_q31(
 /**
  * @} end of inv_clarke group
  */
-
-
 
 /**
  * @ingroup groupController
@@ -3502,7 +3332,6 @@ __STATIC_FORCEINLINE void csi_park_f32(
     *pIq = -Ialpha * sinVal + Ibeta * cosVal;
 }
 
-
 /**
   @brief  Park transform for Q31 version
   @param[in]  Ialpha  input two-phase vector coordinate alpha
@@ -3560,7 +3389,6 @@ __STATIC_FORCEINLINE void csi_park_q31(
  * @} end of park group
  */
 
-
 /**
  * @ingroup groupController
  */
@@ -3610,7 +3438,6 @@ __STATIC_FORCEINLINE void csi_inv_park_f32(
     /* Calculate pIbeta using the equation, pIbeta = Id * sinVal + Iq * cosVal */
     *pIbeta = Id * sinVal + Iq * cosVal;
 }
-
 
 /**
   @brief  Inverse Park transform for   Q31 version
@@ -3668,7 +3495,6 @@ __STATIC_FORCEINLINE void csi_inv_park_q31(
 /**
  * @} end of Inverse park group
  */
-
 
 /**
  * @ingroup groupInterpolation
@@ -3754,7 +3580,6 @@ __STATIC_FORCEINLINE float32_t csi_linear_interp_f32(
     return (y);
 }
 
-
 /**
 *
 * @brief  Process function for the Q31 Linear Interpolation Function.
@@ -3804,7 +3629,6 @@ __STATIC_FORCEINLINE q31_t csi_linear_interp_q31(
     }
 }
 
-
 /**
  *
  * @brief  Process function for the Q15 Linear Interpolation Function.
@@ -3853,7 +3677,6 @@ __STATIC_FORCEINLINE q15_t csi_linear_interp_q15(
         return (q15_t) (y >> 20);
     }
 }
-
 
 /**
  *
@@ -3917,7 +3740,6 @@ __STATIC_FORCEINLINE q7_t csi_linear_interp_q7(
 float32_t csi_sin_f32(
     float32_t x);
 
-
 /**
  * @brief  Fast approximation to the trigonometric sine function for Q31 data.
  * @param[in] x  Scaled input value in radians.
@@ -3925,7 +3747,6 @@ float32_t csi_sin_f32(
  */
 q31_t csi_sin_q31(
     q31_t x);
-
 
 /**
  * @brief  Fast approximation to the trigonometric sine function for Q15 data.
@@ -3935,7 +3756,6 @@ q31_t csi_sin_q31(
 q15_t csi_sin_q15(
     q15_t x);
 
-
 /**
  * @brief  Fast approximation to the trigonometric cosine function for floating-point data.
  * @param[in] x  input value in radians.
@@ -3943,7 +3763,6 @@ q15_t csi_sin_q15(
  */
 float32_t csi_cos_f32(
     float32_t x);
-
 
 /**
  * @brief Fast approximation to the trigonometric cosine function for Q31 data.
@@ -3953,7 +3772,6 @@ float32_t csi_cos_f32(
 q31_t csi_cos_q31(
     q31_t x);
 
-
 /**
  * @brief  Fast approximation to the trigonometric cosine function for Q15 data.
  * @param[in] x  Scaled input value in radians.
@@ -3961,7 +3779,6 @@ q31_t csi_cos_q31(
  */
 q15_t csi_cos_q15(
     q15_t x);
-
 
 /**
   @brief         Floating-point vector of log values.
@@ -3991,7 +3808,6 @@ void csi_vexp_f32(
  * @ingroup groupFastMath
  */
 
-
 /**
  * @defgroup SQRT Square Root
  *
@@ -4011,7 +3827,6 @@ void csi_vexp_f32(
  *     x1 = 1/2 * ( x0 + in / x0)        [each iteration]
  * </pre>
  */
-
 
 /**
  * @addtogroup SQRT
@@ -4073,7 +3888,6 @@ csi_status csi_sqrt_f32(
     float32_t * pOut);
 #endif
 
-
 /**
   @brief		 Q31 square root function.
   @param[in]	 in    input value.  The range of the input value is [0 +1) or 0x00000000 to 0x7FFFFFFF
@@ -4115,7 +3929,6 @@ void csi_vsqrt_q7(
     q7_t * 	pIn,
     q7_t * 	pOut,
     uint16_t	len);
-
 
 #else
 __STATIC_FORCEINLINE void csi_vsqrt_f32(
@@ -4193,8 +4006,6 @@ __STATIC_FORCEINLINE void csi_circularWrite_f32(
     *writeOffset = (uint16_t)wOffset;
 }
 
-
-
 /**
  * @brief floating-point Circular Read function.
  */
@@ -4260,7 +4071,6 @@ void csi_power_int32(
     uint32_t blockSize,
     q63_t * pResult);
 
-
 /**
  * @brief  Sum of the squares of the elements of a floating-point vector.
  * @param[in]  pSrc       is input pointer
@@ -4271,7 +4081,6 @@ void csi_power_f32(
     const float32_t * pSrc,
     uint32_t blockSize,
     float32_t * pResult);
-
 
 /**
  * @brief  Sum of the squares of the elements of a Q15 vector.
@@ -4284,7 +4093,6 @@ void csi_power_q15(
     uint32_t blockSize,
     q63_t * pResult);
 
-
 /**
  * @brief  Sum of the squares of the elements of a Q7 vector.
  * @param[in]  pSrc       is input pointer
@@ -4295,7 +4103,6 @@ void csi_power_q7(
     const q7_t * pSrc,
     uint32_t blockSize,
     q31_t * pResult);
-
 
 /**
  * @brief  Mean value of a Q7 vector.
@@ -4308,7 +4115,6 @@ void csi_mean_q7(
     uint32_t blockSize,
     q7_t * pResult);
 
-
 /**
  * @brief  Mean value of a Q15 vector.
  * @param[in]  pSrc       is input pointer
@@ -4319,7 +4125,6 @@ void csi_mean_q15(
     const q15_t * pSrc,
     uint32_t blockSize,
     q15_t * pResult);
-
 
 /**
  * @brief  Mean value of a Q31 vector.
@@ -4332,7 +4137,6 @@ void csi_mean_q31(
     uint32_t blockSize,
     q31_t * pResult);
 
-
 /**
  * @brief  Mean value of a floating-point vector.
  * @param[in]  pSrc       is input pointer
@@ -4343,7 +4147,6 @@ void csi_mean_f32(
     const float32_t * pSrc,
     uint32_t blockSize,
     float32_t * pResult);
-
 
 /**
  * @brief  Variance of the elements of a floating-point vector.
@@ -4356,7 +4159,6 @@ void csi_var_f32(
     uint32_t blockSize,
     float32_t * pResult);
 
-
 /**
  * @brief  Variance of the elements of a Q31 vector.
  * @param[in]  pSrc       is input pointer
@@ -4367,7 +4169,6 @@ void csi_var_q31(
     const q31_t * pSrc,
     uint32_t blockSize,
     q31_t * pResult);
-
 
 /**
  * @brief  Variance of the elements of a Q15 vector.
@@ -4380,7 +4181,6 @@ void csi_var_q15(
     uint32_t blockSize,
     q15_t * pResult);
 
-
 /**
  * @brief  Root Mean Square of the elements of a floating-point vector.
  * @param[in]  pSrc       is input pointer
@@ -4391,7 +4191,6 @@ void csi_rms_f32(
     const float32_t * pSrc,
     uint32_t blockSize,
     float32_t * pResult);
-
 
 /**
  * @brief  Root Mean Square of the elements of a Q31 vector.
@@ -4404,7 +4203,6 @@ void csi_rms_q31(
     uint32_t blockSize,
     q31_t * pResult);
 
-
 /**
  * @brief  Root Mean Square of the elements of a Q15 vector.
  * @param[in]  pSrc       is input pointer
@@ -4415,7 +4213,6 @@ void csi_rms_q15(
     const q15_t * pSrc,
     uint32_t blockSize,
     q15_t * pResult);
-
 
 /**
  * @brief  Standard deviation of the elements of a floating-point vector.
@@ -4428,7 +4225,6 @@ void csi_std_f32(
     uint32_t blockSize,
     float32_t * pResult);
 
-
 /**
  * @brief  Standard deviation of the elements of a Q31 vector.
  * @param[in]  pSrc       is input pointer
@@ -4439,7 +4235,6 @@ void csi_std_q31(
     const q31_t * pSrc,
     uint32_t blockSize,
     q31_t * pResult);
-
 
 /**
  * @brief  Standard deviation of the elements of a Q15 vector.
@@ -4452,7 +4247,6 @@ void csi_std_q15(
     uint32_t blockSize,
     q15_t * pResult);
 
-
 /**
  * @brief  Floating-point complex magnitude
  * @param[in]  pSrc        points to the complex input vector
@@ -4463,7 +4257,6 @@ void csi_cmplx_mag_f32(
     const float32_t * pSrc,
     float32_t * pDst,
     uint32_t numSamples);
-
 
 /**
  * @brief  Q31 complex magnitude
@@ -4476,7 +4269,6 @@ void csi_cmplx_mag_q31(
     q31_t * pDst,
     uint32_t numSamples);
 
-
 /**
  * @brief  Q15 complex magnitude
  * @param[in]  pSrc        points to the complex input vector
@@ -4487,7 +4279,6 @@ void csi_cmplx_mag_q15(
     const q15_t * pSrc,
     q15_t * pDst,
     uint32_t numSamples);
-
 
 /**
  * @brief  Q15 complex dot product
@@ -4503,7 +4294,6 @@ void csi_cmplx_dot_prod_q15(
     uint32_t numSamples,
     q31_t * realResult,
     q31_t * imagResult);
-
 
 /**
  * @brief  Q31 complex dot product
@@ -4541,7 +4331,6 @@ void csi_cmplx_dot_prod_f32(
     float32_t * realResult,
     float32_t * imagResult);
 
-
 /**
  * @brief  Q15 complex-by-real multiplication
  * @param[in]  pSrcCmplx   points to the complex input vector
@@ -4554,7 +4343,6 @@ void csi_cmplx_mult_real_q15(
     const q15_t * pSrcReal,
     q15_t * pCmplxDst,
     uint32_t numSamples);
-
 
 /**
  * @brief  Q31 complex-by-real multiplication
@@ -4569,7 +4357,6 @@ void csi_cmplx_mult_real_q31(
     q31_t * pCmplxDst,
     uint32_t numSamples);
 
-
 /**
  * @brief  Floating-point complex-by-real multiplication
  * @param[in]  pSrcCmplx   points to the complex input vector
@@ -4582,7 +4369,6 @@ void csi_cmplx_mult_real_f32(
     const float32_t * pSrcReal,
     float32_t * pCmplxDst,
     uint32_t numSamples);
-
 
 /**
  * @brief  Minimum value of a Q7 vector.
@@ -4597,7 +4383,6 @@ void csi_min_q7(
     q7_t * result,
     uint16_t * index);
 
-
 /**
  * @brief  Minimum value of a Q15 vector.
  * @param[in]  pSrc       is input pointer
@@ -4610,7 +4395,6 @@ void csi_min_q15(
     uint16_t blockSize,
     q15_t * pResult,
     uint16_t * pIndex);
-
 
 /**
  * @brief  Minimum value of a Q31 vector.
@@ -4625,7 +4409,6 @@ void csi_min_q31(
     q31_t * pResult,
     uint32_t * pIndex);
 
-
 /**
  * @brief  Minimum value of a floating-point vector.
  * @param[in]  pSrc       is input pointer
@@ -4638,7 +4421,6 @@ void csi_min_f32(
     uint32_t blockSize,
     float32_t * pResult,
     uint32_t * pIndex);
-
 
 /**
  * @brief Maximum value of a Q7 vector.
@@ -4653,7 +4435,6 @@ void csi_max_q7(
     q7_t * pResult,
     uint16_t * pIndex);
 
-
 /**
  * @brief Maximum value of a Q15 vector.
  * @param[in]  pSrc       points to the input buffer
@@ -4667,7 +4448,6 @@ void csi_max_q15(
     q15_t * pResult,
     uint16_t * pIndex);
 
-
 /**
  * @brief Maximum value of a Q31 vector.
  * @param[in]  pSrc       points to the input buffer
@@ -4680,7 +4460,6 @@ void csi_max_q31(
     uint32_t blockSize,
     q31_t * pResult,
     uint32_t * pIndex);
-
 
 /**
  * @brief Maximum value of a floating-point vector.
@@ -4720,7 +4499,6 @@ void csi_cmplx_mult_cmplx_q15(
     q15_t * pDst,
     uint32_t numSamples);
 
-
 /**
  * @brief  Q31 complex-by-complex multiplication
  * @param[in]  pSrcA       points to the first input vector
@@ -4733,7 +4511,6 @@ void csi_cmplx_mult_cmplx_q31(
     const q31_t * pSrcB,
     q31_t * pDst,
     uint32_t numSamples);
-
 
 /**
  * @brief  Floating-point complex-by-complex multiplication
@@ -4754,7 +4531,6 @@ void csi_cmplx_mult_cmplx_re_f32(
     float32_t * pDst,
     uint32_t numSamples);
 
-
 /**
  * @brief Converts the elements of the floating-point vector to Q31 vector.
  * @param[in]  pSrc       points to the floating-point input vector
@@ -4765,7 +4541,6 @@ void csi_float_to_q31(
     const float32_t * pSrc,
     q31_t * pDst,
     uint32_t blockSize);
-
 
 /**
  * @brief Converts the elements of the floating-point vector to Q15 vector.
@@ -4778,7 +4553,6 @@ void csi_float_to_q15(
     q15_t * pDst,
     uint32_t blockSize);
 
-
 /**
  * @brief Converts the elements of the floating-point vector to Q7 vector.
  * @param[in]  pSrc       points to the floating-point input vector
@@ -4790,7 +4564,6 @@ void csi_float_to_q7(
     q7_t * pDst,
     uint32_t blockSize);
 
-
 /**
  * @brief  Converts the elements of the Q31 vector to floating-point vector.
  * @param[in]  pSrc       is input pointer
@@ -4801,7 +4574,6 @@ void csi_q31_to_float(
     const q31_t * pSrc,
     float32_t * pDst,
     uint32_t blockSize);
-
 
 /**
  * @brief  Converts the elements of the Q31 vector to Q15 vector.
@@ -4826,7 +4598,6 @@ void csi_q63_to_q31_rs(
     uint32_t shiftValue,
     uint32_t blockSize);
 
-
 /**
  * @brief  Converts the elements of the Q31 vector to Q7 vector.
  * @param[in]  pSrc       is input pointer
@@ -4837,7 +4608,6 @@ void csi_q31_to_q7(
     const q31_t * pSrc,
     q7_t * pDst,
     uint32_t blockSize);
-
 
 /**
  * @brief  Converts the elements of the Q15 vector to floating-point vector.
@@ -4850,7 +4620,6 @@ void csi_q15_to_float(
     float32_t * pDst,
     uint32_t blockSize);
 
-
 /**
  * @brief  Converts the elements of the Q15 vector to Q31 vector.
  * @param[in]  pSrc       is input pointer
@@ -4861,7 +4630,6 @@ void csi_q15_to_q31(
     const q15_t * pSrc,
     q31_t * pDst,
     uint32_t blockSize);
-
 
 /**
  * @brief  Converts the elements of the Q15 vector to Q7 vector.
@@ -4874,7 +4642,6 @@ void csi_q15_to_q7(
     q7_t * pDst,
     uint32_t blockSize);
 
-
 /**
  * @brief  Converts the elements of the Q7 vector to floating-point vector.
  * @param[in]  pSrc       is input pointer
@@ -4885,7 +4652,6 @@ void csi_q7_to_float(
     const q7_t * pSrc,
     float32_t * pDst,
     uint32_t blockSize);
-
 
 /**
  * @brief  Converts the elements of the Q7 vector to Q31 vector.
@@ -4898,7 +4664,6 @@ void csi_q7_to_q31(
     q31_t * pDst,
     uint32_t blockSize);
 
-
 /**
  * @brief  Converts the elements of the Q7 vector to Q15 vector.
  * @param[in]  pSrc       input pointer
@@ -4909,7 +4674,6 @@ void csi_q7_to_q15(
     const q7_t * pSrc,
     q15_t * pDst,
     uint32_t blockSize);
-
 
 /**
  * @brief        SVM linear instance init function
@@ -4923,7 +4687,6 @@ void csi_q7_to_q15(
  * @return none.
  *
  */
-
 
 void csi_svm_linear_init_f32(csi_svm_linear_instance_f32 *S,
                                uint32_t nbOfSupportVectors,
@@ -4946,7 +4709,6 @@ void csi_svm_linear_predict_f32(const csi_svm_linear_instance_f32 *S,
                                   const float32_t * in,
                                   int32_t * pResult);
 
-
 /**
  * @brief        SVM polynomial instance init function
  * @param[in]    S                      points to an instance of the polynomial SVM structure.
@@ -4962,7 +4724,6 @@ void csi_svm_linear_predict_f32(const csi_svm_linear_instance_f32 *S,
  * @return none.
  *
  */
-
 
 void csi_svm_polynomial_init_f32(csi_svm_polynomial_instance_f32 *S,
                                    uint32_t nbOfSupportVectors,
@@ -4987,7 +4748,6 @@ void csi_svm_polynomial_init_f32(csi_svm_polynomial_instance_f32 *S,
 void csi_svm_polynomial_predict_f32(const csi_svm_polynomial_instance_f32 *S,
                                       const float32_t * in,
                                       int32_t * pResult);
-
 
 /**
  * @brief        SVM radial basis function instance init function
@@ -5063,7 +4823,6 @@ void csi_svm_sigmoid_predict_f32(const csi_svm_sigmoid_instance_f32 *S,
                                    const float32_t * in,
                                    int32_t * pResult);
 
-
 /**
  * @brief Naive Gaussian Bayesian Estimator
  *
@@ -5073,7 +4832,6 @@ void csi_svm_sigmoid_predict_f32(const csi_svm_sigmoid_instance_f32 *S,
  * @return The predicted class
  *
  */
-
 
 uint32_t csi_gaussian_naive_bayes_predict_f32(const csi_gaussian_naive_bayes_instance_f32 *S,
         const float32_t * in,
@@ -5103,7 +4861,6 @@ uint32_t csi_gaussian_naive_bayes_predict_f32(const csi_gaussian_naive_bayes_ins
  *
  */
 
-
 float32_t csi_logsumexp_f32(const float32_t *in, uint32_t blockSize);
 
 /**
@@ -5119,7 +4876,6 @@ float32_t csi_logsumexp_f32(const float32_t *in, uint32_t blockSize);
  *
  */
 
-
 float32_t csi_logsumexp_dot_prod_f32(const float32_t * pSrcA,
                                        const float32_t * pSrcB,
                                        uint32_t blockSize,
@@ -5134,9 +4890,7 @@ float32_t csi_logsumexp_dot_prod_f32(const float32_t * pSrcA,
  *
  */
 
-
 float32_t csi_entropy_f32(const float32_t * pSrcA,uint32_t blockSize);
-
 
 /**
  * @brief Kullback-Leibler
@@ -5151,7 +4905,6 @@ float32_t csi_kullback_leibler_f32(const float32_t * pSrcA
                                      ,const float32_t * pSrcB
                                      ,uint32_t blockSize);
 
-
 /**
  * @brief Weighted sum
  *
@@ -5165,7 +4918,6 @@ float32_t csi_kullback_leibler_f32(const float32_t * pSrcA
 float32_t csi_weighted_sum_f32(const float32_t *in
                                  , const float32_t *weigths
                                  , uint32_t blockSize);
-
 
 /**
  * @brief Barycenter
@@ -5221,7 +4973,6 @@ float32_t csi_braycurtis_distance_f32(const float32_t *pA,const float32_t *pB, u
  */
 float32_t csi_canberra_distance_f32(const float32_t *pA,const float32_t *pB, uint32_t blockSize);
 
-
 /**
  * @brief        Chebyshev distance between two vectors
  * @param[in]    pA         First vector
@@ -5231,7 +4982,6 @@ float32_t csi_canberra_distance_f32(const float32_t *pA,const float32_t *pB, uin
  *
  */
 float32_t csi_chebyshev_distance_f32(const float32_t *pA,const float32_t *pB, uint32_t blockSize);
-
 
 /**
  * @brief        Cityblock (Manhattan) distance between two vectors
@@ -5301,8 +5051,6 @@ float32_t csi_jensenshannon_distance_f32(const float32_t *pA,const float32_t *pB
  *
  */
 
-
-
 float32_t csi_minkowski_distance_f32(const float32_t *pA,const float32_t *pB, int32_t order, uint32_t blockSize);
 
 /**
@@ -5315,7 +5063,6 @@ float32_t csi_minkowski_distance_f32(const float32_t *pA,const float32_t *pB, in
  * @return distance
  *
  */
-
 
 float32_t csi_dice_distance(const uint32_t *pA, const uint32_t *pB, uint32_t numberOfBools);
 
@@ -5415,7 +5162,6 @@ float32_t csi_sokalsneath_distance(const uint32_t *pA, const uint32_t *pB, uint3
 
 float32_t csi_yule_distance(const uint32_t *pA, const uint32_t *pB, uint32_t numberOfBools);
 
-
 /**
  * @ingroup groupInterpolation
  */
@@ -5471,7 +5217,6 @@ float32_t csi_yule_distance(const uint32_t *pA, const uint32_t *pB, uint32_t num
  * \par
  * if (x,y) are outside of the table boundary, Bilinear interpolation returns zero output.
  */
-
 
 /**
  * @addtogroup BilinearInterpolate
@@ -5529,7 +5274,6 @@ __STATIC_FORCEINLINE float32_t csi_bilinear_interp_f32(
     /* return to application */
     return (out);
 }
-
 
 /**
 * @brief  Q31 bilinear interpolation.
@@ -5592,7 +5336,6 @@ __STATIC_FORCEINLINE q31_t csi_bilinear_interp_q31(
     /* Convert acc to 1.31(q31) format */
     return ((q31_t)(acc << 2));
 }
-
 
 /**
 * @brief  Q15 bilinear interpolation.
@@ -5658,7 +5401,6 @@ __STATIC_FORCEINLINE q15_t csi_bilinear_interp_q15(
     /* Convert out to 1.15 format */
     return ((q15_t)(acc >> 36));
 }
-
 
 /**
 * @brief  Q7 bilinear interpolation.
@@ -5729,7 +5471,6 @@ __STATIC_FORCEINLINE q7_t csi_bilinear_interp_q7(
 #ifdef   __cplusplus
 }
 #endif
-
 
 #endif /* _CSI_MATH_H */
 

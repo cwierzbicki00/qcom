@@ -1,6 +1,6 @@
 ################################################################################
 # Automatically-generated file. Do not edit!
-# Toolchain: GNU Tools for STM32 (12.3.rel1)
+# Toolchain: GNU Tools for STM32 (11.3.rel1)
 ################################################################################
 
 ELF_SRCS := 
@@ -24,9 +24,17 @@ C_DEPS :=
 SUBDIRS := \
 Core/Src \
 Core/Startup \
+Core/iperf \
+Core/virt_net/src \
 Drivers/STM32U5xx_HAL_Driver/Src \
 Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2 \
 Middlewares/Third_Party/FreeRTOS/Source \
 Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM33_NTZ/non_secure \
 Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang \
+Middlewares/Third_Party/Wireless_Connectivity/LwIP/src/api \
+Middlewares/Third_Party/Wireless_Connectivity/LwIP/src/core \
+Middlewares/Third_Party/Wireless_Connectivity/LwIP/src/core/ipv4 \
+Middlewares/Third_Party/Wireless_Connectivity/LwIP/src/core/ipv6 \
+Middlewares/Third_Party/Wireless_Connectivity/LwIP/src/netif \
+Middlewares/Third_Party/Wireless_Connectivity/lwip-freertos-integration/arch \
 

@@ -35,7 +35,7 @@ sdk_add_compile_options("-fdebug-prefix-map=${SOURCE_PATH}=.")
 if(CONFIG_ANTI_ROLLBACK)
     sdk_add_compile_definitions(-DCONFIG_ANTI_ROLLBACK)
 endif()
-sdk_add_compile_definitions(-DAPP_ANTI_ROLLBACK=${APP_ANTI_ROLLBACK})
+sdk_add_compile_definitions(-DCONFIG_APP_ANTI_ROLLBACK_VER=${CONFIG_APP_ANTI_ROLLBACK_VER})
 
 add_subdirectory(bsp)
 add_subdirectory(components)

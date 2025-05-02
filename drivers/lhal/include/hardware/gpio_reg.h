@@ -2001,7 +2001,4 @@
 
 #endif
 
-
-
-
 /* __HARDWARE_GPIO_H__ */

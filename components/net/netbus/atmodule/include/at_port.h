@@ -26,6 +26,10 @@ int at_port_para_set(int baudrate, uint8_t databits, uint8_t stopbits, uint8_t p
 
 int at_port_para_get(int *baudrate, uint8_t *databits, uint8_t *stopbits, uint8_t *parity, uint8_t *flow_control);
 
+int at_port_netmode_set(int mode);
+
+int at_port_netmode_get();
+
 #ifdef __cplusplus
 }
 #endif

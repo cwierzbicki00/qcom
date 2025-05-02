@@ -79,7 +79,6 @@
 #define SDH_TUNING_CFG_REG_OFFSET               (0x11c) /*: TUNING CONFIG Register */
 #endif
 
-
 /* 0x00 : System Address Low Register */
 #define SDH_DMA_ADDR_L                          SDH_DMA_ADDR_L
 #define SDH_DMA_ADDR_L_POS                      (0U)

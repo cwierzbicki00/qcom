@@ -99,7 +99,9 @@ static void spi_write_test0(int count, int len)
 	}
 
 	while (count-- > 0) {
-		SPI_MSG_INIT(m, test_txdata, len, NULL, 0);
+		SPI_MSG_INIT(m, SPI_MSG_OP_DATA, NULL, 0);
+		m.data = test_txdata;
+		m.data_len = len;
 		ret = spi_write(&m, 2000);
 		if (ret <= 0) {
 			printf("failed to spi_write %d\r\n", ret);
@@ -118,7 +120,9 @@ static void spi_do_write_test1(void)
 		uint8_t b = len & 0xFF;
 
 		memset(test_txdata, b, len);
-		SPI_MSG_INIT(m, test_txdata, len, NULL, 0);
+		SPI_MSG_INIT(m, SPI_MSG_OP_DATA, NULL, 0);
+		m.data = test_txdata;
+		m.data_len = len;
 		ret = spi_write(&m, 10000);
 		if (ret <= 0) {
 			printf("failed to spi_write %d\r\n", ret);
@@ -162,7 +166,9 @@ static void spi_read_test0(int count, int len)
 	}
 
 	while (count-- > 0) {
-		SPI_MSG_INIT(m, test_rxdata, len, NULL, 0);
+		SPI_MSG_INIT(m, SPI_MSG_OP_DATA, NULL, 0);
+		m.data = test_rxdata;
+		m.data_len = len;
 		ret = spi_read(&m, 10000);
 		if (ret <= 0) {
 			printf("failed to spi_write %d\r\n", ret);
@@ -178,7 +184,9 @@ static int spi_do_read_test1(int round)
 	struct spi_msg m;
 
 	for (len = 1; len <= TEST_DATA_XFER_SIZE; ) {
-		SPI_MSG_INIT(m, test_rxdata, len, NULL, 0);
+		SPI_MSG_INIT(m, SPI_MSG_OP_DATA, NULL, 0);
+		m.data = test_rxdata;
+		m.data_len = len;
 		ret = spi_read(&m, 10000);
 		if (ret <= 0) {
 			printf("failed to spi_read %d\r\n", ret);
@@ -238,7 +246,9 @@ static void spi_perf_writer(void *arg)
 	struct spi_msg m;
 
 	while (tx_perf_run) {
-		SPI_MSG_INIT(m, txdata, sizeof(txdata), NULL, 0);
+		SPI_MSG_INIT(m, SPI_MSG_OP_DATA, NULL, 0);
+		m.data = txdata;
+		m.data_len = sizeof(txdata);
 		ret = spi_write(&m, 5000);
 		if (ret <= 0) {
 			continue;
@@ -280,7 +290,9 @@ static void spi_perf_reader(void *arg)
 
 	printf("spi perf reader starts running\r\n");
 	while (rx_perf_run) {
-		SPI_MSG_INIT(m, rxdata, sizeof(rxdata), NULL, 0);
+		SPI_MSG_INIT(m, SPI_MSG_OP_DATA, NULL, 0);
+		m.data = rxdata;
+		m.data_len = sizeof(rxdata);
 		ret = spi_read(&m, 5000);
 		if (ret < 0) {
 			printf("spi_read failed, %d\r\n", ret);

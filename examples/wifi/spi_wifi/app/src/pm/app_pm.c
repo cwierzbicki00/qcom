@@ -437,7 +437,6 @@ static void lp_io_wakeup_callback(uint64_t wake_up_io_bits)
 }
 
 static qcc74x_lp_io_cfg_t lp_wake_io_cfg;
-
 int lp_set_wakeup_by_io(uint8_t io, uint8_t mode)
 {
     if (io != 16 && io != 28) {

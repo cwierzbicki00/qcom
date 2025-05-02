@@ -230,6 +230,10 @@ enum cfgrwnx_msg_index {
     CFGRWNX_GET_REMAINING_TX_CMD,
     /// Response to CFGRWNX_GET_REMAINING_TX_CMD  (param: @ref cfgrwnx_get_remaining_tx_resp)
     CFGRWNX_GET_REMAINING_TX_RESP,
+
+    CFGRWNX_GET_STATS_CMD,
+
+    CFGRWNX_GET_STATS_RESP,
 #ifdef CFG_QCC74x_WIFI_PS_ENABLE
     /// Requset to send null packet
     CFGRWNX_NULL_DATA_SEND_CMD,
@@ -676,7 +680,6 @@ struct cfgrwnx_get_edca {
     /// HW queue
     uint8_t hw_queue;
 };
-
 
 /// Structure for @ref CFGRWNX_LIST_FEATURES_RESP
 struct cfgrwnx_list_features_resp {

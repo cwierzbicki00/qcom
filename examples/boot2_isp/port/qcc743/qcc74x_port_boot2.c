@@ -12,7 +12,6 @@
 #include "qcc74xsp_port.h"
 #include "ef_data_reg.h"
 
-
 /****************************************************************************/ /**
  * @brief  init boot2 system clock
  *
@@ -81,13 +80,13 @@ static uint16_t psram_winbond_init_dqs(int8_t burst_len, uint8_t is_fixLatency, 
         .PASR = PSRAM_PARTIAL_REFRESH_FULL,
         .disDeepPowerDownMode = ENABLE,
         .fixedLatency = DISABLE,
-        .brustLen = PSRAM_WINBOND_BURST_LENGTH_64_BYTES,
-        .brustType = PSRAM_WRAPPED_BURST,
+        .burstLen = PSRAM_WINBOND_BURST_LENGTH_64_BYTES,
+        .burstType = PSRAM_WRAPPED_BURST,
         .latency = PSRAM_WINBOND_6_CLOCKS_LATENCY,
-        .driveStrength = PSRAM_WINBOND_DRIVE_STRENGTH_35_OHMS_FOR_4M_115_OHMS_FOR_8M,
+        .driveStrength = PSRAM_WINBOND_DRIVE_STRENGTH_35_OHMS_FOR_4M,
     };
 
-    winbondCfg.brustLen = burst_len;
+    winbondCfg.burstLen = burst_len;
     winbondCfg.fixedLatency = is_fixLatency;
     winbondCfg.latency = latency;
 
@@ -97,6 +96,26 @@ static uint16_t psram_winbond_init_dqs(int8_t burst_len, uint8_t is_fixLatency, 
     PSram_Ctrl_Winbond_Write_Reg(PSRAM0_ID, PSRAM_WINBOND_REG_CR0, &winbondCfg);
 
     PSram_Ctrl_Winbond_Read_Reg(PSRAM0_ID, PSRAM_WINBOND_REG_ID0, &reg_read);
+
+    if (HAL_BOOT2_PSRAM_ID1_WINBOND_4MB == reg_read) {
+        psramCtrlCfg.size = PSRAM_SIZE_4MB;
+        winbondCfg.driveStrength = PSRAM_WINBOND_DRIVE_STRENGTH_35_OHMS_FOR_4M;
+    } else if (HAL_BOOT2_PSRAM_ID4_WINBOND_8MB == reg_read) {
+        psramCtrlCfg.size = PSRAM_SIZE_8MB;
+        winbondCfg.driveStrength = PSRAM_WINBOND_DRIVE_STRENGTH_25_OHMS_FOR_8M;
+    } else if (HAL_BOOT2_PSRAM_ID3_WINBOND_16MB == reg_read) {
+        psramCtrlCfg.size = PSRAM_SIZE_16MB;
+        winbondCfg.driveStrength = PSRAM_WINBOND_DRIVE_STRENGTH_25_OHMS_FOR_16M;
+    } else if (HAL_BOOT2_PSRAM_ID2_WINBOND_32MB == reg_read) {
+        psramCtrlCfg.size = PSRAM_SIZE_32MB;
+        winbondCfg.driveStrength = PSRAM_WINBOND_DRIVE_STRENGTH_34_OHMS_FOR_32M;
+    }
+    /* init again */
+    PSram_Ctrl_Init(PSRAM0_ID, &psramCtrlCfg);
+    PSram_Ctrl_Winbond_Write_Reg(PSRAM0_ID, PSRAM_WINBOND_REG_CR0, &winbondCfg);
+
+    PSram_Ctrl_Winbond_Read_Reg(PSRAM0_ID, PSRAM_WINBOND_REG_ID0, &reg_read);
+
     return reg_read;
 }
 
@@ -205,7 +224,7 @@ static uint16_t hal_boot2_x8_psram_calibration(int32_t *psram_dqs_win_num)
         *psram_dqs_win_num = right_flag - left_flag;
         // printf("ef window: 0x%02x ~ 0x%02x; c_val: 0x%02x; dqs:0x%04x; code num:%d\r\n", left_flag, right_flag, c_val, dqs_val[c_val], (right_flag - left_flag));
         psram_id = psram_winbond_init_dqs(PSRAM_WINBOND_BURST_LENGTH_64_BYTES, 0, PSRAM_WINBOND_6_CLOCKS_LATENCY, dqs_val[c_val]);
-        if ((psram_id != HAL_BOOT2_PSRAM_ID1_WINBOND_4MB) && (psram_id != HAL_BOOT2_PSRAM_ID2_WINBOND_32MB) && \
+        if ((psram_id != HAL_BOOT2_PSRAM_ID1_WINBOND_4MB) && (psram_id != HAL_BOOT2_PSRAM_ID2_WINBOND_32MB) &&
             (psram_id != HAL_BOOT2_PSRAM_ID3_WINBOND_16MB) && (psram_id != HAL_BOOT2_PSRAM_ID4_WINBOND_8MB)) {
             return ERROR;
         }
@@ -215,7 +234,7 @@ static uint16_t hal_boot2_x8_psram_calibration(int32_t *psram_dqs_win_num)
             // #if (!CONFIG_BUILD_TYPE)
             //             printf("psram id:%04x\r\n", psram_id);
             // #endif
-            if ((psram_id == HAL_BOOT2_PSRAM_ID1_WINBOND_4MB) || (psram_id == HAL_BOOT2_PSRAM_ID2_WINBOND_32MB) || \
+            if ((psram_id == HAL_BOOT2_PSRAM_ID1_WINBOND_4MB) || (psram_id == HAL_BOOT2_PSRAM_ID2_WINBOND_32MB) ||
                 (psram_id != HAL_BOOT2_PSRAM_ID3_WINBOND_16MB) || (psram_id != HAL_BOOT2_PSRAM_ID4_WINBOND_8MB)) {
                 if (psram_rw_check() == SUCCESS) {
                     if (dqs_index < dqs_win_min) {
@@ -244,13 +263,13 @@ static uint16_t hal_boot2_x8_psram_calibration(int32_t *psram_dqs_win_num)
             return ERROR;
         }
         psram_id = psram_winbond_init_dqs(PSRAM_WINBOND_BURST_LENGTH_64_BYTES, 0, PSRAM_WINBOND_6_CLOCKS_LATENCY, dqs_val[c_val]);
-        if ((psram_id != HAL_BOOT2_PSRAM_ID1_WINBOND_4MB) && (psram_id != HAL_BOOT2_PSRAM_ID2_WINBOND_32MB) && \
+        if ((psram_id != HAL_BOOT2_PSRAM_ID1_WINBOND_4MB) && (psram_id != HAL_BOOT2_PSRAM_ID2_WINBOND_32MB) &&
             (psram_id != HAL_BOOT2_PSRAM_ID3_WINBOND_16MB) && (psram_id != HAL_BOOT2_PSRAM_ID4_WINBOND_8MB)) {
             return ERROR;
         }
         /* to do write efuse psram dqs delay */
         if (!(before_ef & 0x1fff)) {
-            qcc74x_ef_ctrl_write_common_trim(NULL,"psram",g_efuse_cfg.psram_dqs_cfg,1);
+            qcc74x_ef_ctrl_write_common_trim(NULL, "psram", g_efuse_cfg.psram_dqs_cfg, 1);
         }
     }
     return psram_id;
@@ -345,7 +364,8 @@ void hal_boot2_get_efuse_cfg(boot2_efuse_hw_config *efuse_cfg)
                 break;
             default:
                 BOOT2_MSG_DBG("APP encrypt flag is invalid, deadbeef!\r\n");
-                while(1);
+                while (1)
+                    ;
         }
     }
 
@@ -370,7 +390,8 @@ void hal_boot2_get_efuse_cfg(boot2_efuse_hw_config *efuse_cfg)
                 break;
             default:
                 BOOT2_MSG_DBG("APP sign flag is invalid, deadbeef!\r\n");
-                while(1);
+                while (1)
+                    ;
         }
     }
     for (i = 1; i < HAL_BOOT2_CPU_GROUP_MAX; i++) {
@@ -389,7 +410,7 @@ void hal_boot2_get_efuse_cfg(boot2_efuse_hw_config *efuse_cfg)
     efuse_cfg->psram_dqs_cfg = 0xffff;
     qcc74x_ef_ctrl_read_common_trim(NULL, "psram", &trim, 1);
     if (trim.en) {
-        if(trim.parity == qcc74x_ef_ctrl_get_trim_parity(trim.value,trim.len)){
+        if (trim.parity == qcc74x_ef_ctrl_get_trim_parity(trim.value, trim.len)) {
             efuse_cfg->psram_dqs_cfg = trim.value;
         }
     }
@@ -599,7 +620,7 @@ int32_t hal_boot_parse_bootheader(boot2_image_config *boot_img_cfg, uint8_t *dat
     crc_pass = hal_boot_check_bootheader(header);
 
     if (!crc_pass) {
-        //BOOT2_MSG_ERR("bootheader crc error\r\n");
+        // BOOT2_MSG_ERR("bootheader crc error\r\n");
         //qcc74xsp_dump_data((uint8_t *)&crc, 4);
         return 0x0204;
     }
@@ -621,7 +642,7 @@ int32_t hal_boot_parse_bootheader(boot2_image_config *boot_img_cfg, uint8_t *dat
 
     if (i == HAL_BOOT2_CPU_MAX) {
         /* No cpu img magic match */
-        //MSG_ERR("Magic code error\r\n");
+        // BOOT2_MSG_ERR("Magic code error\r\n");
         return 0x0203;
     }
 
@@ -642,11 +663,11 @@ int32_t hal_boot_parse_bootheader(boot2_image_config *boot_img_cfg, uint8_t *dat
     if (g_efuse_cfg.encrypted[i] != boot_img_cfg->basic_cfg.encrypt_type) {
         if (boot_img_cfg->basic_cfg.xts_mode == 0) {
             /* none-xts mode,must match */
-            //("Encrypt not fit\r\n");
+            // BOOT2_MSG_ERR("Encrypt not fit\r\n");
             return 0x0205;
         } else if (boot_img_cfg->basic_cfg.encrypt_type == 0) {
             /* xts mode,encrypt_type must >0 */
-            //("Encrypt not fit\r\n");
+            // BOOT2_MSG_ERR("Encrypt not fit\r\n");
             return 0x0205;
         }
     }

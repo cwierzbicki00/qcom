@@ -217,6 +217,8 @@ static void __update_rom_api(void)
 
 #define HAL_BOOT2_PSRAM_ID1_WINBOND_4MB  (0x5f)
 #define HAL_BOOT2_PSRAM_ID2_WINBOND_32MB (0xe86)
+#define HAL_BOOT2_PSRAM_ID3_WINBOND_16MB (0xc96)
+#define HAL_BOOT2_PSRAM_ID4_WINBOND_8MB  (0xc86)
 
 /****************************************************************************/ /**
  * @brief  init psram gpio
@@ -269,13 +271,13 @@ static uint16_t psram_winbond_init_dqs(int8_t burst_len, uint8_t is_fixLatency, 
         .PASR = PSRAM_PARTIAL_REFRESH_FULL,
         .disDeepPowerDownMode = ENABLE,
         .fixedLatency = DISABLE,
-        .brustLen = PSRAM_WINBOND_BURST_LENGTH_64_BYTES,
-        .brustType = PSRAM_WRAPPED_BURST,
+        .burstLen = PSRAM_WINBOND_BURST_LENGTH_64_BYTES,
+        .burstType = PSRAM_WRAPPED_BURST,
         .latency = PSRAM_WINBOND_6_CLOCKS_LATENCY,
-        .driveStrength = PSRAM_WINBOND_DRIVE_STRENGTH_35_OHMS_FOR_4M_115_OHMS_FOR_8M,
+        .driveStrength = PSRAM_WINBOND_DRIVE_STRENGTH_35_OHMS_FOR_4M,
     };
 
-    winbondCfg.brustLen = burst_len;
+    winbondCfg.burstLen = burst_len;
     winbondCfg.fixedLatency = is_fixLatency;
     winbondCfg.latency = latency;
 
@@ -285,6 +287,26 @@ static uint16_t psram_winbond_init_dqs(int8_t burst_len, uint8_t is_fixLatency, 
     PSram_Ctrl_Winbond_Write_Reg(PSRAM0_ID, PSRAM_WINBOND_REG_CR0, &winbondCfg);
 
     PSram_Ctrl_Winbond_Read_Reg(PSRAM0_ID, PSRAM_WINBOND_REG_ID0, &reg_read);
+
+    if (HAL_BOOT2_PSRAM_ID1_WINBOND_4MB == reg_read) {
+        psramCtrlCfg.size = PSRAM_SIZE_4MB;
+        winbondCfg.driveStrength = PSRAM_WINBOND_DRIVE_STRENGTH_35_OHMS_FOR_4M;
+    } else if (HAL_BOOT2_PSRAM_ID4_WINBOND_8MB == reg_read) {
+        psramCtrlCfg.size = PSRAM_SIZE_8MB;
+        winbondCfg.driveStrength = PSRAM_WINBOND_DRIVE_STRENGTH_25_OHMS_FOR_8M;
+    } else if (HAL_BOOT2_PSRAM_ID3_WINBOND_16MB == reg_read) {
+        psramCtrlCfg.size = PSRAM_SIZE_16MB;
+        winbondCfg.driveStrength = PSRAM_WINBOND_DRIVE_STRENGTH_25_OHMS_FOR_16M;
+    } else if (HAL_BOOT2_PSRAM_ID2_WINBOND_32MB == reg_read) {
+        psramCtrlCfg.size = PSRAM_SIZE_32MB;
+        winbondCfg.driveStrength = PSRAM_WINBOND_DRIVE_STRENGTH_34_OHMS_FOR_32M;
+    }
+    /* init again */
+    PSram_Ctrl_Init(PSRAM0_ID, &psramCtrlCfg);
+    PSram_Ctrl_Winbond_Write_Reg(PSRAM0_ID, PSRAM_WINBOND_REG_CR0, &winbondCfg);
+
+    PSram_Ctrl_Winbond_Read_Reg(PSRAM0_ID, PSRAM_WINBOND_REG_ID0, &reg_read);
+
     return reg_read;
 }
 

@@ -46,7 +46,7 @@
  * x = 1024 (QCC74x_undef/QCC74x_undef/QCC74x_undef), x = 4096(QCC743)
  * 
  * QCC74x_undef/QCC74x_undef/QCC74x_undef using GPIO7
- * QCC743/QCC74x_undef using GPIO28
+ * QCC743/QCC744 using GPIO28
 */
 #define DAC_VREF_EXTERNAL 1
 /**

@@ -1,6 +1,6 @@
 ################################################################################
 # Automatically-generated file. Do not edit!
-# Toolchain: GNU Tools for STM32 (12.3.rel1)
+# Toolchain: GNU Tools for STM32 (11.3.rel1)
 ################################################################################
 
 -include ../makefile.init
@@ -9,11 +9,19 @@ RM := rm -rf
 
 # All of the sources participating in the build are defined here
 -include sources.mk
+-include Middlewares/Third_Party/Wireless_Connectivity/lwip-freertos-integration/arch/subdir.mk
+-include Middlewares/Third_Party/Wireless_Connectivity/LwIP/src/netif/subdir.mk
+-include Middlewares/Third_Party/Wireless_Connectivity/LwIP/src/core/ipv6/subdir.mk
+-include Middlewares/Third_Party/Wireless_Connectivity/LwIP/src/core/ipv4/subdir.mk
+-include Middlewares/Third_Party/Wireless_Connectivity/LwIP/src/core/subdir.mk
+-include Middlewares/Third_Party/Wireless_Connectivity/LwIP/src/api/subdir.mk
 -include Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang/subdir.mk
 -include Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM33_NTZ/non_secure/subdir.mk
 -include Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/subdir.mk
 -include Middlewares/Third_Party/FreeRTOS/Source/subdir.mk
 -include Drivers/STM32U5xx_HAL_Driver/Src/subdir.mk
+-include Core/virt_net/src/subdir.mk
+-include Core/iperf/subdir.mk
 -include Core/Startup/subdir.mk
 -include Core/Src/subdir.mk
 -include objects.mk

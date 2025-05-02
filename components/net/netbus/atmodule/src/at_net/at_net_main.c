@@ -368,7 +368,7 @@ static int tcp_client_connect(ip_addr_t *ipaddr, uint16_t port, uint32_t timeout
     if(IP_IS_V6(ipaddr)) {
         if ( (fd =  socket(AF_INET6, SOCK_STREAM, IPPROTO_IPV6))  < 0) {
             AT_NET_PRINTF("socket create failed\r\n");
-            return -2;
+            return -AT_SUB_CMD_EXEC_FAIL;
         }
 
         memcpy(&addr6.sin6_addr, ipaddr, sizeof(addr6.sin6_addr));
@@ -379,7 +379,7 @@ static int tcp_client_connect(ip_addr_t *ipaddr, uint16_t port, uint32_t timeout
     {
         if ( (fd =  socket(AF_INET, SOCK_STREAM, 0))  < 0) {
             AT_NET_PRINTF("socket create failed\r\n");
-            return -2;
+            return -AT_SUB_CMD_EXEC_FAIL;
         }
 
         memset(&addr, 0, sizeof(addr));
@@ -394,6 +394,8 @@ static int tcp_client_connect(ip_addr_t *ipaddr, uint16_t port, uint32_t timeout
     res = setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on) );
     if (res != 0) {
         AT_NET_PRINTF("setsockopt failed, res:%d\r\n", res);
+        res = -AT_SUB_CMD_EXEC_FAIL;
+        goto _fail;
     }
 
     if (timeout) {
@@ -411,6 +413,7 @@ static int tcp_client_connect(ip_addr_t *ipaddr, uint16_t port, uint32_t timeout
         }
 
         if (res < 0 && errno != EINPROGRESS) {
+            res = -AT_SUB_CMD_EXEC_FAIL;
             goto _fail;
         }
 
@@ -423,13 +426,19 @@ static int tcp_client_connect(ip_addr_t *ipaddr, uint16_t port, uint32_t timeout
         tv.tv_usec = (timeout%1000)*1000;
 
         res = select(fd + 1, NULL, &writefds, NULL, &tv);
-        if (res <= 0) {
+        if (res == 0) {
+            res = -AT_SUB_TIMEOUT;
+            goto _fail;
+        }
+        if (res < 0) {
+            res = -AT_SUB_CMD_EXEC_FAIL;
             goto _fail;
         }
 
         socklen_t len = sizeof(res);
         getsockopt(fd, SOL_SOCKET, SO_ERROR, &res, &len);
         if (res != 0) {
+            res = -AT_SUB_CMD_EXEC_FAIL;
             goto _fail;
         }
         fcntl(fd, F_SETFL, flag);
@@ -444,6 +453,7 @@ static int tcp_client_connect(ip_addr_t *ipaddr, uint16_t port, uint32_t timeout
         }
 
         if (res < 0) {
+            res = -AT_SUB_CMD_EXEC_FAIL;
             goto _fail;
         }
     }
@@ -452,7 +462,7 @@ static int tcp_client_connect(ip_addr_t *ipaddr, uint16_t port, uint32_t timeout
 _fail:
     AT_NET_PRINTF("connect failed:%d\r\n", res);
     close(fd);
-    return -3;
+    return res;
 }
 
 static int tcp_connected()
@@ -494,13 +504,13 @@ static int udp_client_connect(uint16_t port, ip_addr_t *ipaddr)
 #if CFG_IPV6
     if (IP_IS_V6(ipaddr)) {
         if ( (fd = socket(AF_INET6, SOCK_DGRAM, 0)) < 0) {		
-            return -1;	
+            return -AT_SUB_CMD_EXEC_FAIL;	
         }
     } else 
 #endif
     {
         if ( (fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {		
-            return -1;	
+            return -AT_SUB_CMD_EXEC_FAIL;	
         }
     }
     AT_NET_PRINTF("udp client connect port %d\r\n", port);
@@ -518,7 +528,7 @@ static int udp_client_connect(uint16_t port, ip_addr_t *ipaddr)
         addr6.sin6_addr = in6addr_any;	
         if(bind(fd, (struct sockaddr*)&addr6, sizeof(addr6)) < 0) {
             close(fd);
-            return -2;
+            return -AT_SUB_OP_ADDR_ERROR;
         }
     } else 
 #endif
@@ -530,7 +540,7 @@ static int udp_client_connect(uint16_t port, ip_addr_t *ipaddr)
         addr.sin_addr.s_addr = htonl(INADDR_ANY);	
         if(bind(fd, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
             close(fd);
-            return -2;
+            return -AT_SUB_OP_ADDR_ERROR;
         }
 
     }
@@ -608,7 +618,7 @@ static int ssl_client_connect(int id, ip_addr_t *ipaddr, uint16_t port, void **p
     fd = tcp_client_connect(ipaddr, port, timeout);
     if (fd < 0) {
         AT_NET_PRINTF("tcp_client_connect fd:%d\r\n", fd);
-        return -1;
+        return fd;
     }
 
     at_load_file(g_at_client_handle[id].ca_path, &ssl_param.ca_cert, &ssl_param.ca_cert_len);
@@ -626,7 +636,7 @@ static int ssl_client_connect(int id, ip_addr_t *ipaddr, uint16_t port, void **p
         free(ssl_param.ca_cert);
         free(ssl_param.own_cert);
         free(ssl_param.private_cert);
-        return -1;
+        return -AT_SUB_CMD_EXEC_FAIL;
     }
 
     *priv = handle;
@@ -936,7 +946,7 @@ static int net_socket_connect(int id, net_client_type type, ip_addr_t *ipaddr, u
 
     if (g_at_client_handle[id].valid) {
         AT_NET_PRINTF("already connected\r\n");
-        return -1;
+        return -AT_SUB_HANDLE_INVALID;
     }
 
     if (type == NET_CLIENT_TCP) {
@@ -970,13 +980,12 @@ static int net_socket_connect(int id, net_client_type type, ip_addr_t *ipaddr, u
         }
     }
     else {
-        AT_NET_PRINTF("type error\r\n");
-        return -1;
+        return -AT_SUB_PARA_PARSE_FAIL;
     }
 
     if (fd < 0) {
         AT_NET_PRINTF("net_socket_connect connect failed, fd:%d\r\n", fd);
-        return -1;
+        return (-fd);
     }
 
     net_lock();
@@ -999,10 +1008,10 @@ static int net_socket_connect(int id, net_client_type type, ip_addr_t *ipaddr, u
 
     if (at_net_config->recv_mode == NET_RECV_MODE_PASSIVE) {
         if (g_at_client_handle[id].recv_buf) {
-		xStreamBufferReset(g_at_client_handle[id].recv_buf);
-	} else {
-		g_at_client_handle[id].recv_buf = xStreamBufferCreate(g_at_client_handle[id].recvbuf_size, 1);
-	}
+            xStreamBufferReset(g_at_client_handle[id].recv_buf);
+        } else {
+            g_at_client_handle[id].recv_buf = xStreamBufferCreate(g_at_client_handle[id].recvbuf_size, 1);
+        }
     }
     net_unlock();
     net_socket_ipd(NET_IPDINFO_CONNECTED, id, NULL, 0, &g_at_client_handle[id].remote_ip, g_at_client_handle[id].remote_port, 0);
@@ -1259,10 +1268,10 @@ static int net_socket_accept(int fd, int type, uint16_t port, uint16_t timeout, 
 
         if (at_net_config->recv_mode == NET_RECV_MODE_PASSIVE) {
             if (g_at_client_handle[id].recv_buf) {
-		    xStreamBufferReset(g_at_client_handle[id].recv_buf);
+                xStreamBufferReset(g_at_client_handle[id].recv_buf);
             } else {
-		    g_at_client_handle[id].recv_buf = xStreamBufferCreate(g_at_client_handle[id].recvbuf_size, 1);
-	    }
+                g_at_client_handle[id].recv_buf = xStreamBufferCreate(g_at_client_handle[id].recvbuf_size, 1);
+            }
         }
         net_unlock();
 
@@ -1348,10 +1357,10 @@ static void net_poll_reconnect(void)
         g_at_client_handle[id].local_port = local_port;
         if (at_net_config->recv_mode == NET_RECV_MODE_PASSIVE) {
             if (g_at_client_handle[id].recv_buf) {
-		    xStreamBufferReset(g_at_client_handle[id].recv_buf);
+                xStreamBufferReset(g_at_client_handle[id].recv_buf);
             } else {
-		    g_at_client_handle[id].recv_buf = xStreamBufferCreate(g_at_client_handle[id].recvbuf_size, 1);
-	    }
+                g_at_client_handle[id].recv_buf = xStreamBufferCreate(g_at_client_handle[id].recvbuf_size, 1);
+            }
         }
         net_unlock();
     }
@@ -1667,6 +1676,7 @@ int at_net_client_get_recvsize(int id)
 int at_net_recvbuf_delete(int id)
 {
     CHECK_NET_CLIENT_ID_VALID(id);
+
     net_lock();
     if (g_at_client_handle[id].recv_buf) {
         vStreamBufferDelete(g_at_client_handle[id].recv_buf);
@@ -1675,7 +1685,6 @@ int at_net_recvbuf_delete(int id)
     net_unlock();
     return 0;
 }
-
 
 int at_net_client_send(int id, void * buffer, int length)
 {

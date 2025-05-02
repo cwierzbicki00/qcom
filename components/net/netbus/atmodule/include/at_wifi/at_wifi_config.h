@@ -31,6 +31,7 @@ extern "C" {
 #define AT_CONFIG_KEY_WIFI_HOSTNAME         "WIFIHOSTNAME"
 #define AT_CONFIG_KEY_WIFI_LAPOPT           "WIFILAPOPT"
 #define AT_CONFIG_KEY_WIFI_ANTDIV           "ANTDIV"
+#define AT_CONFIG_KEY_WIFI_NETMODE          "NETMODE"
 
 #define AT_WIFI_COUNTRY_CODE                {"CN", "JP", "US", "EU", "00"}
 
@@ -167,6 +168,7 @@ typedef struct {
     uint8_t  wlan_disable;
     uint8_t  wevt_enable;
     wifi_ant_div ant_div;
+    uint8_t  netmode;
 }wifi_config;
 
 extern wifi_config *at_wifi_config;

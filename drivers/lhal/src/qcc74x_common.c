@@ -41,14 +41,15 @@
 #define QCC74x_BOOT2_IMG_OFFSET 8 * 1024
 #endif
 
+#if defined(QCC743) || defined(QCC74x_undef)
 #if !defined(CONFIG_BOOT2)
 #define COMPILE_TIME __DATE__ " " __TIME__
-const char ver_name[4] __attribute__ ((section(".verinfo"))) = "app";
-const char git_commit[41] __attribute__ ((section(".verinfo"))) = "";
-const char time_info[30] __attribute__ ((section(".verinfo"))) = COMPILE_TIME;
+static const char ver_name[4] __attribute__ ((section(".verinfo"))) = "app";
+static const char git_commit[41] __attribute__ ((section(".verinfo"))) = "";
+static const char time_info[30] __attribute__ ((section(".verinfo"))) = COMPILE_TIME;
 
 const qcc74x_verinf_t app_ver __attribute__ ((section(".qcc74xverinf"))) = {
-    .anti_rollback = APP_ANTI_ROLLBACK,
+    .anti_rollback = CONFIG_APP_ANTI_ROLLBACK_VER,
     .x = APP_VER_X,
     .y = APP_VER_Y,
     .z = APP_VER_Z,
@@ -58,6 +59,7 @@ const qcc74x_verinf_t app_ver __attribute__ ((section(".qcc74xverinf"))) = {
     .rsvd0 = 0,
     .rsvd1 = 0,
 };
+#endif
 #endif
 
 __WEAK int ATTR_TCM_SECTION arch_strcmp(const char *str1, const char *str2) {
@@ -271,7 +273,7 @@ void *qcc74x_get_no_cache_addr(const void *addr)
 
     return NULL;
 }
-#elif defined(QCC74x_undef) && defined(CPU_M0)
+#elif (defined(QCC74x_undef) || defined(QCC74x_undef)) && defined(CPU_M0)
 bool qcc74x_check_cache_addr(const void *addr)
 {
     uintptr_t a = (uintptr_t)addr;

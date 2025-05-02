@@ -189,6 +189,8 @@ enum
     // Get the number of frames remaining in each Tx queue confirmation
     ME_GET_REMAINING_TX_CFM,
 
+    ME_GET_STATS_REQ,
+
     /*
      * Section of internal ME messages. No ME API messages should be defined below this point
      */

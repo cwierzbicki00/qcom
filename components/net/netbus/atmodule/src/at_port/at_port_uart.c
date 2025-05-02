@@ -177,3 +177,13 @@ int at_port_para_get(int *baudrate, uint8_t *databits, uint8_t *stopbits, uint8_
     return 0;
 }
 
+int at_port_netmode_set(int mode)
+{
+    return 0;
+}
+
+int at_port_netmode_get()
+{
+    return 1;
+}
+

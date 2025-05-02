@@ -43,7 +43,6 @@
 #define UART_SW_USAGE_OFFSET   (0x90) /* uart_sw_usage */
 #endif
 
-
 /* Register Bitfield definitions *****************************************************/
 
 /* 0x0 : utx_config */

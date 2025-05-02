@@ -184,7 +184,7 @@ static int register_service(void)
 
 int ble_dynamic_unregister_service(void)
 {
-	int err;
+	int err	= 0;
 	for(int i =0;i<svc_count;i++)
 	{
 		err = bt_gatt_service_unregister(&server_svcs[i]);
@@ -551,7 +551,6 @@ struct bt_gatt_attr* ble_dynamic_gatt_get_attr(struct bt_uuid *uuid)
 
 void ble_dynamic_gatt_server_init(void)
 {
-	k_lifo_init(&dynamic_gatt_pool.free, 1);
 	#if (QCC74x_STATIC_ALLOC_MEM)
 	net_buf_init(GATTSERVER, &dynamic_gatt_pool, 1, SERVER_BUF_SIZE, NULL);
 	#else

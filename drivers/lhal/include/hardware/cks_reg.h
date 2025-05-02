@@ -25,5 +25,4 @@
 #define CKS_OUT_SHIFT                                           (0U)
 #define CKS_OUT_MASK                                            (0xffff<<CKS_OUT_SHIFT)
 
-
 #endif  /* __CKS_REG_H__ */

@@ -63,7 +63,6 @@ typedef struct
     uint16_t pi;          /*!< >14.9ns */
 } qcc74x_ef_ctrl_para_t;
 
-
 /**
  * @brief Get efuse control common trim list.
  *
@@ -156,7 +155,6 @@ uint32_t qcc74x_ef_ctrl_get_byte_zero_cnt(uint8_t val);
  * @return uint8_t
  */
 uint8_t qcc74x_ef_ctrl_get_trim_parity(uint32_t val, uint8_t len);
-
 
 /**
  * @brief  Check efuse busy status

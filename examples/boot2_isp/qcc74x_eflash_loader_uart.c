@@ -174,7 +174,7 @@ int32_t ATTR_TCM_SECTION qcc74x_eflash_loader_uart_handshake_poll(uint32_t timeo
         return -1;
     }
 
-#if defined(CHIP_QCC74x_undefP) || defined(CHIP_QCC74x_undef) || defined(CHIP_QCC743) || defined(CHIP_QCC74x_undef)
+#if defined(CHIP_QCC74x_undef) || defined(CHIP_QCC74x_undef) || defined(CHIP_QCC743) || defined(CHIP_QCC74x_undef) || defined(CHIP_QCC74x_undef)
     /*receive shake hanad signal*/
     qcc74x_eflash_loader_usart_if_send((uint8_t *)"Boot2 ISP Ready", sizeof("Boot2 ISP Ready")-1);
     qcc74x_mtimer_delay_ms(2);
@@ -202,11 +202,9 @@ int32_t ATTR_TCM_SECTION qcc74x_eflash_loader_uart_handshake_poll(uint32_t timeo
 
     } while (qcc74x_mtimer_get_time_ms() - nowtime < QCC74x_EFLASH_LAODER_COMSUME_55_TIMEOUT);
 
-
     /*init rx info */
     g_rx_buf_index = 0;
     g_rx_buf_len = 0;
-
 
     simple_malloc_init(g_malloc_buf, sizeof(g_malloc_buf));
     g_eflash_loader_readbuf[0] = vmalloc(QCC74x_EFLASH_LOADER_READBUF_SIZE);
@@ -245,7 +243,6 @@ int32_t ATTR_TCM_SECTION qcc74x_eflash_loader_usart_wait_tx_idle(uint32_t timeou
 int32_t ATTR_TCM_SECTION qcc74x_eflash_loader_uart_change_rate(uint32_t oldval, uint32_t newval)
 {
     uint32_t b = (uint32_t)((g_detected_baudrate * 1.0 * newval) / oldval);
-
 
     qcc74x_eflash_loader_usart_if_wait_tx_idle(QCC74x_EFLASH_LOADER_IF_TX_IDLE_TIMEOUT);
 

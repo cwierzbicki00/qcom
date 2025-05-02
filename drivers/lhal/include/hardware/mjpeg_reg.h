@@ -318,5 +318,4 @@
 #define MJPEG_DUMMY_REG_SHIFT                                   (0U)
 #define MJPEG_DUMMY_REG_MASK                                    (0xffffffff<<MJPEG_DUMMY_REG_SHIFT)
 
-
 #endif  /* __HARDWARE_MJPEG_REG_H__ */

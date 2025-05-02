@@ -7,14 +7,43 @@
 #ifndef INC_SPI_H_
 #define INC_SPI_H_
 
+#include <stdint.h>
+
 #define SPI_MSG_F_TRUNCATED	0x1
 
+#define SPI_MSG_CTRL_TRAFFIC_TYPE		0x1
+#define SPI_MSG_CTRL_TRAFFIC_TYPE_LEN	1
+#define SPI_MSG_CTRL_TRAFFIC_AT_CMD		0
+#define SPI_MSG_CTRL_TRAFFIC_NETWORK	1
+#define SPI_MSG_CTRL_TRAFFIC_TYPE_MAX   2
+
+struct spi_msg_control {
+	/* Ref SPI_MSG_CTRL_xxx */
+	uint8_t type;
+	/* Length of the following control data. */
+	uint8_t len;
+	void *val;
+};
+
+#define SPI_MSG_OP_DATA        0
+#define SPI_MSG_OP_BUFFER      1
+#define SPI_MSG_OP_BUFFER_PTR  2
+
 struct spi_msg {
-	void *data;
-	unsigned int data_len;
-	void *ctrl;
-	unsigned int ctrl_len;
+	union {
+		/* For spi_write and spi_read. */
+		struct {
+			void *data;
+			unsigned int data_len;
+		};
+		/* For spi_write_buffer. */
+		struct spi_buffer *buffer;
+		/* For spi_read_buffer */
+		struct spi_buffer **buffer_ptr;
+	};
+	struct spi_msg_control *ctrl;
 	unsigned int flags;
+	unsigned char op_type;
 };
 
 struct spi_stat {
@@ -32,13 +61,18 @@ struct spi_stat {
 	unsigned long rx_stall;
 };
 
-#define SPI_MSG_INIT(m, d, dl, c, cl)	do {	\
+#define SPI_MSG_CONTROL_INIT(c, t, l, v)	do {	\
+	struct spi_msg_control *_c = &(c);				\
+	_c->type = t;									\
+	_c->len = l;									\
+	_c->val = v;									\
+} while (0)
+
+#define SPI_MSG_INIT(m, t, c, f)		do {	\
 	struct spi_msg *_m = &(m);					\
-	_m->data = d;								\
-	_m->data_len = dl;							\
+	_m->op_type = t;							\
 	_m->ctrl = c;								\
-	_m->ctrl_len = cl;							\
-	_m->flags = 0;								\
+	_m->flags = f;								\
 } while (0)
 
 struct spi_buffer {
@@ -47,8 +81,9 @@ struct spi_buffer {
 	unsigned int len;
 	/* Capacity of the buffer, >= len. */
 	unsigned int cap;
-#define SPI_BUF_F_PUSHED	0x1
 	unsigned int flags;
+	/* Control block for private data. */
+	unsigned char cb[16];
 };
 
 int spi_transaction_init(void);
@@ -69,14 +104,11 @@ static inline unsigned int spi_buffer_len(struct spi_buffer *buf)
 	return buf->len;
 }
 
+int spi_bind(unsigned char type, int rxq_size);
+
 int spi_read(struct spi_msg *msg, int timeout_ms);
 
-/* Caller is supposed to free the buffer by calling spi_buffer_free. */
-int spi_read_buffer(struct spi_buffer **buffer, int timeout_ms);
-
 int spi_write(struct spi_msg *msg, int timeout_ms);
-
-int spi_write_buffer(struct spi_buffer *buffer, int timeout_ms);
 
 void spi_show_throuput_enable(int en);
 

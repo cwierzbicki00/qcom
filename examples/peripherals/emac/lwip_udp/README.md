@@ -40,7 +40,7 @@ The RMII pin configuration is fixed and as follows:
 | GPIO31 | TX_EN       | EMAC_TX_EN         |
 | GPIO32 | RX_DV       | EMAC_RX_DV         |
 | GPIO33 | MDIO_CLK    | MDIO clock line    |
-| GPIO33 | MDIO_IO     | MDIO data line     |
+| GPIO34 | MDIO_IO     | MDIO data line     |
 
 **Note:**
 Since the default configuration sets REF_CLK to input mode, the E-PHY module must output a 50 MHz REF_CLK signal.

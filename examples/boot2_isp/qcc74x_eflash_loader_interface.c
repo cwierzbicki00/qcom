@@ -96,7 +96,6 @@ int32_t ATTR_TCM_SECTION qcc74x_eflash_loader_main()
     uint8_t err_cnt = 0;
     uint8_t to_cnt = 0;
 
-
     while (1) {
         to_cnt = 0;
         total_len = 0;

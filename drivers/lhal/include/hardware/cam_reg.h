@@ -477,5 +477,4 @@
 
 /* 0xFC : dvp_dummy_reg */
 
-
 #endif  /* __HARDWARE_CAM_H__ */

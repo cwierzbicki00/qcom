@@ -42,6 +42,8 @@ typedef enum {
     AT_RESULT_CODE_MAX
 } at_result_code_string_index;
 
+#define AT_RESULT_WITH_SUB_CODE(sub_code) ((sub_code << 8) | AT_RESULT_CODE_ERROR)
+
 typedef enum {
     AT_WORK_MODE_CMD = 0x00,
     AT_WORK_MODE_THROUGHPUT,
@@ -100,7 +102,7 @@ uint64_t at_current_ms_get();
 
 int at_register_function(at_func restore, at_func stop);
 
-void at_response_result(uint8_t result_code);
+void at_response_result(int result_code);
 
 void at_response_string(const char *format, ... );
 

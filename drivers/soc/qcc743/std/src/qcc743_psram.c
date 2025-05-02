@@ -218,9 +218,9 @@ QCC74x_Err_Type PSram_Ctrl_Winbond_Write_Reg(PSRAM_ID_Type PSRAM_ID, PSRAM_Ctrl_
 
     tmpVal = QCC74x_SET_REG_BITS_VAL(tmpVal, PSRAM_REG_WB_LATENCY, reg_cfg->latency);
     tmpVal = QCC74x_SET_REG_BITS_VAL(tmpVal, PSRAM_REG_WB_DRIVE_ST, reg_cfg->driveStrength);
-    tmpVal = QCC74x_SET_REG_BITS_VAL(tmpVal, PSRAM_REG_WB_HYBRID_EN, reg_cfg->brustType);
+    tmpVal = QCC74x_SET_REG_BITS_VAL(tmpVal, PSRAM_REG_WB_HYBRID_EN, reg_cfg->burstType);
 
-    tmpVal = QCC74x_SET_REG_BITS_VAL(tmpVal, PSRAM_REG_WB_BURST_LENGTH, reg_cfg->brustLen);
+    tmpVal = QCC74x_SET_REG_BITS_VAL(tmpVal, PSRAM_REG_WB_BURST_LENGTH, reg_cfg->burstLen);
     tmpVal = QCC74x_SET_REG_BITS_VAL(tmpVal, PSRAM_REG_WB_FIX_LATENCY, reg_cfg->fixedLatency);
 
     tmpVal = QCC74x_SET_REG_BITS_VAL(tmpVal, PSRAM_REG_WB_DPD_DIS, reg_cfg->disDeepPowerDownMode);
@@ -348,8 +348,8 @@ QCC74x_Err_Type PSram_Ctrl_ApMem_Write_Reg(PSRAM_ID_Type PSRAM_ID, PSRAM_Ctrl_Ap
     tmpVal = QCC74x_SET_REG_BITS_VAL(tmpVal, PSRAM_REG_AP_SLEEP, reg_cfg->halfSleepModeEnable);
     tmpVal = QCC74x_SET_REG_BITS_VAL(tmpVal, PSRAM_REG_AP_DPD, reg_cfg->deepPowerDownModeEnable);
     tmpVal = QCC74x_SET_REG_BITS_VAL(tmpVal, PSRAM_REG_AP_RBX, reg_cfg->crossBoundaryEnable);
-    tmpVal = QCC74x_SET_REG_BITS_VAL(tmpVal, PSRAM_REG_AP_BURST_TYPE, reg_cfg->brustType);
-    tmpVal = QCC74x_SET_REG_BITS_VAL(tmpVal, PSRAM_REG_AP_BURST_LENGTH, reg_cfg->brustLen);
+    tmpVal = QCC74x_SET_REG_BITS_VAL(tmpVal, PSRAM_REG_AP_BURST_TYPE, reg_cfg->burstType);
+    tmpVal = QCC74x_SET_REG_BITS_VAL(tmpVal, PSRAM_REG_AP_BURST_LENGTH, reg_cfg->burstLen);
 
     QCC74x_WR_REG(psram_base, PSRAM_APMEMORY_PSRAM_CONFIGURE, tmpVal);
 

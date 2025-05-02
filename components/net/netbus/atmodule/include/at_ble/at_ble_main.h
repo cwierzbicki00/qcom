@@ -60,17 +60,17 @@ int at_ble_conn_get_mtu(int idx, int *mtu_size);
 
 int at_ble_conn_update_mtu(int idx);
 
-int at_ble_gatts_service_get(int srv_idx, uint8_t *srv_uuid, uint8_t *srv_type);
+int at_ble_gatts_service_get(int srv_idx, uint8_t *srv_uuid, uint8_t *srv_type,uint8_t *uuid_type);
 
-int at_ble_gatts_service_set(int srv_idx, uint8_t *srv_uuid, uint8_t srv_type);
+int at_ble_gatts_service_set(int srv_idx, uint8_t *srv_uuid, uint8_t srv_type,uint8_t uuid_type);
 
 int at_ble_gatts_service_del(int srv_idx);
 
 int at_ble_gatts_service_register(int enable);
 
-int at_ble_gatts_service_char_get(int srv_idx, int char_idx, uint8_t *char_uuid, uint32_t *char_prop,uint32_t *char_perm);
+int at_ble_gatts_service_char_get(int srv_idx, int char_idx, uint8_t *char_uuid, uint32_t *char_prop,uint32_t *char_perm,uint8_t *uuidtype);
 
-int at_ble_gatts_service_char_set(int srv_idx, int char_idx, uint8_t *char_uuid, uint32_t char_prop,uint32_t char_perm);
+int at_ble_gatts_service_char_set(int srv_idx, int char_idx, uint8_t *char_uuid, uint32_t char_prop,uint32_t char_perm, uint8_t uuid_type);
 
 int at_ble_gatts_service_notify(int srv_idx, int char_idx, void * buffer, int length);
 

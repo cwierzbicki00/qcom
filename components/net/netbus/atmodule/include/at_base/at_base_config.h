@@ -14,7 +14,6 @@
 extern "C" {
 #endif
 
-#define AT_CONFIG_KEY_UART_CFG "UARTCFG"
 #define AT_CONFIG_KEY_SYS_MSG "SYSMSG"
 
 typedef struct {
@@ -33,6 +32,7 @@ typedef union {
         uint8_t link_state_msg:1;
     } bit;
     uint8_t byte;
+    uint8_t syslog;
 } base_sysmsg_cfg;
 
 typedef int64_t base_systime_stamp;

@@ -172,6 +172,8 @@ struct fhost_vif_tag
     int raw_state;
     /// State
     int state;
+    /// wps state
+    bool wps_state;
 };
 
 /// Structure used for the inter-task communication

@@ -25,9 +25,15 @@ extern void nxs_debug(const char *tag, const char *filename, const char *funcnam
 #define NX_LOGT
 #define NX_LOGD
 #define NX_LOGI
+#if NXSPI_NET
 #define NX_LOGW //printf
-#define NX_LOGE printf
+#define NX_LOGE //printf
+#define NX_LOGA printf
+#else
+#define NX_LOGW //printf
+#define NX_LOGE //printf
 #define NX_LOGA //printf
+#endif
 #define NX_LOGP printf
 #endif
 

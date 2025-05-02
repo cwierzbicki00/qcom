@@ -126,5 +126,4 @@
 #define CSI_DUMMY_REG_SHIFT (0U)
 #define CSI_DUMMY_REG_MASK  (0xffffffff<<CSI_DUMMY_REG_SHIFT)
 
-
 #endif  /* __HARDWARE_CSI_H__ */

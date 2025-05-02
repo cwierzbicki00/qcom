@@ -782,8 +782,6 @@
 #define SF_CTRL_SF_AES_R2_END_SHIFT                             (0U)
 #define SF_CTRL_SF_AES_R2_END_MASK                              (0x7ffff<<SF_CTRL_SF_AES_R2_END_SHIFT)
 
-
-
 /*Following is reg patch*/
 
 /****************************************************************************
@@ -826,10 +824,8 @@
 #define SF_CTRL_IF_0_CMD_BUF_1_SHIFT                            (0U)
 #define SF_CTRL_IF_0_CMD_BUF_1_MASK                             (0xffffffffL<<SF_CTRL_IF_0_CMD_BUF_1_SHIFT)
 
-
 #define SF_CTRL_IF1_SAHB_OFFSET     0x8
 #define SF_CTRL_IF2_SAHB_OFFSET     0xC8
-
 
 /*Following is reg patch*/
 
@@ -893,11 +889,9 @@
 #define SF_CTRL_IO_3_DO_DLY_SEL_SHIFT                           (16U)
 #define SF_CTRL_IO_3_DO_DLY_SEL_MASK                            (0x3<<SF_CTRL_IO_3_DO_DLY_SEL_SHIFT)
 
-
 #define SF_CTRL_IF_IO_DLY_1_OFFSET     0x30
 #define SF_CTRL_IF_IO_DLY_2_OFFSET     0x48
 #define SF_CTRL_IF_IO_DLY_3_OFFSET     0x5C
-
 
 /*Following is reg patch*/
 
@@ -982,7 +976,6 @@
 /* 0x34 : sf_aes_end */
 #define SF_CTRL_SF_AES_REGION_END_SHIFT                         (0U)
 #define SF_CTRL_SF_AES_REGION_END_MASK                          (0x7ffff<<SF_CTRL_SF_AES_REGION_END_SHIFT)
-
 
 #define SF_CTRL_AES_REGION_OFFSET     0x200
 

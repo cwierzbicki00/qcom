@@ -733,6 +733,10 @@ void wifi_event_handler(uint32_t code)
             } else {
                 at_wifi_config->ap_proto = at_wifi_mode_get(1);
             }
+            at_port_netmode_set(at_wifi_config->netmode);
+            if (at_wifi_config->netmode == 0) {
+                at_wifi_config->dhcp_state.bit.sta_dhcp = 0;
+            }
         } break;
         case CODE_WIFI_ON_MGMR_DONE: {
             LOG_I("[APP] [EVT] %s, CODE_WIFI_ON_MGMR_DONE\r\n", __func__);

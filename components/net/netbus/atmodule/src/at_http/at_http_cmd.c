@@ -303,7 +303,7 @@ static int at_httpc_request(struct at_http_ctx *ctx,
     if (httpc_recvbuf_overflow(ctx) && (ctx->settings.req_type != REQ_TYPE_HEAD)) {
         printf("HTTPC not enough RX buffer\r\n");
         free_ctx(ctx);
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_NO_RESOURCE);
     }
 
 #if LWIP_ALTCP_TLS && LWIP_ALTCP_TLS_MBEDTLS
@@ -363,7 +363,7 @@ static int at_httpc_request(struct at_http_ctx *ctx,
 #endif
     } else {
         free_ctx(ctx);
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_OP_ADDR_ERROR);
     }
 
     if ((param = strstr(url, "/")) == NULL) {
@@ -403,7 +403,7 @@ static int at_httpc_request(struct at_http_ctx *ctx,
     free(host_name);
     if (ret != ERR_OK) {
     	free_ctx(ctx);
-    	return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_EXEC_FAIL);
     }
 
     return AT_RESULT_CODE_OK;
@@ -425,12 +425,12 @@ static int at_setup_cmd_httpsslcfg(int argc, const char **argv)
     AT_CMD_PARSE_OPT_STRING(4, ca_file, sizeof(ca_file), ca_file_valid);
  
     if (linkid < 0 || linkid >= AT_HTTPC_HANDLE_MAX) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_HANDLE_INVALID);
     }
     
     ctx = &g_httpc_handle[linkid];
     if (ctx->used) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_PROCESSING);
     }
 
     if (scheme == AT_HTTPS_NOT_AUTH) {
@@ -439,21 +439,21 @@ static int at_setup_cmd_httpsslcfg(int argc, const char **argv)
         ca_file[0] = '\0';
     } else if (scheme == AT_HTTPS_SERVER_AUTH) {
         if ((!ca_file_valid)) {
-            return AT_RESULT_CODE_ERROR;
+            return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_ALLOWED);
         }
         cert_file[0] = '\0';
         key_file[0] = '\0';
     } else if (scheme == AT_HTTPS_CLIENT_AUTH) {
         if ((!key_file_valid) || (!cert_file_valid)) {
-            return AT_RESULT_CODE_ERROR;
+            return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_ALLOWED);
         }
         ca_file[0] = '\0';
     } else if (scheme == AT_HTTPS_BOTH_AUTH) {
         if ((!key_file_valid) || (!cert_file_valid) || (!ca_file_valid)) {
-            return AT_RESULT_CODE_ERROR;
+            return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_ALLOWED);
         }
     } else {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     }
     ctx->https_auth_type = scheme;
 
@@ -472,7 +472,7 @@ static int at_query_cmd_httpsslcfg(int argc, const char **argv)
     AT_CMD_PARSE_NUMBER(0, &linkid);
  
     if (linkid < 0 || linkid >= AT_HTTPC_HANDLE_MAX) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_HANDLE_INVALID);
     }
     
     ctx = &g_httpc_handle[linkid];
@@ -491,7 +491,7 @@ static int at_setup_cmd_httpclient(int argc, const char **argv)
     char *data = malloc(256);
    
     if (!data) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_NO_MEMORY);
     }
     AT_CMD_PARSE_NUMBER(0, &linkid);
     AT_CMD_PARSE_NUMBER(1, &opt);
@@ -500,16 +500,16 @@ static int at_setup_cmd_httpclient(int argc, const char **argv)
     AT_CMD_PARSE_OPT_STRING(4, data, 256, data_valid);
  
     if (linkid < 0 || linkid >= AT_HTTPC_HANDLE_MAX) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_HANDLE_INVALID);
     }
     if (opt < 0 || opt > REQ_TYPE_PUT) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     }
     ctx = &g_httpc_handle[linkid];
     //memset(ctx, 0, sizeof(struct at_http_ctx));
 
     if (ctx->used) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_PROCESSING);
     }
     ctx->used = 1;
 
@@ -519,7 +519,7 @@ static int at_setup_cmd_httpclient(int argc, const char **argv)
         if ((ctx->url == NULL) && (ctx->url_size == 0)) {
             free(ctx->data);
             free_ctx(ctx);
-            return AT_RESULT_CODE_ERROR;
+            return AT_RESULT_WITH_SUB_CODE(AT_SUB_OP_ADDR_ERROR);
         }
         strlcpy(url_buf, ctx->url, sizeof(url_buf));
     }   
@@ -534,7 +534,7 @@ static int at_setup_cmd_httpclient(int argc, const char **argv)
     if (ret != 0) {
         free(data);
         ctx->data = NULL;
-        return AT_RESULT_CODE_ERROR;
+        return ret;
     }
 
     return AT_RESULT_CODE_OK;
@@ -567,21 +567,21 @@ static int at_setup_cmd_httpgetsize(int argc, const char **argv)
     AT_CMD_PARSE_OPT_NUMBER(2, &timeout, timeout_valild);
  
     if (linkid < 0 || linkid >= AT_HTTPC_HANDLE_MAX) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_HANDLE_INVALID);
     }
  
     ctx = &g_httpc_handle[linkid];
     //memset(ctx, 0, sizeof(struct at_http_ctx));
 
     if (ctx->used) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_PROCESSING);
     }
     ctx->used = 1;
 
     if (timeout_valild) {
         if (timeout < 0 || timeout > 180000) {
             free_ctx(ctx);
-            return AT_RESULT_CODE_ERROR;
+            return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
         }
     } else {
         timeout = AT_HTTPC_DEFAULT_TIMEOUT;
@@ -590,7 +590,7 @@ static int at_setup_cmd_httpgetsize(int argc, const char **argv)
     if (strlen(url_buf) == 0) {
         if ((ctx->url == NULL) && (ctx->url_size == 0)) {
             free_ctx(ctx);
-            return AT_RESULT_CODE_ERROR;
+            return AT_RESULT_WITH_SUB_CODE(AT_SUB_OP_ADDR_ERROR);
         }
         strlcpy(url_buf, ctx->url, sizeof(url_buf));
     }
@@ -604,7 +604,7 @@ static int at_setup_cmd_httpgetsize(int argc, const char **argv)
 
     int ret = at_httpc_request(ctx, url_buf, cb_httpc_result, cb_httpgetsize_headers_done_fn, cb_httpgetsize_recv_fn, ctx);
     if (ret != 0) {
-        return AT_RESULT_CODE_ERROR;
+        return ret;
     }
 
     return AT_RESULT_CODE_OK;
@@ -621,21 +621,21 @@ static int at_setup_cmd_httpcget(int argc, const char **argv)
     AT_CMD_PARSE_OPT_NUMBER(2, &timeout, timeout_valild);
  
     if (linkid < 0 || linkid >= AT_HTTPC_HANDLE_MAX) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_HANDLE_INVALID);
     }
  
     ctx = &g_httpc_handle[linkid];
     //memset(ctx, 0, sizeof(struct at_http_ctx));
 
     if (ctx->used) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_PROCESSING);
     }
     ctx->used = 1;
 
     if (timeout_valild) {
         if (timeout < 0 || timeout > 180000) {
             free_ctx(ctx);
-            return AT_RESULT_CODE_ERROR;
+            return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
         }
     } else {
         timeout = AT_HTTPC_DEFAULT_TIMEOUT;
@@ -644,7 +644,7 @@ static int at_setup_cmd_httpcget(int argc, const char **argv)
     if (strlen(url_buf) == 0) {
         if ((ctx->url == NULL) && (ctx->url_size == 0)) {
             free_ctx(ctx);
-            return AT_RESULT_CODE_ERROR;
+            return AT_RESULT_WITH_SUB_CODE(AT_SUB_OP_ADDR_ERROR);
         }
         strlcpy(url_buf, ctx->url, sizeof(url_buf));
     }
@@ -658,7 +658,7 @@ static int at_setup_cmd_httpcget(int argc, const char **argv)
 
     int ret = at_httpc_request(ctx, url_buf, cb_httpc_result, cb_httpc_headers_done_fn, cb_altcp_recv_fn, ctx);
     if (ret != 0) {
-        return AT_RESULT_CODE_ERROR;
+        return ret;
     }
 
     return AT_RESULT_CODE_OK;
@@ -676,21 +676,21 @@ static int at_setup_cmd_httpcpost(int argc, const char **argv)
     AT_CMD_PARSE_NUMBER(2, &len);
     
     if (linkid < 0 || linkid >= AT_HTTPC_HANDLE_MAX) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_HANDLE_INVALID);
     }
  
     ctx = &g_httpc_handle[linkid];
     //memset(ctx, 0, sizeof(struct at_http_ctx));
 
     if (ctx->used) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_PROCESSING);
     }
     ctx->used = 1;
 
     if (strlen(url_buf) == 0) {
         if ((ctx->url == NULL) && (ctx->url_size == 0)) {
             free_ctx(ctx);
-            return AT_RESULT_CODE_ERROR;
+            return AT_RESULT_WITH_SUB_CODE(AT_SUB_OP_ADDR_ERROR);
         }
         strlcpy(url_buf, ctx->url, sizeof(url_buf));
     }   
@@ -698,7 +698,7 @@ static int at_setup_cmd_httpcpost(int argc, const char **argv)
     ctx->data = malloc(len + 1);
     if (!ctx->data) {
         free_ctx(ctx);
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_NO_MEMORY);
     }
     memset(ctx->data, 0, len + 1);
 
@@ -725,7 +725,7 @@ static int at_setup_cmd_httpcpost(int argc, const char **argv)
     if (ret != 0) {
         free(ctx->data);
         ctx->data = NULL;
-        return AT_RESULT_CODE_ERROR;
+        return ret;
     }
 
     return AT_RESULT_CODE_IGNORE;
@@ -744,12 +744,12 @@ static int at_setup_cmd_httpcput(int argc, const char **argv)
     AT_CMD_PARSE_NUMBER(3, &len);
   
     if (linkid < 0 || linkid >= AT_HTTPC_HANDLE_MAX) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_HANDLE_INVALID);
     }
     
     ctx = &g_httpc_handle[linkid];
     if (ctx->used) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_PROCESSING);
     }
 
     ctx->used = 1;
@@ -758,7 +758,7 @@ static int at_setup_cmd_httpcput(int argc, const char **argv)
     if (strlen(url_buf) == 0) {
         if ((ctx->url == NULL) && (ctx->url_size == 0)) {
             free_ctx(ctx);
-            return AT_RESULT_CODE_ERROR;
+            return AT_RESULT_WITH_SUB_CODE(AT_SUB_OP_ADDR_ERROR);
         }
         strlcpy(url_buf, ctx->url, sizeof(url_buf));
     }   
@@ -766,7 +766,7 @@ static int at_setup_cmd_httpcput(int argc, const char **argv)
     ctx->data = malloc(len + 1);
     if (!ctx->data) {
         free_ctx(ctx);
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_NO_MEMORY);
     }
     memset(ctx->data, 0, len + 1);
 
@@ -794,7 +794,7 @@ static int at_setup_cmd_httpcput(int argc, const char **argv)
     if (ret != 0) {
         free(ctx->data);
         ctx->data = NULL;
-        return AT_RESULT_CODE_ERROR;
+        return ret;
     }
 
     return AT_RESULT_CODE_IGNORE;
@@ -809,16 +809,16 @@ static int at_setup_cmd_httpcurlcfg(int argc, const char **argv)
     AT_CMD_PARSE_NUMBER(0, &linkid);
     AT_CMD_PARSE_NUMBER(1, &len);
     if (len < 0) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     }
  
     if (linkid < 0 || linkid >= AT_HTTPC_HANDLE_MAX) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_HANDLE_INVALID);
     }
     
     ctx = &g_httpc_handle[linkid];
     if (ctx->used) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_PROCESSING);
     }
 
     if (len == 0) {
@@ -829,11 +829,11 @@ static int at_setup_cmd_httpcurlcfg(int argc, const char **argv)
     }
 
     if (ctx->url != NULL) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     }
     ctx->url = malloc(len + 1);
     if (!ctx->url) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_NO_MEMORY);
     }
     memset(ctx->url, 0, len + 1);
 
@@ -859,7 +859,7 @@ static int at_query_cmd_httpcurlcfg(int argc, const char **argv)
     AT_CMD_PARSE_NUMBER(0, &linkid);
  
     if (linkid < 0 || linkid >= AT_HTTPC_HANDLE_MAX) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_HANDLE_INVALID);
     }
     
     ctx = &g_httpc_handle[linkid];
@@ -880,11 +880,11 @@ static int at_setup_cmd_httprecvmode(int argc, const char **argv)
 
     AT_CMD_PARSE_NUMBER(0, &mode);
     if(mode != AT_HTTPC_RECV_MODE_ACTIVE && mode != AT_HTTPC_RECV_MODE_PASSIVE) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_OP_ERROR);
     }
    
     if (at_get_work_mode() != AT_WORK_MODE_CMD) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_OP_ERROR);
     }
  
     if (g_https_cfg.recv_mode == mode) {
@@ -893,7 +893,7 @@ static int at_setup_cmd_httprecvmode(int argc, const char **argv)
 
     for (id = 0; id < AT_HTTPC_HANDLE_MAX; id++) {
         if (g_httpc_handle[id].used) {
-            return AT_RESULT_CODE_ERROR;
+            return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_PROCESSING);
         }
     }
 
@@ -930,13 +930,13 @@ static int at_setup_cmd_httprecvdata(int argc, const char **argv)
     AT_CMD_PARSE_NUMBER(1, &size);
  
     if (linkid < 0 || linkid >= AT_HTTPC_HANDLE_MAX) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_HANDLE_INVALID);
     }
 
     ctx = &g_httpc_handle[linkid];
 
     if (size <= 0 || size > g_https_cfg.recvbuf_size) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     }
 
     buffer = (char *)pvPortMalloc(size + 48);
@@ -974,7 +974,7 @@ static int at_setup_cmd_httprecvbuf(int argc, const char **argv)
     AT_CMD_PARSE_NUMBER(0, &size);
  
     if (size <= 0 || size > at_lwip_heap_free_size()) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     }
 
     g_https_cfg.recvbuf_size = size;
@@ -995,7 +995,7 @@ static int at_query_cmd_httprecvlen(int argc, const char **argv)
     AT_CMD_PARSE_NUMBER(0, &linkid);
  
     if (linkid < 0 || linkid >= AT_HTTPC_HANDLE_MAX) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_HANDLE_INVALID);
     }
 
     at_response_string("+HTTPRECVLEN:%d,%d\r\n",linkid, httpc_get_recvsize(linkid));

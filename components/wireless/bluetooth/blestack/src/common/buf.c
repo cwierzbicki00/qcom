@@ -221,7 +221,7 @@ void net_buf_init(struct net_buf_pool *buf_pool, u16_t buf_count, size_t data_si
         #endif
         #if CONFIG_BT_L2CAP_TX_FRAG_COUNT > 0
         case FRAG:
-            buf_fixed->data_pool = (u8_t *)k_malloc(buf_count * data_size); ;
+            buf_fixed->data_pool = (u8_t *)k_malloc(buf_count * data_size);
             break;               
         #endif
         #endif
@@ -236,6 +236,11 @@ void net_buf_init(struct net_buf_pool *buf_pool, u16_t buf_count, size_t data_si
             break;
         case DATA:
             buf_fixed->data_pool = data_data_pool;
+            break;
+        #endif
+        #if defined(CONFIG_DYNAMIC_GATTS)
+        case GATTSERVER:
+            buf_fixed->data_pool = (u8_t *)k_malloc(buf_count * data_size);
             break;
         #endif
         default:

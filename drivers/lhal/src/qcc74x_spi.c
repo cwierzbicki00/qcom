@@ -335,17 +335,17 @@ ATTR_TCM_SECTION int qcc74x_spi_poll_exchange(struct qcc74x_device_s *dev, const
                 case 1:
                     regval = *(uint8_t *)txbuffer;
                     putreg32(regval, reg_base + SPI_FIFO_WDATA_OFFSET);
-                    txbuffer += 1;
+                    txbuffer = (uint8_t *)txbuffer + 1;
                     break;
                 case 2:
                     regval = *(uint16_t *)txbuffer;
                     putreg32(regval, reg_base + SPI_FIFO_WDATA_OFFSET);
-                    txbuffer += 2;
+                    txbuffer = (uint8_t *)txbuffer + 2;
                     break;
                 case 4:
                     regval = *(uint32_t *)txbuffer;
                     putreg32(regval, reg_base + SPI_FIFO_WDATA_OFFSET);
-                    txbuffer += 4;
+                    txbuffer = (uint8_t *)txbuffer + 4;
                     break;
                 default:
                     break;
@@ -354,7 +354,7 @@ ATTR_TCM_SECTION int qcc74x_spi_poll_exchange(struct qcc74x_device_s *dev, const
     } else {
         /* Send idle Data */
         for (; fifo_cnt > 0; fifo_cnt--) {
-            putreg32(0xFFFFFFFF, reg_base + SPI_FIFO_WDATA_OFFSET);
+            putreg32(QCC74x_SPI_IDEL_DATA, reg_base + SPI_FIFO_WDATA_OFFSET);
         }
     }
 
@@ -381,15 +381,15 @@ ATTR_TCM_SECTION int qcc74x_spi_poll_exchange(struct qcc74x_device_s *dev, const
                 case 1:
                     if (rxbuffer) {
                         *((uint8_t *)rxbuffer) = (uint8_t)regval;
-                        rxbuffer += 1;
+                        rxbuffer = (uint8_t *)rxbuffer + 1;
                     }
                     if (tx_cnt) {
                         if (txbuffer) {
                             regval = *(uint8_t *)txbuffer;
                             putreg32(regval, reg_base + SPI_FIFO_WDATA_OFFSET);
-                            txbuffer++;
+                            txbuffer = (uint8_t *)txbuffer + 1;
                         } else {
-                            putreg32(0xFFFFFFFF, reg_base + SPI_FIFO_WDATA_OFFSET);
+                            putreg32(QCC74x_SPI_IDEL_DATA, reg_base + SPI_FIFO_WDATA_OFFSET);
                         }
                         tx_cnt--;
                     }
@@ -397,15 +397,15 @@ ATTR_TCM_SECTION int qcc74x_spi_poll_exchange(struct qcc74x_device_s *dev, const
                 case 2:
                     if (rxbuffer) {
                         *((uint16_t *)rxbuffer) = (uint16_t)regval;
-                        rxbuffer += 2;
+                        rxbuffer = (uint8_t *)rxbuffer + 2;
                     }
                     if (tx_cnt) {
                         if (txbuffer) {
                             regval = *(uint16_t *)txbuffer;
                             putreg32(regval, reg_base + SPI_FIFO_WDATA_OFFSET);
-                            txbuffer += 2;
+                            txbuffer = (uint8_t *)txbuffer + 2;
                         } else {
-                            putreg32(0xFFFFFFFF, reg_base + SPI_FIFO_WDATA_OFFSET);
+                            putreg32(QCC74x_SPI_IDEL_DATA, reg_base + SPI_FIFO_WDATA_OFFSET);
                         }
                         tx_cnt--;
                     }
@@ -413,15 +413,15 @@ ATTR_TCM_SECTION int qcc74x_spi_poll_exchange(struct qcc74x_device_s *dev, const
                 case 4:
                     if (rxbuffer) {
                         *((uint32_t *)rxbuffer) = (uint32_t)regval;
-                        rxbuffer += 4;
+                        rxbuffer = (uint8_t *)rxbuffer + 4;
                     }
                     if (tx_cnt) {
                         if (txbuffer) {
                             regval = *(uint32_t *)txbuffer;
                             putreg32(regval, reg_base + SPI_FIFO_WDATA_OFFSET);
-                            txbuffer += 4;
+                            txbuffer = (uint8_t *)txbuffer + 4;
                         } else {
-                            putreg32(0xFFFFFFFF, reg_base + SPI_FIFO_WDATA_OFFSET);
+                            putreg32(QCC74x_SPI_IDEL_DATA, reg_base + SPI_FIFO_WDATA_OFFSET);
                         }
                         tx_cnt--;
                     }
@@ -812,6 +812,36 @@ int qcc74x_spi_feature_control(struct qcc74x_device_s *dev, int cmd, size_t arg)
             putreg32(regval, reg_base + SPI_SW_USAGE_OFFSET);
             break;
 #endif
+
+        case SPI_CMD_SET_ROLE:
+            /* GLB select master or slave mode */
+            regval = getreg32(GLB_SPI_MODE_ADDRESS);
+            if (arg == SPI_ROLE_MASTER) {
+                regval |= 1 << 12;
+            } else {
+                regval &= ~(1 << 12);
+            }
+            putreg32(regval, GLB_SPI_MODE_ADDRESS);
+
+            /* enable spi */
+            regval = getreg32(reg_base + SPI_CONFIG_OFFSET);
+            if (arg == SPI_ROLE_MASTER) {
+                regval |= SPI_CR_SPI_M_EN;
+                regval &= ~SPI_CR_SPI_S_EN;
+            } else {
+                regval |= SPI_CR_SPI_S_EN;
+                regval &= ~SPI_CR_SPI_M_EN;
+            }
+            putreg32(regval, reg_base + SPI_CONFIG_OFFSET);
+            break;
+        case SPI_CMD_GET_ROLE:
+            regval = getreg32(reg_base + SPI_CONFIG_OFFSET);
+            if (regval & SPI_CR_SPI_M_EN) {
+                ret = SPI_ROLE_MASTER;
+            } else {
+                ret = SPI_ROLE_SLAVE;
+            }
+            break;
 
         default:
             ret = -EPERM;

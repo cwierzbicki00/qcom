@@ -76,7 +76,7 @@ int nxspi_fakewrite_forread(uint8_t *buf, uint16_t len, uint32_t timeout)
         buf += chunk_size;  // Move the buffer pointer forward by the written chunk size
 
         // Send the message to the queue for transmission
-        while (xQueueSend(g_nxspi.dnvq, &msg, portMAX_DELAY) != pdPASS);
+        while (xQueueSend(g_nxspi.dnat, &msg, portMAX_DELAY) != pdPASS);
 
         // 
         total_sent += chunk_size;
@@ -86,12 +86,15 @@ int nxspi_fakewrite_forread(uint8_t *buf, uint16_t len, uint32_t timeout)
 
 static int _init_queue(void)
 {
-    g_nxspi.dnvq = xQueueCreate(NXBD_ITEMS + 1, sizeof(trans_desc_t *));
     g_nxspi.dnfq = xQueueCreate(NXBD_ITEMS + 1, sizeof(trans_desc_t *));
     g_nxspi.upvq = xQueueCreate(NXBD_ITEMS + 1, sizeof(trans_desc_t *));
     g_nxspi.upfq = xQueueCreate(NXBD_ITEMS + 1, sizeof(trans_desc_t *));
 
-    if (!g_nxspi.dnvq || !g_nxspi.dnfq || !g_nxspi.upvq || !g_nxspi.upfq) {
+    g_nxspi.dnat = xQueueCreate(NXBD_ITEMS + 1, sizeof(trans_desc_t *));
+    g_nxspi.dnnet = xQueueCreate(NXBD_ITEMS + 1, sizeof(trans_desc_t *));
+    g_nxspi.dndef = xQueueCreate(NXBD_ITEMS + 1, sizeof(trans_desc_t *));
+
+    if (!g_nxspi.dnfq || !g_nxspi.upvq || !g_nxspi.upfq || !g_nxspi.dnat || !g_nxspi.dnnet || !g_nxspi.dndef) {
         NX_LOGE("failed to create queue\r\n");
         return -1;
     }

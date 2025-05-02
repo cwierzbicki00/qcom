@@ -1,5 +1,3 @@
-
-
 #ifndef  __HARDWARE_CAM_FRONT_H__
 #define  __HARDWARE_CAM_FRONT_H__
 

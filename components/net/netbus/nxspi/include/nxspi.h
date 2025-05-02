@@ -29,11 +29,20 @@
 
 /* mem debug */
 #define NXSPI_DEBUG             (1)
+
+#ifdef NXSPI_NET
+#define NXSPI_BUFMALLOC         (0)
+#define NXBD_MTU                (2*1024)
+#define NXBD_ITEMS              (4)
+#define DMATX_LLIPOOL_CNT       (8) // dma config
+#define DMARX_LLIPOOL_CNT       (8) // dma config
+#else
 #define NXSPI_BUFMALLOC         (0)
 #define NXBD_MTU                (6*1024)
 #define NXBD_ITEMS              (2)
 #define DMATX_LLIPOOL_CNT       (4) // dma config
 #define DMARX_LLIPOOL_CNT       (4) // dma config
+#endif
 
 /* event  */
 #define NTF_TRANS_START         (1<<0) // transaction start
@@ -104,21 +113,31 @@ typedef struct spi_header {
     uint8_t  version   : 2;
     uint8_t  rx_stall  : 1;
     uint8_t  flags     : 5;
+#define NXSPI_TYPE_AT   (0)
+#define NXSPI_TYPE_NET  (1)
+#define NXSPI_TYPE_DEF  (2)
+#define NXSPI_TYPE_HCI  (3)
     uint8_t  type;
     uint16_t rsvd;
 } spi_header_t;
 
 /* body */
 typedef struct _trans_desc {
-    uint32_t              len;
-    char                  *payload;
+    uint32_t     len;
+    uint8_t      type;
+    uint8_t      resvd[3];
+    char         *payload;
 } trans_desc_t;
 
 typedef struct _nxspi_desc {
-    QueueHandle_t dnvq;  // download valid queue
+//    QueueHandle_t dnvq;  // download valid queue
     QueueHandle_t dnfq;  // download free queue
     QueueHandle_t upvq;  // up valid queue
     QueueHandle_t upfq;  // up free queue
+
+    QueueHandle_t dnat;
+    QueueHandle_t dnnet;
+    QueueHandle_t dndef;
 
     uint64_t cfg_starttime;
     uint64_t cfg_endtime;
@@ -141,6 +160,11 @@ typedef struct _nxspi_desc {
 
     uint32_t ps_entercnt;
     uint32_t ps_exitcnt;
+
+    uint32_t rx_stall_cnt;
+    uint32_t discard_cnt;
+    uint32_t discard_bytes;
+    uint32_t start2complete_cnt;
 #endif
 
     /* val */
@@ -180,15 +204,21 @@ int  nxspi_hwgpio_status(int pin);
 
 /* api */
 int nxspi_init(void);
-int nxspi_read(uint8_t *buf, uint16_t len, uint32_t timeout);
-int nxspi_write(uint8_t *buf, uint16_t len, uint32_t timeout);
+
+/* api write */
+int nxspi_write(uint8_t type, uint8_t *buf, uint16_t len, uint32_t timeout);
+trans_desc_t *nxspi_writebuf_pop(uint8_t type, uint32_t timeout);
+void nxspi_writebuf_push(trans_desc_t *msg);
+
+/* api read */
+int nxspi_read(uint8_t type, uint8_t *buf, uint16_t len, uint32_t timeout);
+trans_desc_t *nxspi_readbuf_pop(uint8_t type, uint32_t timeout);
+void nxspi_readbuf_push(trans_desc_t *msg);
+
+/* debug */
 int nxspi_fakewrite_forread(uint8_t *buf, uint16_t len, uint32_t timeout);
 
-/* api zero copy */
-trans_desc_t *nxspi_read_alloc(uint32_t timeout);
-void nxspi_read_free(trans_desc_t *msg);
-
-
+/* mem manage */
 void *malloc_aligned_with_padding(int size, int align_bytes);
 void free_aligned_with_padding(void *ptr);
 void *malloc_aligned_with_padding_nocache(int size, int align_bytes);

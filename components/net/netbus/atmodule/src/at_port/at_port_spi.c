@@ -21,7 +21,9 @@
 #include "queue.h"
 #include "semphr.h"
 #include "qcc74x_gpio.h"
-
+#ifdef NXSPI_NET
+#include "nxspi_net.h"
+#endif
 #if 0
 #include <vfs.h>
 #include <device/vfs_uart.h>
@@ -101,7 +103,7 @@ int at_port_read_data(uint8_t*data, int len)
 #else
     int nBytes = 0;
 #if 1
-    nBytes = nxspi_read(data, len, portMAX_DELAY);
+    nBytes = nxspi_read(NXSPI_TYPE_AT, data, len, portMAX_DELAY);
 #else
     vTaskDelay(portMAX_DELAY);
 #endif
@@ -141,7 +143,7 @@ int at_port_write_data(uint8_t *data, int len)
     }
     do {
         write_len = remain_len > NXBD_MTU ? NXBD_MTU : remain_len;
-        nxspi_write(data + len - remain_len, write_len, portMAX_DELAY);
+        nxspi_write(NXSPI_TYPE_AT, data + len - remain_len, write_len, portMAX_DELAY);
         remain_len -= write_len;
     } while (remain_len > 0);
     return (len - remain_len);
@@ -244,5 +246,24 @@ int at_port_para_get(int *baudrate, uint8_t *databits, uint8_t *stopbits, uint8_
     *flow_control = at_serial_flow_control;
 #endif
     return 0;
+}
+
+int at_port_netmode_set(int mode)
+{
+#ifdef NXSPI_NET
+    extern spinet_t g_spinet;
+    g_spinet.netstream = mode;
+#endif 
+    return 0;
+}
+
+int at_port_netmode_get()
+{
+#ifdef NXSPI_NET
+    extern spinet_t g_spinet;
+    return g_spinet.netstream;
+#else 
+    return 1;
+#endif
 }
 

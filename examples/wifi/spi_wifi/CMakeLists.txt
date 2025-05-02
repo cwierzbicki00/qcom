@@ -52,4 +52,9 @@ sdk_add_include_directories(./app/include)
 
 sdk_set_main_file(main.c)
 
+if (CONFIG_RCP_ENABLE)
+sdk_add_compile_definitions(-DLWIP_HEAP_SIZE=\(1*1024\))
+sdk_add_compile_definitions(-DCONFIG_RCP_ENABLE=$(CONFIG_RCP_ENABLE))
+endif()
+
 project(spi_wifi)

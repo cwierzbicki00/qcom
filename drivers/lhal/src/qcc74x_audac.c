@@ -55,7 +55,7 @@ int qcc74x_audac_init(struct qcc74x_device_s *dev, const struct qcc74x_audac_ini
     regval = getreg32(reg_base + AUDAC_FIFO_CTRL_OFFSET);
     /* data format */
     regval &= ~AUDAC_TX_DATA_MODE_MASK;
-    regval |= config->data_format;
+    regval |= config->data_format << AUDAC_TX_DATA_MODE_SHIFT;
 
     /* fifo threshold */
     regval &= ~AUDAC_TX_TRG_LEVEL_MASK;

@@ -6,6 +6,7 @@
 #include "app_atmodule.h"
 #include "semphr.h"
 #include "stream_buffer.h"
+#include "virt_net.h"
 /* Private includes ----------------------------------------------------------*/
 
 /* USER CODE BEGIN Includes */
@@ -567,10 +568,20 @@ SemaphoreHandle_t g_recvsem;
 
 static int _at_to_console(uint8_t *buf, uint32_t len, void *arg)
 {
+	int netmode = -1;
+	extern virt_net_t g_virt_eth;
+
     for (int i = 0; i < len; i++) {
         putchar(buf[i]);
     }
     fflush(stdout);
+
+    if (strstr((char *)buf, "+CW:CONNECTED\r\n") != NULL) {
+    	virt_net_get_netmode(g_virt_eth, &netmode);
+    	if (netmode == VIRTNET_NET_MODE_RCP) {
+    		virt_net_dhcp_start(g_virt_eth, 15*1000);
+    	}
+    }
     return len;
 }
 
@@ -592,9 +603,15 @@ static int _net_data_recv(int linkid, uint8_t *buf, uint32_t size, void *arg)
 static int _read_data(void *arg, void *data, int len)
 {
 	int ret;
+	uint8_t traffic_type = SPI_MSG_CTRL_TRAFFIC_AT_CMD;
+	struct spi_msg_control ctrl;
 	struct spi_msg m;
 
-	SPI_MSG_INIT(m, data, len, NULL, 0);
+	SPI_MSG_CONTROL_INIT(ctrl, SPI_MSG_CTRL_TRAFFIC_TYPE,
+		SPI_MSG_CTRL_TRAFFIC_TYPE_LEN, &traffic_type);
+	SPI_MSG_INIT(m, SPI_MSG_OP_DATA, &ctrl, 0);
+	m.data = data;
+	m.data_len = len;
 	ret = spi_read(&m, pdMS_TO_TICKS(10000));
 	if (ret <= 0) {
 		//printf("=====at failed to read from spi, %d\r\n", ret);
@@ -617,9 +634,15 @@ static int _read_data(void *arg, void *data, int len)
 static int _write_data(void *arg, const void *data, int len)
 {
 	int ret;
+	struct spi_msg_control ctrl;
+	uint8_t traffic = SPI_MSG_CTRL_TRAFFIC_AT_CMD;
 	struct spi_msg m;
 
-	SPI_MSG_INIT(m, data, len, NULL, 0);
+	SPI_MSG_CONTROL_INIT(ctrl, SPI_MSG_CTRL_TRAFFIC_TYPE,
+		SPI_MSG_CTRL_TRAFFIC_TYPE_LEN, &traffic);
+	SPI_MSG_INIT(m, SPI_MSG_OP_DATA, &ctrl, 0);
+	m.data = (void *)data;
+	m.data_len = len;
 	ret = spi_write(&m, pdMS_TO_TICKS(10000));
 	if (ret <= 0) {
 		//printf("at failed to write to spi, %d\r\n", ret);
@@ -782,6 +805,12 @@ at_host_handle_t at_spisync_init(void)
 		.f_write_data = _write_data,
 	};
 	at_host_handle_t at;
+
+	int err = spi_bind(SPI_MSG_CTRL_TRAFFIC_AT_CMD, 16);
+	if (err) {
+		printf("spi bind failed, %d\r\n", err);
+		return NULL;
+	}
 
 	at = at_host_init(&host_drv, NULL);
 

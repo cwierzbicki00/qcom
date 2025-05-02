@@ -23,7 +23,6 @@
  * @date     Feb. 2020
  ******************************************************************************/
 
-
 #ifndef _RISCV_CONST_STRUCTS_H
 #define _RISCV_CONST_STRUCTS_H
 

@@ -50,11 +50,19 @@ uint64_t at_current_ms_get()
     return current_ms;
 }
 
-void at_response_result(uint8_t result_code)
+void at_response_result(int result_code)
 {
+    int sub_code = 0;
+
     if (!at) {
         AT_CMD_PRINTF("ERROR: atcmd has not been initialized\r\n");
         return;
+    }
+
+    if (result_code > AT_RESULT_CODE_MAX) {
+        sub_code = result_code >> 8;
+        result_code &= 0x0f;
+        at_cmd_syslog(AT_ERROR_NO(sub_code, 0x00));
     }
 
     if (AT_RESULT_CODE_OK == result_code)
@@ -296,6 +304,8 @@ int at_module_init(void)
     /* register base AT command */
     at_base_cmd_regist();
 
+    at->syslog = at_base_config->sysmsg_cfg.syslog;
+    
     /* register user AT command */
     at_user_cmd_regist();
     /* register wifi AT command */
@@ -314,8 +324,10 @@ int at_module_init(void)
     at_ble_cmd_regist();
 #endif
 #ifdef LP_APP
+#if (!CONFIG_RCP_ENABLE)
     /* register pwr AT command */
     at_pwr_cmd_regist();
+#endif
 #endif
 
     ret = xTaskCreate(at_main_task, (char*)"at_main_task", ATCMD_TASK_STACK_SIZE, NULL, ATCMD_TASK_PRIORITY, NULL);

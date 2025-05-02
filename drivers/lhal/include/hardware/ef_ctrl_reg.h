@@ -138,7 +138,6 @@
 #define EF_CTRL_EF_IF_CYC_PS_CS_H_MASK      (((1U << EF_CTRL_EF_IF_CYC_PS_CS_H_LEN) - 1) << EF_CTRL_EF_IF_CYC_PS_CS_H_POS)
 #define EF_CTRL_EF_IF_CYC_PS_CS_H_UMASK     (~(((1U << EF_CTRL_EF_IF_CYC_PS_CS_H_LEN) - 1) << EF_CTRL_EF_IF_CYC_PS_CS_H_POS))
 
-
 /* 0x80C : ef_if_0_manual, 606P and 808 manual config is the same but not need witch clock */
 #if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
 #define EF_CTRL_EF_IF_0_MANUAL_OFFSET        (0x80C)

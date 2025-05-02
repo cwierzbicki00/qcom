@@ -44,12 +44,12 @@ SECTIONS
 
     .ver :
     {
-		LONG(0x42464c42); /* */
-		LONG(0x46524556); /* VERF */
-		KEEP (*(.qcc74xverinf))
-		LONG(0x42464c42); /* */
-		LONG(0x46524556); /* VERF */
-		KEEP (*(.verinfo))
+        LONG(0x42464c42); /*  */
+        LONG(0x46524556); /* VERF */
+        KEEP (*(.qcc74xverinf))
+        LONG(0x42464c42); /*  */
+        LONG(0x46524556); /* VERF */
+        KEEP (*(.verinfo))
     } > ver_memory
 
     .text :
@@ -188,7 +188,7 @@ SECTIONS
     } > ram_memory
 
     PROVIDE( __wifi_bss_start = 0 );
-	PROVIDE( __wifi_bss_end = 0 );
+    PROVIDE( __wifi_bss_end = 0 );
     PROVIDE(__LD_CONFIG_EM_SEL = 0K);
 }
 

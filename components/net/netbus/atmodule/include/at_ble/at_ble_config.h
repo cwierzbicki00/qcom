@@ -80,7 +80,7 @@ typedef struct {
 
 typedef struct {
     ble_work_role work_role;
-    char ble_name[33];
+    char ble_name[29+1];
     ble_adv_param adv_param;
     ble_scan_param scan_param;
     ble_adv_data adv_data;

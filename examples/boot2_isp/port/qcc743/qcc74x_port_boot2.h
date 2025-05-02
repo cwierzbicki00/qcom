@@ -43,6 +43,8 @@
 #define HAL_BOOT2_PSRAM_INFO_MASK (0x3000000)
 #define HAL_BOOT2_PSRAM_INFO_POS  (24)
 
+#define HAL_BOOT2_FLASH_XIP_BASE QCC743_FLASH_XIP_BASE
+
 #define HAL_BOOT2_UINT32_BIT_LEN               (32)
 #define HAL_BOOT2_UINT64_BIT_LEN               (64)
 #define HAL_BOOT2_UINT96_BIT_LEN               (96)

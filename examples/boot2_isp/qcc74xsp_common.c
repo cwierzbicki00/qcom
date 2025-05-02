@@ -141,7 +141,7 @@ void ATTR_TCM_SECTION qcc74xsp_boot2_jump_entry(void)
     uint32_t encrypt_region = 0;
     /* Set decryption before read MSP and PC*/
     if (0 != g_efuse_cfg.encrypted[0]) {
-#if defined(QCC743) || defined(CHIP_QCC74x_undef)
+#if defined(QCC743)
         if (g_efuse_cfg.app_encrypt_type > HAL_APP_ENCRYPT_SAME_AS_BOOT2){
             encrypt_region++;
         }
@@ -149,6 +149,7 @@ void ATTR_TCM_SECTION qcc74xsp_boot2_jump_entry(void)
         qcc74xsp_boot2_set_encrypt(encrypt_region, &g_boot_img_cfg[0]);
         encrypt_region++;
         qcc74xsp_boot2_set_encrypt(encrypt_region, &g_boot_img_cfg[1]);
+
 #if QCC74xSP_BOOT2_CPU_MAX > 1
         if (hal_boot2_get_feature_flag() == HAL_BOOT2_CP_FLAG) {
             /*co-processor*/
@@ -163,7 +164,7 @@ void ATTR_TCM_SECTION qcc74xsp_boot2_jump_entry(void)
 #endif
 
     for (uint32_t i = 0; i < 3; i++) {
-        volatile uint32_t *p = (volatile uint32_t *)(QCC74x_FLASH_XIP_BASE + QCC74xSP_APP_VERSION_LINK_OFFSET);
+        volatile uint32_t *p = (volatile uint32_t *)(HAL_BOOT2_FLASH_XIP_BASE + QCC74xSP_APP_VERSION_LINK_OFFSET);
         g_anti_rollback_flag[i] = p[i];
     }
     /* check app version */

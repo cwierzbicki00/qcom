@@ -111,8 +111,10 @@ struct ble_char_data
 {
     uint8_t valid;
     struct bt_uuid_128 char_uuid;
+    struct bt_uuid_16 char_uuid_16;
     uint32_t char_prop;
     uint32_t char_perm;
+    uint8_t uuid_type;
     char read_data[22];
     int read_data_len;
     struct bt_gatt_attr *attr;
@@ -122,8 +124,9 @@ struct ble_srv_data
 {
     uint8_t valid;
     struct bt_uuid_128 srv_uuid;
+    struct bt_uuid_16 srv_uuid_16;
     uint8_t srv_type;
-
+    uint8_t uuid_type;
     struct ble_char_data srv_char[BLE_CHAR_MAX_NUM];
 };
 
@@ -202,20 +205,43 @@ static void ble_uuid_trans(uint8_t *src, uint8_t *dst)
     }
 }
 
+static void ble_uuid_16_trans_get(uint16_t src, uint8_t *dst)
+{
+    dst[0] = (uint8_t)(src >> 8);
+    dst[1] = (uint8_t)(src & 0xFF);
+}
+
+static void ble_uuid_16_trans_set(uint8_t *src, uint16_t *dst)
+{
+    *dst = (uint16_t)(src[0] << 8) | src[1]; 
+}
+
 static int check_attr_ismatch(struct ble_char_data *srv_char, struct bt_gatt_attr *attr)
 {
 
-    if(ble_dynamic_gatt_get_attr(&srv_char->char_uuid.uuid)==(attr))
+    if(&srv_char->uuid_type == BT_UUID_TYPE_128)
     {
-        return 1;
-    }
+        if(ble_dynamic_gatt_get_attr(&srv_char->char_uuid.uuid)==(attr))
+        {
+            return 1;
+        }
 
-    if(ble_dynamic_gatt_get_attr(&srv_char->char_uuid.uuid)==(attr-1))
+        if(ble_dynamic_gatt_get_attr(&srv_char->char_uuid.uuid)==(attr-1))
+        {
+            return 1;
+        }
+    }
+    if(&srv_char->uuid_type == BT_UUID_TYPE_16)
     {
-        return 1;
+        if(ble_dynamic_gatt_get_attr(&srv_char->char_uuid_16.uuid)==(attr))
+        {
+            return 1;
+        }
+        if(ble_dynamic_gatt_get_attr(&srv_char->char_uuid_16.uuid)==(attr-1))
+        {
+            return 1;
+        }
     }
-    
-
     return 0;
 }
 
@@ -248,12 +274,18 @@ static void ble_add_service(void)
         {
             if(g_ble_srv_data[i].srv_type)
             {
-                ble_dynamic_gatt_add_service(&g_ble_srv_data[i].srv_uuid.uuid,BT_UUID_TYPE_128,GATT_SERVICE_PRIMARY);
+                if(g_ble_srv_data[i].uuid_type == BT_UUID_TYPE_128)
+                    ble_dynamic_gatt_add_service(&g_ble_srv_data[i].srv_uuid.uuid,BT_UUID_TYPE_128,GATT_SERVICE_PRIMARY);
+                if(g_ble_srv_data[i].uuid_type == BT_UUID_TYPE_16)
+                    ble_dynamic_gatt_add_service(&g_ble_srv_data[i].srv_uuid_16.uuid,BT_UUID_TYPE_16,GATT_SERVICE_PRIMARY);
 
             }
             else
             {
-                ble_dynamic_gatt_add_service(&g_ble_srv_data[i].srv_uuid.uuid,BT_UUID_TYPE_128,GATT_SERVICE_SECONDARY);
+                if(&g_ble_srv_data[i].uuid_type == BT_UUID_TYPE_128)
+                    ble_dynamic_gatt_add_service(&g_ble_srv_data[i].srv_uuid.uuid,BT_UUID_TYPE_128,GATT_SERVICE_SECONDARY);
+                if(&g_ble_srv_data[i].uuid_type == BT_UUID_TYPE_16)
+                    ble_dynamic_gatt_add_service(&g_ble_srv_data[i].srv_uuid_16.uuid,BT_UUID_TYPE_16,GATT_SERVICE_SECONDARY);
 
             }
             for (int n = 0; n < BLE_CHAR_MAX_NUM; n++) 
@@ -264,7 +296,10 @@ static void ble_add_service(void)
                     cmd_data.char_id = 0U;
                     cmd_data.properties  = g_ble_srv_data[i].srv_char[n].char_prop;
                     cmd_data.permissions = g_ble_srv_data[i].srv_char[n].char_perm;
-                    cmd_data.uuid = &g_ble_srv_data[i].srv_char[n].char_uuid.uuid;
+                    if(g_ble_srv_data[i].srv_char[n].uuid_type == BT_UUID_TYPE_128)
+                        cmd_data.uuid = &g_ble_srv_data[i].srv_char[n].char_uuid.uuid;
+                    if(g_ble_srv_data[i].srv_char[n].uuid_type == BT_UUID_TYPE_16)
+                        cmd_data.uuid = &g_ble_srv_data[i].srv_char[n].char_uuid_16.uuid;
                     ble_dynamic_gatt_add_characteristic(&cmd_data);
 
                     if(cmd_data.properties  = g_ble_srv_data[i].srv_char[n].char_prop&(BLE_GATT_CHAR_PROP_INDICATE|BLE_GATT_CHAR_PROP_NOTIFY))
@@ -456,7 +491,7 @@ static void ble_notification_all_cb(struct bt_conn *conn, u16_t handle,const voi
         return;
     }
     memset(rdata,0,(32 + length));
-    data_len = sprintf(rdata, "+BLE:NOTIDATA:%d,%d",conn_data->idx,length);
+    data_len = sprintf(rdata, "+BLE:NOTIDATA:%d,%d,",conn_data->idx,length);
     memcpy(rdata + data_len, data, length);
     data_len += length;
     memcpy(rdata + data_len, "\r\n", 2);
@@ -636,7 +671,7 @@ int at_ble_sec_auth_passkey(int idx, int passkey)
 
     if (conn_data == NULL || conn_data->state != BLE_CONN_STATE_CONNECTED)
         return 1;
-    if (passkey > PASSKEY_MAX) 
+    if (passkey > PASSKEY_MAX|| passkey < 0) 
         return 1;
 	return bt_conn_auth_passkey_entry(conn_data->conn, passkey);
 }
@@ -687,7 +722,7 @@ static void ble_write_callback(int srv_idx, int char_idx, void *buf, u16_t len)
         return;
     }
 
-    data_len = sprintf(data, "+BLE:GATTWRITE:%d,%d,%d,%d", 0, srv_idx, char_idx, len);
+    data_len = sprintf(data, "+BLE:GATTWRITE:%d,%d,%d,%d,", 0, srv_idx, char_idx, len);
     memcpy(data + data_len, buf, len);
     data_len += len;
     memcpy(data + data_len, "\r\n", 2);
@@ -1346,32 +1381,43 @@ static int at_ble_char_idx_is_valid(int idx)
         return 1;
 }
 
-int at_ble_gatts_service_get(int srv_idx, uint8_t *srv_uuid, uint8_t *srv_type)
+int at_ble_gatts_service_get(int srv_idx, uint8_t *srv_uuid, uint8_t *srv_type,uint8_t *uuid_type)
 {
     CHECK_BLE_SRV_IDX_VALID(srv_idx);
 
     if (g_ble_srv_data[srv_idx].valid == 0)
         return 0;
-
-    ble_uuid_trans(g_ble_srv_data[srv_idx].srv_uuid.val, srv_uuid);
+    if (g_ble_srv_data[srv_idx].uuid_type == BT_UUID_TYPE_128)
+        ble_uuid_trans(g_ble_srv_data[srv_idx].srv_uuid.val, srv_uuid);
+    if (g_ble_srv_data[srv_idx].uuid_type == BT_UUID_TYPE_16)
+        ble_uuid_16_trans_get(g_ble_srv_data[srv_idx].srv_uuid_16.val, srv_uuid);
     *srv_type = g_ble_srv_data[srv_idx].srv_type;
+    *uuid_type = g_ble_srv_data[srv_idx].uuid_type;
     return 1;
 }
 
-int at_ble_gatts_service_set(int srv_idx, uint8_t *srv_uuid, uint8_t srv_type)
+int at_ble_gatts_service_set(int srv_idx, uint8_t *srv_uuid, uint8_t srv_type,uint8_t uuid_type)
 {
     CHECK_BLE_SRV_IDX_VALID(srv_idx);
-
     if (g_ble_srv_data[srv_idx].valid == 1)
         return 0;
-
 	// TODO
     /*if (check_uuid_is_unique)
         return 0;*/
 
     g_ble_srv_data[srv_idx].valid = 1;
-    g_ble_srv_data[srv_idx].srv_uuid.uuid.type = BT_UUID_TYPE_128;
-    ble_uuid_trans(srv_uuid, g_ble_srv_data[srv_idx].srv_uuid.val);
+    if(uuid_type == BT_UUID_TYPE_16)
+    {
+        g_ble_srv_data[srv_idx].uuid_type = BT_UUID_TYPE_16;
+        g_ble_srv_data[srv_idx].srv_uuid_16.uuid.type = BT_UUID_TYPE_16;
+        ble_uuid_16_trans_set(srv_uuid, &g_ble_srv_data[srv_idx].srv_uuid_16.val);
+    }
+    else
+    {
+        g_ble_srv_data[srv_idx].uuid_type = BT_UUID_TYPE_128;
+        g_ble_srv_data[srv_idx].srv_uuid.uuid.type = BT_UUID_TYPE_128;
+        ble_uuid_trans(srv_uuid, g_ble_srv_data[srv_idx].srv_uuid.val);
+    }
     g_ble_srv_data[srv_idx].srv_type = srv_type;
 
     return 1;
@@ -1388,12 +1434,16 @@ int at_ble_gatts_service_del(int srv_idx)
 
     g_ble_srv_data[srv_idx].valid = 0;
     memset(&g_ble_srv_data[srv_idx].srv_uuid, 0, sizeof(g_ble_srv_data[srv_idx].srv_uuid));
+    memset(&g_ble_srv_data[srv_idx].srv_uuid_16, 0, sizeof(g_ble_srv_data[srv_idx].srv_uuid_16));
     g_ble_srv_data[srv_idx].srv_type = 0;
+    g_ble_srv_data[srv_idx].uuid_type = 0;
     for (i = 0; i < BLE_CHAR_MAX_NUM; i++) {
         g_ble_srv_data[srv_idx].srv_char[i].valid = 0;
         memset(&g_ble_srv_data[srv_idx].srv_char[i].char_uuid, 0, sizeof(g_ble_srv_data[srv_idx].srv_char[i].char_uuid));
+        memset(&g_ble_srv_data[srv_idx].srv_char[i].char_uuid_16, 0, sizeof(g_ble_srv_data[srv_idx].srv_char[i].char_uuid_16));
         g_ble_srv_data[srv_idx].srv_char[i].char_prop = 0;
         g_ble_srv_data[srv_idx].srv_char[i].char_perm = 0;
+        g_ble_srv_data[srv_idx].srv_char[i].uuid_type = 0;
         g_ble_srv_data[srv_idx].srv_char[i].attr = NULL;
         g_ble_srv_data[srv_idx].srv_char[i].read_data_len = 0;
     }
@@ -1401,7 +1451,7 @@ int at_ble_gatts_service_del(int srv_idx)
     return 1;
 }
 
-int at_ble_gatts_service_char_get(int srv_idx, int char_idx, uint8_t *char_uuid, uint32_t *char_prop,uint32_t *char_perm)
+int at_ble_gatts_service_char_get(int srv_idx, int char_idx, uint8_t *char_uuid, uint32_t *char_prop,uint32_t *char_perm,uint8_t *uuidtype)
 {
     CHECK_BLE_SRV_IDX_VALID(srv_idx);
     CHECK_BLE_CHAR_IDX_VALID(char_idx);
@@ -1410,10 +1460,13 @@ int at_ble_gatts_service_char_get(int srv_idx, int char_idx, uint8_t *char_uuid,
         return 0;
     if (g_ble_srv_data[srv_idx].srv_char[char_idx].valid == 0)
         return 0;
-
-    ble_uuid_trans(g_ble_srv_data[srv_idx].srv_char[char_idx].char_uuid.val, char_uuid);
+    if (g_ble_srv_data[srv_idx].srv_char[char_idx].uuid_type == BT_UUID_TYPE_16)
+        ble_uuid_16_trans_get(g_ble_srv_data[srv_idx].srv_char[char_idx].char_uuid_16.val, char_uuid);
+    if (g_ble_srv_data[srv_idx].srv_char[char_idx].uuid_type == BT_UUID_TYPE_128)
+        ble_uuid_trans(g_ble_srv_data[srv_idx].srv_char[char_idx].char_uuid.val, char_uuid);
     *char_prop = g_ble_srv_data[srv_idx].srv_char[char_idx].char_prop;
     *char_perm = g_ble_srv_data[srv_idx].srv_char[char_idx].char_perm;
+    *uuidtype=g_ble_srv_data[srv_idx].srv_char[char_idx].uuid_type;
     return 1;
 }
 
@@ -1443,7 +1496,7 @@ int at_ble_gatts_service_register(int enable)
     return 0;
 }
 
-int at_ble_gatts_service_char_set(int srv_idx, int char_idx, uint8_t *char_uuid, uint32_t char_prop,uint32_t char_perm)
+int at_ble_gatts_service_char_set(int srv_idx, int char_idx, uint8_t *char_uuid, uint32_t char_prop,uint32_t char_perm, uint8_t uuid_type)
 {
     CHECK_BLE_SRV_IDX_VALID(srv_idx);
     CHECK_BLE_CHAR_IDX_VALID(char_idx);
@@ -1454,8 +1507,18 @@ int at_ble_gatts_service_char_set(int srv_idx, int char_idx, uint8_t *char_uuid,
         return 0;
 
     g_ble_srv_data[srv_idx].srv_char[char_idx].valid = 1;
-    g_ble_srv_data[srv_idx].srv_char[char_idx].char_uuid.uuid.type = BT_UUID_TYPE_128;
-    ble_uuid_trans(char_uuid, g_ble_srv_data[srv_idx].srv_char[char_idx].char_uuid.val);
+    if(uuid_type == BT_UUID_TYPE_16)
+    {
+        g_ble_srv_data[srv_idx].srv_char[char_idx].uuid_type = BT_UUID_TYPE_16;
+        g_ble_srv_data[srv_idx].srv_char[char_idx].char_uuid_16.uuid.type = BT_UUID_TYPE_16;
+        ble_uuid_16_trans_set(char_uuid, &g_ble_srv_data[srv_idx].srv_char[char_idx].char_uuid_16.val);
+    }
+    else
+    {
+        g_ble_srv_data[srv_idx].srv_char[char_idx].uuid_type = BT_UUID_TYPE_128;
+        g_ble_srv_data[srv_idx].srv_char[char_idx].char_uuid.uuid.type = BT_UUID_TYPE_128;
+        ble_uuid_trans(char_uuid, g_ble_srv_data[srv_idx].srv_char[char_idx].char_uuid.val);
+    }
     g_ble_srv_data[srv_idx].srv_char[char_idx].char_prop = char_prop;
     g_ble_srv_data[srv_idx].srv_char[char_idx].char_perm = char_perm;
     g_ble_srv_data[srv_idx].srv_char[char_idx].attr = NULL;
@@ -1473,11 +1536,18 @@ int at_ble_gatts_service_notify(int srv_idx, int char_idx, void * buffer, int le
         return 0;
     if (g_ble_srv_data[srv_idx].srv_char[char_idx].valid == 0)
         return 0;
-    if (g_ble_srv_data[srv_idx].srv_char[char_idx].char_prop & BLE_GATT_CHAR_PROP_NOTIFY && length <= 517) {
+    if (g_ble_srv_data[srv_idx].srv_char[char_idx].char_prop & BLE_GATT_CHAR_PROP_NOTIFY && length <= 244) {
         if (!g_ble_tp_conn)
             return 0;
         struct bt_gatt_attr* noti_attr =NULL;
-        noti_attr=ble_dynamic_gatt_get_attr(&g_ble_srv_data[srv_idx].srv_char[char_idx].char_uuid.uuid);
+        if(g_ble_srv_data[srv_idx].srv_char[char_idx].uuid_type == BT_UUID_TYPE_16)
+        {
+            noti_attr=ble_dynamic_gatt_get_attr(&g_ble_srv_data[srv_idx].srv_char[char_idx].char_uuid_16.uuid);
+        }
+        else
+        {
+            noti_attr=ble_dynamic_gatt_get_attr(&g_ble_srv_data[srv_idx].srv_char[char_idx].char_uuid.uuid);
+        }
         if(noti_attr)
         {
             int err = bt_gatt_notify(g_ble_tp_conn,noti_attr, buffer, length);
@@ -1501,7 +1571,7 @@ int at_ble_gatts_service_notify(int srv_idx, int char_idx, void * buffer, int le
 
 static void ble_gatt_send_indicate_cb(struct bt_conn *conn, const struct bt_gatt_attr *attr,	u8_t err)
 {
-    AT_BLE_PRINTF("ble_gatt_send_indicate_cb: %d\r\n", err);
+    at_response_string("+BLE:INDICATION:2,%d\r\n",err);
 }
 
 static int ble_gatt_send_indicate(struct bt_conn *conn, const struct bt_gatt_attr *attr,
@@ -1533,11 +1603,18 @@ int at_ble_gatts_service_indicate(int srv_idx, int char_idx, void * buffer, int 
     if (g_ble_srv_data[srv_idx].srv_char[char_idx].valid == 0)
         return 0;
 
-    if (g_ble_srv_data[srv_idx].srv_char[char_idx].char_prop & BLE_GATT_CHAR_PROP_INDICATE && length <= 517) {
+    if (g_ble_srv_data[srv_idx].srv_char[char_idx].char_prop & BLE_GATT_CHAR_PROP_INDICATE && length <= 244) {
         if (!g_ble_tp_conn)
             return 0;
         struct bt_gatt_attr* indicate_attr =NULL;
-        indicate_attr=ble_dynamic_gatt_get_attr(&g_ble_srv_data[srv_idx].srv_char[char_idx].char_uuid.uuid);
+        if(g_ble_srv_data[srv_idx].srv_char[char_idx].uuid_type == BT_UUID_TYPE_16)
+        {
+            indicate_attr=ble_dynamic_gatt_get_attr(&g_ble_srv_data[srv_idx].srv_char[char_idx].char_uuid_16.uuid);
+        }
+        else
+        {
+            indicate_attr=ble_dynamic_gatt_get_attr(&g_ble_srv_data[srv_idx].srv_char[char_idx].char_uuid.uuid);
+        }
         if(indicate_attr)
         {
             int err = ble_gatt_send_indicate(g_ble_tp_conn, indicate_attr, buffer, length);
@@ -1570,10 +1647,11 @@ int at_ble_gatts_service_read(int srv_idx, int char_idx, void * buffer, int leng
     if (g_ble_srv_data[srv_idx].srv_char[char_idx].valid == 0)
         return 0;
 
-    if (g_ble_srv_data[srv_idx].srv_char[char_idx].char_prop & BLE_GATT_CHAR_PROP_READ && length <= 22) {
+    if (g_ble_srv_data[srv_idx].srv_char[char_idx].char_prop & BLE_GATT_CHAR_PROP_READ && length <= 244) {
         memcpy(g_ble_srv_data[srv_idx].srv_char[char_idx].read_data, buffer, length);
         g_ble_srv_data[srv_idx].srv_char[char_idx].read_data_len = length;
         return length;
+        
     } else {
         return 0;
     }
@@ -2043,7 +2121,7 @@ static void ble_read_callback(int idx, int srv_idx, int char_idx, void *buf, u16
         return;
     }
 
-    data_len = sprintf(data, "+BLE:GATTREAD:%d,%d,%d,%d", idx, srv_idx, char_idx, len);
+    data_len = sprintf(data, "+BLE:GATTREAD:%d,%d,%d,%d,", idx, srv_idx, char_idx, len);
     memcpy(data + data_len, buf, len);
     data_len += len;
     memcpy(data + data_len, "\r\n", 2);
@@ -2276,7 +2354,7 @@ int at_ble_dis_set(char* dis_name, char* dis_value, int dis_value_len)
 #endif
 int at_ble_init(int role)
 {
-    if (g_ble_is_inited == 0) {
+    if (g_ble_is_inited == 0&&role !=BLE_DISABLE) {
 
        if (!atomic_test_bit(bt_dev.flags, BT_DEV_ENABLE))
         {
@@ -2300,11 +2378,6 @@ int at_ble_init(int role)
                 if(g_ble_role==BLE_SERVER)
                 {
                     ble_gatts_srv_clean();
-                    if(g_ble_dynamic_init == 1)
-                    {
-                        ble_dynamic_gatt_server_deinit();
-                        g_ble_dynamic_init = 0;
-                    }
 
                 }
                 if(g_ble_role == BLE_CLIENT)
@@ -2343,13 +2416,6 @@ int at_ble_init(int role)
         if(g_ble_srv_data == NULL)
             g_ble_srv_data = pvPortMalloc(sizeof(struct ble_srv_data)*BLE_SRV_MAX_NUM);
         memset(g_ble_srv_data,0,sizeof(struct ble_srv_data)*BLE_SRV_MAX_NUM);
-
-        if(g_ble_dynamic_init == 0)
-        {
-            ble_dynamic_gatt_server_init();
-            ble_dynamic_gatt_cb_register(ble_dynamic_rd_cb,ble_dynamic_wr_cb,ble_dynamic_noti_cb);
-            g_ble_dynamic_init = 1; 
-        }
 
     }
     #if defined(QCC74x_BLE_MTU_CHANGE_CB)

@@ -11,7 +11,6 @@ src/qcc74x_dma.c
 src/qcc74x_rtc.c
 src/qcc74x_sec_aes.c
 src/qcc74x_sec_sha.c
-src/qcc74x_sec_gmac.c
 src/qcc74x_sec_trng.c
 src/qcc74x_spi.c
 src/qcc74x_timer.c
@@ -98,6 +97,7 @@ src/qcc74x_acomp.c
 src/qcc74x_dac.c
 # src/qcc74x_emac.c
 src/qcc74x_gmac.c
+src/qcc74x_sec_gmac.c
 src/qcc74x_ir.c
 src/qcc74x_mjpeg.c
 src/qcc74x_mjdec.c
@@ -116,6 +116,7 @@ src/qcc74x_adc.c
 src/qcc74x_acomp.c
 src/qcc74x_dac.c
 src/qcc74x_gmac.c
+src/qcc74x_sec_gmac.c
 src/qcc74x_clock.c
 src/qcc74x_pwm_v2.c
 src/qcc74x_wo.c
@@ -133,6 +134,7 @@ src/qcc74x_mjpeg.c
 src/qcc74x_pwm_v2.c
 src/qcc74x_cam.c
 src/qcc74x_csi.c
+src/qcc74x_dbi.c
 src/qcc74x_i2s.c
 src/qcc74x_wo.c
 src/qcc74x_sdh.c
@@ -142,7 +144,7 @@ endif()
 if(CONFIG_CHERRYUSB)
 if("${CHIP}" STREQUAL "qcc74x_undef")
 sdk_library_add_sources(src/qcc74x_usb_v1.c)
-elseif(("${CHIP}" STREQUAL "qcc74x_undef") OR ("${CHIP}" STREQUAL "qcc74x_undef"))
+elseif(("${CHIP}" STREQUAL "qcc74x_undef") OR ("${CHIP}" STREQUAL "qcc74x_undef") OR ("${CHIP}" STREQUAL "qcc74x_undef"))
 # no usb
 elseif(("${CHIP}" STREQUAL "qcc74x_undef"))
 else()

@@ -70,7 +70,6 @@ int qcc74x_sec_gmac_link_work(struct qcc74x_device_s *dev, uint32_t addr, const 
     regval |= SEC_ENG_SE_GMAC_0_TRIG_1T;
     putreg32(regval, reg_base + SEC_ENG_SE_GMAC_0_CTRL_0_OFFSET);
 
-
     start_time = qcc74x_mtimer_get_time_ms();
     while (getreg32(reg_base + SEC_ENG_SE_GMAC_0_CTRL_0_OFFSET) & SEC_ENG_SE_GMAC_0_BUSY) {
         if ((qcc74x_mtimer_get_time_ms() - start_time) > 100) {

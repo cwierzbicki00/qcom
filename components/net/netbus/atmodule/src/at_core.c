@@ -186,7 +186,7 @@ int at_cmd_set_error(uint32_t error)
     return 0;
 }
 
-static void at_cmd_syslog(uint32_t error)
+void at_cmd_syslog(uint32_t error)
 {
     char outbuf[64];
 

@@ -219,7 +219,7 @@ void qcc74x_update_adc_trim(struct qcc74x_device_s *dev, const struct qcc74x_adc
     } else {
         os2 = (os_val / 5) * 2;
     }
-    coe = coe - os2 / 40960.0;
+    coe = coe - os2 / 40960.0f;
 
     os_val = 0;
     regval = getreg32(reg_base + AON_GPADC_REG_CMD_OFFSET);

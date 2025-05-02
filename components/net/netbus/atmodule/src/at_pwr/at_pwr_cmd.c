@@ -34,14 +34,24 @@ static int at_pwr_cmd_pwrmode(int argc, const char **argv)
     AT_CMD_PARSE_NUMBER(0, &pwr_mode);
     AT_CMD_PARSE_OPT_NUMBER(1, &level, level_valid);
 
+    void set_wifi_ps_wakeup_configuration(int dtim_wakeup);
+
     if (pwr_mode  == 0) {
         app_pm_exit_pds15();
     } else if (pwr_mode == 1) {
         app_pm_enter_hbn(level);
     } else if (pwr_mode == 2) {
-        app_pm_enter_pds15();
+        if (level_valid && level == 1) {
+            set_wifi_ps_wakeup_configuration(1);
+            app_pm_enter_pds15();
+        } else if ((level_valid && level == 0) || level_valid == 0) {
+            set_wifi_ps_wakeup_configuration(0);
+            app_pm_enter_pds15();
+        } else {
+            return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
+        }
     } else {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     }
 
     return AT_RESULT_CODE_OK;
@@ -56,7 +66,7 @@ static int at_wakeup_timer_cmd(int argc, const char **argv)
     AT_CMD_PARSE_NUMBER(1, &timeouts_ms);
 
     if (mode < 0 || mode > 2) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     }
 
     app_lp_timer_config(mode, timeouts_ms);
@@ -217,7 +227,7 @@ static int at_twt_teardown_cmd(int argc, const char **argv)
         return AT_RESULT_CODE_OK;
     } else {
         printf("TWT teardown request failed, error=%d\r\n", ret);
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_EXEC_FAIL);
     }
 }
 

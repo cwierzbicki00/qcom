@@ -201,7 +201,6 @@
     } while (0)
 #endif
 
-
 #if defined(QCC74x_undef)
 #define PERIPHERAL_CLOCK_I2S_ENABLE()                             \
     do {                                                          \

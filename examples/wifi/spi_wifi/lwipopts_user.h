@@ -20,6 +20,9 @@
 #define LWIP_ASSERT_CORE_LOCKED()
 #define LWIP_NOASSERT
 
+#define LWIP_NETCONN_SEM_PER_THREAD   1 
+#define LWIP_NETCONN_THREAD_SEM_GET() sys_thread_sem_get()
+
 #define DNS_MAX_SERVERS               3
 #define LWIP_NETIF_HOSTNAME           1
 #define TCPIP_MBOX_SIZE               64

@@ -18,6 +18,12 @@
 #define WL_API_RMEM_ADDR    0x20010600
 #endif
 
+#if defined(qcc74x_undef)
+#include "qcc74x_undef_glb.h"
+#include "qcc74x_undef_pds.h"
+#include "wl_api.h"
+#endif
+
 #if defined(QCC74x_undef)
 #include "qcc74x_undef_glb.h"
 #endif 
@@ -160,6 +166,8 @@ __attribute__((weak)) void btblecontroller_rf_restore()
   wl_cfg = wl_cfg_get((uint8_t *)WL_API_RMEM_ADDR);
   wl_cfg->mode = WL_API_MODE_BZ;
   wl_lp_init((uint8_t*)WL_API_RMEM_ADDR,2412);
+  #elif defined(qcc74x_undef)
+  //qcc743L_todo, Not find definition of struct wl_cfg_t in qcc74x_undef fpga
   #endif
 }
 
@@ -177,8 +185,13 @@ __attribute__((weak)) int btblecontroller_efuse_read_mac(uint8_t mac[6])
     status = qcc74x_efuse_read_mac(tmp);
     #endif
     #else
+    #if defined(QCC743)
     status = mfg_media_read_macaddr_with_lock(tmp, 1);
+    #elif defined(qcc74x_undef)
+    //qcc743L_todo
+    return 1;
     #endif
+    #endif //(CFG_IOT_SDK)
     mac[0] = tmp[0];
     mac[1] = tmp[1];
     mac[2] = tmp[2];

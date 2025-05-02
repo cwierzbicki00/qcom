@@ -4,11 +4,11 @@
 
 |      CHIP        | Remark |
 |:----------------:|:------:|
-|qcc743/qcc744       |        |
+|QCC743/QCC744       |        |
 
 ## Compile
 
-- qcc743/qcc744
+- QCC743/QCC744
 
 ```
 make CHIP=qcc743 BOARD=qcc743dk

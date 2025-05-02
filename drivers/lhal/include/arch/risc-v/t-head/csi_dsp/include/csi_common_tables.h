@@ -141,7 +141,6 @@ extern const q31_t realCoefBQ31_1024[1024];
 extern const q31_t realCoefBQ31_2048[2048];
 extern const q31_t realCoefBQ31_4096[4096];
 
-
 extern const float32_t realCoefA[8192];
 extern const float32_t realCoefB[8192];
 

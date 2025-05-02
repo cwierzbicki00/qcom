@@ -49,9 +49,9 @@ int at_net_client_set_remote(int id, ip_addr_t *ipaddr, uint16_t port);
 
 int at_net_client_get_info(int id, char *type, ip_addr_t *remote_ip, uint16_t *remote_port, uint16_t *local_port, uint8_t *tetype);
 
-int at_net_recvbuf_delete(int id);
-
 int at_net_client_get_recvsize(int id);
+
+int at_net_recvbuf_delete(int id);
 
 int at_net_client_send(int id, void * buffer, int length);
 

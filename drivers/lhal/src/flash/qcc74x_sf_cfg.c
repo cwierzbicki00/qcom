@@ -441,7 +441,7 @@ static const ATTR_TCM_CONST_SECTION spi_flash_cfg_type flash_cfg_winb_128jw_128j
     .qe_data = 0,
 };
 
-static const ATTR_TCM_CONST_SECTION spi_flash_cfg_type flash_cfg_issi = {
+__UNUSED static const ATTR_TCM_CONST_SECTION spi_flash_cfg_type flash_cfg_issi = {
     .reset_c_read_cmd = 0xff,
     .reset_c_read_cmd_size = 3,
     .mid = 0x9d,
@@ -752,7 +752,7 @@ static const ATTR_TCM_CONST_SECTION spi_flash_cfg_type flash_cfg_gd_lq08c_le16c_
     .qe_data = 0,
 };
 
-static const ATTR_TCM_CONST_SECTION spi_flash_cfg_type flash_cfg_gd_q80e_q16e = {
+__UNUSED static const ATTR_TCM_CONST_SECTION spi_flash_cfg_type flash_cfg_gd_q80e_q16e = {
     .reset_c_read_cmd = 0xff,
     .reset_c_read_cmd_size = 3,
     .mid = 0xc8,

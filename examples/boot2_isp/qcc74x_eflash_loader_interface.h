@@ -7,9 +7,17 @@
 #include "string.h"
 
 #define QCC74x_EFLASH_LOADER_IF_TX_IDLE_TIMEOUT    4 /*ms*/
+#if defined(CHIP_QCC74x_undef)
+#define QCC74x_EFLASH_LOADER_HAND_SHAKE_RCV_COUNT  16
+#else
 #define QCC74x_EFLASH_LOADER_HAND_SHAKE_RCV_COUNT  32
+#endif
 #define QCC74x_EFLASH_LOADER_HAND_SHAKE_BYTE       0x55
+#if defined(CHIP_QCC74x_undef)
+#define QCC74x_EFLASH_LAODER_HAND_SHAKE_SUSS_COUNT 8
+#else
 #define QCC74x_EFLASH_LAODER_HAND_SHAKE_SUSS_COUNT 16
+#endif
 
 typedef enum tag_eflash_loader_if_type_t {
     //QCC74x_EFLASH_LOADER_IF_FLASH=0x01,

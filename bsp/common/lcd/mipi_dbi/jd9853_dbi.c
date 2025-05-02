@@ -20,12 +20,12 @@
 #define lcd_dbi_transmit_cmd_pixel_fill_async lcd_dbi_transmit_cmd_pixel_fill_async
 
 lcd_dbi_init_t dbi_para = {
-#if(LCD_DBI_WORK_MODE == 1 || LCD_DBI_WORK_MODE == 2)
-    /* typeC-4/typeC-3 */
-    .clock_freq = 54 * 1000 * 1000,
+#if (LCD_DBI_WORK_MODE == 3)
+    /* typeB */
+    .clock_freq = 27 * 1000 * 1000,
 #else
-    /* typeB/QSPI */
-    .clock_freq = 32 * 1000 * 1000,
+    /* typeC */
+    .clock_freq = 40 * 1000 * 1000,
 #endif
 
 #if (JD9853_DBI_PIXEL_FORMAT == 1)
@@ -90,6 +90,13 @@ const jd9853_dbi_init_cmd_t jd9853_dbi_init_cmds[] = {
     { 0xDE, "\x02", 1 },
     { 0xE5, "\x00\x02\x00", 3 },
     { 0xDE, "\x00", 1 },
+
+/* Color RGB order */
+#if JD9853_DBI_COLOR_ORDER
+    { 0x36, "\x08", 1 },
+#else
+    { 0x36, "\x00", 1 },
+#endif
 
 #if (JD9853_DBI_PIXEL_FORMAT == 1)
     { 0x3A, "\x55", 1 }, /* Interface Pixel Format RGB565 */
@@ -167,37 +174,25 @@ int jd9853_dbi_init()
  */
 int jd9853_dbi_set_dir(uint8_t dir, uint8_t mir_flag)
 {
+    uint8_t dir_param[4] = { 0x00, 0xA0, 0xC0, 0x60 };
+    uint8_t mir_param[4] = { 0x40, 0x20, 0x80, 0xE0 };
     uint8_t param;
-    switch (dir) {
-        case 0:
-            if (!mir_flag)
-                param = 0x00;
-            else
-                param = 0x01;
-            break;
-        case 1:
-            if (!mir_flag)
-                param = 0x60;
-            else
-                param = 0x20;
-            break;
-        case 2:
-            if (!mir_flag)
-                param = 0xC0;
-            else
-                param = 0x80;
-            break;
-        case 3:
-            if (!mir_flag)
-                param = 0xA0;
-            else
-                param = 0xE0;
 
-            break;
-        default:
-            return -1;
-            break;
+    if (dir >= 4) {
+        return -1;
     }
+
+    if (mir_flag) {
+        param = mir_param[dir];
+    } else {
+        param = dir_param[dir];
+    }
+
+/* Color RGB order */
+#if JD9853_DBI_COLOR_ORDER
+    param |= 0x08;
+#endif
+
     lcd_dbi_transmit_cmd_para(0x36, (void *)&param, 1);
     return dir;
 }

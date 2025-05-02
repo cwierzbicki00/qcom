@@ -1,7 +1,11 @@
 # Changes
+## 2025-04-15
+1. [blestack]Fixed dynamic_gatt_pool.free reinit memory leak at dynamic gatt server init.
+
 ## 2025-04-02
 1. Fixed some compilation warnings to enhance code stability.
 2. Enable CONFIG_BT_ECC at ble1m2s1bredr0. 
+
 ## 2025-03-31
 1.[blestack]Fix conn_new reentry issue, avoid different connections use the same conn[i].
 2.[blestack]Fix BT_CONN_CONNECTED issue, there is a risk that conn->tx_queue._queue didn't finish when conn->state is set to BT_CONN_CONNECTED.

@@ -24,10 +24,6 @@
 #include "qcc74x_sec_sha.h"
 // #include <qcc74x_gpio.h>
 
-#ifdef CONF_PSRAM_RESTORE
-#include <qcc743_psram.h>
-#endif
-
 #if (!defined(QCC74x_WIFI_LP_FW) && defined(CFG_QCC74x_WIFI_PS_ENABLE))
 #include "wifi_mgmr_ext.h"
 #endif
@@ -450,7 +446,7 @@ int qcc74x_lpfw_ram_verify(void)
 
     /* hardware sha256 */
     lpfw_sec_sha256(lpfw_addr, lpfw_size, result);
-    
+
     if (memcmp(result, lpfw_sha256, 32) != 0) {
         printf("lpfw sha256 check failed\r\n");
         return -1;
@@ -1128,137 +1124,6 @@ static void qcc74x_lp_tzc_para_save(void)
     iot2lp_para->tzc_cfg->tzc_sf_tzsrg_r2 = QCC74x_RD_REG(TZC_SEC_BASE, TZC_SEC_TZC_SF_TZSRG_R2);
     iot2lp_para->tzc_cfg->tzc_sf_tzsrg_msb = QCC74x_RD_REG(TZC_SEC_BASE, TZC_SEC_TZC_SF_TZSRG_MSB);
 }
-#ifdef CONF_PSRAM_RESTORE
-#define LPFW_PSRAM_ID1_WINBOND_4MB  0x5f
-#define LPFW_PSRAM_ID2_WINBOND_32MB 0xe86
-static void qcc74x_init_psram_gpio(void)
-{
-    GLB_GPIO_Cfg_Type cfg;
-
-    cfg.pullType = GPIO_PULL_NONE;
-    cfg.drive = 0;
-    cfg.smtCtrl = 1;
-
-    for (uint8_t i = 0; i < 12; i++) {
-        cfg.gpioPin = 41 + i;
-        cfg.gpioMode = GPIO_MODE_INPUT;
-
-        GLB_GPIO_Init(&cfg);
-    }
-}
-
-static uint16_t winbond_x8_psram_init(int8_t burst_len, uint8_t is_fixLatency, uint8_t latency, uint16_t dqs_delay, uint8_t size)
-{
-    uint16_t reg_read = 0;
-    PSRAM_Ctrl_Cfg_Type default_psram_ctrl_cfg = {
-        .vendor = PSRAM_CTRL_VENDOR_WINBOND,
-        .ioMode = PSRAM_CTRL_X8_MODE,
-        .size = PSRAM_SIZE_4MB,
-        .dqs_delay = 0xfff0,
-    };
-
-    PSRAM_Winbond_Cfg_Type default_winbond_cfg = {
-        .rst = DISABLE,
-        .clockType = PSRAM_CLOCK_DIFF,
-        .inputPowerDownMode = DISABLE,
-        .hybridSleepMode = DISABLE,
-        .linear_dis = ENABLE,
-        .PASR = PSRAM_PARTIAL_REFRESH_FULL,
-        .disDeepPowerDownMode = ENABLE,
-        .fixedLatency = DISABLE,
-        .brustLen = PSRAM_WINBOND_BURST_LENGTH_32_BYTES,
-        .brustType = PSRAM_WRAPPED_BURST,
-        .latency = PSRAM_WINBOND_6_CLOCKS_LATENCY,
-        .driveStrength = PSRAM_WINBOND_DRIVE_STRENGTH_35_OHMS_FOR_4M_115_OHMS_FOR_8M,
-    };
-
-    default_winbond_cfg.brustLen = burst_len;
-    default_winbond_cfg.fixedLatency = is_fixLatency;
-    default_winbond_cfg.latency = latency;
-
-    default_psram_ctrl_cfg.size = size;
-    default_psram_ctrl_cfg.dqs_delay = dqs_delay;
-
-    PSram_Ctrl_Init(PSRAM0_ID, &default_psram_ctrl_cfg);
-    // PSram_Ctrl_Winbond_Reset(PSRAM0_ID);
-    PSram_Ctrl_Winbond_Write_Reg(PSRAM0_ID, PSRAM_WINBOND_REG_CR0, &default_winbond_cfg);
-    /* check psram work or not */
-    PSram_Ctrl_Winbond_Read_Reg(PSRAM0_ID, PSRAM_WINBOND_REG_ID0, &reg_read);
-    return reg_read;
-}
-/**
- * @brief
- *
- * @return uint32_t
- */
-#define EF_PSRAM_INFO_NONE  0x0
-#define EF_PSRAM_INFO_WB_4M 0x1
-uint32_t board_psram_x8_init(void)
-{
-    int16_t psram_id = 0;
-    int32_t left_flag = 0, right_flag = 0, c_val = 0;
-    uint32_t chip_info = 0, psram_trim = 0;
-    uint16_t dqs_val[] = {
-        0x8000,
-        0xC000,
-        0xE000,
-        0xF000,
-        0xF800,
-        0xFC00,
-        0xFE00,
-        0xFF00,
-        0xFF80,
-        0xFFC0,
-        0xFFE0,
-        0xFFF0,
-        0xFFF8,
-        0xFFFC,
-        0xFFFE,
-        0xFFFF,
-    };
-
-    /* read efuse */
-    EF_Ctrl_Load_Efuse_R0();
-    chip_info = QCC74x_RD_WORD(0x20056018);
-
-    /* check psram exist */
-    if ((chip_info & 0x3000000) != 0x0) {
-        uint8_t psram_size_info = 0;
-        uint8_t psram_size = 0;
-        /* set psramb clk */
-        GLB_Set_PSRAMB_CLK_Sel(ENABLE, GLB_PSRAMB_EMI_WIFIPLL_320M, 0);
-
-        /* init psram gpio */
-        qcc74x_init_psram_gpio();
-
-        /* psram init*/
-        psram_size_info = ((chip_info & 0x3000000) >> 24);
-
-        /* read psram trim */
-        psram_trim = QCC74x_RD_WORD(0x200560E8);
-
-        if ((psram_size_info) == EF_PSRAM_INFO_WB_4M) {
-            psram_size = PSRAM_SIZE_4MB;
-        } else {
-            return -1;
-        }
-
-        if ((psram_trim & (0x1000)) && (((psram_trim & 0x800) >> 11) == EF_Ctrl_Get_Trim_Parity(psram_trim, 11))) {
-            left_flag = ((psram_trim & (0xf0)) >> 0x4);
-            right_flag = (psram_trim & (0xf));
-            c_val = ((left_flag + right_flag) >> 0x1);
-            psram_id = winbond_x8_psram_init(PSRAM_WINBOND_BURST_LENGTH_64_BYTES, 0, PSRAM_WINBOND_6_CLOCKS_LATENCY, dqs_val[c_val], psram_size);
-        } else {
-            psram_id = winbond_x8_psram_init(PSRAM_WINBOND_BURST_LENGTH_64_BYTES, 0, PSRAM_WINBOND_6_CLOCKS_LATENCY, dqs_val[11], psram_size);
-        }
-
-        if ((psram_id != LPFW_PSRAM_ID1_WINBOND_4MB) && (psram_id != LPFW_PSRAM_ID2_WINBOND_32MB)) {
-            return -1;
-        }
-    }
-    return psram_id;
-}
-#endif
 
 static uint8_t qcc74x_lp_wakeup_check(void)
 {
@@ -1749,10 +1614,6 @@ int ATTR_TCM_SECTION qcc74x_lp_fw_enter(qcc74x_lp_fw_cfg_t *qcc74x_lp_fw_cfg)
     qcc74x_lp_vtime_after_sleep();
 
     qcc74x_lp_debug_record_time(iot2lp_para, "return APP");
-
-#ifdef CONF_PSRAM_RESTORE
-    board_psram_x8_init();
-#endif
 
 #if LP_RAM_REUSE
     load_ram_lp_code();

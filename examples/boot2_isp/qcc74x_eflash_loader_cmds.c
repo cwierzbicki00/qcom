@@ -63,7 +63,7 @@ static ATTR_TCM_CONST_SECTION const struct eflash_loader_cmd_cfg_t eflash_loader
 #endif
 
 #if QCC74xSP_BOOT2_SUPPORT_EFLASH_LOADER_FLASH
-    /* for qcc74x_undef,qcc74x_undef,qcc74x_undefp,qcc74x_undef,qcc74x_undef */
+    /* for qcc74x_undef,qcc74x_undef,qcc74x_undef,qcc744,qcc74x_undef */
     { QCC74x_EFLASH_LOADER_CMD_RESET, EFLASH_LOADER_CMD_ENABLE, qcc74x_eflash_loader_cmd_reset },
     { QCC74x_EFLASH_LOADER_CMD_FLASH_ERASE, EFLASH_LOADER_CMD_ENABLE, qcc74x_eflash_loader_cmd_erase_flash },
     { QCC74x_EFLASH_LOADER_CMD_FLASH_WRITE, EFLASH_LOADER_CMD_ENABLE, qcc74x_eflash_loader_cmd_write_flash },
@@ -103,7 +103,6 @@ static int32_t qcc74x_bootrom_cmd_get_bootinfo(uint16_t cmd, uint8_t *data, uint
     /*OK(2)+len(2)+bootrom version(4)+OTP(16)*/
     uint8_t *bootinfo = (uint8_t *)eflash_loader_cmd_ack_buf;
     uint8_t otp_cfg[20] = { 0x00, 0x00, 0x00, 0x00, 0x03, 0x10, 0xc1, 0x02, 0x0d, 0xd2, 0x1d, 0xcf, 0x0e, 0xb4, 0x18, 0x00, 0x2f, 0xf4, 0xfb, 0x08 };
-
 
     eflash_loader_cmd_ack_buf[0] = QCC74x_BOOTROM_CMD_ACK;
     bootinfo[2] = 0x18;
@@ -190,7 +189,6 @@ static int32_t qcc74x_bootrom_cmd_load_bootheader(uint16_t cmd, uint8_t *data, u
 {
     int32_t ret = QCC74x_EFLASH_LOADER_SUCCESS;
 
-
     if (len != sizeof(struct bootheader_t)) {
         ret = QCC74x_EFLASH_LOADER_IMG_BOOTHEADER_LEN_ERROR;
     } else {
@@ -240,7 +238,6 @@ static int32_t qcc74x_bootrom_cmd_load_segheader(uint16_t cmd, uint8_t *data, ui
     int32_t ret = QCC74x_EFLASH_LOADER_SUCCESS;
     uint8_t *segdatainfo = (uint8_t *)eflash_loader_cmd_ack_buf;
 
-
     if (img_ctrl.state != BOOTROM_IMG_SEGHEADER) {
         ret = QCC74x_EFLASH_LOADER_CMD_SEQ_ERROR;
     } else {
@@ -274,7 +271,6 @@ static int32_t qcc74x_bootrom_cmd_load_segheader(uint16_t cmd, uint8_t *data, ui
 static int32_t qcc74x_bootrom_cmd_load_segdata(uint16_t cmd, uint8_t *data, uint16_t len)
 {
     int32_t ret = QCC74x_EFLASH_LOADER_SUCCESS;
-
 
     if (img_ctrl.state != BOOTROM_IMG_SEGDATA) {
         ret = QCC74x_EFLASH_LOADER_CMD_SEQ_ERROR;
@@ -319,7 +315,6 @@ finished:
 static int32_t qcc74x_bootrom_cmd_check_img(uint16_t cmd, uint8_t *data, uint16_t len)
 {
     int32_t ret = QCC74x_EFLASH_LOADER_SUCCESS;
-
 
     if (img_ctrl.state != BOOTROM_IMG_CHECK) {
         ret = QCC74x_EFLASH_LOADER_IMG_HALFBAKED_ERROR;
@@ -376,7 +371,6 @@ static int32_t qcc74x_bootrom_cmd_run(uint16_t cmd, uint8_t *data, uint16_t len)
 {
     int32_t ret = QCC74x_EFLASH_LOADER_SUCCESS;
 
-
     if (img_ctrl.state != BOOTROM_IMG_RUN) {
         ret = QCC74x_EFLASH_LOADER_CMD_SEQ_ERROR;
         qcc74x_bootrom_cmd_ack(ret);
@@ -388,7 +382,6 @@ static int32_t qcc74x_bootrom_cmd_run(uint16_t cmd, uint8_t *data, uint16_t len)
     qcc74x_mtimer_delay_ms(QCC74x_BOOTROM_IF_TX_IDLE_TIMEOUT);
 
     /* get msp and pc value */
-
 
     if (image_cfg.img_valid) {
         if (image_cfg.entrypoint == 0) {
@@ -470,7 +463,6 @@ static int32_t ATTR_TCM_SECTION qcc74x_eflash_loader_cmd_reset(uint16_t cmd, uin
     int32_t ret = QCC74x_EFLASH_LOADER_SUCCESS;
     uint32_t startaddr, endaddr;
 
-
     if (len != 8) {
         ret = QCC74x_EFLASH_LOADER_FLASH_ERASE_PARA_ERROR;
     } else {
@@ -479,7 +471,6 @@ static int32_t ATTR_TCM_SECTION qcc74x_eflash_loader_cmd_reset(uint16_t cmd, uin
 
         arch_memcpy(&startaddr, data, 4);
         arch_memcpy(&endaddr, data + 4, 4);
-
 
         if (SUCCESS != qcc74x_flash_erase(startaddr, endaddr - startaddr + 1)) {
             ret = QCC74x_EFLASH_LOADER_FLASH_ERASE_ERROR;
@@ -494,7 +485,6 @@ static int32_t ATTR_TCM_SECTION qcc74x_eflash_loader_cmd_write_flash(uint16_t cm
 {
     int32_t ret = QCC74x_EFLASH_LOADER_SUCCESS;
     uint32_t startaddr, write_len;
-
 
     if (len <= 4) {
         ret = QCC74x_EFLASH_LOADER_FLASH_WRITE_PARA_ERROR;
@@ -607,7 +597,6 @@ static int32_t ATTR_TCM_SECTION qcc74x_eflash_loader_cmd_xip_readSha_flash(uint1
         }
 
         qcc74x_sha256_finish(sha, &ctx_sha256, (uint8_t *)&ackdata[4]);
-
 
         sha_len = 32;
         /*ack read data */

@@ -32,7 +32,12 @@
 #include "btble_dma_uart.h"
 #include "ll.h"
 
+//qcc743L_todo, bringup dma uart
+#if defined(CFG_DBG_RUN_ON_FPGA) || defined(qcc74x_undef)
+#define QCC74x_DMA_UART 0
+#else
 #define QCC74x_DMA_UART 1
+#endif
 
 /*
  * DEFINES

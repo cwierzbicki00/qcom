@@ -129,5 +129,4 @@
 #define DTSRC_CR_AXI_ADDR_SWAP_UV_SHIFT                         (0U)
 #define DTSRC_CR_AXI_ADDR_SWAP_UV_MASK                          (0xffffffff<<DTSRC_CR_AXI_ADDR_SWAP_UV_SHIFT)
 
-
 #endif  /* __HARDWARE_DTSRC_H__ */

@@ -3,7 +3,11 @@
 
 #include "stdint.h"
 
+#if defined(QCC74x_undef)
+#define QCC74x_BOOT2_XZ_MALLOC_BUF_SIZE 40 * 1024
+#else
 #define QCC74x_BOOT2_XZ_MALLOC_BUF_SIZE 80 * 1024
+#endif
 
 void qcc74xsp_dump_data(void *datain, int len);
 void qcc74xsp_boot2_jump_entry(void);

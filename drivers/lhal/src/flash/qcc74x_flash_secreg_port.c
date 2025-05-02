@@ -67,7 +67,7 @@ static int ATTR_TCM_SECTION sflash_general_read(const spi_flash_cfg_type *flash_
         arch_memcpy_fast(data, flash_ctrl_buf, curlen);
 
         len -= curlen;
-        data += curlen;
+        data = (uint8_t *)data + curlen;
         address += curlen;
     };
 
@@ -126,7 +126,7 @@ static int ATTR_TCM_SECTION sflash_general_write(const spi_flash_cfg_type *flash
         qcc74x_sf_ctrl_sendcmd(&flash_cmd);
 
         len -= curlen;
-        data += curlen;
+        data = (uint8_t *)data + curlen;
         address += curlen;
 
         timeout = 0;

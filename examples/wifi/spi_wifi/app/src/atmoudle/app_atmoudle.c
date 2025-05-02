@@ -136,16 +136,10 @@ SHELL_CMD_EXPORT_ALIAS(atspisync_fakepush_forpop_cmd, atfake, spisync fake push 
 
 void app_atmoudle_init(void)
 {
-#if 0
-    at_spisync = (spisync_t *)pvPortMalloc(sizeof(spisync_t));
-    if (NULL == at_spisync) {
-        return -1;
-    }
-    spisync_init(at_spisync, &spisync_config);
-#else
     nxspi_init();
+#if NXSPI_NET
+    spinet_init();
 #endif
-
     at_module_init();
 }
 

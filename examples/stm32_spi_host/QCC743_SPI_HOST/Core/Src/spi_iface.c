@@ -70,22 +70,35 @@ enum {
 #define SPI_TXQ_LEN	8
 #define SPI_RXQ_LEN	8
 
+/**
+ * SPI transfer engine structure
+ * 
+ * This structure manages the state and resources for SPI communication,
+ * including support for multiple receive queues bound to different message types.
+ */
 struct spi_xfer_engine {
-	osThreadId_t task;
-	int stop;
-	int inited;
-	EventGroupHandle_t event;
-	/* Transfer state. */
-	int state;
-	/* Slave RX is stalled, no more transmission. */
-	int rx_stall;
-	QueueHandle_t txq;
-	QueueHandle_t rxq;
-	/* TODO remove it */
-	//uint8_t tmp_txbuf[8 * 1024];
-	/* Current tx buffer. */
-	struct spi_buffer *txbuf;
-	struct spi_stat stat;
+    /* Transfer task handle */
+    osThreadId_t task;
+    /* Stop flag for clean shutdown */
+    int stop;
+    /* Initialization flag */
+    int inited;
+    /* Event flags for synchronization */
+    EventGroupHandle_t event;
+    /* Current transfer state */
+    int state;
+    /* Slave RX is stalled */
+    int rx_stall;
+    /* Single transmit queue */
+    QueueHandle_t txq;
+    /* Array of receive queues by type */
+    QueueHandle_t rxq[SPI_MSG_CTRL_TRAFFIC_TYPE_MAX];
+    /* Bitmap of bound traffic types */
+    uint8_t rxq_bound;
+    /* Current transmit buffer */
+    struct spi_buffer *txbuf;
+    /* Transfer statistics */
+    struct spi_stat stat;
 };
 
 extern SPI_HandleTypeDef hspi1;
@@ -116,10 +129,20 @@ enum {
 #define spi_trace(e, m, ...) do {	\
 	if (e)							\
 		ITM_SendChar(e);			\
-	spi_log(m, __VA_ARGS__);		\
+	spi_log(m, ##__VA_ARGS__);		\
 } while (0)
 
 //#define spi_trace(...)
+
+static inline void spi_buffer_set_traffic_type(struct spi_buffer *buf, uint8_t type)
+{
+	buf->cb[0] = type;
+}
+
+static inline uint8_t spi_buffer_get_traffic_type(struct spi_buffer *buf)
+{
+	return buf->cb[0];
+}
 
 /* For prepending data like header. */
 static inline void *spi_buffer_push(struct spi_buffer *buf, unsigned long size)
@@ -184,6 +207,7 @@ struct spi_buffer *spi_buffer_alloc(unsigned int size, unsigned int reserve)
 	buf->len = size;
 	buf->cap = cap;
 	buf->data = (char *)buf + desc_size + reserve;
+	memset(buf->cb, 0, sizeof(buf->cb));
 	/* Fill in the debug pattern. */
 	extra = cap - size - reserve;
 	while (extra) {
@@ -406,23 +430,14 @@ static int spi_xfer_one(struct spi_xfer_engine *engine, struct spi_buffer *txbuf
 	spi_trace(SPI_TP_FIRST_TXN_START, "start the first transaction\r\n");
     if (txbuf) {
 		uint16_t msglen = txbuf->len;
+		uint8_t type = spi_buffer_get_traffic_type(txbuf);
 
     	if (!engine->rx_stall) {
-			if (!(txbuf->flags & SPI_BUF_F_PUSHED)) {
-				txbuf->flags |= SPI_BUF_F_PUSHED;
-				pmh = spi_buffer_push(txbuf, sizeof(struct spi_header));
-				if (!pmh) {
-					printf("can't push spi buffer\r\n");
-					goto out;
-				}
-			} else {
-				pmh = txbuf->data;
-			}
-
+			pmh = txbuf->data;
 			msglen = txbuf->len - sizeof(struct spi_header);
 
 			/* Initialize master header. */
-			spi_header_init(pmh, 0, msglen);
+			spi_header_init(pmh, type, msglen);
 			txp = txbuf->data;
 			xfer_size = (txbuf->len + SPI_BUF_ALIGN_MASK) & ~SPI_BUF_ALIGN_MASK;
     	} else {
@@ -498,10 +513,31 @@ static int spi_xfer_one(struct spi_xfer_engine *engine, struct spi_buffer *txbuf
 		spi_buffer_pull(rxbuf, sizeof(struct spi_header));
 		/* rx buffer length fix-up */
 		rxbuf->len = psh->len;
-		/* TODO transfer task should not be blocked for specific receiver.  */
-		ret = xQueueSend(engine->rxq, &rxbuf, portMAX_DELAY);
-		if (ret != pdTRUE) {
-			spi_trace(SPI_TP_NONE, "failed to send to rxq, the msg is dicarded\r\n");
+
+		/* Get message type from header and store in buffer's control block */
+		uint8_t msg_type = psh->type;
+		spi_buffer_set_traffic_type(rxbuf, msg_type);
+		
+		/* 
+		 * Note: Thread safety consideration required here.
+		 * If a queue is unbound by another thread while we're accessing it,
+		 * or if multiple transfers are accessing rxq_bound bitmap concurrently,
+		 * race conditions could occur. Consider using appropriate synchronization.
+		 */
+		
+		/* Select appropriate queue based on type */
+		if (msg_type < SPI_MSG_CTRL_TRAFFIC_TYPE_MAX && 
+			(engine->rxq_bound & (1 << msg_type))) {
+			/* TODO transfer task should not be blocked for specific receiver. */
+			ret = xQueueSend(engine->rxq[msg_type], &rxbuf, portMAX_DELAY);
+			if (ret != pdTRUE) {
+				spi_trace(SPI_TP_NONE, "failed to send to type %d rxq, msg discarded\r\n", msg_type);
+				spi_buffer_free(rxbuf);
+				SPI_STAT_INC(&engine->stat, rx_drop, 1);
+			}
+		} else {
+			/* No queue bound for this type, discard message */
+			spi_trace(SPI_TP_NONE, "No queue bound for type %d, msg discarded\r\n", msg_type);
 			spi_buffer_free(rxbuf);
 			SPI_STAT_INC(&engine->stat, rx_drop, 1);
 		}
@@ -775,6 +811,10 @@ int spi_transaction_init(void)
         .stack_size = 8 * 1024
     };
 
+    /* Initialize rxq array to NULL and rxq_bound to 0 */
+    memset(xfer_engine.rxq, 0, sizeof(xfer_engine.rxq));
+    xfer_engine.rxq_bound = 0;
+
     /* Create event group for SPI transaction */
     xfer_engine.event = xEventGroupCreate();
     if (!xfer_engine.event) {
@@ -782,19 +822,11 @@ int spi_transaction_init(void)
         ret = -1;
         goto error;
     }
-
-    /* Create RX queue */
-    xfer_engine.rxq = xQueueCreate(SPI_RXQ_LEN, sizeof(void *));
-    if (!xfer_engine.rxq) {
-        printf("failed to create rxq\r\n");
-        ret = -1;
-        goto error;
-    }
-
+    
     /* Create TX queue */
     xfer_engine.txq = xQueueCreate(SPI_TXQ_LEN, sizeof(void *));
     if (!xfer_engine.txq) {
-        printf("failed to create txq\r\n");
+        printf("Failed to create txq\r\n");
         ret = -1;
         goto error;
     }
@@ -803,14 +835,14 @@ int spi_transaction_init(void)
     xfer_engine.stop = 0;
     xfer_engine.task = osThreadNew(spi_xfer_engine_task, &xfer_engine, &task_attr);
     if (!xfer_engine.task) {
-        printf("failed to create spi xfer engine task\r\n");
+        printf("Failed to create spi xfer engine task\r\n");
         ret = -1;
         goto error;
     }
 
     /* Check the state of the slave data ready pin */
     GPIO_PinState pin_state = HAL_GPIO_ReadPin(SPI_SLAVE_DATA_RDY_GPIO_Port,
-    										SPI_SLAVE_DATA_RDY_Pin);
+                                              SPI_SLAVE_DATA_RDY_Pin);
     if (pin_state == GPIO_PIN_SET) {
         /* Set the TXN event if data is ready */
         xEventGroupSetBits(xfer_engine.event, SPI_EVT_TXN_RDY);
@@ -823,144 +855,276 @@ int spi_transaction_init(void)
 
 error:
     /* Clean up resources in case of error */
-    if (xfer_engine.txq)
+    if (xfer_engine.txq) {
         vQueueDelete(xfer_engine.txq);
+        xfer_engine.txq = NULL;
+    }
 
-    if (xfer_engine.rxq)
-        vQueueDelete(xfer_engine.rxq);
-
-    if (xfer_engine.event)
+    if (xfer_engine.event) {
         vEventGroupDelete(xfer_engine.event);
+        xfer_engine.event = NULL;
+    }
 
     return ret;
 }
 
-int spi_read(struct spi_msg *msg, int timeout_ms)
+/**
+ * Read data from the SPI interface
+ * 
+ * This function handles both raw data and buffer pointer operations based on the
+ * message operation type (op_type) field.
+ *
+ * @param msg         Message structure for receiving data
+ * @param timeout_ms  Timeout for queue operations in milliseconds (-1 for infinite)
+ * @return            Number of bytes read or negative error code
+ */
+
+ int spi_read(struct spi_msg *msg, int timeout_ms)
 {
-	BaseType_t ret, ticks;
-	struct spi_buffer *buf;
+    BaseType_t ret, ticks;
+    struct spi_buffer *buf;
+    uint8_t traffic_type = SPI_MSG_CTRL_TRAFFIC_AT_CMD; /* Default to AT commands */
+    QueueHandle_t targetQ;
 
-	if (!msg || !msg->data || !msg->data_len)
-		return -1;
+    /* Verify message is valid and operation type is supported */
+    if (!msg || (msg->op_type != SPI_MSG_OP_DATA && msg->op_type != SPI_MSG_OP_BUFFER_PTR))
+        return -1;
 
-	if (!xfer_engine.inited) {
-		printf("spi transaction is NOT initialized!\r\n");
-		return -2;
+    /* Verify appropriate fields based on operation type */
+    if (msg->op_type == SPI_MSG_OP_DATA) {
+        if (!msg->data || !msg->data_len)
+            return -1;
+    } else if (msg->op_type == SPI_MSG_OP_BUFFER_PTR) {
+        if (!msg->buffer_ptr)
+            return -1;
+    }
+
+    /* Verify context is initialized */
+    if (!xfer_engine.inited) {
+        printf("SPI transaction is NOT initialized!\r\n");
+        return -2;
+    }
+
+    /* Process control information if present */
+    if (msg->ctrl) {
+    	/* Check for traffic type control information */
+    	if (msg->ctrl->type == SPI_MSG_CTRL_TRAFFIC_TYPE) {
+    		/* Validate control data length */
+            if (msg->ctrl->len == SPI_MSG_CTRL_TRAFFIC_TYPE_LEN && msg->ctrl->val) {
+                /* Extract traffic type */
+                traffic_type = *((uint8_t *)msg->ctrl->val);
+            } else {
+                printf("Invalid traffic type control info\r\n");
+            }
+        }
+    }
+
+    /* Verify traffic type is valid and bound */
+    if (traffic_type >= SPI_MSG_CTRL_TRAFFIC_TYPE_MAX || 
+        !(xfer_engine.rxq_bound & (1 << traffic_type))) {
+        printf("Traffic type %d not bound, operation not allowed\r\n", traffic_type);
+        return -3;
+    }
+
+    /* Get the target queue for this traffic type */
+    targetQ = xfer_engine.rxq[traffic_type];
+    spi_trace(SPI_TP_READ, "spi_read type %d\r\n", traffic_type);
+
+    /* Set up timeout value */
+    if (timeout_ms < 0)
+        ticks = portMAX_DELAY;
+    else
+        ticks = pdMS_TO_TICKS(timeout_ms);
+
+    /* Process based on operation type */
+    switch (msg->op_type) {
+	case SPI_MSG_OP_DATA:
+		/* Receive buffer from queue */
+		ret = xQueueReceive(targetQ, &buf, ticks);
+		if (ret != pdTRUE) {
+			return -4;
+		}
+
+		/* Copy data with truncation handling */
+		if (msg->data_len >= buf->len) {
+			msg->data_len = buf->len;
+			msg->flags &= ~SPI_MSG_F_TRUNCATED;
+		} else {
+			msg->flags |= SPI_MSG_F_TRUNCATED;
+		}
+
+		/* Copy data and free buffer */
+		memcpy(msg->data, buf->data, msg->data_len);
+		spi_buffer_free(buf);
+		return msg->data_len;
+
+	case SPI_MSG_OP_BUFFER_PTR:
+		/* Receive buffer pointer directly into msg->buffer_ptr */
+		ret = xQueueReceive(targetQ, msg->buffer_ptr, ticks);
+		if (ret != pdTRUE) {
+			return -4;
+		}
+
+		return (*(msg->buffer_ptr))->len;
 	}
 
-	spi_trace(SPI_TP_READ, "spi_read\r\n");
-
-	if (timeout_ms < 0)
-		ticks = portMAX_DELAY;
-	else
-		ticks = pdMS_TO_TICKS(timeout_ms);
-	ret = xQueueReceive(xfer_engine.rxq, &buf, ticks);
-	if (ret != pdTRUE) {
-		//printf("failed to read rxq\r\n");
-		return -3;
-	}
-	if (msg->data_len >= buf->len) {
-		msg->data_len = buf->len;
-		msg->flags &= ~SPI_MSG_F_TRUNCATED;
-	} else {
-		msg->flags |= SPI_MSG_F_TRUNCATED;
-	}
-
-	memcpy(msg->data, buf->data, msg->data_len);
-	spi_buffer_free(buf);
-	return msg->data_len;
+	/* Should never reach here, but just in case */
+	return -1;
 }
 
-int spi_read_buffer(struct spi_buffer **buffer, int timeout_ms)
-{
-	BaseType_t ret, ticks;
-
-	if (!buffer)
-		return -1;
-
-	if (!xfer_engine.inited) {
-		printf("spi transaction is NOT initialized!\r\n");
-		return -2;
-	}
-
-	if (timeout_ms < 0)
-		ticks = portMAX_DELAY;
-	else
-		ticks = pdMS_TO_TICKS(timeout_ms);
-	ret = xQueueReceive(xfer_engine.rxq, buffer, ticks);
-	if (ret != pdTRUE) {
-		//printf("failed to read rxq\r\n");
-		return -3;
-	}
-
-	return (*buffer)->len;
-}
-
+/**
+ * Write data to the SPI interface
+ *
+ * This function handles both raw data and pre-allocated buffers based on the
+ * message operation type (op_type) field.
+ *
+ * @param msg         Message containing data or buffer to send
+ * @param timeout_ms  Timeout for queue operations in milliseconds (-1 for infinite)
+ * @return            Number of bytes written or negative error code
+ */
 int spi_write(struct spi_msg *msg, int timeout_ms)
 {
-	BaseType_t ret;
-	struct spi_buffer *buf;
-	BaseType_t ticks;
+    BaseType_t ret;
+    struct spi_buffer *buf = NULL;
+    BaseType_t ticks;
+    uint8_t traffic_type = SPI_MSG_CTRL_TRAFFIC_AT_CMD;
+    int data_len = 0;
 
-	if (!msg || !msg->data || !msg->data_len)
-		return -1;
+    /* Verify message is valid and operation type is supported */
+    if (!msg || (msg->op_type != SPI_MSG_OP_DATA && msg->op_type != SPI_MSG_OP_BUFFER))
+        return -1;
 
-	if (!xfer_engine.inited) {
-		printf("spi transaction is NOT initialized!\r\n");
-		return -2;
-	}
+    /* Verify context is initialized */
+    if (!xfer_engine.inited) {
+        printf("SPI transaction is NOT initialized!\r\n");
+        return -2;
+    }
 
-	spi_trace(SPI_TP_WRITE, "spi_write\r\n");
-	buf = spi_buffer_alloc(msg->data_len, sizeof(struct spi_header));
-	if (!buf) {
-		//printf("no mem for txbuf\r\n");
-		return -3;
-	}
+    /* Process control information if present */
+    if (msg->ctrl) {
+        /* Check for traffic type control information */
+        if (msg->ctrl->type == SPI_MSG_CTRL_TRAFFIC_TYPE) {
+            /* Validate control data length */
+            if (msg->ctrl->len == SPI_MSG_CTRL_TRAFFIC_TYPE_LEN && msg->ctrl->val) {
+                /* Extract traffic type */
+                traffic_type = *((uint8_t *)msg->ctrl->val);
+            } else {
+                printf("Invalid traffic type control info\r\n");
+            }
+        }
+        /* Additional control types can be handled here in the future */
+    }
 
-	/* Copy the data from caller. */
-	memcpy(buf->data, msg->data, msg->data_len);
+    /* Process based on operation type */
+    switch (msg->op_type) {
+    case SPI_MSG_OP_DATA:
+        /* Verify data operation has valid data pointer and length */
+        if (!msg->data || !msg->data_len)
+            return -1;
 
-	if (timeout_ms < 0)
-		ticks = portMAX_DELAY;
-	else
-		ticks = pdMS_TO_TICKS(timeout_ms);
+        /* Allocate buffer for data operation */
+        spi_trace(SPI_TP_WRITE, "spi_write data mode\r\n");
+        buf = spi_buffer_alloc(msg->data_len, sizeof(struct spi_header));
+        if (!buf)
+            return -3;
 
-	ret = xQueueSend(xfer_engine.txq, &buf, ticks);
-	if (ret != pdTRUE) {
-		//printf("failed to send to txq\r\n");
-		return -4;
-	}
-	/* Indicate that we have something to send. */
-	xEventGroupSetBits(xfer_engine.event, SPI_EVT_TXN_PENDING);
-	return msg->data_len;
+        data_len = msg->data_len;
+        memcpy(buf->data, msg->data, msg->data_len);
+        break;
+
+    case SPI_MSG_OP_BUFFER:
+        /* Verify buffer operation has valid buffer */
+        if (!msg->buffer)
+            return -1;
+
+        /* Use the provided pre-allocated buffer */
+        spi_trace(SPI_TP_WRITE, "spi_write buffer mode\r\n");
+        buf = msg->buffer;
+        data_len = buf->len;
+        break;
+    }
+
+    /* Set traffic type for the buffer */
+    spi_buffer_set_traffic_type(buf, traffic_type);
+
+    /* Push header space */
+    if (spi_buffer_push(buf, sizeof(struct spi_header)) == NULL) {
+        printf("Can't push SPI buffer header\r\n");
+        if (msg->op_type == SPI_MSG_OP_DATA) {
+            spi_buffer_free(buf);
+        }
+        return -4;
+    }
+
+    /* Prepare timeout value */
+    if (timeout_ms < 0)
+        ticks = portMAX_DELAY;
+    else
+        ticks = pdMS_TO_TICKS(timeout_ms);
+
+    /* Send buffer to transmission queue */
+    ret = xQueueSend(xfer_engine.txq, &buf, ticks);
+    if (ret != pdTRUE) {
+        /* Free buffer on queue send failure if we allocated it */
+        if (msg->op_type == SPI_MSG_OP_DATA) {
+            spi_buffer_free(buf);
+        }
+        return -5;
+    }
+    
+    /* Notify transfer engine about pending data */
+    xEventGroupSetBits(xfer_engine.event, SPI_EVT_TXN_PENDING);
+    
+    /* Return number of bytes queued for transmission */
+    return data_len;
 }
 
-int spi_write_buffer(struct spi_buffer *buffer, int timeout_ms)
+/**
+ * Bind a specific traffic type to a dedicated receive queue
+ *
+ * @param type      Traffic type to bind (must be < SPI_MSG_CTRL_TRAFFIC_TYPE_MAX)
+ * @param rxq_size  Size of receive queue to create (0 for default)
+ * @return          0 on success, negative value on error
+ * 
+ * @note This function should be called during initialization before
+ * any SPI transfers start, as it's not fully thread-safe. Multiple
+ * concurrent binds or binding while transfers are in progress could
+ * lead to race conditions.
+ */
+int spi_bind(unsigned char type, int rxq_size)
 {
-	BaseType_t ret;
-	BaseType_t ticks;
-
-	if (!buffer || !buffer->data || !buffer->len)
-		return -1;
-
-	if (!xfer_engine.inited) {
-		printf("spi transaction is NOT initialized!\r\n");
-		return -2;
-	}
-
-	if (timeout_ms < 0)
-		ticks = portMAX_DELAY;
-	else
-		ticks = pdMS_TO_TICKS(timeout_ms);
-
-	ret = xQueueSend(xfer_engine.txq, buffer, ticks);
-	if (ret != pdTRUE) {
-		//printf("failed to send to txq\r\n");
-		return -3;
-	}
-	/* Indicate that we have something to send. */
-	xEventGroupSetBits(xfer_engine.event, SPI_EVT_TXN_PENDING);
-	return buffer->len;
+    /* Use default queue size if requested size is invalid */
+    if (rxq_size <= 0) {
+        rxq_size = SPI_RXQ_LEN;
+    }
+    
+    if (!xfer_engine.inited) {
+        printf("SPI transaction is NOT initialized!\r\n");
+        return -1;
+    }
+    
+    if (type >= SPI_MSG_CTRL_TRAFFIC_TYPE_MAX) {
+        printf("Invalid traffic type: %d, max allowed: %d\r\n", 
+               type, SPI_MSG_CTRL_TRAFFIC_TYPE_MAX - 1);
+        return -2;
+    }
+    
+    /* Check if this type is already bound */
+    if (xfer_engine.rxq_bound & (1 << type)) {
+        printf("Traffic type %d is already bound\r\n", type);
+        return -3;
+    }
+    
+    /* Create a new queue for this type with specified size */
+    xfer_engine.rxq[type] = xQueueCreate(rxq_size, sizeof(void *));
+    if (!xfer_engine.rxq[type]) {
+        printf("Failed to create queue for type %d\r\n", type);
+        return -4;
+    }
+    
+    /* Mark this type as bound */
+    xfer_engine.rxq_bound |= (1 << type);
+    return 0;
 }
 
 int spi_get_stats(struct spi_stat *stat)
@@ -977,7 +1141,10 @@ int spi_on_txn_data_ready(void)
 	spi_trace(SPI_TP_SLAVE_TXN_RDY, "slave txn/data ready\r\n");
 	if (xPortIsInsideInterrupt()) {
 		BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-		xEventGroupSetBitsFromISR(xfer_engine.event, SPI_EVT_TXN_RDY, &xHigherPriorityTaskWoken);
+		int ret = xEventGroupSetBitsFromISR(xfer_engine.event, SPI_EVT_TXN_RDY, &xHigherPriorityTaskWoken);
+		if (ret != pdPASS) {
+			printf("event bitset %d error:%d\r\n", SPI_EVT_TXN_RDY, ret);
+		}
 		portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 	} else {
 		xEventGroupSetBits(xfer_engine.event, SPI_EVT_TXN_RDY);
@@ -990,7 +1157,10 @@ int spi_on_header_ack(void)
 	spi_trace(SPI_TP_HDR_ACKED, "slave header ack\r\n");
 	if (xPortIsInsideInterrupt()) {
 		BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-		xEventGroupSetBitsFromISR(xfer_engine.event, SPI_EVT_HDR_ACKED, &xHigherPriorityTaskWoken);
+		int ret = xEventGroupSetBitsFromISR(xfer_engine.event, SPI_EVT_HDR_ACKED, &xHigherPriorityTaskWoken);
+        if (ret != pdPASS) {
+			printf("event bitset %d error:%d\r\n", SPI_EVT_HDR_ACKED, ret);
+		}
 		portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 	} else {
 		xEventGroupSetBits(xfer_engine.event, SPI_EVT_HDR_ACKED);
@@ -1003,7 +1173,10 @@ static void spi_on_transaction_complete(void)
 	spi_trace(SPI_TP_NONE, "hw txn done\r\n");
 	if (xPortIsInsideInterrupt()) {
 		BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-		xEventGroupSetBitsFromISR(xfer_engine.event, SPI_EVT_HW_XFER_DONE, &xHigherPriorityTaskWoken);
+		int ret = xEventGroupSetBitsFromISR(xfer_engine.event, SPI_EVT_HW_XFER_DONE, &xHigherPriorityTaskWoken);
+		if (ret != pdPASS) {
+			printf("event bitset %d error:%d\r\n", SPI_EVT_HW_XFER_DONE, ret);
+		}
 		portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 	} else {
 		xEventGroupSetBits(xfer_engine.event, SPI_EVT_HW_XFER_DONE);
@@ -1044,8 +1217,15 @@ void spi_dump(void)
 
 	spi_show_stat(&xfer_engine.stat);
 
-	printf("Number of queue items, TX %lu, RX %lu\r\n",
-			uxQueueMessagesWaiting(xfer_engine.txq), uxQueueMessagesWaiting(xfer_engine.rxq));
+	printf("Number of queue items, TX %lu\r\n",
+		uxQueueMessagesWaiting(xfer_engine.txq));
+
+	for (int i = 0; i < SPI_MSG_CTRL_TRAFFIC_TYPE_MAX; i++) {
+        if (xfer_engine.rxq_bound & (1 << i)) {
+            printf("  RX type %d: %lu items\r\n", i, 
+                   uxQueueMessagesWaiting(xfer_engine.rxq[i]));
+        }
+    }
 }
 
 void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi)

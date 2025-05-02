@@ -106,6 +106,9 @@ int at_wifi_config_init(void)
         at_wifi_config->ant_div.dynamic_ant_div_enable = 0;
         at_wifi_config->ant_div.ant_div_pin = 0;
     }
+    if (!at_config_read(AT_CONFIG_KEY_WIFI_NETMODE, &at_wifi_config->netmode, sizeof(at_wifi_config->netmode))) {
+        at_wifi_config->netmode = at_port_netmode_get();
+    }
     return 0;
 }
 
@@ -145,7 +148,8 @@ int at_wifi_config_save(const char *key)
         return at_config_write(key, &at_wifi_config->scan_option, sizeof(at_wifi_config->scan_option));
     else if (strcmp(key, AT_CONFIG_KEY_WIFI_ANTDIV) == 0)
         return at_config_write(key, &at_wifi_config->ant_div, sizeof(at_wifi_config->ant_div));
-    else
+    else if (strcmp(key, AT_CONFIG_KEY_WIFI_NETMODE) == 0)
+        return at_config_write(key, &at_wifi_config->netmode, sizeof(at_wifi_config->netmode));
 
         return -1;
 }

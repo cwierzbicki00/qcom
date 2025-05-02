@@ -4,15 +4,15 @@
 
 #if (__has_include("qcc74x_dbi.h"))
 
-#if ((LCD_DBI_WORK_MODE == 4) && (DBI_QSPI_SUPPORT == 0))
-#error : "The DBI of this chip does not support QSPI mode."
-#endif
-
 #include "qcc74x_mipi_dbi.h"
 #include "qcc74x_dbi.h"
 #include "qcc74x_dma.h"
 #include "qcc74x_gpio.h"
 #include "qcc74x_l1c.h"
+
+#if ((LCD_DBI_WORK_MODE == 4) && (DBI_QSPI_SUPPORT == 0))
+#error : "The DBI of this chip does not support QSPI mode."
+#endif
 
 #define LCD_DBI_DMA_LLI_NUM (DBI_DBI_DATA_SIZE_MAX / 4 / 4064 + 1)
 

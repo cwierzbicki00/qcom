@@ -63,6 +63,8 @@
 
 #define FIRST_RTC_EPILOGUE_TIME    180
 
+static int g_lp_ps_wakeup_configuration = 0;
+
 volatile int _ffag = 0;
 
 volatile uint32_t * const pulTimeHigh = ( volatile uint32_t * const ) ( ( configMTIME_BASE_ADDRESS ) + 4UL ); /* 8-byte typer so high 32-bit word is 4 bytes up. */
@@ -117,7 +119,7 @@ static uint64_t get_mtime(void) {
 #define ___WFI __WFI
 #endif
 
-#define PDS_MIN_SLEEP_TIME 2000
+#define PDS_MIN_SLEEP_TIME 1500
 
 int enable_tickless = 0;
 int g_tpre = 0;
@@ -151,6 +153,16 @@ void tickless_debug_who_wake_me(const char *name, TickType_t ticks) {
   wake_next_tick = ticks;
 }
 #endif
+
+void set_wifi_ps_wakeup_configuration(int dtim_wakeup)
+{
+    if (dtim_wakeup == 0) {
+        g_lp_ps_wakeup_configuration = 0;
+    } else if (dtim_wakeup == 1) {
+        g_lp_ps_wakeup_configuration = 1;
+    }
+}
+
 
 /* Get the dynamic desired minimum sleep time. return ms */
 uint32_t expected_idle_before_sleep(void) {
@@ -239,7 +251,7 @@ void lp_hook_pre_sleep(iot2lp_para_t *param) {
     tickless_info("rtc_prologue_time_max: %" __PRI64(u), rtc_prologue_time_max);
   }
 
-  if (unlikely(rtc_sleep_remain < QCC74x_US_TO_PDS_CNT(PDS_MIN_SLEEP_TIME))) {
+  if (unlikely(lpfw_cfg.rtc_wakeup_cmp_cnt < (QCC74x_US_TO_PDS_CNT(PDS_MIN_SLEEP_TIME) + rtc_before_sleep))) {
     param->wakeup_flag = 1;
     /* set wakeup reason to RTC */
     param->wakeup_reason = LPFW_WAKEUP_TIME_OUT;
@@ -329,11 +341,12 @@ void lp_hook_post_sys(iot2lp_para_t *param) {
   }
 #endif
   /* Resume wifi task */
-  if (wifi_fw_task != NULL) {
-    uint8_t *vendor_flag = pcTaskGetVendorFlags(wifi_fw_task);
+#if 0
+  if (wifi_task_handle != NULL) {
+    uint8_t *vendor_flag = pcTaskGetVendorFlags((TaskHandle_t)wifi_task_handle);
     *vendor_flag = 0;
   }
-
+#endif
   if (xTaskResumeAll()) {
     taskYIELD();
   }
@@ -392,7 +405,6 @@ void vApplicationSleep(TickType_t xExpectedIdleTime) {
       configASSERT(p!=NULL);
       *p = 0;
     }
-    ble_sleep_rtc -= QCC74x_US_TO_PDS_CNT(600);
 
     tickless_info("ble sleep duration: %d", ble_sleep_rtc);
 
@@ -400,7 +412,6 @@ void vApplicationSleep(TickType_t xExpectedIdleTime) {
     if (ble_sleep_rtc > 0 &&  ble_sleep_rtc <= rtc_sleep_remain) {
       rtc_sleep_remain = ble_sleep_rtc;
       pds_flags.ble_wake = 1;
-      tickless_info("next wake is ble");
     }
 
     /* convert to absolute time */
@@ -456,9 +467,8 @@ void vApplicationSleep(TickType_t xExpectedIdleTime) {
     }
   }
 
-  extern uint64_t twt_get_next_wakeup_us(void);
-  int64_t twt_wakeup;
-  twt_wakeup = twt_get_next_wakeup_us();
+  uint32_t wifi_get_next_wakeup_timer_time(void);
+  uint64_t twt_wakeup = (uint64_t)wifi_get_next_wakeup_timer_time();
   if (twt_wakeup) {
     if (twt_wakeup < WAKEUP_AHEAD_US) {
         portENABLE_INTERRUPTS();
@@ -473,6 +483,27 @@ void vApplicationSleep(TickType_t xExpectedIdleTime) {
     }
   }
 
+  if (g_lp_ps_wakeup_configuration && connected) {
+      extern int qcc74x_lp_get_next_beacon_time(uint8_t mode);
+      uint32_t next_bcn_ms = qcc74x_lp_get_next_beacon_time(1);
+
+      lpfw_cfg.tim_wakeup_en = 0;
+      //printf("next beacon:%ld\r\n", next_bcn_ms);
+
+      if (next_bcn_ms < 10 || next_bcn_ms > 90) {
+          return;
+      }
+
+      if (next_bcn_ms * 1000 < WAKEUP_AHEAD_US){
+          return;
+      }
+
+      next_bcn_ms = QCC74x_MS_TO_PDS_CNT(next_bcn_ms);
+      if (next_bcn_ms < rtc_sleep_remain) {
+          rtc_sleep_remain = next_bcn_ms;
+      }
+  }
+
   rwnxl_regs_save_ops();
 
   uint64_t ahead_wakeup_cost;
@@ -483,7 +514,7 @@ void vApplicationSleep(TickType_t xExpectedIdleTime) {
       ahead_wakeup_cost = FIRST_RTC_EPILOGUE_TIME + QCC74x_US_TO_PDS_CNT(WAKEUP_AHEAD_US);
   }
 
-  if(rtc_sleep_remain < ahead_wakeup_cost)
+  if(rtc_sleep_remain < (ahead_wakeup_cost + 1))
   {
     portENABLE_INTERRUPTS();
     tickless_info("Sleep Abort! %d", __LINE__);

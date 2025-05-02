@@ -20,6 +20,26 @@ extern uint32_t g_anti_rollback_flag[3];
 #define QCC74xSP_APP_VERSION_LINK_OFFSET          (0xC00)
 #define QCC74xSP_APP_QCC74x_FLAG_PRE                (0x42464c42)
 #define QCC74xSP_APP_VERF_FLAG_PRE                (0x46524556)
+#ifdef CHIP_QCC74x_undef
 #define QCC74xSP_APP_VERSION_MAX                  (128)
+#endif
+#ifdef CHIP_QCC743
+#define QCC74xSP_APP_VERSION_MAX                  (128)
+#endif
+#ifdef CHIP_QCC74x_undef
+#define QCC74xSP_APP_VERSION_MAX                  (128)
+#endif
+#ifdef CHIP_QCC74x_undef
+#define QCC74xSP_APP_VERSION_MAX                  (64)
+#endif
+#ifdef CHIP_QCC74x_undef
+#define QCC74xSP_APP_VERSION_MAX                  (128)
+#endif
+#ifdef CHIP_QCC74x_undef
+#define QCC74xSP_APP_VERSION_MAX                  (128)
+#endif
 
+#ifndef QCC74xSP_APP_VERSION_MAX
+#error"NO CHIP DEFINE QCC74xSP_APP_VERSION_MAX MAYBE ADD!"
+#endif
 #endif /* __QCC74xSP_MEDIA_BOOT_H__ */

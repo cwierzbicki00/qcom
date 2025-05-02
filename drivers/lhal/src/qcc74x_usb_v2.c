@@ -367,6 +367,24 @@ static void qcc74x_usb_set_outep_mps(uint8_t ep_idx, uint16_t ep_mps)
     putreg32(regval, QCC74x_USB_BASE + USB_DEV_OUTMPS1_OFFSET + (ep_idx - 1) * 4);
 }
 
+int qcc74x_usb_get_inep_mps(uint8_t ep_idx)
+{
+    uint32_t regval;
+
+    regval = getreg32(QCC74x_USB_BASE + USB_DEV_INMPS1_OFFSET + (ep_idx - 1) * 4);
+    
+    return regval &=USB_MAXPS_IEP1_MASK;
+}
+
+int qcc74x_usb_get_outep_mps(uint8_t ep_idx)
+{
+    uint32_t regval;
+
+    regval = getreg32(QCC74x_USB_BASE + USB_DEV_OUTMPS1_OFFSET + (ep_idx - 1) * 4);    
+    
+    return regval &=USB_MAXPS_OEP1_MASK;
+}
+
 static void qcc74x_usb_set_inep_mps(uint8_t ep_idx, uint16_t ep_mps)
 {
     uint32_t regval;
@@ -650,8 +668,10 @@ int usb_dc_init(void)
 
     qcc74x_usb_phy_init();
 
+#ifndef NOT_USE_QCC74x_LHAL_IRQ_ATTACH
     qcc74x_irq_attach(QCC74x_USB_IRQ_NUM, USBD_IRQHandler, NULL);
     qcc74x_irq_enable(QCC74x_USB_IRQ_NUM);
+#endif
 
     /* disable global irq */
     regval = getreg32(QCC74x_USB_BASE + USB_DEV_CTL_OFFSET);
@@ -1140,8 +1160,12 @@ int usbd_ep_start_write(const uint8_t ep, const uint8_t *data, uint32_t data_len
             g_qcc74x_udc.in_ep[ep_idx].ep_active = false;
             qcc74x_usb_control_transfer_done();
         } else {
+#ifndef NOT_USE_QCC74x_LHAL_USB_EP0_SETUP_FLOW
+            /* cherry usb stack control setup packet length,
+               but others will send long packet */
             data_len = MIN(data_len, g_qcc74x_udc.in_ep[ep_idx].ep_mps);
             g_qcc74x_udc.in_ep[ep_idx].xfer_len = data_len;
+#endif
             qcc74x_usb_vdma_start_write(USB_FIFO_CXF, data, data_len);
         }
     } else {
@@ -1280,8 +1304,9 @@ void USBD_IRQHandler(int irq, void *arg)
 #endif
                 putreg32(regval, QCC74x_USB_BASE + USB_DEV_SMT_OFFSET);
 
+#ifndef NOT_USE_QCC74x_LHAL_USB_EP0_SETUP_FLOW
                 arch_memset(&g_qcc74x_udc, 0, sizeof(g_qcc74x_udc));
-
+#endif
                 usbd_event_reset_handler();
             }
         }
@@ -1292,7 +1317,11 @@ void USBD_IRQHandler(int irq, void *arg)
                 if (g_qcc74x_udc.in_ep[0].ep_active) {
                     g_qcc74x_udc.in_ep[0].ep_active = false;
                     g_qcc74x_udc.in_ep[0].actual_xfer_len = g_qcc74x_udc.in_ep[0].xfer_len - qcc74x_usb_vdma_get_remain_size(USB_FIFO_CXF);
+#ifndef NOT_USE_QCC74x_LHAL_USB_EP0_SETUP_FLOW
                     if (g_qcc74x_udc.in_ep[0].actual_xfer_len < g_qcc74x_udc.in_ep[0].ep_mps) {
+#else
+                    if (g_qcc74x_udc.in_ep[0].actual_xfer_len == g_qcc74x_udc.in_ep[0].xfer_len) {
+#endif
                         qcc74x_usb_control_transfer_done();
                     }
                     usbd_event_ep_in_complete_handler(0x80, g_qcc74x_udc.in_ep[0].actual_xfer_len);

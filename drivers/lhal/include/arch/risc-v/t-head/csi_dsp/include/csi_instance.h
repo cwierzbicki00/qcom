@@ -23,7 +23,6 @@
  * @date     Feb. 2020
  ******************************************************************************/
 
-
 #ifndef _CSI_INSTANCE_H
 #define _CSI_INSTANCE_H
 
@@ -31,7 +30,6 @@
 extern "C"
 {
 #endif
-
 
 #include <string.h>
 #include <math.h>
@@ -109,7 +107,6 @@ extern "C"
 #define __ALWAYS_STATIC_INLINE  __attribute__((always_inline)) static inline
 
 #endif
-
 
 /**
  * @brief Macros required for SINE and COSINE Controller functions
@@ -288,7 +285,6 @@ __STATIC_FORCEINLINE void write_q15x2 (
     memcpy (pQ15, &val, 4);
 }
 
-
 /**
   @brief         Read 4 Q7 from Q7 pointer and increment pointer afterwards.
   @param[in]     pQ7       points to input value
@@ -390,7 +386,6 @@ __STATIC_FORCEINLINE uint32_t __USAT(int32_t val, uint32_t sat)
                                       (((int32_t)(ARG2) << ARG3) & (int32_t)0xFFFF0000)  )
 #define __PKHTB(ARG1, ARG2, ARG3) ( (((int32_t)(ARG1) <<    0) & (int32_t)0xFFFF0000) | \
                                       (((int32_t)(ARG2) >> ARG3) & (int32_t)0x0000FFFF)  )
-
 
 /**
 * @brief definition to pack four 8 bit values.
@@ -574,7 +569,6 @@ __STATIC_FORCEINLINE uint32_t __QADD8(
     return ((uint32_t)((u << 24) | (t << 16) | (s <<    8) | (r      )));
 }
 
-
 /*
  * @brief C custom defined QSUB8
  */
@@ -590,7 +584,6 @@ __STATIC_FORCEINLINE uint32_t __QSUB8(
     return ((uint32_t)((u << 24) | (t << 16) | (s <<    8) | (r      )));
 }
 
-
 /*
  * @brief C custom defined QADD16
  */
@@ -605,7 +598,6 @@ __STATIC_FORCEINLINE uint32_t __QADD16(
     return ((uint32_t)((s << 16) | (r    )));
 }
 
-
 /*
  * @brief C custom defined SHADD16
  */
@@ -618,7 +610,6 @@ __STATIC_FORCEINLINE uint32_t __SHADD16(
     s = (((((q31_t)x        ) >> 16) + (((q31_t)y      ) >> 16)) >> 1) & (int32_t)0x0000FFFF;
     return ((uint32_t)((s << 16) | (r    )));
 }
-
 
 /*
  * @brief C custom defined QSUB16
@@ -633,7 +624,6 @@ __STATIC_FORCEINLINE uint32_t __QSUB16(
     return ((uint32_t)((s << 16) | (r    )));
 }
 
-
 /*
  * @brief C custom defined SHSUB16
  */
@@ -646,7 +636,6 @@ __STATIC_FORCEINLINE uint32_t __SHSUB16(
     s = (((((q31_t)x        ) >> 16) - (((q31_t)y      ) >> 16)) >> 1) & (int32_t)0x0000FFFF;
     return ((uint32_t)((s << 16) | (r    )));
 }
-
 
 /*
  * @brief C custom defined QASX
@@ -661,7 +650,6 @@ __STATIC_FORCEINLINE uint32_t __QASX(
     return ((uint32_t)((s << 16) | (r    )));
 }
 
-
 /*
  * @brief C custom defined SHASX
  */
@@ -674,7 +662,6 @@ __STATIC_FORCEINLINE uint32_t __SHASX(
     s = (((((q31_t)x        ) >> 16) + (((q31_t)y << 16) >> 16)) >> 1) & (int32_t)0x0000FFFF;
     return ((uint32_t)((s << 16) | (r    )));
 }
-
 
 /*
  * @brief C custom defined QSAX
@@ -689,7 +676,6 @@ __STATIC_FORCEINLINE uint32_t __QSAX(
     return ((uint32_t)((s << 16) | (r    )));
 }
 
-
 /*
  * @brief C custom defined SHSAX
  */
@@ -702,7 +688,6 @@ __STATIC_FORCEINLINE uint32_t __SHSAX(
     s = (((((q31_t)x        ) >> 16) - (((q31_t)y << 16) >> 16)) >> 1) & (int32_t)0x0000FFFF;
     return ((uint32_t)((s << 16) | (r    )));
 }
-
 
 /*
  * @brief C custom defined SMUSDX
@@ -726,7 +711,6 @@ __STATIC_FORCEINLINE uint32_t __SMUADX(
                        ((((q31_t)x    ) >> 16) * (((q31_t)y << 16) >> 16))   ));
 }
 
-
 /*
  * @brief C custom defined QADD
  */
@@ -737,7 +721,6 @@ __STATIC_FORCEINLINE int32_t __QADD(
     return ((int32_t)(clip_q63_to_q31((q63_t)x + (q31_t)y)));
 }
 
-
 /*
  * @brief C custom defined QSUB
  */
@@ -747,7 +730,6 @@ __STATIC_FORCEINLINE int32_t __QSUB(
 {
     return ((int32_t)(clip_q63_to_q31((q63_t)x - (q31_t)y)));
 }
-
 
 /*
  * @brief C custom defined SMLAD
@@ -762,7 +744,6 @@ __STATIC_FORCEINLINE uint32_t __SMLAD(
                        ( ((q31_t)sum      )                                  )   ));
 }
 
-
 /*
  * @brief C custom defined SMLADX
  */
@@ -776,7 +757,6 @@ __STATIC_FORCEINLINE uint32_t __SMLADX(
                        ( ((q31_t)sum      )                                  )   ));
 }
 
-
 /*
  * @brief C custom defined SMLSDX
  */
@@ -789,7 +769,6 @@ __STATIC_FORCEINLINE uint32_t __SMLSDX(
                        ((((q31_t)x    ) >> 16) * (((q31_t)y << 16) >> 16)) +
                        ( ((q31_t)sum      )                                  )   ));
 }
-
 
 /*
  * @brief C custom defined SMLALD
@@ -805,7 +784,6 @@ __STATIC_FORCEINLINE uint64_t __SMLALD(
                        ( ((q63_t)sum      )                                  )   ));
 }
 
-
 /*
  * @brief C custom defined SMLALDX
  */
@@ -820,7 +798,6 @@ __STATIC_FORCEINLINE uint64_t __SMLALDX(
                        ( ((q63_t)sum      )                                  )   ));
 }
 
-
 /*
  * @brief C custom defined SMUAD
  */
@@ -832,7 +809,6 @@ __STATIC_FORCEINLINE uint32_t __SMUAD(
                        ((((q31_t)x    ) >> 16) * (((q31_t)y      ) >> 16))   ));
 }
 
-
 /*
  * @brief C custom defined SMUSD
  */
@@ -843,7 +819,6 @@ __STATIC_FORCEINLINE uint32_t __SMUSD(
     return ((uint32_t)(((((q31_t)x << 16) >> 16) * (((q31_t)y << 16) >> 16)) -
                        ((((q31_t)x    ) >> 16) * (((q31_t)y      ) >> 16))   ));
 }
-
 
 /*
  * @brief C custom defined SXTB16
@@ -938,7 +913,6 @@ typedef struct {
     uint16_t numCols;     /**< number of columns of the matrix.  */
     float32_t *pData;     /**< points to the data of the matrix. */
 } csi_matrix_instance_f32;
-
 
 /**
  * @brief Instance structure for the floating-point matrix structure.
@@ -1091,7 +1065,6 @@ typedef struct {
     uint16_t bitRevFactor;           /**< bit reversal modifier that supports different size FFTs with the same bit reversal table. */
 } csi_cfft_radix2_instance_q31;
 
-
 /**
  * @brief Instance structure for the Q31 CFFT/CIFFT function.
  */
@@ -1153,7 +1126,6 @@ typedef struct {
     uint16_t bitRevLength;             /**< bit reversal table length. */
 } csi_cfft_instance_q31;
 
-
 /**
  * @brief Instance structure for the floating-point CFFT/CIFFT function.
  */
@@ -1199,7 +1171,6 @@ typedef struct {
     const csi_cfft_instance_q15 *pCfft;       /**< points to the complex FFT instance. */
 } csi_rfft_instance_q15;
 
-
 /**
  * @brief Instance structure for the Q31 RFFT/RIFFT function.
  */
@@ -1214,7 +1185,6 @@ typedef struct {
 #endif
     const csi_cfft_instance_q31 *pCfft;         /**< points to the complex FFT instance. */
 } csi_rfft_instance_q31;
-
 
 /**
  * @brief Instance structure for the floating-point RFFT/RIFFT function.
@@ -1252,7 +1222,6 @@ typedef struct {
     csi_cfft_radix4_instance_f32 *pCfft; /**< points to the complex FFT instance. */
 } csi_dct4_instance_f32;
 
-
 /**
  * @brief Instance structure for the Q31 DCT4/IDCT4 function.
  */
@@ -1265,7 +1234,6 @@ typedef struct {
     csi_rfft_instance_q31 *pRfft;        /**< points to the real FFT instance. */
     csi_cfft_radix4_instance_q31 *pCfft; /**< points to the complex FFT instance. */
 } csi_dct4_instance_q31;
-
 
 /**
  * @brief Instance structure for the Q15 DCT4/IDCT4 function.
@@ -1319,7 +1287,6 @@ typedef struct {
   const csi_dct4_fast_instance_q31 * S,
   q31_t * pState,
   q31_t * pInlineBuffer);
-
 
 /**
  * @brief Instance structure for the Q15 FIR decimator.
@@ -1380,7 +1347,6 @@ typedef struct {
     const float32_t *pCoeffs;            /**< points to the coefficient array. The array is of length L*phaseLength. */
     float32_t *pState;             /**< points to the state variable array. The array is of length phaseLength+numTaps-1. */
 } csi_fir_interpolate_instance_f32;
-
 
 /**
  * @brief Instance structure for the high precision Q31 Biquad cascade filter.
@@ -1446,7 +1412,6 @@ typedef struct {
     const float32_t *pCoeffs;                  /**< points to the coefficient array. The array is of length numStages. */
 } csi_fir_lattice_instance_f32;
 
-
 /**
  * @brief Instance structure for the Q15 IIR lattice filter.
  */
@@ -1477,7 +1442,6 @@ typedef struct {
     float32_t *pvCoeffs;                 /**< points to the ladder coefficient array. The array is of length numStages+1. */
 } csi_iir_lattice_instance_f32;
 
-
 /**
  * @brief Instance structure for the floating-point LMS filter.
  */
@@ -1487,7 +1451,6 @@ typedef struct {
     float32_t *pCoeffs;  /**< points to the coefficient array. The array is of length numTaps. */
     float32_t mu;        /**< step size that controls filter coefficient updates. */
 } csi_lms_instance_f32;
-
 
 /**
  * @brief Instance structure for the Q15 LMS filter.
@@ -1500,7 +1463,6 @@ typedef struct {
     uint32_t postShift;  /**< bit shift applied to coefficients. */
 } csi_lms_instance_q15;
 
-
 /**
  * @brief Instance structure for the Q31 LMS filter.
  */
@@ -1511,7 +1473,6 @@ typedef struct {
     q31_t mu;            /**< step size that controls filter coefficient updates. */
     uint32_t postShift;  /**< bit shift applied to coefficients. */
 } csi_lms_instance_q31;
-
 
 /**
  * @brief Instance structure for the floating-point normalized LMS filter.
@@ -1538,7 +1499,6 @@ typedef struct {
     q31_t energy;         /**< saves previous frame energy. */
     q31_t x0;             /**< saves previous input sample. */
 } csi_lms_norm_instance_q31;
-
 
 /**
  * @brief Instance structure for the Q15 normalized LMS filter.
@@ -1602,7 +1562,6 @@ typedef struct {
     int32_t *pTapDelay;           /**< points to the array of delay values.  The array is of length numTaps. */
 } csi_fir_sparse_instance_q7;
 
-
 /**
 * @brief Struct for specifying SVM Kernel
 *
@@ -1618,8 +1577,6 @@ typedef enum {
                               /**< Sigmoid kernel */
 } csi_ml_kernel_type;
 
-
-
 /**
  * @brief Instance structure for linear SVM prediction function.
  */
@@ -1631,7 +1588,6 @@ typedef struct {
     const float32_t *supportVectors;        /**< Support vectors */
     const int32_t   *classes;               /**< The two SVM classes */
 } csi_svm_linear_instance_f32;
-
 
 /**
  * @brief Instance structure for polynomial SVM prediction function.
@@ -1869,7 +1825,6 @@ __ALWAYS_STATIC_INLINE int32_t mult_h16xh16_keep32(int32_t x, int32_t y)
 #ifdef   __cplusplus
 }
 #endif
-
 
 #endif /* _CSI_MATH_H */
 

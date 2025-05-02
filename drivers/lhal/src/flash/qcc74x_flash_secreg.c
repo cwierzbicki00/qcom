@@ -1410,7 +1410,7 @@ int ATTR_TCM_SECTION qcc74x_flash_secreg_read(qcc74x_flash_otp_config_t *otp_cfg
         }
 
         len -= curlen;
-        data += curlen;
+        data = (uint8_t *)data + curlen;
         addr += curlen;
     }
 
@@ -1475,7 +1475,7 @@ int ATTR_TCM_SECTION qcc74x_flash_secreg_write(qcc74x_flash_otp_config_t *otp_cf
         }
 
         len -= curlen;
-        data += curlen;
+        data = (uint8_t *)data + curlen;
         addr += curlen;
     }
 

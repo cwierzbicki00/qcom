@@ -522,19 +522,19 @@ static int at_setup_cmd_mqttusercfg(int argc, const char **argv)
     AT_CMD_PARSE_OPT_STRING(7, ca_file, sizeof(ca_file), ca_file_valid);
 
     if (mqtt_linkid_valid(linkid)) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_HANDLE_INVALID);
     }
 
     if (strlen(client_id) > AT_MQTT_CLIENTID_MAX_LEN) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_LENGTH_MISMATCH);
     }
 
     if (strlen(user_name) > AT_MQTT_USERNAME_MAX_LEN) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_LENGTH_MISMATCH);
     }
 
     if (strlen(password) > AT_MQTT_PASSWD_MAX_LEN) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_LENGTH_MISMATCH);
     }
 
     if (g_at_mqtt[linkid].client_id) {
@@ -544,7 +544,7 @@ static int at_setup_cmd_mqttusercfg(int argc, const char **argv)
 
     g_at_mqtt[linkid].client_id = strdup(client_id);
     if (!g_at_mqtt[linkid].client_id) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_EXEC_FAIL);
     }
  
     if (user_name_valid) {
@@ -554,7 +554,7 @@ static int at_setup_cmd_mqttusercfg(int argc, const char **argv)
         }
         g_at_mqtt[linkid].user_name = strdup(user_name);
         if (!g_at_mqtt[linkid].user_name) {
-            return AT_RESULT_CODE_ERROR;
+            return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_EXEC_FAIL);
         }
     }
     if (password_valid) {
@@ -564,7 +564,7 @@ static int at_setup_cmd_mqttusercfg(int argc, const char **argv)
         }
         g_at_mqtt[linkid].password = strdup(password);
         if (!g_at_mqtt[linkid].password) {
-            return AT_RESULT_CODE_ERROR;
+            return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_EXEC_FAIL);
         }
     }
 
@@ -574,18 +574,18 @@ static int at_setup_cmd_mqttusercfg(int argc, const char **argv)
         ca_file[0] = '\0';
     } else if (scheme == AT_MQTT_OVER_TLS_SERVER_AUTH) {
         if ((!ca_file_valid)) {
-            return AT_RESULT_CODE_ERROR;
+            return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_ALLOWED);
         }
         cert_file[0] = '\0';
         key_file[0] = '\0';
     } else if (scheme == AT_MQTT_OVER_TLS_CLIENT_AUTH) {
         if ((!key_file_valid) || (!cert_file_valid)) {
-            return AT_RESULT_CODE_ERROR;
+            return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_ALLOWED);
         }
         ca_file[0] = '\0';
     } else if (scheme == AT_MQTT_OVER_TLS_BOTH_AUTH) {
         if ((!key_file_valid) || (!cert_file_valid) || (!ca_file_valid)) {
-            return AT_RESULT_CODE_ERROR;
+            return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_ALLOWED);
         }
     }
 
@@ -621,10 +621,10 @@ static int at_setup_cmd_mqttclientid(int argc, const char **argv)
     AT_CMD_PARSE_NUMBER(1, &length);
     
     if (mqtt_linkid_valid(linkid)) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_HANDLE_INVALID);
     }
     if (length < 1 || length > AT_MQTT_CLIENTID_MAX_LEN) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     }
 
     if (g_at_mqtt[linkid].client_id) {
@@ -634,7 +634,7 @@ static int at_setup_cmd_mqttclientid(int argc, const char **argv)
 
     g_at_mqtt[linkid].client_id = malloc(length + 1);
     if (!g_at_mqtt[linkid].client_id) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_NO_MEMORY);
     }
 
     at_response_result(AT_RESULT_CODE_OK);
@@ -673,10 +673,10 @@ static int at_setup_cmd_mqttusername(int argc, const char **argv)
     AT_CMD_PARSE_NUMBER(1, &length);
     
     if (mqtt_linkid_valid(linkid)) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_HANDLE_INVALID);
     }
     if (length < 1 || length > AT_MQTT_USERNAME_MAX_LEN) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     }
 
     if (g_at_mqtt[linkid].user_name) {
@@ -686,7 +686,7 @@ static int at_setup_cmd_mqttusername(int argc, const char **argv)
 
     g_at_mqtt[linkid].user_name = malloc(length + 1);
     if (!g_at_mqtt[linkid].user_name) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_NO_MEMORY);
     }
 
     at_response_result(AT_RESULT_CODE_OK);
@@ -725,10 +725,10 @@ static int at_setup_cmd_mqttpassword(int argc, const char **argv)
     AT_CMD_PARSE_NUMBER(1, &length);
     
     if (mqtt_linkid_valid(linkid)) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_HANDLE_INVALID);
     }
     if (length < 1 || length > AT_MQTT_PASSWD_MAX_LEN) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     }
 
     if (g_at_mqtt[linkid].password) {
@@ -738,7 +738,7 @@ static int at_setup_cmd_mqttpassword(int argc, const char **argv)
 
     g_at_mqtt[linkid].password = malloc(length + 1);
     if (!g_at_mqtt[linkid].password) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_NO_MEMORY);
     }
 
     at_response_result(AT_RESULT_CODE_OK);
@@ -790,23 +790,23 @@ static int at_setup_cmd_mqttconncfg(int argc, const char **argv)
     AT_CMD_PARSE_NUMBER(6, &will_retain);
     
     if (mqtt_linkid_valid(linkid)) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_HANDLE_INVALID);
     }
 
     if (keepalive <= 0 || keepalive > 7200) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     }
 
     if (disable_clean_session != 0 && disable_clean_session != 1) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     }
 
     if (will_qos < 0 || will_qos > 2) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     }
     
     if (will_retain != 0 && will_retain != 1) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     }
 
     g_at_mqtt[linkid].keepalive = keepalive;
@@ -868,15 +868,15 @@ static int at_setup_cmd_mqttconn(int argc, const char **argv)
     AT_CMD_PARSE_NUMBER(3, &reconnect);
 
     if (mqtt_linkid_valid(linkid)) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_HANDLE_INVALID);
     }
 
     if (remote_port < 1 || remote_port > 65535) {
-        return AT_RESULT_CODE_ERROR; 
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     }
 
     if (socketfd_is_connected(&g_at_mqtt[linkid].sockfd)) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     }
 
     snprintf(g_at_mqtt[linkid].remote_port, 
@@ -910,7 +910,7 @@ static int at_setup_cmd_mqttconn(int argc, const char **argv)
         if (ret < 0) {
             printf("Failed to open socket: %d\r\n", ret);
             mqtt_close(linkid);
-            return AT_RESULT_CODE_ERROR; 
+            return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_EXEC_FAIL);
         }
 
         mqtt_reinit(&g_at_mqtt[linkid].client, 
@@ -935,13 +935,13 @@ static int at_setup_cmd_mqttconn(int argc, const char **argv)
         if (ret != MQTT_OK) {
             printf("fail \r\n");
             mqtt_close(linkid);
-            return AT_RESULT_CODE_ERROR; 
+            return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_EXEC_FAIL);
         }
         /* check that we don't have any errors */
         if (g_at_mqtt[linkid].client.error != MQTT_OK) {
             printf("error: %s\r\n", mqtt_error_str(g_at_mqtt[linkid].client.error));
             mqtt_close(linkid);
-            return AT_RESULT_CODE_ERROR; 
+            return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_EXEC_FAIL);
         }
         _mqtt_connected_event(linkid);
     }
@@ -971,11 +971,11 @@ static int at_setup_cmd_mqttpub(int argc, const char **argv)
     AT_CMD_PARSE_NUMBER(4, &retain);
     
     if (mqtt_linkid_valid(linkid)) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_HANDLE_INVALID);
     }
 
     if (!socketfd_is_connected(&g_at_mqtt[linkid].sockfd)) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_ALLOWED);
     }
 
     if (qos == 0) {
@@ -991,7 +991,7 @@ static int at_setup_cmd_mqttpub(int argc, const char **argv)
     }
    
     if (mqtt_publish(&g_at_mqtt[linkid].client, (const char *)topic_name, msg, strlen(msg), publish_flags) != MQTT_OK) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_EXEC_FAIL);
     }
 
     return AT_RESULT_CODE_OK;
@@ -1012,15 +1012,15 @@ static int at_setup_cmd_mqttpubraw(int argc, const char **argv)
     AT_CMD_PARSE_NUMBER(4, &retain);
     
     if (mqtt_linkid_valid(linkid)) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_HANDLE_INVALID);
     }
 
     if (length <= 0) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_HANDLE_INVALID);
     }
 
     if (!socketfd_is_connected(&g_at_mqtt[linkid].sockfd)) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_ALLOWED);
     }
 
     if (qos == 0) {
@@ -1037,7 +1037,7 @@ static int at_setup_cmd_mqttpubraw(int argc, const char **argv)
  
     buffer = malloc(length + 1);
     if (!buffer) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_NO_MEMORY);
     }
 
     at_response_result(AT_RESULT_CODE_OK);
@@ -1094,11 +1094,11 @@ static int at_setup_cmd_mqttsub(int argc, const char **argv)
     AT_CMD_PARSE_NUMBER(2, &qos);
     
     if (mqtt_linkid_valid(linkid)) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_HANDLE_INVALID);
     }
 
     if (!socketfd_is_connected(&g_at_mqtt[linkid].sockfd)) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_ALLOWED);
     }
 
     for (i = 0; i < AT_MQTT_SUB_TOPIC_MAX; i++) {
@@ -1118,11 +1118,11 @@ static int at_setup_cmd_mqttsub(int argc, const char **argv)
         }
     }
     if (i == AT_MQTT_SUB_TOPIC_MAX) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_NO_RESOURCE);
     }
 
     if (mqtt_subscribe(&g_at_mqtt[linkid].client, topic_name, qos) != MQTT_OK) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_EXEC_FAIL);
     }
 
     g_at_mqtt[linkid].state = AT_MQTT_STATE_CONNECTED_TOPIC;
@@ -1139,11 +1139,11 @@ static int at_setup_cmd_mqttunsub(int argc, const char **argv)
     AT_CMD_PARSE_STRING(1, topic_name, sizeof(topic_name));
     
     if (mqtt_linkid_valid(linkid)) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_HANDLE_INVALID);
     }
 
     if (!socketfd_is_connected(&g_at_mqtt[linkid].sockfd)) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_ALLOWED);
     }
 
     for (i = 0; i < AT_MQTT_SUB_TOPIC_MAX; i++) {
@@ -1161,7 +1161,7 @@ static int at_setup_cmd_mqttunsub(int argc, const char **argv)
     }
 
     if (mqtt_unsubscribe(&g_at_mqtt[linkid].client, topic_name) != MQTT_OK) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_EXEC_FAIL);
     }
 
     g_at_mqtt[linkid].state = AT_MQTT_STATE_CONNECTED_NO_TOPIC;
@@ -1182,12 +1182,8 @@ static int at_setup_cmd_mqttclean(int argc, const char **argv)
     AT_CMD_PARSE_NUMBER(0, &linkid);
     
     if (mqtt_linkid_valid(linkid)) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_HANDLE_INVALID);
     }
-
-    //if (!socketfd_is_connected(&g_at_mqtt[linkid].sockfd)) {
-    //    return AT_RESULT_CODE_ERROR;
-    //}
 
     if (mqtt_disconnect(&g_at_mqtt[linkid].client) == MQTT_OK) {
         mqtt_sync(&g_at_mqtt[linkid].client);
@@ -1207,12 +1203,12 @@ static int at_setup_cmd_mqttalpn(int argc, const char **argv)
     AT_CMD_PARSE_NUMBER(0, &linkid);
 
     if (mqtt_linkid_valid(linkid)) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_HANDLE_INVALID);
     }
 
     AT_CMD_PARSE_NUMBER(1, &count);
     if (count != argc - 2) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_NUM_MISMATCH);
     }
     offset = 2;
 
@@ -1266,7 +1262,7 @@ static int at_setup_cmd_mqttsni(int argc, const char **argv)
     AT_CMD_PARSE_NUMBER(0, &linkid);
 
     if (mqtt_linkid_valid(linkid)) {
-        return AT_RESULT_CODE_ERROR;
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_HANDLE_INVALID);
     }
     AT_CMD_PARSE_STRING(1, hostname, sizeof(hostname));
     

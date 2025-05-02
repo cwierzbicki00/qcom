@@ -112,7 +112,6 @@
 #define SF_CTRL_EXTERNAL_0TO2_20TO22_SEL                0x2  /*!< External flash select gpio 0-2 and 20-22 */
 #endif
 
-
 /**
  *  @brief Serial flash select bank control type definition
  */

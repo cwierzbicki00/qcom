@@ -132,6 +132,9 @@ int lcd_mipi_dpi_init(lcd_mipi_dpi_init_t *dpi_para)
     sim_dpi_dma_lli_init(dpi_para);
     sim_dpi_dma_lli_update(dpi_para->frame_buff);
 
+    screen_last = dpi_para->frame_buff;
+    next_disp_buffer = screen_last;
+
     /* init DMA */
     sim_dpi_dma_handle = qcc74x_device_get_by_name(LCD_SIM_DPI_DMA_NAME);
     struct qcc74x_dma_channel_config_s tx_config = {

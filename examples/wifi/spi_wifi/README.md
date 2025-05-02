@@ -4,11 +4,9 @@
 
 ## How to Connect an STM32 Board and a QCC74x Board Using Jumper Wires
 
-The hardware wiring diagram between the STM32 HOST and QCC74X is shown in the figure. Note: If the CONFIG_SPI_3PIN_MODE_ENABLE macro is enabled in the software (which is enabled by default), then the SPI communication does not need to consider the GPIO16 (CS) pin of the QCC74X.
+The hardware wiring diagram between the STM32 HOST and QCC74X is shown in the figure.
 
-### QCC743
-
-#### Jumper Wires
+### Jumper Wires
 
 If you are using the QCC743/QCC744 development board, please connect the jumpers as follows：
 
@@ -20,6 +18,8 @@ If you are using the QCC743/QCC744 development board, please connect the jumpers
 | IRQ | GPIO20  | PE13  |
 | CS(Wakeup) | GPIO28  | PD14  |
 
+
+## NCP (Network Co-Processor)
 
 #### Compile
 
@@ -35,6 +35,148 @@ To flash your project onto the target device, use the following command, where `
 
 ```bash
 make flash COMX=xxx # xxx is your com port name
+```
+
+## RCP (Radio Co-Processor)
+
+### Host API Introduction (Basics)
+
+```bash
+Brief: Create SPI Virtual Network Interface Device.
+
+Return: NULL - Failure; Non-NULL - Virtual NIC Operation Object
+
+virt_net_t virt_net_spi_create(void);
+```
+
+```bash
+Brief: Device initialization.
+
+Return: 0 - Success, Non-Zero - Failure
+
+int virt_net_initial(virt_net_t obj);
+```
+
+```bash
+Brief: Device Enables DHCP.
+
+Return: 0 - Success, Non-Zero - Failure
+
+int virt_net_dhcp_start(virt_net_t obj, uint32_t timeout);
+```
+
+```bash
+Brief: DHCP Completed.
+
+Return: 0 - Success, Non-Zero - Failure
+
+int virt_net_dhcp_done(virt_net_t obj);
+
+```
+
+```bash
+Brief: Get  Virtual Network Interface IP Information.
+
+Return: 0 - Success, Non-Zero - Failure
+
+int virt_net_get_ip(virt_net_t obj, uint32_t *ip, uint32_t *mask, uint32_t *gw);
+```
+
+```bash
+Brief: Get Device Current Operation Mode: 0-RCP Mode, 1-NCP Mode
+
+Return: 0 - Success, Non-Zero - Failure
+
+int virt_net_get_netmode(virt_net_t obj, int *netmode);
+```
+
+### Usage Example
+
+Create and Initialize an SPI Network Interface Card (NIC) Device:
+
+```bash
+static void virl_net_init_task(void *arg)
+{
+    g_virt_eth = virt_net_spi_create();
+    virt_net_initial(g_virt_eth);
+
+    ...
+}
+```
+
+When WiFi Connection Succeeds, Enable DHCP if Currently in RCP Mode:
+
+```bash
+static int _at_to_console(uint8_t *buf, uint32_t len, void *arg)
+{
+   ...
+
+   if (strstr((char *)buf, "+CW:CONNECTED\r\n") != NULL) {
+      virt_net_get_netmode(g_virt_eth, &netmode);
+      if (netmode == VIRTNET_NET_MODE_RCP) {
+         virt_net_dhcp_start(g_virt_eth, 15*1000);
+      }
+   }
+   return len;
+}
+```
+
+Set callback to be called when interface is brought up/down or address is changed while up.
+
+```bash
+static void netif_status_callback(struct netif *netif) 
+{
+	struct virt_net *obj = (struct virt_net *)netif->state;
+
+	if (ip4_addr_isany(netif_ip4_addr(netif))) {
+
+	} else {
+		printf("IP Address: %s\r\n", ipaddr_ntoa(netif_ip4_addr(netif)));
+		printf("Netmask:    %s\r\n", ipaddr_ntoa(netif_ip4_netmask(netif)));
+		printf("Gateway:    %s\r\n", ipaddr_ntoa(netif_ip4_gw(netif)));
+		virt_net_dhcp_done(obj);
+	}
+}
+
+netif_set_status_callback(&obj->netif, netif_status_callback);
+```
+
+### Compile
+
+Enter the build command under the `spiwifi`​ example directory:
+
+```bash
+make CONFIG_RCP_ENABLE=1 CONFIG_MQTT=0 CONFIG_HTTP=0 CONFIG_NETWORK=0
+```
+
+### Flashing
+
+To flash your project onto the target device, use the following command, where `xxx` is your serial port name:
+
+```bash
+make flash COMX=xxx # xxx is your com port name
+```
+
+### Runing
+
+DHCP is enabled by default on the host side in RCP mode, and an IP address is automatically acquired upon WiFi connection command execution.
+
+```bash
+AT+CWMODE=1
+OK
+```
+
+```bash
+AT+CWJAP="ssid","pwd"
+OK
+```
+
+```bash
++CW:CONNECTED
+
+IP Address: 192.168.31.157
+Netmask:    255.255.255.0
+Gateway:    192.168.31.1
 ```
 
 ## Low Power Mode Configuration and Usage
@@ -235,7 +377,10 @@ Ensure that the PC and qcc74x are connected to the same router.
     |spi_wifi_qcc743.bin.ota|0.8M|10 S|
 
 ## Throughput test
-### TCP TX
+
+### NCP (Network Co-Processor)
+
+#### TCP TX
 
 1. PC Command
 
@@ -249,7 +394,7 @@ Ensure that the PC and qcc74x are connected to the same router.
     HOSTCMD ipc <remote_ip>
    ```
 
-### UDP TX
+#### UDP TX
 
 1. PC Command
 
@@ -263,12 +408,70 @@ Ensure that the PC and qcc74x are connected to the same router.
     HOSTCMD ipu <remote_ip>
    ```
 
-### TCP RX
+#### TCP RX
+
+1. HOST Command
+
+   ```bash
+    HOSTCMD ips <remote_ip>
+   ```
+
+2. PC Command
+
+   ```bash
+    iperf -c <remote_ip> -i 1 -t 10
+   ```
+
+#### UDP RX
+
+1. HOST Command
+
+   ```bash
+    HOSTCMD ipus <remote_ip>
+   ```
+
+2. PC Command
+
+   ```bash
+    iperf -u -c <remote_ip> -i 1 -b 20M -t 10
+   ```
+
+### RCP (Radio Co-Processor)
+
+#### TCP TX
+
+1. PC Command
+
+   ```bash
+    iperf -s -i 1
+   ```
 
 2. HOST Command
 
    ```bash
-    HOSTCMD ips <remote_ip>
+    HOSTCMD iperf_c <remote_ip>
+   ```
+
+#### UDP TX
+
+1. PC Command
+
+   ```bash
+    iperf -u -s -i 1
+   ```
+
+2. HOST Command
+
+   ```bash
+    HOSTCMD iperf_u_c <remote_ip>
+   ```
+
+#### TCP RX
+
+2. HOST Command
+
+   ```bash
+    HOSTCMD iperf_s <remote_ip>
    ```
 
 1. PC Command
@@ -277,12 +480,12 @@ Ensure that the PC and qcc74x are connected to the same router.
     iperf -c <remote_ip> -i 1 -t 10
    ```
 
-### UDP RX
+#### UDP RX
 
 2. HOST Command
 
    ```bash
-    HOSTCMD ipus <remote_ip>
+    HOSTCMD iperf_u_s <remote_ip>
    ```
 
 1. PC Command
@@ -395,7 +598,7 @@ Many customers desire an SPI-based communication solution with high throughput. 
 ## Spi communication protocol
 
 ​![image](assets/master_tx.png)​
-​![image](assets/master_tx.png)​
+​![image](assets/master_rx.png)​
 
 ## Spi State machine
 ​![image](assets/statemachine_1.png)​
@@ -421,6 +624,62 @@ The following are the SPI performance data corresponding to different stream\_bu
   Responsible for externally providing a structure for reading and writing to the streambuffer, and internally for moving payload data to the streambuffer or moving the streambuffer data to the payload.We recommend configuring 2K.
  
 
+## Clock Source Management
+
+QCC74x supports configuring different clock sources to optimize power consumption and performance. The following commands allow checking and changing the RTC clock source.
+
+### AT+GET_CLOCK Command
+
+Command Format:
+
+```bash
+AT+GET_CLOCK
+```
+
+Response:
+
++GET_CLOCK:<source>
+OK
+
+Parameters:
+
+<source>: Current clock source ID
+1: RC as the RTC clock source (internal RC oscillator)
+2: Passive crystal oscillator as the RTC clock source
+3: Active crystal oscillator as the RTC clock source
+
+AT+SET_CLOCK Command
+Command Format:
+
+```bash
+AT+SET_CLOCK=<source>
+```
+
+Response:
+OK
+
+Parameters:
+
+<source>: Clock source to set
+1: RC as the RTC clock source (internal RC oscillator)
+2: Passive crystal oscillator as the RTC clock source
+3: Active crystal oscillator as the RTC clock source
+
+Testing Clock Source Configuration
+Query current clock source:
+
+```bash
+AT+GET_CLOCK
+```
+
+Change to a different clock source (e.g., internal RC oscillator):
+```bash
+AT+SET_CLOCK=1
+```
+
+Notes:
+The TWT feature can only be used when an external crystal oscillator is present.
+If the internal RC is used, the TWT feature will not work.
 
 # Qcc74x Low Power Solution Introduction
 

@@ -34,6 +34,7 @@
 #include "app_atmodule.h"
 #include "dwt.h"
 #include "stream_buffer.h"
+#include "virt_net_spi.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -73,6 +74,7 @@ uint8_t uart_rxbyte;
 extern UART_HandleTypeDef huart1;
 
 static at_host_handle_t g_at_handle;
+virt_net_t g_virt_eth;
 
 static int arg_parse(char *in, char *argv[])
 {
@@ -160,6 +162,45 @@ static int do_ipc(int argc, char *argv[])
 	at_iperf_tcp_tx_start(g_at_handle, ip_addr, 5001);
 	return 0;
 }
+
+static int do_iperf_udp_client(int argc, char *argv[])
+{
+	char *ip_addr = NULL;
+
+	if (argc <= 1) {
+		printf("Please input ip addr\r\n");
+		return -1;
+	}
+	ip_addr = argv[1];
+	iperf_start(1, 1, ip_addr);
+	return 0;
+}
+
+static int do_iperf_udp_server(int argc, char *argv[])
+{
+	iperf_start(0, 1, "0.0.0.0");
+	return 0;
+}
+
+static int do_iperf_tcp_client(int argc, char *argv[])
+{
+	char *ip_addr = NULL;
+
+	if (argc <= 1) {
+		printf("Please input ip addr\r\n");
+		return -1;
+	}
+	ip_addr = argv[1];
+	iperf_start(1, 0, ip_addr);
+	return 0;
+}
+
+static int do_iperf_tcp_server(int argc, char *argv[])
+{
+	iperf_start(0, 0, "0.0.0.0");
+	return 0;
+}
+
 
 static int do_at_iperf_stop(int argc, char *argv[])
 {
@@ -409,6 +450,10 @@ static const struct cmd_entry cmds[] = {
 	{"spi_tx_perf", "Start/Stop SPI TX performance, spi_tx_perf <0 | 1>", do_spi_tx_perf},
 	{"spi_rx_perf", "Start/Stop SPI RX performance, spi_rx_perf <0 | 1>", do_spi_rx_perf},
 	{"ps", "Report information of the current processes, ps [interval_ms] [counter], ps 200 2", do_ps},
+	{"iperf_u_c", "", do_iperf_udp_client},
+	{"iperf_u_s", "", do_iperf_udp_server},
+	{"iperf_c", "", do_iperf_tcp_client},
+	{"iperf_s", "", do_iperf_tcp_server},
 };
 
 static int do_help(int argc, char *argv[])
@@ -700,6 +745,16 @@ void trace_task_switched_in(void)
 
 /* USER CODE END 1 */
 
+static void virl_net_init_task(void *arg)
+{
+    g_virt_eth = virt_net_spi_create();
+    virt_net_initial(g_virt_eth);
+
+    virt_net_spi_t spi_eth = (virt_net_spi_t)g_virt_eth;
+    g_at_handle = spi_eth->athandle;
+    osThreadExit();
+}
+
 /**
   * @brief  FreeRTOS initialization
   * @param  None
@@ -719,7 +774,11 @@ void MX_FREERTOS_Init(void) {
 	  .priority = (osPriority_t) osPriorityRealtime6,
 	  .stack_size = 1024 * 4,
 	};
-
+	osThreadAttr_t virl_net_tsk_attr = {
+	  .name = "virl_net",
+	  .priority = (osPriority_t) osPriorityLow,
+	  .stack_size = 1024 * 1,
+	};
 	uart_strm_buffer = xStreamBufferCreate(1024 * 3, 1);
 	if (!uart_strm_buffer)
 		printf("failed to create stream buffer for uart\r\n");
@@ -757,7 +816,9 @@ void MX_FREERTOS_Init(void) {
 	  while (1);
   }
 
-  g_at_handle = at_spisync_init();
+  tcpip_init(NULL, NULL);
+
+  osThreadNew(virl_net_init_task, NULL, &virl_net_tsk_attr);
 
   /* USER CODE END RTOS_THREADS */
 

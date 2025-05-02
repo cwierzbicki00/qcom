@@ -70,6 +70,7 @@ int at_base_config_init(void)
         at_base_config->sysmsg_cfg.bit.quit_throughput_msg = 0;
         at_base_config->sysmsg_cfg.bit.link_msg_type = 0;
         at_base_config->sysmsg_cfg.bit.link_state_msg = 0;
+        at_base_config->sysmsg_cfg.syslog = 0;
     }
 
     //bx_rtc_init();
@@ -81,22 +82,16 @@ int at_base_config_init(void)
 
 int at_base_config_save(const char *key)
 {
-#if 0
-    if (strcmp(key, AT_CONFIG_KEY_UART_CFG) == 0)
-        return at_config_write(key, &at_base_config->uart_cfg, sizeof(base_uart_cfg));
-    else if (strcmp(key, AT_CONFIG_KEY_SYS_MSG) == 0)
+    if (strcmp(key, AT_CONFIG_KEY_SYS_MSG) == 0)
         return at_config_write(key, &at_base_config->sysmsg_cfg, sizeof(base_sysmsg_cfg));
     else
         return -1;
-#else
     return 0;
-#endif
 }
 
 int at_base_config_default(void)
 {
-    //ef_del_env(AT_CONFIG_KEY_UART_CFG);
-    //ef_del_env(AT_CONFIG_KEY_SYS_MSG);
+    ef_del_env(AT_CONFIG_KEY_SYS_MSG);
     return 0;
 }
 

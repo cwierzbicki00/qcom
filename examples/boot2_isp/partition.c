@@ -1,7 +1,6 @@
 #include "qcc74x_core.h"
 #include "partition.h"
 
-
 /** @addtogroup  QCC74x_Common_Driver
  *  @{
  */

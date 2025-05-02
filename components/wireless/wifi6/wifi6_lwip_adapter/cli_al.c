@@ -1086,6 +1086,7 @@ SHELL_CMD_EXPORT_ALIAS(cmd_iperf, iperf, iperf test throughput);
 SHELL_CMD_EXPORT_ALIAS(cmd_wifi_raw_send, wifi_raw_send, wifi raw send test);
 #endif
 SHELL_CMD_EXPORT_ALIAS(cmd_wifi_wps_pbc, wps_pbc, Start wps pbc for sta);
+SHELL_CMD_EXPORT_ALIAS(cmd_wifi_get_stats, wifi_stats, Get stats for wifi);
 SHELL_CMD_EXPORT_ALIAS(cmd_rc, rc, Print the Rate Control Table);
 SHELL_CMD_EXPORT_ALIAS(cmd_rate, rate, set g_fw_rate);
 SHELL_CMD_EXPORT_ALIAS(cmd_non_pref_chan, non_pref_chan, set non_pref_chan);

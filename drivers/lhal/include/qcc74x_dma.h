@@ -255,6 +255,7 @@
 #define DMA_ADDR_DAC_TDR     (0x20002000 + 0x48)
 #define DMA_ADDR_IR_TDR      (0x2000A600 + 0x88)
 #define DMA_ADDR_WO_TDR      (0x20000000 + 0xB04)
+
 /**
   * @}
   */

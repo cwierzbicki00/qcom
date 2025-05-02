@@ -11,7 +11,6 @@
 #define AON_ACOMP_REG_ACOMP1_CTRL_OFFSET        (0x904) /* acomp0_ctrl */
 #define AON_ACOMP_REG_ACOMP_CFG_OFFSET          (0x908) /* acomp_ctrl */
 
-
 /* Register Bitfield definitions *****************************************************/
 /* 0x900 : acomp0_ctrl */
 /* 0x904 : acomp1_ctrl */
