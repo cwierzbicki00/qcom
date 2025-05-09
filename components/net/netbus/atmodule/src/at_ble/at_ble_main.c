@@ -219,7 +219,7 @@ static void ble_uuid_16_trans_set(uint8_t *src, uint16_t *dst)
 static int check_attr_ismatch(struct ble_char_data *srv_char, struct bt_gatt_attr *attr)
 {
 
-    if(&srv_char->uuid_type == BT_UUID_TYPE_128)
+    if(srv_char->uuid_type == BT_UUID_TYPE_128)
     {
         if(ble_dynamic_gatt_get_attr(&srv_char->char_uuid.uuid)==(attr))
         {
@@ -231,7 +231,7 @@ static int check_attr_ismatch(struct ble_char_data *srv_char, struct bt_gatt_att
             return 1;
         }
     }
-    if(&srv_char->uuid_type == BT_UUID_TYPE_16)
+    if(srv_char->uuid_type == BT_UUID_TYPE_16)
     {
         if(ble_dynamic_gatt_get_attr(&srv_char->char_uuid_16.uuid)==(attr))
         {
@@ -282,9 +282,9 @@ static void ble_add_service(void)
             }
             else
             {
-                if(&g_ble_srv_data[i].uuid_type == BT_UUID_TYPE_128)
+                if(g_ble_srv_data[i].uuid_type == BT_UUID_TYPE_128)
                     ble_dynamic_gatt_add_service(&g_ble_srv_data[i].srv_uuid.uuid,BT_UUID_TYPE_128,GATT_SERVICE_SECONDARY);
-                if(&g_ble_srv_data[i].uuid_type == BT_UUID_TYPE_16)
+                if(g_ble_srv_data[i].uuid_type == BT_UUID_TYPE_16)
                     ble_dynamic_gatt_add_service(&g_ble_srv_data[i].srv_uuid_16.uuid,BT_UUID_TYPE_16,GATT_SERVICE_SECONDARY);
 
             }

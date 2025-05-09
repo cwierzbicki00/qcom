@@ -713,13 +713,11 @@ static int at_setup_cmd_ble_gatts_notify(int argc, const char **argv)
     send_num = at_ble_gatts_service_notify(srv_idx, char_idx, buffer, recv_num);
     vPortFree(buffer);
 
-
     if (send_num != recv_num) {
-        at_response_string("%s", AT_CMD_MSG_SEND_FAIL);
-        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_LENGTH_MISMATCH);
+      return AT_RESULT_CODE_SEND_FAIL;
     }
-    at_response_string("%s", AT_CMD_MSG_SEND_OK);
-    return AT_RESULT_CODE_OK;
+
+    return AT_RESULT_CODE_SEND_OK;
 }
 
 static int at_setup_cmd_ble_gatts_indicate(int argc, const char **argv)
@@ -761,11 +759,10 @@ static int at_setup_cmd_ble_gatts_indicate(int argc, const char **argv)
     vPortFree(buffer);
 
     if (send_num != recv_num) {
-        at_response_string("%s", AT_CMD_MSG_SEND_FAIL);
-        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_LENGTH_MISMATCH);
+      return AT_RESULT_CODE_SEND_FAIL;
     }
-    at_response_string("%s", AT_CMD_MSG_SEND_OK);
-    return AT_RESULT_CODE_OK;
+
+    return AT_RESULT_CODE_SEND_OK;
 }
 
 static int at_setup_cmd_ble_gatts_read(int argc, const char **argv)
@@ -807,12 +804,10 @@ static int at_setup_cmd_ble_gatts_read(int argc, const char **argv)
     vPortFree(buffer);
 
     if (send_num != recv_num) {
-        at_response_string("%s", AT_CMD_MSG_SEND_FAIL);
-        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_LENGTH_MISMATCH);
+      return AT_RESULT_CODE_SEND_FAIL;
     }
 
-    at_response_string("%s", AT_CMD_MSG_SEND_OK);
-    return AT_RESULT_CODE_OK;
+    return AT_RESULT_CODE_SEND_OK;
 }
 
 static int at_setup_cmd_ble_gattc_service_discover(int argc, const char **argv)
@@ -907,11 +902,10 @@ static int at_setup_cmd_ble_gattc_write(int argc, const char **argv)
     vPortFree(buffer);
 
     if (send_num != recv_num) {
-        at_response_string("%s", AT_CMD_MSG_SEND_FAIL);
-        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_LENGTH_MISMATCH);
+      return AT_RESULT_CODE_SEND_FAIL;
     }
-    at_response_string("%s", AT_CMD_MSG_SEND_OK);
-    return AT_RESULT_CODE_OK;
+
+    return AT_RESULT_CODE_SEND_OK;
 }
 
 static int at_setup_cmd_ble_gattc_read(int argc, const char **argv)
