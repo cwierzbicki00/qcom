@@ -2785,6 +2785,15 @@ struct net_buf *bt_conn_create_pdu_timeout(struct net_buf_pool *pool,
 {
 	struct net_buf *buf;
 
+	//check if current task is timer task or it is in interrupt isr
+	if(k_is_in_isr()){
+		BT_ERR("Allocating pdu in interrupt conext is not allowed.");
+		BT_ASSERT(0);
+	}else if(k_thread_check_by_name("Tmr Svc")){
+		BT_ERR("Allocating pdu in os timer task is not allowed.");
+		BT_ASSERT(0);
+	}
+
 	/*
 	 * PDU must not be allocated from ISR as we block with 'K_FOREVER'
 	 * during the allocation

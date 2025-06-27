@@ -248,6 +248,7 @@ int k_thread_create(struct k_thread *new_thread, const char *name,
 void k_thread_delete(struct k_thread *new_thread);
 
 bool k_is_current_thread(struct k_thread *thread);
+bool k_thread_check_by_name(const char *name);
 
 /**
  * @brief Yield the current thread.

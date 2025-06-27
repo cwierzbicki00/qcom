@@ -81,7 +81,7 @@ typedef enum
     DISABLE_ACL,
     ACCEPT_UNLESS_DENIED,
     DENY_UNLESS_ACCEPTED
-} ap_acl_prem;
+} ap_acl_perm;
 
 typedef struct wifi_mgmr_scan_item {
     uint32_t mode;
@@ -241,7 +241,15 @@ typedef struct wifi_mgmr_ap_params {
     /// ref wap_supplicant.conf
     char *ap_vendor_elements;
 
+    /// bcn_mode:
+    /// 0   Start/Stop beacon transmissions automatically
+    ///         a.Beacon transmission is NOT started when SAP is started.
+    ///         b.Once a Probe Request frame having the same SSID is received, replies with a Probe Response frame, then Beacon transmission is started.
+    ///         c.Beacon transmission is stopped again if no STA is associated for more than bcn_timer seconds.
+    /// 1   Do not transmit beacon frames
+    /// 2   Transmit beacon frames (Default)
     uint8_t bcn_mode;
+    /// Beacon transmission is stopped again if no STA is associated for more than bcn_timer seconds.
     int bcn_timer;
     /// Disable advertising WME/WMM Information Element in Beacon/ProbeResponse frames
     bool disable_wmm;
@@ -324,6 +332,8 @@ typedef struct wifi_mgmr_connect_ind_stat_info {
     uint8_t ch_idx;
     /// Flag indicating if the AP is supporting QoS
     bool qos;
+    /// bss mode
+    uint8_t bss_mode;
 } wifi_mgmr_connect_ind_stat_info_t;
 
 typedef struct wifi_conf {
@@ -703,7 +713,7 @@ int wifi_mgmr_ap_stop(void);
  *  -1 : Failed
  *  Others is Failed
  */
-int wifi_mgmr_ap_acl_enable(ap_acl_prem default_prem);
+int wifi_mgmr_ap_acl_enable(ap_acl_perm default_perm);
 
 /**
  * wifi_mgmr_ap_acl_set
@@ -906,6 +916,24 @@ int wifi_mgmr_sta_twt_setup(twt_setup_params_struct_t *twt_setup_params_ptr);
 int wifi_mgmr_sta_twt_teardown(twt_teardown_params_struct_t *twt_teardown_params_ptr);
 
 /**
+ *  @brief Get the current Target Wake Time (TWT) session status for STA mode
+ *  
+ *  This function retrieves the current TWT session configuration parameters and 
+ *  the number of active TWT sessions from the Wi-Fi station.
+ *  
+ *  @param[out] conf     Pointer to the TWT configuration structure where the 
+ *                       current TWT parameters will be stored. Must be allocated
+ *                       by the caller.
+ *  @param[out] twt_num  Pointer to a buffer where the number of active TWT sessions
+ *                       will be written. Valid range: 0 (no active sessions) to 
+ *                       maximum supported TWT sessions.
+ *  
+ *  @return 0 on success, non-zero error code on failure:
+ *          - Other implementation-specific error codes
+ */
+int wifi_mgmr_sta_twt_statusget(struct twt_conf_tag *conf, uint8_t *twt_num);
+
+/**
  * wifi_mgmr_sta_set_listen_itv
  * Set listen interval
  * return:
@@ -920,7 +948,7 @@ int wifi_mgmr_sta_set_listen_itv(uint8_t itv);
  * Get listen interval
  * return: listen interval
  */
-uint8_t wifi_mgmr_sta_get_listen_itv(void);
+int wifi_mgmr_sta_get_listen_itv(void);
 
 /**
  * wifi_mgmr_sta_aid_get
@@ -1156,8 +1184,9 @@ int wifi_mgmr_set_ht40_enable(uint8_t value);
 /*
  * wifi_mgmr_sta_ap_tx_power_set
  * Set value of Tx power in unit of 0.5dBm for sta/ap mode
+ * ref tx_power_limit_tables[2] for setting limit
 */
-int wifi_mgmr_sta_ap_tx_power_set(int tx_power);
+int wifi_mgmr_sta_ap_tx_power_set(tx_pwr_table_t *pwr_table);
 
 /*
  * wifi_mgmr_sta_ap_tx_power_set
@@ -1204,6 +1233,23 @@ int wifi_mgmr_get_tx_queue_params(uint8_t queue, uint8_t *aifsn, uint16_t *cwmin
  * Get the number of frames remaining in each Tx queue.
  */
 int wifi_mgmr_get_remaining_tx(uint8_t *tx0_cnt, uint8_t *tx1_cnt, uint8_t *tx2_cnt, uint8_t *tx3_cnt);
+
+/**
+ * wifi_mgmr_set_mode
+ * param:
+ * ap_or_sta: 1 = ap, 0 = sta
+ * mode: @ref WiFi_Mode_t
+ */
+int wifi_mgmr_set_mode(uint8_t ap_or_sta, int mode);
+
+/**
+ * wifi_mgmr_get_mode
+ * param:
+ * ap_or_sta: 1 = ap, 0 = sta
+ * return:
+ * @ref WiFi_Mode_t
+ * */
+int wifi_mgmr_get_mode(uint8_t ap_or_sta);
 
 /**
  * wifi_mgmr_adhoc_set_rate

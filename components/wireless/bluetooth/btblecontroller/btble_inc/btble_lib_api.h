@@ -152,6 +152,45 @@ struct hci_vs_tx_test_cmd
 };
 #endif
 
+struct btblecontroller_resource_conf{
+    //The size of bluetooth EM area
+    uint32_t em_size;
+    //If allocate resource for ble observer. If CONFIG_BT_OBSERVER is enabled, shall allocate this resource.
+    //Otherwise, not allocate.
+    //1:allocate, 0:not allocate.
+    uint8_t ble_observer;
+    //If allocate resource for ble central. If CONFIG_BT_CENTRAL is enabled, shall allocate this resource.
+    //Otherwise, not allocate.
+    //1:allocate, 0:not allocate.
+    uint8_t ble_central;
+    //If allocate resource for ble extended adv.  If CONFIG_ADV_EXTENSION is enabled, shall allocate this resource.
+    //Otherwise, not allocate.
+    //1:allocate, 0:not allocate.
+    uint8_t ble_ext_adv;
+    //Number of max activities
+    uint8_t ble_activity_max;
+    //Number of max ble links
+    uint8_t ble_conn_max;
+    //Maximum number of devices in resolving address list
+    uint8_t ble_ral_max;
+    //Number of RX descriptors
+    uint8_t ble_rx_desc_nb;
+    //Number of TX data buffer
+    uint8_t ble_acl_buf_nb_tx;
+};
+
+#if !defined(CONFIG_BLE_MFG)
+typedef enum{
+    BTBLE_IN_ACTIVE_STATE,
+    BTBLE_IN_SLEEP_STATE,
+    BTBLE_IN_WAKEUP_ONGOING_STATE
+}btble_controller_state;
+#endif
+
+//This API is only used in ble only mode without iso/cte to configure ble resource when CONFIG_BLE_RES_DYNAMIC_CONF is enabled
+//and shall be called before btble_controller_init.
+void btble_controller_resource_config(struct btblecontroller_resource_conf *conf);
+
 //Set stack size of btblecontroller task before btble_controller_init if upper layer wants to modify the stack size.
 //The default stack size of btblecontroller task is 2k in ble only mode and 4k in bt/ble mode.
 void btble_controller_set_task_stack_size(uint16_t stack_size);
@@ -165,6 +204,10 @@ void btblecontroller_proc(void *data);
 void btble_controller_deinit(void);
 int32_t btble_controller_sleep(int32_t max_sleep_cycles);
 void btble_controller_sleep_restore();
+#if !defined(CONFIG_BLE_MFG)
+//The return value is an instantaneous state that may change rapidly.
+btble_controller_state btble_controller_get_state(void);
+#endif
 #if defined(CFG_BT_RESET)
 void btble_controller_reset(void);
 #endif

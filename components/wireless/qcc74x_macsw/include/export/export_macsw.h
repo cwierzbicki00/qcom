@@ -202,8 +202,94 @@ struct me_param_req
     enum ME_PARAM_ID_E id;
     enum ME_PARAM_CMD_E cmd;//GET or SET.
     /// payload of the param. Max is 32 Bytes
-    uint8_t value[32];//GET or SET through value
+    uint8_t value[50];//GET or SET through value
 };
+/// Pointer to callback function
+typedef void (*cb_raw_send_wait_end_ptr)(void* env);
+
+/// Pointer to callback function for adhoc tx
+typedef void (*cb_adhoc_tx_cfm_ptr)(void* env, uint32_t status);
+
+/// Structure containing the parameters of the @ref MM_RAW_SEND_STRAT_REQ message.
+struct mm_raw_send_start_req
+{
+    /// List of waiting raw send req
+    struct co_list_hdr list_hdr;
+    /// Raw send wait RX response timer
+    struct mm_timer_tag wait_rx;
+    /// Channel information
+    struct mac_chan_op chan;
+    /// Index of the VIF
+    int vif_idx;
+    /// Pakcet buffer
+    void *pkt;
+    /// Packet len
+    uint32_t len;
+    /// Duration in ms, default 20ms
+    uint32_t duration;
+    /// Raw Send wait end callback
+    cb_raw_send_wait_end_ptr cb;
+    /// event env
+    void *env;
+    /// whether need wait resp
+    int need_rx;
+    /// Ad-hoc mode
+    bool adhoc;
+    /// Receiver address
+    struct mac_addr *ra;
+    /// Transmitter address
+    struct mac_addr *ta;
+    /// Tx rate
+    uint8_t rate;
+    /// RTS thrshold
+    uint8_t rts_thrshold;
+    /// Tx retry limit
+    uint8_t retry_limit;
+    /// Tx power
+    int8_t tx_power;
+    /// cb func for adhoc tx
+    cb_adhoc_tx_cfm_ptr cb_cfm;
+
+};
+
+//THD STATINFO fields
+//----------------------------------------------------------------------------------------
+/// Number of RTS frame retries offset
+#define NUM_RTS_RETRIES_OFT                0
+/// Number of RTS frame retries mask
+#define NUM_RTS_RETRIES_MSK               (0xFF << NUM_RTS_RETRIES_OFT)
+/// Number of MPDU frame retries offset
+#define NUM_MPDU_RETRIES_OFT               8
+/// Number of MPDU frame retries mask
+#define NUM_MPDU_RETRIES_MSK              (0xFF << NUM_MPDU_RETRIES_OFT)
+/// Retry limit reached: frame unsuccessful
+#define RETRY_LIMIT_REACHED_BIT            CO_BIT(16)
+/// Frame lifetime expired: frame unsuccessful
+#define LIFETIME_EXPIRED_BIT               CO_BIT(17)
+/// BA frame not received - valid only for MPDUs part of AMPDU
+#define BA_FRAME_RECEIVED_BIT              CO_BIT(18)
+/// Frame was transmitted in a HE TB PPDU - Set by SW
+#define HE_TB_TX_BIT                       CO_BIT(22)
+/// Frame successful by TX DMA: Ack received successfully
+#define FRAME_SUCCESSFUL_TX_BIT            CO_BIT(23)
+/// Last MPDU of an A-MPDU
+#define A_MPDU_LAST                        (0x0F << 26)
+/// Transmission bandwidth offset
+#define BW_TX_OFT                          24
+/// Transmission bandwidth mask
+#define BW_TX_MSK                          (0x3 << BW_TX_OFT)
+/// Transmission bandwidth - 20MHz
+#define BW_20MHZ_TX                        (0x0 << BW_TX_OFT)
+/// Transmission bandwidth - 40MHz
+#define BW_40MHZ_TX                        (0x1 << BW_TX_OFT)
+/// Transmission bandwidth - 80MHz
+#define BW_80MHZ_TX                        (0x2 << BW_TX_OFT)
+/// Transmission bandwidth - 160MHz
+#define BW_160MHZ_TX                       (0x3 << BW_TX_OFT)
+/// Descriptor done bit: Set by HW for TX DMA
+#define DESC_DONE_TX_BIT                   CO_BIT(31)
+/// Descriptor done bit: Set by SW for TX DMA
+#define DESC_DONE_SW_TX_BIT                CO_BIT(30)
 
 void tx_desc_init_for_fhost(struct fhost_tx_desc_tag *desc, int seg_cnt, uint32_t *seg_addr, uint16_t *seg_len);
 

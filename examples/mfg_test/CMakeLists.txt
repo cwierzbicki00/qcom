@@ -11,6 +11,11 @@ sdk_add_compile_definitions(-DMFG_GU_QCC743)
 sdk_add_compile_definitions(-DMFG_PSRAM_TEST)
 sdk_add_compile_definitions(-DCONFIG_XTAL_SELECT_EN)
 
+if(CONFIG_CHERRYUSB)
+    sdk_add_compile_definitions(-D CONFIG_MFG_USB_HOST_TEST)
+    target_sources(app PRIVATE msc_fatfs_template.c)
+endif()
+
 execute_process(
     COMMAND git rev-parse HEAD
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}

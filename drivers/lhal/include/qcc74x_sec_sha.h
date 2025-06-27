@@ -341,6 +341,16 @@ void qcc74x_group0_release_sha_access(struct qcc74x_device_s *dev);
  */
 int qcc74x_sha_crc32_link_work(struct qcc74x_device_s *dev, uint32_t addr, const uint8_t *in, uint32_t len, uint8_t *out);
 
+/**
+ * @brief
+ *
+ * @param [in] dev
+ * @param [in] input, 32 bytes aligned
+ * @param [in] output
+ * @param [in] nblock
+ */
+int qcc74x_sha1_once_padded(struct qcc74x_device_s *dev, const uint8_t *input, uint8_t *output, uint32_t nblock);
+
 #ifdef __cplusplus
 }
 #endif

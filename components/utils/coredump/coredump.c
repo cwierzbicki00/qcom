@@ -73,26 +73,38 @@ int coredump_xip_flash_write(uint32_t lma, uint8_t *lma_xip, size_t len)
 void coredump_run(void) {
     bool coredump_flash_disable = 0;
     uint32_t lma = coredump_flash_addr;
+    struct dump_section only_task_stack[5];
+    struct dump_section *dump_sections;
 
-    if(coredump_flash_size < get_size_of_sections() + 4096) {
-        coredump_flash_disable = 1;
-    } else {
+    if(coredump_flash_size >= get_size_of_sections() + 4096) {
+        dump_sections = &_dump_sections;
+
         /* erase flash sector first */
         qcc74x_flash_erase(lma, coredump_flash_size);
-        core_bin_start_hook(&lma, coredump_flash_size);
+        core_bin_start_hook(&lma, coredump_flash_size, dump_sections);
+    } else if(coredump_flash_size >= 12 * 1024) {
+        dump_sections = only_task_stack;
+
+        qcc74x_flash_erase(lma, coredump_flash_size);
+        current_task_stack(only_task_stack, sizeof(only_task_stack)/sizeof(only_task_stack[0]));
+        core_bin_start_hook(&lma, coredump_flash_size, only_task_stack);
+    } else {
+        coredump_flash_disable = 1;
+        dump_sections = &_dump_sections;
     }
+
     memcpy(core_build_id, elf_build_id, BUILD_ID_LEN);
     print_build_id_fmt(elf_build_id);
 
     /* Dump all pre-defined memory region by default */
-    for (int i = 0; (&_dump_sections + i)->addr != 0xffffffff; i++) {
-        if ((&_dump_sections + i)->addr == 0)
+    for (int i = 0; (dump_sections + i)->addr != 0xffffffff; i++) {
+        if ((dump_sections + i)->addr == 0)
             break;
-        if ((&_dump_sections + i)->len == 0)
+        if ((dump_sections + i)->len == 0)
             continue;
-        coredump_print_n_k((uintptr_t)(&_dump_sections + i)->addr, (uintptr_t)(&_dump_sections + i)->addr, (&_dump_sections + i)->len, "predefined");
+        coredump_print_n_k((uintptr_t)(dump_sections + i)->addr, (uintptr_t)(dump_sections + i)->addr, (dump_sections + i)->len, "predefined");
         if(!coredump_flash_disable) {
-            core_bin_sections_hook(&lma, (uint8_t *)(&_dump_sections + i)->addr, (&_dump_sections + i)->len);
+            core_bin_sections_hook(&lma, (uint8_t *)(dump_sections + i)->addr, (dump_sections + i)->len);
         }
     }
 

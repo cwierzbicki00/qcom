@@ -31,7 +31,7 @@
 #include "shell.h"
 #include "qcc74x_mtd.h"
 #include "easyflash.h"
-#include "app_clock_manager.h"
+#include "clock_manager.h"
 
 #define DBG_TAG "MAIN"
 #include "log.h"

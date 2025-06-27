@@ -38,7 +38,6 @@ typedef enum {
     ROM_API_INDEX_RSVD_1,
     ROM_API_INDEX_RSVD_LAST,
 
-
     ROM_API_INDEX_AON_Power_Off_BG,
     ROM_API_INDEX_AON_Power_Off_LDO15_RF,
     ROM_API_INDEX_AON_Power_Off_MBG,
@@ -535,9 +534,7 @@ typedef enum {
  *  @{
  */
 
-
 #define ROM_APITABLE            ((uint32_t *)0x90015800)
-
 
 #define RomDriver_AON_Power_Off_BG                        \
     ((QCC74x_Err_Type (*) (void))ROM_APITABLE[ROM_API_INDEX_AON_Power_Off_BG])

@@ -153,8 +153,11 @@ uint32_t Clock_Get_ISP_Clk(void);
 uint32_t Clock_Get_BLAI_Clk(void);
 uint32_t Clock_Get_Display_Clk(void);
 uint32_t Clock_Get_PSRAMB_Clk(void);
-uint32_t Clock_Get_PSRAMB_Clk(void);
 uint32_t Clock_Get_H264_Clk(void);
+uint32_t qcc74x_peripheral_clock_get_by_id(uint8_t peri);
+int qcc74x_peripheral_clock_control_by_id(uint8_t peri, bool enable);
+int qcc74x_peripheral_clock_status_get_by_id(uint8_t peri);
+
 /*----------*/
 
 /*@} end of group CLOCK_Public_Functions */

@@ -67,21 +67,21 @@ typedef enum {
     AT_SUB_CMD_OP_ERROR             = 0x0C,              /*!< the command operation type is error */
 } at_error_code;
 
-#define ESP_AT_ERROR_NO(subcategory,extension)  \
+#define AT_ERROR_NO(subcategory,extension)  \
         ((AT_MODULE_NUM << 24) | ((subcategory) << 16) | (extension))
 
-#define AT_CMD_ERROR_OK                           ESP_AT_ERROR_NO(AT_SUB_OK,0x00)                                       /*!< No Error */
-#define AT_CMD_ERROR_NON_FINISH                   ESP_AT_ERROR_NO(AT_SUB_NO_TERMINATOR,0x00)                            /*!< terminator character not found ("\r\n" expected) */
-#define AT_CMD_ERROR_NOT_FOUND_AT                 ESP_AT_ERROR_NO(AT_SUB_NO_AT,0x00)                                    /*!< Starting "AT" not found (or at, At or aT entered) */
-#define AT_CMD_ERROR_PARA_LENGTH(which_para)      ESP_AT_ERROR_NO(AT_SUB_PARA_LENGTH_MISMATCH,which_para)               /*!< parameter length mismatch */
-#define AT_CMD_ERROR_PARA_TYPE(which_para)        ESP_AT_ERROR_NO(AT_SUB_PARA_TYPE_MISMATCH,which_para)                 /*!< parameter type mismatch */
-#define AT_CMD_ERROR_PARA_NUM(need,given)         ESP_AT_ERROR_NO(AT_SUB_PARA_NUM_MISMATCH,(((need) << 8) | (given)))   /*!< parameter number mismatch */
-#define AT_CMD_ERROR_PARA_INVALID(which_para)     ESP_AT_ERROR_NO(AT_SUB_PARA_INVALID,which_para)                       /*!< the parameter is invalid */
-#define AT_CMD_ERROR_PARA_PARSE_FAIL(which_para)  ESP_AT_ERROR_NO(AT_SUB_PARA_PARSE_FAIL,which_para)                    /*!< parse parameter fail */
-#define AT_CMD_ERROR_CMD_UNSUPPORT                ESP_AT_ERROR_NO(AT_SUB_UNSUPPORT_CMD,0x00)                            /*!< the command is not supported */
-#define AT_CMD_ERROR_CMD_EXEC_FAIL(result)        ESP_AT_ERROR_NO(AT_SUB_CMD_EXEC_FAIL,result)                          /*!< the command execution failed */
-#define AT_CMD_ERROR_CMD_PROCESSING               ESP_AT_ERROR_NO(AT_SUB_CMD_PROCESSING,0x00)                           /*!< processing of previous command is in progress */
-#define AT_CMD_ERROR_CMD_OP_ERROR                 ESP_AT_ERROR_NO(AT_SUB_CMD_OP_ERROR,0x00)                             /*!< the command operation type is error */
+#define AT_CMD_ERROR_OK                           AT_ERROR_NO(AT_SUB_OK,0x00)                                       /*!< No Error */
+#define AT_CMD_ERROR_NON_FINISH                   AT_ERROR_NO(AT_SUB_NO_TERMINATOR,0x00)                            /*!< terminator character not found ("\r\n" expected) */
+#define AT_CMD_ERROR_NOT_FOUND_AT                 AT_ERROR_NO(AT_SUB_NO_AT,0x00)                                    /*!< Starting "AT" not found (or at, At or aT entered) */
+#define AT_CMD_ERROR_PARA_LENGTH(which_para)      AT_ERROR_NO(AT_SUB_PARA_LENGTH_MISMATCH,which_para)               /*!< parameter length mismatch */
+#define AT_CMD_ERROR_PARA_TYPE(which_para)        AT_ERROR_NO(AT_SUB_PARA_TYPE_MISMATCH,which_para)                 /*!< parameter type mismatch */
+#define AT_CMD_ERROR_PARA_NUM(need,given)         AT_ERROR_NO(AT_SUB_PARA_NUM_MISMATCH,(((need) << 8) | (given)))   /*!< parameter number mismatch */
+#define AT_CMD_ERROR_PARA_INVALID(which_para)     AT_ERROR_NO(AT_SUB_PARA_INVALID,which_para)                       /*!< the parameter is invalid */
+#define AT_CMD_ERROR_PARA_PARSE_FAIL(which_para)  AT_ERROR_NO(AT_SUB_PARA_PARSE_FAIL,which_para)                    /*!< parse parameter fail */
+#define AT_CMD_ERROR_CMD_UNSUPPORT                AT_ERROR_NO(AT_SUB_UNSUPPORT_CMD,0x00)                            /*!< the command is not supported */
+#define AT_CMD_ERROR_CMD_EXEC_FAIL(result)        AT_ERROR_NO(AT_SUB_CMD_EXEC_FAIL,result)                          /*!< the command execution failed */
+#define AT_CMD_ERROR_CMD_PROCESSING               AT_ERROR_NO(AT_SUB_CMD_PROCESSING,0x00)                           /*!< processing of previous command is in progress */
+#define AT_CMD_ERROR_CMD_OP_ERROR                 AT_ERROR_NO(AT_SUB_CMD_OP_ERROR,0x00)                             /*!< the command operation type is error */
 
 #define AT_CMD_RESPONSE(s) printf(s)
 

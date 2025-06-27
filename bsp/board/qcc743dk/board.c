@@ -152,6 +152,14 @@ static void peripheral_clock_init_lp(void)
     QCC74x_WR_REG(GLB_BASE, GLB_CGEN_CFG2, tmpVal);
 
     GLB_Set_UART_CLK(ENABLE, HBN_UART_CLK_XCLK, 0);
+    
+    GLB_Set_PKA_CLK_Sel(GLB_PKA_CLK_MCU_MUXPLL_160M);
+
+    qcc74x_group0_request_aes_access(qcc74x_device_get_by_name("aes"));
+    qcc74x_aes_link_init(qcc74x_device_get_by_name("aes"));
+    qcc74x_pka_init(qcc74x_device_get_by_name("pka"));
+    qcc74x_group0_request_sha_access(qcc74x_device_get_by_name("sha"));
+    qcc74x_sha_link_init(qcc74x_device_get_by_name("sha"));
 
 #ifdef CONFIG_BSP_SDH_SDCARD
     PERIPHERAL_CLOCK_SDH_ENABLE();
@@ -406,7 +414,7 @@ static void board_antenna_log(ant_log_level_t level, ant_log_category_t category
 
     /* Print log prefix */
     printf("[ANT-%s:%s] ", cat_str, level_str);
-    
+
     /* Print formatted message */
     vprintf(fmt, args);
     printf("\r\n");
@@ -435,6 +443,7 @@ void board_init(void)
     int ret = -1;
     uintptr_t flag;
     size_t heap_len;
+    uint32_t xtal_value = 0;
 
     flag = qcc74x_irq_save();
 #ifndef CONFIG_BOARD_FLASH_INIT_SKIP
@@ -471,6 +480,9 @@ void board_init(void)
     printf("sig1:%08x\r\n", QCC74x_RD_REG(GLB_BASE, GLB_UART_CFG1));
     printf("sig2:%08x\r\n", QCC74x_RD_REG(GLB_BASE, GLB_UART_CFG2));
     printf("cgen1:%08x\r\n", getreg32(QCC74x_GLB_CGEN1_BASE));
+
+    HBN_Get_Xtal_Value(&xtal_value);
+    printf("xtal:%dHz(%s)\r\n", xtal_value, ((getreg32(AON_BASE + AON_XTAL_CFG_OFFSET) >> 3) & 0x01) ? "oscillator" : "crystal");
 
     log_start();
 
@@ -512,8 +524,8 @@ void board_spi0_gpio_init()
     struct qcc74x_device_s *gpio;
 
     gpio = qcc74x_device_get_by_name("gpio");
-  
-    /* spi cs */ 
+
+    /* spi cs */
     qcc74x_gpio_init(gpio, GPIO_PIN_28, GPIO_FUNC_SPI0 | GPIO_ALTERNATE | GPIO_FLOAT | GPIO_SMT_EN | GPIO_DRV_1);
     /* spi clk */
     qcc74x_gpio_init(gpio, GPIO_PIN_29, GPIO_FUNC_SPI0 | GPIO_ALTERNATE | GPIO_FLOAT | GPIO_SMT_EN | GPIO_DRV_1);
@@ -528,7 +540,7 @@ void board_spi0_gpio_3pin_init()
     struct qcc74x_device_s *gpio;
 
     gpio = qcc74x_device_get_by_name("gpio");
- 
+
     /* spi clk */
     qcc74x_gpio_init(gpio, GPIO_PIN_29, GPIO_FUNC_SPI0 | GPIO_ALTERNATE | GPIO_FLOAT | GPIO_SMT_EN | GPIO_DRV_1);
     /* spi miso */
@@ -736,8 +748,8 @@ void board_acomp_init()
 
     gpio = qcc74x_device_get_by_name("gpio");
 
-    qcc74x_gpio_init(gpio, GPIO_PIN_13, GPIO_ANALOG | GPIO_PULL_NONE | GPIO_DRV_0);
-    qcc74x_gpio_init(gpio, GPIO_PIN_14, GPIO_ANALOG | GPIO_PULL_NONE | GPIO_DRV_0);
+    qcc74x_gpio_init(gpio, GPIO_PIN_3, GPIO_ANALOG | GPIO_PULL_NONE | GPIO_DRV_0);
+    qcc74x_gpio_init(gpio, GPIO_PIN_20, GPIO_ANALOG | GPIO_PULL_NONE | GPIO_DRV_0);
 
     struct qcc74x_acomp_config_s acomp_cfg = {
         .mux_en = ENABLE,
@@ -750,9 +762,9 @@ void board_acomp_init()
         .hysteresis_neg_volt = AON_ACOMP_HYSTERESIS_VOLT_NONE,
     };
 
-    acomp_cfg.pos_chan_sel = AON_ACOMP_CHAN_ADC5;
+    acomp_cfg.pos_chan_sel = AON_ACOMP_CHAN_ADC3;
     qcc74x_acomp_init(AON_ACOMP0_ID, &acomp_cfg);
-    acomp_cfg.pos_chan_sel = AON_ACOMP_CHAN_ADC4;
+    acomp_cfg.pos_chan_sel = AON_ACOMP_CHAN_ADC0;
     qcc74x_acomp_init(AON_ACOMP1_ID, &acomp_cfg);
 }
 

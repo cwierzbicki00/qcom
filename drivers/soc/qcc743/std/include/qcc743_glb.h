@@ -586,7 +586,6 @@ typedef struct {
 #define GLB_PACKAGE_TYPE_QFN40M            (1) /*!< Package Type is QFN40M */
 #define GLB_PACKAGE_TYPE_QFN56             (2) /*!< Package Type is QFN56 */
 
-
 /** @defgroup GLB ADC clock type definition
   * @{
   */

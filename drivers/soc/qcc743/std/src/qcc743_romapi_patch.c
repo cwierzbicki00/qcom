@@ -1988,7 +1988,6 @@ void ATTR_TCM_SECTION GLB_Power_Down_Ldo18ioVout(void)
     QCC74x_WR_REG(GLB_BASE, GLB_LDO18IO, tmpVal);
 }
 
-
 /****************************************************************************/ /**
  * @brief  GLB GET Package Type From EFUSE
  *
@@ -4420,7 +4419,6 @@ QCC74x_Err_Type ATTR_CLOCK_SECTION HBN_Set_Xtal_32K_Regulator(uint8_t level)
 
     return SUCCESS;
 }
-
 
 /****************************************************************************/ /**
  * @brief  Power on XTAL 32K

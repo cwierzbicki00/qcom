@@ -1231,6 +1231,8 @@ int ATTR_TCM_SECTION qcc74x_lp_fw_enter(qcc74x_lp_fw_cfg_t *qcc74x_lp_fw_cfg)
 
     qcc74x_lp_debug_record_time(iot2lp_para, "qcc74x_lp_fw_enter");
 
+    iot2lp_para->buf_addr = qcc74x_lp_fw_cfg->buf_addr;
+
     /* clean wake bits */
     iot2lp_para->wake_io_bits = 0;
     iot2lp_para->wake_acomp_bits = 0;
@@ -1399,7 +1401,7 @@ int ATTR_TCM_SECTION qcc74x_lp_fw_enter(qcc74x_lp_fw_cfg_t *qcc74x_lp_fw_cfg)
         qcc74x_lp_acomp_wakeup_init(&g_lp_acomp_cfg_bak);
     }
 
-    // iot2lp_para->wifi_rx_buff = (uint8_t *)((uint32_t)export_get_rx_buffer1_addr() & 0x2FFFFFFF);
+    iot2lp_para->wifi_rx_buff = (uint8_t *)((uint32_t)export_get_rx_buffer1_addr() & 0x2FFFFFFF);
     /* lpfw cfg: system para */
     iot2lp_para->mcu_sts = qcc74x_lp_fw_cfg->mcu_sts;
     // iot2lp_para->lpfw_loss_cnt = 0;

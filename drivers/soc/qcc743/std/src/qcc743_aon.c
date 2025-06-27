@@ -350,7 +350,6 @@ QCC74x_Err_Type ATTR_TCM_SECTION AON_Output_LDO15_RF_Ctrl_by_Pd(void)
     return SUCCESS;
 }
 
-
 /****************************************************************************/ /**
  * @brief  power on source follow regular
  *

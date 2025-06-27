@@ -14,13 +14,8 @@ if (CONFIG_LPAPP)
                        app/src/app_spiwifi.c
                        app/src/atmoudle/app_atmoudle.c
                        app/src/pm/app_pm.c
-                       app/src/pm/app_clock_manager.c
                        )
 else ()
-
-sdk_add_compile_definitions(-DHIGH_PERFORMANCE_PBUF=1)
-
-#sdk_add_compile_definitions(-DQCC743_DHCP_DEBUG)
 
 target_sources(app PRIVATE
                    app/src/app_spiwifi.c

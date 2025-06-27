@@ -71,7 +71,12 @@ struct qcc74x_udc {
     struct qcc74x_ep_state out_ep[USB_NUM_BIDIR_ENDPOINTS]; /*!< OUT endpoint parameters            */
 } g_qcc74x_udc;
 
-void USBD_IRQHandler(int irq, void *arg);
+void USBD_IRQHandler(uint8_t busid);
+
+void USBD_IRQ(int irq, void *arg)
+{
+    USBD_IRQHandler(0);
+}
 
 static void qcc74x_usb_mem2fifo(uint8_t ep_idx, uint8_t *data, uint32_t length)
 {
@@ -236,7 +241,7 @@ static void qcc74x_usb_int_clear(uint32_t int_clear)
     putreg32(regval, QCC74x_undef_USB_BASE + USB_INT_CLEAR_OFFSET);
 }
 
-int usb_dc_init(void)
+int usb_dc_init(uint8_t busid)
 {
     uint32_t regval;
 
@@ -282,7 +287,7 @@ int usb_dc_init(void)
 
     putreg32(0xffffffff, QCC74x_undef_USB_BASE + USB_INT_CLEAR_OFFSET);
 
-    qcc74x_irq_attach(37, USBD_IRQHandler, NULL);
+    qcc74x_irq_attach(37, USBD_IRQ, NULL);
     qcc74x_irq_enable(37);
 
     /* enable usb */
@@ -293,7 +298,7 @@ int usb_dc_init(void)
     return 0;
 }
 
-int usb_dc_deinit(void)
+int usb_dc_deinit(uint8_t busid)
 {
     uint32_t regval;
 
@@ -308,7 +313,7 @@ int usb_dc_deinit(void)
     return 0;
 }
 
-int usbd_set_address(const uint8_t addr)
+int usbd_set_address(uint8_t busid, const uint8_t addr)
 {
     uint32_t regval;
 
@@ -325,35 +330,35 @@ uint8_t usbd_get_port_speed(const uint8_t port)
     return USB_SPEED_FULL;
 }
 
-int usbd_ep_open(const struct usbd_endpoint_cfg *ep_cfg)
+int usbd_ep_open(uint8_t busid, const struct usb_endpoint_descriptor *ep)
 {
-    uint8_t ep;
+    uint8_t ep_addr;
     uint8_t ep_type;
     uint8_t dir;
     uint32_t regval;
 
-    ep = ep_cfg->ep_addr;
+    ep_addr = ep->bEndpointAddress;
 
-    uint8_t ep_idx = USB_EP_GET_IDX(ep);
+    uint8_t ep_idx = USB_EP_GET_IDX(ep_addr);
 
     if (ep_idx > USB_NUM_BIDIR_ENDPOINTS) {
         return -1;
     }
 
-    if (USB_EP_DIR_IS_OUT(ep)) {
-        g_qcc74x_udc.out_ep[ep_idx].ep_mps = ep_cfg->ep_mps;
-        g_qcc74x_udc.out_ep[ep_idx].ep_type = ep_cfg->ep_type;
+    if (USB_EP_DIR_IS_OUT(ep_addr)) {
+        g_qcc74x_udc.out_ep[ep_idx].ep_mps = USB_GET_MAXPACKETSIZE(ep->wMaxPacketSize);
+        g_qcc74x_udc.out_ep[ep_idx].ep_type = USB_GET_ENDPOINT_TYPE(ep->bmAttributes);
         g_qcc74x_udc.out_ep[ep_idx].ep_enable = 1U;
         dir = 2;
     } else {
-        g_qcc74x_udc.in_ep[ep_idx].ep_mps = ep_cfg->ep_mps;
-        g_qcc74x_udc.in_ep[ep_idx].ep_type = ep_cfg->ep_type;
+        g_qcc74x_udc.in_ep[ep_idx].ep_mps = USB_GET_MAXPACKETSIZE(ep->wMaxPacketSize);
+        g_qcc74x_udc.in_ep[ep_idx].ep_type = USB_GET_ENDPOINT_TYPE(ep->bmAttributes);
         g_qcc74x_udc.in_ep[ep_idx].ep_enable = 1U;
         dir = 1;
     }
 
     if (ep_idx != 0) {
-        switch (ep_cfg->ep_type) {
+        switch (USB_GET_ENDPOINT_TYPE(ep->bmAttributes)) {
             case 1:
                 ep_type = 2;
                 break;
@@ -368,7 +373,7 @@ int usbd_ep_open(const struct usbd_endpoint_cfg *ep_cfg)
                 ep_type = 4;
                 break;
         }
-        qcc74x_usb_ep_config(ep_idx, ep_type, dir, ep_cfg->ep_mps);
+        qcc74x_usb_ep_config(ep_idx, ep_type, dir, USB_GET_MAXPACKETSIZE(ep->wMaxPacketSize));
 
         regval = getreg32(QCC74x_undef_USB_BASE + USB_INT_EN_OFFSET);
         regval |= (1 << (9 + ep_idx * 2));
@@ -383,12 +388,12 @@ int usbd_ep_open(const struct usbd_endpoint_cfg *ep_cfg)
     return 0;
 }
 
-int usbd_ep_close(const uint8_t ep)
+int usbd_ep_close(uint8_t busid, const uint8_t ep)
 {
     return 0;
 }
 
-int usbd_ep_set_stall(const uint8_t ep)
+int usbd_ep_set_stall(uint8_t busid, const uint8_t ep)
 {
     uint32_t regval;
 
@@ -411,7 +416,7 @@ int usbd_ep_set_stall(const uint8_t ep)
     return 0;
 }
 
-int usbd_ep_clear_stall(const uint8_t ep)
+int usbd_ep_clear_stall(uint8_t busid, const uint8_t ep)
 {
     uint8_t ep_idx = USB_EP_GET_IDX(ep);
 
@@ -423,12 +428,12 @@ int usbd_ep_clear_stall(const uint8_t ep)
     return 0;
 }
 
-int usbd_ep_is_stalled(const uint8_t ep, uint8_t *stalled)
+int usbd_ep_is_stalled(uint8_t busid, const uint8_t ep, uint8_t *stalled)
 {
     return 0;
 }
 
-int usbd_ep_start_write(const uint8_t ep, const uint8_t *data, uint32_t data_len)
+int usbd_ep_start_write(uint8_t busid, const uint8_t ep, const uint8_t *data, uint32_t data_len)
 {
     uint8_t ep_idx = USB_EP_GET_IDX(ep);
 
@@ -460,7 +465,7 @@ int usbd_ep_start_write(const uint8_t ep, const uint8_t *data, uint32_t data_len
     return 0;
 }
 
-int usbd_ep_start_read(const uint8_t ep, uint8_t *data, uint32_t data_len)
+int usbd_ep_start_read(uint8_t busid, const uint8_t ep, uint8_t *data, uint32_t data_len)
 {
     uint8_t ep_idx = USB_EP_GET_IDX(ep);
 
@@ -480,7 +485,7 @@ int usbd_ep_start_read(const uint8_t ep, uint8_t *data, uint32_t data_len)
     return 0;
 }
 
-void USBD_IRQHandler(int irq, void *arg)
+void USBD_IRQHandler(uint8_t busid)
 {
     uint32_t regval;
     uint32_t intstatus;
@@ -499,7 +504,7 @@ void USBD_IRQHandler(int irq, void *arg)
                 g_qcc74x_udc.in_ep[ep_idx].actual_xfer_len += tx_count;
 
                 if (g_qcc74x_udc.in_ep[ep_idx].xfer_len == 0) {
-                    usbd_event_ep_in_complete_handler(ep_idx | 0x80, g_qcc74x_udc.in_ep[ep_idx].actual_xfer_len);
+                    usbd_event_ep_in_complete_handler(busid, ep_idx | 0x80, g_qcc74x_udc.in_ep[ep_idx].actual_xfer_len);
                 } else {
                     tx_count = MIN(g_qcc74x_udc.in_ep[ep_idx].xfer_len, g_qcc74x_udc.in_ep[ep_idx].ep_mps);
                     qcc74x_usb_mem2fifo(ep_idx, g_qcc74x_udc.in_ep[ep_idx].xfer_buf, tx_count);
@@ -518,7 +523,7 @@ void USBD_IRQHandler(int irq, void *arg)
 
                 if ((rx_count < g_qcc74x_udc.out_ep[ep_idx].ep_mps) ||
                     (g_qcc74x_udc.out_ep[ep_idx].xfer_len == 0)) {
-                    usbd_event_ep_out_complete_handler(ep_idx, g_qcc74x_udc.out_ep[ep_idx].actual_xfer_len);
+                    usbd_event_ep_out_complete_handler(busid, ep_idx, g_qcc74x_udc.out_ep[ep_idx].actual_xfer_len);
                 } else {
                     qcc74x_usb_ep_set_ready(ep_idx);
                 }
@@ -536,7 +541,7 @@ void USBD_IRQHandler(int irq, void *arg)
             return;
         }
         qcc74x_usb_fifo2mem(0, (uint8_t *)&g_qcc74x_udc.setup, 8);
-        usbd_event_ep0_setup_complete_handler((uint8_t *)&g_qcc74x_udc.setup);
+        usbd_event_ep0_setup_complete_handler(busid, (uint8_t *)&g_qcc74x_udc.setup);
     }
     if (intstatus & USB_EP0_IN_DONE_INT) {
         tx_count = MIN(g_qcc74x_udc.in_ep[0].xfer_len, g_qcc74x_udc.in_ep[0].ep_mps);
@@ -544,7 +549,7 @@ void USBD_IRQHandler(int irq, void *arg)
         g_qcc74x_udc.in_ep[0].xfer_len -= tx_count;
         g_qcc74x_udc.in_ep[0].actual_xfer_len += tx_count;
 
-        usbd_event_ep_in_complete_handler(0 | 0x80, g_qcc74x_udc.in_ep[0].actual_xfer_len);
+        usbd_event_ep_in_complete_handler(busid, 0 | 0x80, g_qcc74x_udc.in_ep[0].actual_xfer_len);
 
         if (g_qcc74x_udc.setup.wLength == 0) {
             /* In status, start reading setup */
@@ -565,7 +570,7 @@ void USBD_IRQHandler(int irq, void *arg)
         g_qcc74x_udc.out_ep[0].xfer_len -= rx_count;
         g_qcc74x_udc.out_ep[0].actual_xfer_len += rx_count;
 
-        usbd_event_ep_out_complete_handler(0, g_qcc74x_udc.out_ep[0].actual_xfer_len);
+        usbd_event_ep_out_complete_handler(busid, 0, g_qcc74x_udc.out_ep[0].actual_xfer_len);
 
         if (rx_count == 0) {
             /* Out status, start reading setup */
@@ -591,7 +596,7 @@ void USBD_IRQHandler(int irq, void *arg)
         regval &= ~USB_CR_USB_REND_MASK;
         putreg32(regval, QCC74x_undef_USB_BASE + USB_INT_MASK_OFFSET);
 
-        usbd_event_reset_handler();
+        usbd_event_reset_handler(busid);
     }
     if (intstatus & USB_REND_INT) {
         qcc74x_usb_ep_set_ready(0);

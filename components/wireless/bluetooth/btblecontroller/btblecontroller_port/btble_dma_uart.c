@@ -3,7 +3,9 @@
 #include "qcc74x_dma.h"
 #include "qcc74x_clock.h"
 #include "ring_buffer.h"
-
+#if defined(QCC743)
+#include "qcc743_l1c.h"
+#endif
 
 #if defined(QCC743)
 #define UART_NAME                  "uart1"

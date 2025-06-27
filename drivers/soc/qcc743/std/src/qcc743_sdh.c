@@ -1139,7 +1139,6 @@ SDH_Stat_Type SDH_TransferNonBlocking(SDH_DMA_Cfg_Type *dmaCfg, SDH_Trans_Cfg_Ty
 #if 0
 	SDH_SendCommand(cmdCfg);
 
-
 	/* Wait command done */
 	if((dataCfg == NULL) || (dataCfg->dataType == SDH_TRANS_DATA_NORMAL))
 	{

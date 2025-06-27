@@ -59,6 +59,15 @@ int at_ble_config_init(void)
     at_ble_config->scan_param.scan_interval = 40;
     at_ble_config->scan_param.scan_window = 40;
     at_ble_config->ble_sec_param = 0x03;
+    #if defined(CONFIG_BT_BAS_SERVER)
+    at_ble_config->ble_bas_init=0;
+    #endif
+    #if defined(CONFIG_BT_IAS_SERVER)
+    at_ble_config->ble_ias_init=0;
+    #endif
+    #if defined(CONFIG_BT_DIS_SERVER)
+    at_ble_config->ble_dis_init=0;
+    #endif
     return 0;
 }
 
@@ -98,6 +107,15 @@ int at_ble_config_default(void)
     at_ble_config->scan_param.scan_interval = 40;
     at_ble_config->scan_param.scan_window = 40;
     at_ble_config->ble_sec_param = 0x03;
+    #if defined(CONFIG_BT_BAS_SERVER)
+    at_ble_config->ble_bas_init=0;
+    #endif
+    #if defined(CONFIG_BT_IAS_SERVER)
+    at_ble_config->ble_ias_init=0;
+    #endif
+    #if defined(CONFIG_BT_DIS_SERVER)
+    at_ble_config->ble_dis_init=0;
+    #endif
     return 0;
 }
 

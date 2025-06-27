@@ -16,7 +16,7 @@ extern "C" {
 
 #define BLE_CONN_MAX_NUM 2
 
-#define BLE_SRV_MAX_NUM 3
+#define BLE_SRV_MAX_NUM 2
 #define BLE_CHAR_MAX_NUM 5
 
 #define BLE_GATTC_SRV_MAX_NUM 8
@@ -86,6 +86,15 @@ typedef struct {
     ble_adv_data adv_data;
     ble_scan_rsp_data scan_rsp_data;
     int ble_sec_param;
+#if defined(CONFIG_BT_BAS_SERVER)
+    int ble_bas_init;
+#endif
+#if defined (CONFIG_BT_IAS_SERVER)
+    int ble_ias_init;
+#endif
+#if defined (CONFIG_BT_DIS_SERVER)
+    int ble_dis_init;
+#endif
 }ble_config;
 
 extern ble_config *at_ble_config;

@@ -1102,7 +1102,6 @@ void hal_pm_ldo11_cfg(uint8_t soc_v, uint8_t rt_v, uint8_t aon_v)
     }
 }
 
-
 /******************************************************************************
  * @brief  Get ldo_soc & ldo_rt & ldo_aon
  *

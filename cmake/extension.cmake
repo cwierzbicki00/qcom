@@ -242,6 +242,8 @@ macro(project name)
     set(proj_name ${name}_${CHIP})
   endif()
 
+  target_compile_definitions(sdk_intf_lib INTERFACE CONFIG_PROJECT_NAME="${name}")
+
   _project(${proj_name} ASM C CXX)
 
   set(HEX_FILE ${build_dir}/${proj_name}.hex)

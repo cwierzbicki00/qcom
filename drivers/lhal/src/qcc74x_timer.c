@@ -3,6 +3,8 @@
 #include "hardware/timer_reg.h"
 #if defined(QCC74x_undef)
 #include "qcc74x_undef_glb.h"
+#elif defined(QCC743)
+#include "qcc743_glb.h"
 #endif
 
 void qcc74x_timer_init(struct qcc74x_device_s *dev, const struct qcc74x_timer_config_s *config)
@@ -562,6 +564,32 @@ int qcc74x_timer_capture_get_pulsewidth(struct qcc74x_timer_capture_value_s *gpi
     }
 
     return 0;
+#endif
+}
+#elif defined(QCC743)
+void qcc74x_timer_capture_init(struct qcc74x_device_s *dev, const struct qcc74x_timer_capture_config_s *config)
+{
+#ifdef romapi_qcc74x_timer_capture_init
+    romapi_qcc74x_timer_capture_init(dev, config);
+#else
+    uint32_t regval;
+    uint32_t reg_base;
+    struct qcc74x_device_s *gpio;
+
+    reg_base = dev->reg_base;
+    GLB_Sel_MCU_TMR_GPIO_Clock(config->pin);
+    gpio = qcc74x_device_get_by_name("gpio");
+    qcc74x_gpio_init(gpio, config->pin, GPIO_FUNC_CLKOUT | GPIO_ALTERNATE | GPIO_FLOAT | GPIO_SMT_EN | GPIO_DRV_1);
+
+    regval = getreg32(reg_base + TIMER_GPIO_OFFSET);
+    /* polarity: 1->neg, 0->pos */
+    if (config->polarity == TIMER_GPIO_PULSE_POLARITY_NEGATIVE) {
+        regval |= (1 << (5 + dev->idx));
+    } else {
+        regval &= ~(1 << (5 + dev->idx));
+    }
+    regval |= TIMER0_GPIO_EN;
+    putreg32(regval, reg_base + TIMER_GPIO_OFFSET);
 #endif
 }
 #endif

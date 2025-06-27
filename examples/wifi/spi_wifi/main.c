@@ -47,6 +47,10 @@
 #include "board.h"
 #include "shell.h"
 
+#include "assert.h"
+#include "qcc74x_mtd.h"
+#include "coredump.h"
+
 #define INIT_STACK_SIZE    (2048)
 #define TASK_PRIORITY_INIT (16)
 
@@ -62,8 +66,29 @@ void app_init_entry(void *param)
 
 int main(void)
 {
+    int ret;
+    qcc74x_mtd_info_t info;
+    qcc74x_mtd_handle_t handle;
+
     board_init();
 
+    qcc74x_mtd_init();
+#if 0
+    ret = qcc74x_mtd_open("core", &handle, QCC74x_MTD_OPEN_FLAG_BUSADDR);
+    if (ret < 0) {
+        puts("No valid coredump partition found\r\n");
+    }
+    memset(&info, 0, sizeof(info));
+    qcc74x_mtd_info(handle, &info);
+    printf("Found Valid coredump partition, XIP Addr %08x, flash addr %08x, size %d\r\n",
+           info.xip_addr,
+           info.offset,
+           info.size);
+    core_partition_init(info.offset, info.size);
+    void at_minidump_init(uint32_t, size_t);
+    at_minidump_init(info.offset, info.size);
+    qcc74x_mtd_close(handle);
+#endif
     uart0 = qcc74x_device_get_by_name("uart0");
     shell_init_with_task(uart0);
 
@@ -83,3 +108,11 @@ int main(void)
     }
 }
 
+int shell_crash(int argc, char **argv)
+{
+    printf("shell crash\r\n");
+    //asm ("ebreak");
+    assert(0);
+    return 0;
+}
+SHELL_CMD_EXPORT_ALIAS(shell_crash, crash, trigger crash.);

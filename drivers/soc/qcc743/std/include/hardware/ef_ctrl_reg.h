@@ -567,7 +567,6 @@
 #define EF_CTRL_EF_CRC_DOUT_MSK                                 (((1U<<EF_CTRL_EF_CRC_DOUT_LEN)-1)<<EF_CTRL_EF_CRC_DOUT_POS)
 #define EF_CTRL_EF_CRC_DOUT_UMSK                                (~(((1U<<EF_CTRL_EF_CRC_DOUT_LEN)-1)<<EF_CTRL_EF_CRC_DOUT_POS))
 
-
 struct  ef_ctrl_reg {
     /* 0x0  reserved */
     uint8_t RESERVED0x0[2048];
@@ -855,6 +854,5 @@ struct  ef_ctrl_reg {
 };
 
 typedef volatile struct ef_ctrl_reg ef_ctrl_reg_t;
-
 
 #endif  /* __EF_CTRL_REG_H__ */

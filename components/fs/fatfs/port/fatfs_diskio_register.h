@@ -7,7 +7,7 @@ void fatfs_sdh_driver_register(void);
 
 #elif defined(CONFIG_FATFS_USBH)
 
-void fatfs_usbh_driver_register(void);
+void fatfs_usbh_driver_register(struct usbh_msc *msc_class);
 
 #endif
 

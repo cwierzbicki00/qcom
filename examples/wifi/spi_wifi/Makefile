@@ -19,6 +19,17 @@ cmake_definition+=-DCONFIG_USE_LPAPP=$(CONFIG_USE_LPAPP)
 CONFIG_BLUETOOTH_APP ?= 1
 cmake_definition+=-DCONFIG_BLUETOOTH_APP=$(CONFIG_BLUETOOTH_APP)
 
+CONFIG_HCI_ENABLE ?= 0
+ifeq ($(CONFIG_HCI_ENABLE), 1)
+    cmake_definition+=-DCONFIG_HCI_ENABLE=$(CONFIG_HCI_ENABLE)
+    ifneq ($(CONFIG_RCP_ENABLE), 1)
+        $(error "Bluetooth HCI mode only runs with Wi-Fi RCP mode.")
+    endif
+    ifneq ($(CONFIG_BLUETOOTH_APP), 0)
+        $(error "BLE AT CMD NOT run Bluetooth HCI mode.")
+    endif
+endif
+
 CONFIG_MQTT ?= 1
 cmake_definition+=-DCONFIG_MQTT=$(CONFIG_MQTT)
 

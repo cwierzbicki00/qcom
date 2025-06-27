@@ -171,7 +171,6 @@ uint32_t Sec_Dbg_Wait_Ready(void)
     return busy;
 }
 
-
 /*@} end of group SEC_DBG_Public_Functions */
 
 /*@} end of group SEC_DBG */

@@ -1044,6 +1044,7 @@ SHELL_CMD_EXPORT_ALIAS(cmd_ap_stop, ap_stop, ap stop);
 #endif
 SHELL_CMD_EXPORT_ALIAS(wifi_ap_bcn_mode_set_cmd, bcn_mode_set, wifi ap bcn mode set);
 SHELL_CMD_EXPORT_ALIAS(wifi_mgmr_ap_acl_set_cmd, ap_acl_set, wifi ap acl set);
+SHELL_CMD_EXPORT_ALIAS(wifi_mgmr_ap_acl_enable_cmd, ap_acl_perm_set, wifi ap acl perm set);
 SHELL_CMD_EXPORT_ALIAS(wifi_scan_cmd, wifi_scan, wifi scan);
 SHELL_CMD_EXPORT_ALIAS(wifi_connect_cmd, wifi_sta_connect, wifi station connect);
 SHELL_CMD_EXPORT_ALIAS(wifi_disconnect_cmd, wifi_sta_disconnect, wifi station disconnect);
@@ -1093,7 +1094,9 @@ SHELL_CMD_EXPORT_ALIAS(cmd_non_pref_chan, non_pref_chan, set non_pref_chan);
 SHELL_CMD_EXPORT_ALIAS(cmd_non_pref_chan_notify, non_pref_chan_notify, notify non_pref_chan change);
 SHELL_CMD_EXPORT_ALIAS(cmd_wifi_mgmr_sta_twt_setup, wifi_mgmr_sta_twt_setup, Setup WiFi Manager STA TWT functionality);
 SHELL_CMD_EXPORT_ALIAS(cmd_wifi_mgmr_sta_twt_teardown, wifi_mgmr_sta_twt_teardown, Teardown WiFi Manager STA TWT functionality);
+SHELL_CMD_EXPORT_ALIAS(cmd_wifi_mgmr_sta_twt_statusget, wifi_mgmr_sta_twt_statusget, Get WiFi Manager STA TWT Status functionality);
 SHELL_CMD_EXPORT_ALIAS(cmd_wifi_mode_set, wifi_mode_set, set ap/sta mode);
+SHELL_CMD_EXPORT_ALIAS(cmd_wifi_get_tx_remaining, get_tx_remaining, get tx remaining);
 #if WIFI_STATISTIC_ENABLE
 SHELL_CMD_EXPORT_ALIAS(cmd_fw_dbg, fw_dbg, fw debug param);
 #endif

@@ -13,7 +13,7 @@ struct binfmt_seg_desc {
     uint64_t length;
 };
 
-void core_bin_start_hook(uint32_t *lma, size_t len)
+void core_bin_start_hook(uint32_t *lma, size_t len, struct dump_section *dump_sections)
 {
     int seg_cnt = 0;
     struct binfmt_header header = {.magic = {0xff, 0xff, 0xff, 0xff},           \
@@ -21,13 +21,13 @@ void core_bin_start_hook(uint32_t *lma, size_t len)
                                    .segment_count = 0xffffffff};
     struct binfmt_seg_desc seg_desc;
 
-    for (int i = 0; (&_dump_sections + i)->addr != 0xffffffff; i++) {
-        if ((&_dump_sections + i)->addr == 0)
+    for (int i = 0; (dump_sections + i)->addr != 0xffffffff; i++) {
+        if ((dump_sections + i)->addr == 0)
             break;
-        if ((&_dump_sections + i)->len == 0)
+        if ((dump_sections + i)->len == 0)
             continue;
-        seg_desc.addr = (uint64_t)(&_dump_sections + i)->addr;
-        seg_desc.length = (uint64_t)(&_dump_sections + i)->len;
+        seg_desc.addr = (uint64_t)(dump_sections + i)->addr;
+        seg_desc.length = (uint64_t)(dump_sections + i)->len;
         coredump_xip_flash_write(*lma + sizeof(header) + seg_cnt*sizeof(seg_desc), (uint8_t *)&seg_desc, sizeof(seg_desc));
         seg_cnt++;
     }

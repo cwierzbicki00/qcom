@@ -1,6 +1,12 @@
 # Changes
+## 2025-05-16
+1. [blestack]Enable CONFIG_QCC74x_SDK at default settings(only qcc74x SDK).
+
+## 2025-05-13
+1.[blestack]Sending acl data or hci commands in freertos timer task  is not permitted.
+
 ## 2025-04-15
-1. [blestack]Fixed dynamic_gatt_pool.free reinit memory leak at dynamic gatt server init.
+1.[blestack]Fixed dynamic_gatt_pool.free reinit memory leak at dynamic gatt server init.
 
 ## 2025-04-02
 1. Fixed some compilation warnings to enhance code stability.

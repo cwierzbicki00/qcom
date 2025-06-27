@@ -1,4 +1,3 @@
-  
 #include "qcc743_romdriver_e907.h"
 #include <string.h>
 
@@ -33,13 +32,11 @@
  *  @{
  */ 
  
-
 uint32_t const romDriverTable[]={
     0x06160002,
     0x00000000,
     0x00000000,
     0x00000000,
-
 
     [ROM_API_INDEX_AON_Power_Off_BG]                       = (uint32_t)AON_Power_Off_BG,
     [ROM_API_INDEX_AON_Power_Off_LDO15_RF]                 = (uint32_t)AON_Power_Off_LDO15_RF,
@@ -522,7 +519,6 @@ uint32_t const romDriverTable[]={
     [ROM_API_INDEX_FUNC_EMPTY_START ... ROM_API_INDEX_FUNC_EMPTY_END] = 0xdeedbeef,
 };
 
-
 /*@} end of group ROMDRIVER_Global_Variables */
 
 /** @defgroup ROMDRIVER_Private_FunctionDeclaration
@@ -546,5 +542,4 @@ uint32_t const romDriverTable[]={
 /*@} end of group ROMDRIVER_COMMON */
 
 /*@} end of group QCC743_Periph_Driver */
-
 

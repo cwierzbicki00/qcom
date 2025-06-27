@@ -141,5 +141,8 @@ void app_atmoudle_init(void)
     spinet_init();
 #endif
     at_module_init();
+#if NXSPI_HCI
+    spihci_init();
+#endif
 }
 

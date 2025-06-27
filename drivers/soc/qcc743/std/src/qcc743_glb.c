@@ -4440,7 +4440,6 @@ QCC74x_Err_Type ATTR_CLOCK_SECTION GLB_Fast_Power_On_XTAL_40M_And_WIFIPLL(void)
 
     glb_40M_delay_us(30);
 
-
     /* enable all PLL clock output */
     /* GLB reg_pll_en = 1, cannot be zero */
     tmpVal = QCC74x_RD_REG(GLB_BASE, GLB_SYS_CFG0);
@@ -4504,7 +4503,6 @@ QCC74x_Err_Type ATTR_CLOCK_SECTION GLB_Fast_Set_MCU_System_CLK(uint8_t clkFreq)
     HBN_Set_MCU_Root_CLK_Sel(HBN_MCU_ROOT_CLK_PLL);
     QCC74x_WR_WORD(0x2000f030,QCC74x_RD_WORD(0x2000f030)|(1<<1));
 
-
     GLB_CLK_SET_DUMMY_WAIT;
 
     return SUCCESS;
@@ -4529,7 +4527,6 @@ uint8_t ATTR_TCM_SECTION GLB_Get_Package_Type(void)
 
     return package_type;
 }
-
 
 /****************************************************************************/ /**
  * @brief  GLB GET Status of PAD Bonging to GND

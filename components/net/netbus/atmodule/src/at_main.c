@@ -294,7 +294,7 @@ int at_module_init(void)
         AT_CMD_PRINTF("ERROR: init at cmd device failed, ret = %d\r\n", ret);
         goto INIT_ERROR;
     }
-#ifdef CONFIG_NETWORK
+#if CONFIG_NETWORK
     /* register network AT command */
     at_net_cmd_regist();
 #endif
@@ -311,23 +311,21 @@ int at_module_init(void)
     /* register wifi AT command */
     at_wifi_cmd_regist();
 
-#ifdef CONFIG_MQTT
+#if CONFIG_MQTT
     /* register mqtt AT command */
     at_mqtt_cmd_regist();
 #endif 
-#ifdef CONFIG_HTTP
+#if CONFIG_HTTP
     /* register http AT command */
     at_http_cmd_regist();
 #endif
-#if defined(CFG_BLE_ENABLE)
+#if defined(CONFIG_BLUETOOTH_APP)
     /* register ble AT command */
     at_ble_cmd_regist();
 #endif
 #ifdef LP_APP
-#if (!CONFIG_RCP_ENABLE)
     /* register pwr AT command */
     at_pwr_cmd_regist();
-#endif
 #endif
 
     ret = xTaskCreate(at_main_task, (char*)"at_main_task", ATCMD_TASK_STACK_SIZE, NULL, ATCMD_TASK_PRIORITY, NULL);

@@ -35,6 +35,7 @@
 #include "dwt.h"
 #include "stream_buffer.h"
 #include "virt_net_spi.h"
+#include "app_bt_hci.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -426,6 +427,76 @@ int do_ps(int argc, char *argv[])
     return 0;
 }
 
+int do_hci_reset(int argc, char *argv[])
+{
+	cmd_spi_hci_reset();
+	return 0;
+}
+
+int do_hci_scan(int argc, char *argv[])
+{
+	int on;
+
+	if (argc < 2) {
+		printf("Usage: hci set up scan <0|1>\r\n");
+		return -2;
+	}
+
+	on = !!atoi(argv[1]);
+	if (on)
+		cmd_spi_hci_setup_scan(1);
+	else
+		cmd_spi_hci_setup_scan(0);
+	return 0;
+}
+
+int do_hci_adv_para(int argc, char *argv[])
+{
+	cmd_spi_hci_setup_adv_parameter();
+	return 0;
+}
+
+int do_hci_adv_data(int argc, char *argv[])
+{
+	cmd_spi_hci_setup_adv_data();
+	return 0;
+}
+
+int do_hci_connec_update(int argc, char *argv[])
+{
+	cmd_spi_hci_update_conn_para();
+	return 0;
+}
+
+int do_hci_adv(int argc, char *argv[])
+{
+	int on;
+
+	if (argc < 2) {
+		printf("Usage: hci set up adv <0|1>\r\n");
+		return -2;
+	}
+
+	on =!!atoi(argv[1]);
+	if (on)
+		cmd_spi_setup_hci_adv(1);
+	else
+		cmd_spi_setup_hci_adv(0);
+	return 0;	
+}
+
+int do_hci_rd_local_version(int argc, char *argv[])
+{
+	cmd_spi_hci_rd_local_version();
+	return 0;
+}
+
+int do_hci_rd_bt_addr(int argc, char *argv[])
+{
+	cmd_spi_hci_rd_bt_addr();
+	return 0;
+}
+
 struct cmd_entry {
 	const char *name;
 	const char *desc;
@@ -454,6 +525,14 @@ static const struct cmd_entry cmds[] = {
 	{"iperf_u_s", "", do_iperf_udp_server},
 	{"iperf_c", "", do_iperf_tcp_client},
 	{"iperf_s", "", do_iperf_tcp_server},
+	{"hci_reset", "", do_hci_reset},
+	{"hci_scan", "Enable/Disable BLE Scanning, hci_scan <0 | 1>", do_hci_scan},
+	{"hci_adv_para", "", do_hci_adv_para},
+	{"hci_adv_data", "", do_hci_adv_data},
+	{"hci_adv", "Enable/Disable BLE ADV, hci_adv <0 | 1>", do_hci_adv},
+	{"hci_connect_update", "", do_hci_connec_update},
+	{"hci_rd_local_version", "", do_hci_rd_local_version},
+	{"hci_rd_bt_addr", "", do_hci_rd_bt_addr},
 };
 
 static int do_help(int argc, char *argv[])
@@ -576,6 +655,10 @@ static int cli_handle_one(const char *cmdstr, int argc, char *argv[])
 
 static int _console_to_at(const char *buf, uint32_t len)
 {
+    if (!g_at_handle) {
+        printf("Please wait for the AT module to finish initialization.\r\n");
+        return -1;
+    }
     int ret = at_host_send(g_at_handle, 0, (uint8_t *)buf, len, 0);
 
     if (ret < len) {
@@ -820,6 +903,7 @@ void MX_FREERTOS_Init(void) {
 
   osThreadNew(virl_net_init_task, NULL, &virl_net_tsk_attr);
 
+  app_hci_init();
   /* USER CODE END RTOS_THREADS */
 
   /* USER CODE BEGIN RTOS_EVENTS */

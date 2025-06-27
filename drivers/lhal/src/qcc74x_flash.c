@@ -389,6 +389,13 @@ static int ATTR_TCM_SECTION flash_config_init(spi_flash_cfg_type *p_flash_cfg, u
     if (ret == 0) {
         p_flash_cfg->mid = (jid & 0xff);
     }
+
+    /* Winbond W25Q32JW-IQ not support continue read */
+    if (jid == 0x1660EF) {
+        p_flash_cfg->io_mode = SF_CTRL_QIO_MODE;
+        p_flash_cfg->c_read_support = 0x00; 
+    }
+
 #ifdef CONFIG_FLASH_2LINE
 #if (CONFIG_FLASH_2LINE != 0x11) && (CONFIG_FLASH_2LINE != 0x13)
 #error flash 2 line only supports 0x11 or 0x13

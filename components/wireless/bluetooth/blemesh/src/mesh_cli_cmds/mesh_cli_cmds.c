@@ -4509,8 +4509,12 @@ BLEMESH_CLI(net_send)
     
     net_buf_reserve(buf, BT_MESH_NET_HDR_LEN);
     net_buf_add_mem(buf, payload, sizeof(payload));
-    
-    bt_mesh_net_send(&tx, buf, NULL, NULL);
+
+    #if defined(QCC74x_BLE_MESH_FIX_MESH_ENCRYPT_ERR_DURING_ENCRYPT_USING_APPKEY)
+        bt_mesh_net_send(&tx, buf, NULL, NULL, NULL, NULL);
+    #else
+        bt_mesh_net_send(&tx, buf, NULL, NULL);
+    #endif /* QCC74x_BLE_MESH_FIX_MESH_ENCRYPT_ERR_DURING_ENCRYPT_USING_APPKEY */
 }
 
 static uint16_t get_app_idx(void)

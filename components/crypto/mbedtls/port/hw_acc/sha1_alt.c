@@ -159,4 +159,25 @@ void mbedtls_sha1_finish( mbedtls_sha1_context *ctx,
 }
 #endif
 
+void mbedtls_sha1_once_padded_init( void )
+{
+    struct qcc74x_device_s *sha;
+    sha = qcc74x_device_get_by_name("sha");
+    qcc74x_group0_request_sha_access(sha);
+
+    qcc74x_sha_link_deinit(sha);
+    qcc74x_sha_init(sha, SHA_MODE_SHA1);
+}
+
+int mbedtls_sha1_once_padded(const unsigned char *input, unsigned char *output, unsigned char nblock)
+{
+    struct qcc74x_device_s *sha;
+    sha = qcc74x_device_get_by_name("sha");
+    qcc74x_l1c_dcache_clean_range((void *)input, nblock * 64);
+    qcc74x_sec_sha_mutex_take();
+    qcc74x_sha1_once_padded(sha, (uint8_t *)(((uint32_t)input & ~0xF0000000UL) | 0x20000000UL), output, nblock);
+    qcc74x_sec_sha_mutex_give();
+    return( 0 );
+}
+
 #endif /* MBEDTLS_SHA1_C */

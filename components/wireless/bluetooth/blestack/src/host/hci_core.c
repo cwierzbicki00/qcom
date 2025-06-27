@@ -440,6 +440,15 @@ int bt_hci_cmd_send_sync(u16_t opcode, struct net_buf *buf,
 		}
 	}
 
+	//check if current task is timer task or it is in interrupt isr
+	if(k_is_in_isr()){
+		BT_ERR("Sending command in interrupt conext is not allowed.");
+		BT_ASSERT(0);
+	}else if(k_thread_check_by_name("Tmr Svc")){
+		BT_ERR("Sending command in os timer task is not allowed.");
+		BT_ASSERT(0);
+	}
+
 	BT_DBG("buf %p opcode 0x%04x len %u", buf, opcode, buf->len);
     
 	k_sem_init(&sync_sem, 0, 1);

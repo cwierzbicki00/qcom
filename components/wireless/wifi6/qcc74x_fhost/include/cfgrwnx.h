@@ -222,6 +222,9 @@ enum cfgrwnx_msg_index {
     /// Requset to config TWT teardown
     CFGRWNX_TWT_TEARDOWN_CMD,
     CFGRWNX_TWT_TEARDOWN_RESP,
+    /// Requset to Get TWT status 
+    CFGRWNX_TWT_STATUSGET_CMD,
+    CFGRWNX_TWT_STATUSGET_RESP,
     /// Sent to get edca (param: @ref cfgrwnx_get_edca)
     CFGRWNX_GET_EDCA_CMD,
     /// Response to CFGRWNX_GET_EDCA_CMD  (param: @ref cfgrwnx_get_edca_resp)
@@ -984,6 +987,23 @@ struct cfgrwnx_twt_teardown_req {
     uint8_t id;
 };
 
+struct cfgrwnx_twt_statusget_req {
+    /// header
+    struct cfgrwnx_msg_hdr hdr;
+    /// Vif idx
+    uint16_t fhost_vif_idx;
+};
+
+struct cfgrwnx_twt_statusget_resp {
+    /// header
+    struct cfgrwnx_msg_hdr hdr;
+    /// Status
+    uint8_t status;
+    /// Total number of flows
+    uint8_t flows;
+    struct twt_conf_tag conf[NX_TWT_FLOW_NB];
+};
+
 enum CFGRWNX_ME_PARAM_ID_E {
     CFGRWNX_ME_PARAM_ID_TX_SINGLE_RETRY_CNT_LIMIT,
     CFGRWNX_ME_PARAM_ID_TX_AMPDU_RETRY_CNT_LIMIT,
@@ -1003,7 +1023,7 @@ struct cfgrwnx_me_param {
     /// me param
     enum CFGRWNX_ME_PARAM_ID_E id;
     enum CFGRWNX_ME_PARAM_CMD_E cmd;// GET or SET
-    uint8_t data[32];
+    uint8_t data[50];
 };
 
 /// structure for CFGRWNX_ME_PARAM_RESP
@@ -1013,7 +1033,7 @@ struct cfgrwnx_me_param_resp {
     /// me param
     enum CFGRWNX_ME_PARAM_ID_E id;
     enum CFGRWNX_ME_PARAM_CMD_E cmd;// GET or SET
-    uint8_t data[32];
+    uint8_t data[50];
 };
 
 /// structure for CFGRWNX_GET_STA_INFO_CMD

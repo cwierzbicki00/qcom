@@ -178,7 +178,10 @@ static int at_setup_cmd_cipdns(int argc, const char **argv)
     AT_CMD_PARSE_OPT_STRING(1, dns_str1, sizeof(dns_str1), dns1_valid);
     AT_CMD_PARSE_OPT_STRING(2, dns_str2, sizeof(dns_str2), dns2_valid);
     AT_CMD_PARSE_OPT_STRING(3, dns_str3, sizeof(dns_str3), dns3_valid);
-           
+         
+    if (enable < 0 || enable > 1) {
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
+    }
     if (enable == 0 && argc != 1) {
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     }
@@ -229,7 +232,11 @@ static int at_setup_cmd_cipdns(int argc, const char **argv)
 static void _dns_found_callback(const char *name, const ip_addr_t *ipaddr, void *callback_arg)
 {
     SemaphoreHandle_t sem = (SemaphoreHandle_t)callback_arg;
-    
+
+    if (ipaddr == NULL) {
+        ipaddr = IP_ANY_TYPE;
+    }
+
     at_response_string("+CIPDOMAIN:\"%s\"\r\n", ipaddr_ntoa((ip_addr_t *)ipaddr));
 
     xSemaphoreGive(sem);
@@ -985,6 +992,10 @@ static int at_setup_cmd_cipevt(int argc, const char **argv)
 
     AT_CMD_PARSE_NUMBER(0, &enable);
 
+    if (enable < 0 || enable > 1) {
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
+    }
+
     at_net_config->wips_enable = (uint8_t)enable;
     return AT_RESULT_CODE_OK;
 }
@@ -1461,8 +1472,8 @@ static int at_query_cmd_cipsslcpsk(int argc, const char **argv)
 static int at_setup_cmd_cipsslcpsk(int argc, const char **argv)
 {
     int linkid = 0;
-    char psk[32] = {0};
-    char hint[32] = {0};
+    char psk[32 + 1] = {0};
+    char hint[32 + 1] = {0};
 
     if (at_net_config->mux_mode == NET_LINK_SINGLE) {
         AT_CMD_PARSE_STRING(0, psk, sizeof(psk));
@@ -2108,7 +2119,6 @@ static const at_cmd_struct at_net_cmd[] = {
     {"+CIPSNTPINTV", NULL, at_query_cmd_cipsntpintv, at_setup_cmd_cipsntpintv, NULL, 1, 1},
     {"+CIPRECONNINTV", NULL, at_query_cmd_cipreconnintv, at_setup_cmd_cipreconnintv, NULL, 1, 1},
     {"+PING", NULL, NULL, at_setup_cmd_ping, NULL, 1, 4},
-    {"+CIUPDATE", NULL, at_query_cmd_ciupdate, at_setup_cmd_ciupdate, at_exe_cmd_ciupdate, 0, 0},
     {"+IPERF", NULL, NULL, at_setup_cmd_iperf, NULL, 2, 5},
     {"+IPERFSTOP", NULL, NULL, NULL, at_setup_cmd_iperf_stop, 0, 0},
 };

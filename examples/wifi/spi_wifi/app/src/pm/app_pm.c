@@ -29,18 +29,85 @@
 #include "board_rf.h"
 #include "shell.h"
 #if defined(CFG_BLE_ENABLE)
+#include "btble_lib_api.h"
+#ifndef NXSPI_HCI
 #include "bluetooth.h"
 #include "conn.h"
 #include "conn_internal.h"
-#include "btble_lib_api.h"
 #include "hci_driver.h"
 #include "hci_core.h"
 #endif
+#endif
 #include "qcc743_glb.h"
-//#include "spisync.h"
-#include "app_clock_manager.h"
+#include "clock_manager.h"
+#include "tickless.h"
 
-extern int enable_tickless;
+static TaskHandle_t rxl_process_task_hd = NULL;
+int enable_multicast_broadcas = 0;
+extern qcc74x_lp_fw_cfg_t lpfw_cfg;
+
+#define PREALLOCATED_PBUF_COUNT 5
+#define PREALLOCATED_PBUF_SIZE  1600
+
+typedef struct {
+    struct pbuf *pbufs[PREALLOCATED_PBUF_COUNT];
+    uint8_t alloc_idx;
+    uint8_t used_idx[PREALLOCATED_PBUF_COUNT];
+} pbuf_pool_cache_t;
+
+pbuf_pool_cache_t pbuf_pool_cache;
+
+int pm_sys_init(void)
+{
+    memset(&pbuf_pool_cache, 0, sizeof(pbuf_pool_cache));
+
+    return 0;
+}
+
+int pm_pbuf_pool_alloc(void)
+{
+    for (int i = 0; i < PREALLOCATED_PBUF_COUNT; i++) {
+        if (pbuf_pool_cache.pbufs[i]) {
+            return -1;
+        }
+    }
+
+    for (int i = 0; i < PREALLOCATED_PBUF_COUNT; i++) {
+        pbuf_pool_cache.pbufs[i] = pbuf_alloc(PBUF_RAW, PREALLOCATED_PBUF_SIZE, PBUF_RAM);
+
+        if (pbuf_pool_cache.pbufs[i]) {
+        } else {
+            printf("Pm pbuf alloc fail.\r\n");
+        }
+    }
+
+    return 0;
+}
+
+int pm_pbuf_pool_free(void)
+{
+    for (int i = 0; i < PREALLOCATED_PBUF_COUNT; i++) {
+        if (pbuf_pool_cache.pbufs[i]) {
+            pbuf_free(pbuf_pool_cache.pbufs[i]);
+            pbuf_pool_cache.pbufs[i] = NULL;
+        }
+        pbuf_pool_cache.used_idx[i] = 0;
+    }
+    pbuf_pool_cache.alloc_idx = 0;
+
+    return 0;
+}
+
+uint32_t rxl_pbuf_pool_get(void)
+{
+    uint32_t addr = (uint32_t)&pbuf_pool_cache;
+
+    if ((addr & 0xF0000000) == 0x60000000) {
+        addr = (addr & 0x0FFFFFFF) | 0x20000000;
+    }
+
+    return addr;
+}
 
 #define APP_PM_IELD_TASK_STACK_SIZE (512)
 
@@ -129,6 +196,7 @@ static int lp_exit(void *arg)
     qcc74x_irq_attach(uart_shell->irq_num, uart_shell_isr, NULL);
     qcc74x_irq_enable(uart_shell->irq_num);
 
+    vTaskNotifyGiveFromISR(rxl_process_task_hd, &xHigherPriorityTaskWoken);
     portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 
     //GLB_GPIO_Func_Init(GPIO_FUN_JTAG, pinList, 4);
@@ -191,33 +259,17 @@ int cmd_wifi_lp(int argc, char **argv)
     return 0;
 }
 
-extern qcc74x_lp_fw_cfg_t lpfw_cfg;
-
 void set_dtim_config(int dtim)
 {
     lpfw_cfg.dtim_origin = dtim;
-    qcc74x_lp_fw_bcn_loss_cfg_dtim_default(lpfw_cfg.dtim_origin);
-
-    wifi_mgmr_sta_ps_enter();
+    wifi_mgmr_sta_set_listen_itv(dtim);
 }
 
 void clear_dtim_config(void)
 {
-    wifi_mgmr_sta_ps_exit();
-}
-
-static void cmd_tickless(int argc, char **argv)
-{
-    if ((argc > 1) && (argv[1] != NULL)) {
-        printf("%s\r\n", argv[1]);
-        lpfw_cfg.dtim_origin = atoi(argv[1]);
-    } else {
-        lpfw_cfg.dtim_origin = 10;
-    }
-
-    qcc74x_lp_fw_bcn_loss_cfg_dtim_default(lpfw_cfg.dtim_origin);
-    printf("sta_ps %ld\r\n", wifi_mgmr_sta_ps_enter());
-    enable_tickless = 1;
+    // Use default config
+    lpfw_cfg.dtim_origin = 10;
+    wifi_mgmr_sta_set_listen_itv(lpfw_cfg.dtim_origin);
 }
 
 static void cmd_twt(int argc, char **argv)
@@ -225,19 +277,94 @@ static void cmd_twt(int argc, char **argv)
     lpfw_cfg.dtim_origin = 0;
 
     qcc74x_lp_fw_bcn_loss_cfg_dtim_default(lpfw_cfg.dtim_origin);
-    printf("sta_ps %ld\r\n", wifi_mgmr_sta_ps_enter());
+    pm_enable_tickless();
+}
 
-    enable_tickless = 1;
+int pm_enter_lp_perparation(void)
+{
+    int ret = 0;
+    int dtim = 0;
+    if (enable_multicast_broadcas) {
+        ret = pm_pbuf_pool_alloc();
+
+        if (!ret) {
+            lpfw_cfg.buf_addr = rxl_pbuf_pool_get();
+        } else {
+            lpfw_cfg.buf_addr = NULL;
+        }
+    } else {
+        lpfw_cfg.buf_addr = NULL;
+    }
+
+    dtim = wifi_mgmr_sta_get_listen_itv();
+
+    if (dtim < 0) {
+        lpfw_cfg.dtim_origin = 10;
+    } else {
+        lpfw_cfg.dtim_origin = dtim;
+    }
+
+    qcc74x_lp_fw_bcn_loss_cfg_dtim_default(lpfw_cfg.dtim_origin);
+
+    if (wifi_mgmr_sta_state_get()) {
+        wifi_mgmr_sta_ps_enter();
+    }
+
+    return ret;
+}
+
+int pm_exit_lp_perparation(void)
+{
+    pm_pbuf_pool_free();
+    lpfw_cfg.buf_addr = NULL;
+
+    if (wifi_mgmr_sta_state_get()) {
+        wifi_mgmr_sta_ps_exit();
+    }
+
+    return 0;
+}
+
+int pm_enable_tickless(void)
+{
+    pm_enter_lp_perparation();
+
+    tickless_enter();
+
+    return 0;
+}
+
+int pm_disable_tickless(void)
+{
+    pm_exit_lp_perparation();
+
+    tickless_exit();
+
+    return 0;
 }
 
 int pm_status_update(int status)
 {
     //update status
     if (status) {
-        enable_tickless = 0;
+        pm_disable_tickless();
     } else {
-        enable_tickless = 1;
+        pm_enable_tickless();
     }
+}
+
+static void cmd_tickless(int argc, char **argv)
+{
+    uint8_t dtim;
+    if ((argc > 1) && (argv[1] != NULL)) {
+        printf("%s\r\n", argv[1]);
+        dtim = atoi(argv[1]);
+    } else {
+        dtim = 10;
+    }
+
+    set_dtim_config(dtim);
+    pm_enable_tickless();
 }
 
 static int test_tcp_keepalive(int argc, char **argv)
@@ -488,7 +615,7 @@ int lp_delete_wakeup_by_io(uint8_t io)
     return 0;
 }
 
-void modify_bit(uint32_t *reg_addr, uint8_t bit_position, uint8_t bit_value) {
+static void modify_bit(uint32_t *reg_addr, uint8_t bit_position, uint8_t bit_value) {
     if (bit_value) {
         *reg_addr |= (1U << bit_position);
     } else {
@@ -602,7 +729,7 @@ static TaskHandle_t xtal32k_check_entry_task_hd = NULL;
 
 void timerCallback(TimerHandle_t xTimer)
 {
-    enable_tickless = 0;
+    pm_disable_tickless();
     xTimerDelete(xTimer, portMAX_DELAY);
 
     //if (wifi_mgmr_sta_state_get()) {
@@ -681,7 +808,7 @@ void app_pm_enter_pds15(void)
         lp_timerouts_ms = 0;
     }
 
-    enable_tickless = 1;
+    pm_enable_tickless();
 }
 
 TimerHandle_t keepalive_timer = NULL;
@@ -707,11 +834,11 @@ void app_pm_twt_param_set(int s, int t, int e, int n, int m)
 
 void app_pm_twt_enter(void)
 {
-    lpfw_cfg.dtim_origin = 0;
+    //TODO: Fix it.
+    pm_enable_tickless();
 
+    lpfw_cfg.dtim_origin = 0;
     qcc74x_lp_fw_bcn_loss_cfg_dtim_default(lpfw_cfg.dtim_origin);
-    printf("sta_ps %ld\r\n", wifi_mgmr_sta_ps_enter());
-    enable_tickless = 1;
 }
 
 int app_create_keepalive_timer(uint32_t periods)
@@ -765,9 +892,78 @@ int app_delete_keepalive_timer(void)
     return 0;
 }
 
+static void process_multicase_broadcast(void *pvParameters)
+{
+    struct pbuf *p;
+    int processed_count = 0;
+
+    while (1) {
+        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+
+        while (processed_count < PREALLOCATED_PBUF_COUNT) {
+            p = pbuf_pool_cache.pbufs[processed_count];
+            if (p != NULL && p->payload && pbuf_pool_cache.used_idx[processed_count]) {
+                //printf("[RECV_TASK] Processing pbuf %d, len=%d idx\r\n", processed_count, p->len, processed_count);
+
+                //print_pbuf_contents(p, processed_count);
+
+                bool pbuf_consumed = false;
+
+                if (netif_default && netif_default->input) {
+                    err_t ret = netif_default->input(p, netif_default);
+                    if (ret != ERR_OK) {
+                        printf("[RECV_TASK] Failed to input pbuf to netif\r\n");
+                        pbuf_free(p);
+                    }
+                    pbuf_consumed = true;
+                } else {
+                    printf("[RECV_TASK] No valid netif, freeing pbuf\r\n");
+                    pbuf_free(p);
+                    pbuf_consumed = true;
+                }
+
+                if (pbuf_consumed) {
+                    pbuf_pool_cache.used_idx[processed_count] = 0;
+                    pbuf_pool_cache.pbufs[processed_count] = NULL;
+
+                    struct pbuf *new_pbuf = pbuf_alloc(PBUF_RAW, PREALLOCATED_PBUF_SIZE, PBUF_RAM);
+                    if (new_pbuf) {
+                        pbuf_pool_cache.pbufs[processed_count] = new_pbuf;
+                    } else {
+                        static int alloc_fail_count = 0;
+                        alloc_fail_count++;
+                        printf("[RECV_TASK] Total pbuf allocation failures: %d\r\n", alloc_fail_count);
+
+                        for (int retry = 0; retry < 3; retry++) {
+                            vTaskDelay(pdMS_TO_TICKS(10));
+                            new_pbuf = pbuf_alloc(PBUF_RAW, PREALLOCATED_PBUF_SIZE, PBUF_RAM);
+                            if (new_pbuf) {
+                                pbuf_pool_cache.pbufs[processed_count] = new_pbuf;
+                                printf("[RECV_TASK] Retry %d: Successfully reallocated pbuf %d\r\n",
+                                       retry + 1, processed_count);
+                                break;
+                            }
+                        }
+
+                        if (!new_pbuf) {
+                            printf("[RECV_TASK] CRITICAL: Cannot maintain pbuf pool integrity for slot %d\r\n", processed_count);
+                            assert(0);
+                        }
+                    }
+                }
+            }
+            processed_count++;
+        }
+
+        processed_count = 0;
+    }
+
+    vTaskDelete(NULL);
+}
+
 void app_pm_exit_pds15(void)
 {
-    enable_tickless = 0;
+    pm_disable_tickless();
     wifi_mgmr_sta_ps_exit();
 }
 
@@ -786,6 +982,8 @@ int app_pm_init(void)
 
     HBN_Enable_RTC_Counter();
     pm_rc32k_auto_cal_init();
+    
+    pm_sys_init();
 
 #ifdef LP_APP
 #if defined(CFG_QCC74x_WIFI_PS_ENABLE) || defined(CFG_WIFI_PDS_RESUME)
@@ -796,6 +994,9 @@ int app_pm_init(void)
 
     app_clock_init();
     app_atmoudle_init();
+
+    printf("[OS] Starting process_multicase_broadcast task...\r\n");
+    xTaskCreate(process_multicase_broadcast, (char*)"hellow", 256, NULL, 10, &rxl_process_task_hd);
 
     return 0;
 }

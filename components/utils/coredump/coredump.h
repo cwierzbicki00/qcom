@@ -1,5 +1,7 @@
 #ifndef __COREDUMP_H__
 #define __COREDUMP_H__
+#include <stddef.h>
+#include <stdint.h>
 
 struct dump_section {
     uint32_t addr;
@@ -15,8 +17,10 @@ void coredump_run();
 
 void core_partition_init(uint32_t flash_addr, size_t flash_size);
 int coredump_xip_flash_write(uint32_t lma, uint8_t *lma_xip, size_t len);
-void core_bin_start_hook(uint32_t *lma, size_t len);
+void core_bin_start_hook(uint32_t *lma, size_t len, struct dump_section *dump_sections);
 void core_bin_sections_hook(uint32_t *lma, uint8_t *lma_xip, size_t len);
 void core_bin_end_hook(uint32_t header_lma);
+
+void current_task_stack(struct dump_section *sections, int n);
 
 #endif /* __COREDUMP_H__ */

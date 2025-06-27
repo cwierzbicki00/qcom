@@ -33,6 +33,10 @@
 #include "qcc743_glb.h"
 #include "qcc743_hbn.h"
 
+#if defined(CONFIG_MFG_USB_HOST_TEST)
+#include "usbh_core.h"
+#endif
+
 static uint8_t mfg_m154_en = 0;
 struct qcc74x_device_s *adc;
 
@@ -199,7 +203,7 @@ void cmd_phy_init_register(char *buf, int len, int argc, char **argv);
 
 static int32_t mfg_cmd_shake_hand(uint8_t *data, uint16_t len);
 static int32_t mfg_cmd_tx_toggle(uint8_t *data, uint16_t len);
-static int32_t mfg_cmd_unicast(uint8_t *data, uint16_t len);
+static int32_t mfg_cmd_unicast_or_usb_test(uint8_t *data, uint16_t len);
 static int32_t mfg_cmd_rx_ctrl(uint8_t *data, uint16_t len);
 static int32_t mfg_cmd_frequency_ctrl(uint8_t *data, uint16_t len);
 static int32_t mfg_cmd_mode_ctrl(uint8_t *data, uint16_t len);
@@ -258,8 +262,8 @@ static const mfg_cmd_t mfg_cmds_handler[]={
     {'H',mfg_cmd_shake_hand},
     {'T',mfg_cmd_tx_toggle},
     {'t',mfg_cmd_tx_toggle},
-    {'U',mfg_cmd_unicast},
-    {'u',mfg_cmd_unicast},
+    {'U',mfg_cmd_unicast_or_usb_test},
+    {'u',mfg_cmd_unicast_or_usb_test},
     {'r',mfg_cmd_rx_ctrl},
     {'f',mfg_cmd_frequency_ctrl},
     {'F',mfg_cmd_frequency_ctrl},
@@ -2267,8 +2271,22 @@ int qcc74x_lp_fw_enter(qcc74x_lp_fw_cfg_t *qcc74x_lp_fw_cfg)
     return iot2lp_para->wakeup_reason;
 }
 #endif
-static int32_t mfg_cmd_unicast(uint8_t *data, uint16_t len)
+static int32_t mfg_cmd_unicast_or_usb_test(uint8_t *data, uint16_t len)
 {
+    if (data[0] == 'S') {
+        if (data[1] == 'B') {
+            // mfg_print("MFG USB test\r\n");
+            if(data[2] == '0'){
+                mfg_print("MFG USB test thread is suspended\r\n");
+                usbh_deinitialize(0);
+            }else if(data[2] == '1'){
+                mfg_print("MFG USB test thread is created\r\n");
+                usbh_initialize(0, USB_BASE);
+            }
+        }
+    } else {
+        // mfg_print("Unicast has been removed\r\n");
+    }
     return 0;
 }
 
@@ -3377,6 +3395,18 @@ static int32_t mfg_cmd_save_efuse(uint8_t *data, uint16_t len)
 
 static int32_t mfg_cmd_hbn(uint8_t *data, uint16_t len)
 {
+    uint8_t hbn_level = 1; /*HBN0 or HBN1*/
+    uint32_t hbn_slp_msec;
+    if (data[0] == '0') {
+        hbn_level = 0;
+    } else if (data[0] == '1') {
+        hbn_level = 1;
+    }
+    hbn_slp_msec = atoi((const char*)&data[1]);
+    mfg_print("hbn level = %d\r\n", hbn_level);
+    mfg_print("hbn sleep time = %d\r\n", hbn_slp_msec);
+    arch_delay_ms(100);
+    pm_hbn_mode_enter(hbn_level, hbn_slp_msec << 5);
     return 0;
 }
 

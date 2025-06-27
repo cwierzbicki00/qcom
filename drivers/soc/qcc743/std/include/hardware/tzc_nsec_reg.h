@@ -1743,7 +1743,6 @@
 #define TZC_NSEC_TZC_SF_TZSID_CRMD_LOCK_MSK                     (((1U<<TZC_NSEC_TZC_SF_TZSID_CRMD_LOCK_LEN)-1)<<TZC_NSEC_TZC_SF_TZSID_CRMD_LOCK_POS)
 #define TZC_NSEC_TZC_SF_TZSID_CRMD_LOCK_UMSK                    (~(((1U<<TZC_NSEC_TZC_SF_TZSID_CRMD_LOCK_LEN)-1)<<TZC_NSEC_TZC_SF_TZSID_CRMD_LOCK_POS))
 
-
 struct  tzc_nsec_reg {
     /* 0x0  reserved */
     uint8_t RESERVED0x0[64];
@@ -2793,6 +2792,5 @@ struct  tzc_nsec_reg {
 };
 
 typedef volatile struct tzc_nsec_reg tzc_nsec_reg_t;
-
 
 #endif  /* __TZC_NSEC_REG_H__ */

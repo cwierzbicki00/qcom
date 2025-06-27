@@ -32,11 +32,15 @@
 #include "btble_dma_uart.h"
 #include "ll.h"
 
+#if defined(CFG_NXSPI_HCI)
+#include "btble_spi_uart.h"
+#else
 //qcc743L_todo, bringup dma uart
 #if defined(CFG_DBG_RUN_ON_FPGA) || defined(qcc74x_undef)
 #define QCC74x_DMA_UART 0
 #else
 #define QCC74x_DMA_UART 1
+#endif
 #endif
 
 /*
@@ -90,6 +94,7 @@ static struct uart_env_tag uart_env;
 static struct qcc74x_device_s *btble_uart;
 static volatile uint8_t uart_id;
 
+#if !(QCC74x_DMA_UART)
 static void uart_isr(int irq, void *arg)
 {
     uint8_t *p;
@@ -171,6 +176,7 @@ static void uart_isr(int irq, void *arg)
         }
     }
 }
+#endif
 
 /*
  * LOCAL FUNCTION DEFINITIONS
@@ -214,6 +220,8 @@ __attribute__((weak)) void btble_uart_init(uint8_t uartid)
 {
     #if (QCC74x_DMA_UART)
     btble_dma_uart_init();
+    #elif defined(CFG_NXSPI_HCI)
+    btble_spi_uart_init();
     #else
     char uart_name[64];
     struct qcc74x_uart_config_s cfg;
@@ -273,7 +281,8 @@ __attribute__((weak)) void btble_uart_flow_on(void)
 {
     #if (QCC74x_DMA_UART)   
     return;    
-    #else
+    #elif defined(CFG_NXSPI_HCI)
+    return;
     qcc74x_uart_feature_control(btble_uart, UART_CMD_SET_SW_RTS_CONTROL, false);
     #endif
     //qcc74x_uart_feature_control(btble_uart, UART_CMD_SET_CTS_EN, true);
@@ -331,9 +340,63 @@ void btble_dma_uart_tx_event(void)
 }
 #endif
 
+#if defined(CFG_NXSPI_HCI)
+void btble_uart_read_data_from_spi(void)
+{
+    void (*callback)(void*, uint8_t) = NULL;
+    void* data = NULL;
+
+    if(uart_env.rx.remain_size > 0)
+    {
+        uint16_t data_len = btble_spi_uart_read(uart_env.rx.remain_data, (uint16_t)uart_env.rx.remain_size);
+        uart_env.rx.remain_data += data_len;
+        uart_env.rx.remain_size -= data_len;
+        if(uart_env.rx.remain_size == 0)
+        {
+            callback = uart_env.rx.callback;
+            data     = uart_env.rx.dummy;
+            if(callback != NULL)
+            {
+                // Clear callback pointer
+                uart_env.rx.callback = NULL;
+                uart_env.rx.dummy    = NULL;
+                // Call handler
+                callback(data, 0);
+            }
+        }
+    }
+}
+
+void btble_spi_uart_rx_event(void)
+{
+    if(btble_spi_uart_get_rx_count() == 0)
+        return;
+    btble_uart_read_data_from_spi();
+}
+
+
+//handle tx done
+void btble_spi_uart_tx_event(void)
+{
+    void (*callback)(void*, uint8_t) = uart_env.tx.callback;
+    void* data = uart_env.tx.dummy;
+    if(callback != NULL)
+    {
+        // Clear callback pointer
+        uart_env.tx.callback = NULL;
+        uart_env.tx.dummy    = NULL;
+    
+        // Call handler
+        callback(data, 0);
+    }
+}
+#endif
+
 __attribute__((weak)) bool btble_uart_flow_off(void)
 {
     #if (QCC74x_DMA_UART)
+    return true;
+    #elif defined(CFG_NXSPI_HCI)
     return true;
     #else
     qcc74x_uart_feature_control(btble_uart, UART_CMD_SET_SW_RTS_CONTROL, true);
@@ -353,6 +416,8 @@ __attribute__((weak)) void btble_uart_write(const uint8_t *bufptr, uint32_t size
     uart_env.tx.dummy = dummy;
     #if (QCC74x_DMA_UART)
     btble_dma_uart_write((uint8_t *)bufptr, (uint16_t)size);
+    #elif defined(CFG_NXSPI_HCI)
+    btble_spi_uart_write((uint8_t *)bufptr, (uint16_t)size);
     #else
     qcc74x_uart_txint_mask(btble_uart, false);
     #endif
@@ -370,6 +435,10 @@ __attribute__((weak)) void btble_uart_read(uint8_t *bufptr, uint32_t size, void 
     #if (QCC74x_DMA_UART)
     GLOBAL_INT_DISABLE();
     btble_uart_read_data_from_dma();
+    GLOBAL_INT_RESTORE();
+    #elif defined(CFG_NXSPI_HCI)
+    GLOBAL_INT_DISABLE();
+    btble_uart_read_data_from_spi();
     GLOBAL_INT_RESTORE();
     #else
     if (size < 8) {

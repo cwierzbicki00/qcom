@@ -297,14 +297,13 @@ void __trans_bdcomplete()
                 (*(volatile uint32_t *)0x2000C204),
                 g_nxspi.dnmsg->payload);
         if ((g_nxspi.dnmsg->len > 0) && (0 == up_header.rx_stall) && ((*(volatile uint32_t *)0x2000C204) != g_nxspi.dnmsg->payload)) {
-            if (g_nxspi.dnmsg->type==NXSPI_TYPE_AT) {
-                q = g_nxspi.dnat;
-            } else if (g_nxspi.dnmsg->type==NXSPI_TYPE_NET) {
-                q = g_nxspi.dnnet;
-            } else {
-                q = g_nxspi.dndef;
-            }
+
+            q = g_nxspi.dn[g_nxspi.dnmsg->type];
             if (xQueueSend(q, &g_nxspi.dnmsg, 0) == pdPASS) {
+                if (g_nxspi.rxd_notify_func[g_nxspi.dnmsg->type]) {
+                    g_nxspi.rxd_notify_func[g_nxspi.dnmsg->type]();
+                }
+
                 NX_LOGI("Recv %p, len %d ok\r\n", g_nxspi.dnmsg->payload, g_nxspi.dnmsg->len);
             } else {
                 NX_LOGE("Recv %p, len %d err\r\n", g_nxspi.dnmsg->payload, g_nxspi.dnmsg->len);
@@ -351,11 +350,20 @@ int _bdreceived(void)
     return 0;
 }
 
-#define NXSPI_GET_QUEUE_WAITING ((0 != uxQueueMessagesWaiting(g_nxspi.upvq))    \
-                                 || (0 != uxQueueMessagesWaiting(g_nxspi.dnat)) \
-                                 || (0 != uxQueueMessagesWaiting(g_nxspi.dnnet))\
-                                 || (0 != uxQueueMessagesWaiting(g_nxspi.dndef))\
-                                )
+static inline bool isAnyQueueWaiting() 
+{
+    if (0 != uxQueueMessagesWaiting(g_nxspi.upvq)) {
+        return true;
+    }
+    for (int i = 0; i < NXSPI_TYPE_MAX; i++) {
+        if (0 != uxQueueMessagesWaiting(g_nxspi.dn[i])) {
+            return true;
+        }
+    }
+    return false;
+}
+
+#define NXSPI_GET_QUEUE_WAITING (isAnyQueueWaiting())
 #define NXSPI_GET_CS_ACTIVE     (nxspi_hwgpio_status(NXSPI_GPIO_CS) == 1)
 
 #define NXSPI_SETSM(a)       {NX_LOGT("%s->%s\r\n",get_smstr(g_nxspi.sm),get_smstr(a));g_nxspi.sm = a;continue;}
@@ -541,13 +549,11 @@ trans_desc_t *nxspi_readbuf_pop(uint8_t type, uint32_t timeout)
     BaseType_t result;
     QueueHandle_t q;
 
-    if (type==NXSPI_TYPE_AT) {
-        q = g_nxspi.dnat;
-    } else if (type==NXSPI_TYPE_NET) {
-        q = g_nxspi.dnnet;
-    } else {
-        q = g_nxspi.dndef;
+    if (type > NXSPI_TYPE_MAX) {
+        return -1;  // Invalid input
     }
+    q = g_nxspi.dn[type];
+
     result = xQueueReceive(q, &msg, timeout);
     if (result != pdPASS) {
         NX_LOGE("result:%d\r\n", result);
@@ -580,14 +586,15 @@ int nxspi_read(uint8_t type, uint8_t *buf, uint16_t len, uint32_t timeout)
         NX_LOGD("arg error\r\n");
         return -1;  // Invalid input
     }
-
-    if (type==NXSPI_TYPE_AT) {
-        q = g_nxspi.dnat;
-    } else if (type==NXSPI_TYPE_NET) {
-        q = g_nxspi.dnnet;
-    } else {
-        q = g_nxspi.dndef;
+    if (type > NXSPI_TYPE_MAX) {
+        return -1;  // Invalid input
     }
+
+    q = g_nxspi.dn[type];
+    if (NULL == q) {
+        return -1;  // Invalid input
+    }
+
     // Try to receive a message from the queue
     result = xQueueReceive(q, &msg, timeout);
     if (result != pdPASS) {

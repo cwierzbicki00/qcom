@@ -155,6 +155,14 @@ static void peripheral_clock_init_lp(void)
     QCC74x_WR_REG(GLB_BASE, GLB_CGEN_CFG2, tmpVal);
 
     GLB_Set_UART_CLK(ENABLE, HBN_UART_CLK_XCLK, 0);
+    
+    GLB_Set_PKA_CLK_Sel(GLB_PKA_CLK_MCU_MUXPLL_160M);
+
+    qcc74x_group0_request_aes_access(qcc74x_device_get_by_name("aes"));
+    qcc74x_aes_link_init(qcc74x_device_get_by_name("aes"));
+    qcc74x_pka_init(qcc74x_device_get_by_name("pka"));
+    qcc74x_group0_request_sha_access(qcc74x_device_get_by_name("sha"));
+    qcc74x_sha_link_init(qcc74x_device_get_by_name("sha"));
 
 #ifdef CONFIG_BSP_SDH_SDCARD
     PERIPHERAL_CLOCK_SDH_ENABLE();
@@ -444,6 +452,7 @@ void board_init(void)
     int ret = -1;
     uintptr_t flag;
     size_t heap_len;
+    uint32_t xtal_value = 0;
 
     flag = qcc74x_irq_save();
 #ifndef CONFIG_BOARD_FLASH_INIT_SKIP
@@ -508,6 +517,9 @@ void board_init(void)
     printf("sig2:%08x\r\n", QCC74x_RD_REG(GLB_BASE, GLB_UART_CFG2));
     printf("cgen1:%08x\r\n", getreg32(QCC74x_GLB_CGEN1_BASE));
 
+    HBN_Get_Xtal_Value(&xtal_value);
+    printf("xtal:%dHz(%s)\r\n", xtal_value, ((getreg32(AON_BASE + AON_XTAL_CFG_OFFSET) >> 3) & 0x01) ? "oscillator" : "crystal");
+    
     log_start();
 
 #if (defined(CONFIG_LUA) || defined(CONFIG_QCC74xLOG) || defined(CONFIG_FATFS))

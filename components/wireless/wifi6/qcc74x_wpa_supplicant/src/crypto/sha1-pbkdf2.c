@@ -11,6 +11,40 @@
 #include "common.h"
 #include "sha1.h"
 
+#if 1
+#include "mbedtls/sha1.h"
+static int pbkdf2_sha1_f(const char *passphrase, const u8 *ssid,
+             size_t ssid_len, int iterations, unsigned int count,
+             u8 *digest)
+{
+    uint32_t buf[(256 + 28) / 4]; // 28 is for padding 32 bytes align, 256 is inner and outer of sha1 2 blocks
+    uint8_t *p, msg[32 + 4], output[SHA1_MAC_LEN]; // 32 is max ssid length, 4 is count
+    int i, j;
+
+    mbedtls_hmac_iter_init((const unsigned char *)passphrase, os_strlen(passphrase), (unsigned char *)buf, sizeof(buf));
+
+    memcpy(msg, ssid, ssid_len);
+    p = msg + ssid_len;
+    p[0] = (count >> 24) & 0xff;
+    p[1] = (count >> 16) & 0xff;
+    p[2] = (count >> 8) & 0xff;
+    p[3] = count & 0xff;
+    mbedtls_hmac_iter_ret((unsigned char *)buf, sizeof(buf), msg, ssid_len + 4, output, 0);
+
+    os_memcpy(digest, output, SHA1_MAC_LEN);
+
+    int padded = 0;
+    for (i = 1; i < iterations; i++) {
+        mbedtls_hmac_iter_ret((unsigned char *)buf, sizeof(buf), output, SHA1_MAC_LEN, output, padded);
+        padded = 1; // after first iteration, buf already padded.
+
+        for (j = 0; j < SHA1_MAC_LEN; j++)
+            digest[j] ^= output[j];
+    }
+
+    return 0;
+}
+#else
 static int pbkdf2_sha1_f(const char *passphrase, const u8 *ssid,
 			 size_t ssid_len, int iterations, unsigned int count,
 			 u8 *digest)
@@ -53,6 +87,7 @@ static int pbkdf2_sha1_f(const char *passphrase, const u8 *ssid,
 
 	return 0;
 }
+#endif
 
 
 /**

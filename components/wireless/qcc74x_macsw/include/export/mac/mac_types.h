@@ -515,6 +515,21 @@ enum mac_connection_flags
 /// Max number of FTM responders per request
 #define FTM_RSP_MAX 5
 
+///TWT Flow configuration
+struct twt_conf_tag
+{
+    /// Flow Type (0: Announced, 1: Unannounced)
+    uint8_t flow_type;
+    /// Wake interval Exponent
+    uint8_t wake_int_exp;
+    /// Unit of measurement of TWT Minimum Wake Duration (0:256us, 1:tu)
+    bool wake_dur_unit;
+    /// Nominal Minimum TWT Wake Duration
+    uint8_t min_twt_wake_dur;
+    /// TWT Wake Interval Mantissa
+    uint16_t wake_int_mantissa;
+};
+
 /// FTM results
 struct mac_ftm_results
 {
@@ -529,6 +544,36 @@ struct mac_ftm_results
         uint32_t rtt;
     } meas[FTM_RSP_MAX];
 };
+
+typedef struct tx_pwr_table {
+    //unit 0.5dbm
+    int8_t     pwr_11b[4];
+    int8_t     pwr_11g[8];
+    int8_t     pwr_11n[8];
+    int8_t     pwr_11ac[10];
+    int8_t     pwr_11ax[10];
+}tx_pwr_table_t;
+
+extern tx_pwr_table_t tx_power_limit_tables[2];
+#define POWER_TABLE_CHECK(power_table, array) \
+    for (int i = 0; i < sizeof(power_table->array)/sizeof(power_table->array[0]); i++) { \
+        int8_t pwr = power_table->array[i]; \
+        if (pwr <= tx_power_limit_tables[1].array[i] && pwr >= tx_power_limit_tables[0].array[i]) \
+            continue; \
+        else { \
+            printf("Error: array=%s, index=%d, value=%d, min=%d, max=%d\n", \
+                   #array, i, pwr, tx_power_limit_tables[0].array[i], tx_power_limit_tables[1].array[i]); \
+            goto end; \
+        } \
+    }
+
+#define POWER_TABLE_PRINT(power_table, array) \
+    for (int i = 0; i < sizeof(power_table->array)/sizeof(power_table->array[0]); i++) { \
+        int8_t pwr = power_table->array[i]; \
+            printf("Info: array=%s, index=%d, value=%d, min=%d, max=%d\n", \
+                   #array, i, pwr, tx_power_limit_tables[0].array[i], tx_power_limit_tables[1].array[i]); \
+    }
+
 
 /// @}
 #endif // _MAC_TYPES_H_

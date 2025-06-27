@@ -36,6 +36,8 @@ src/qcc74x_sdio2.c
 )
 elseif("${CHIP}" STREQUAL "qcc74x_undef")
 sdk_library_add_sources(
+src/qcc74x_clock.c
+src/qcc74x_reset.c
 src/qcc74x_adc.c
 src/qcc74x_acomp.c
 src/qcc74x_dac.c
@@ -47,6 +49,8 @@ src/qcc74x_spi_psram.c
 )
 elseif("${CHIP}" STREQUAL "qcc74x_undef")
 sdk_library_add_sources(
+src/qcc74x_clock.c
+src/qcc74x_reset.c
 src/qcc74x_adc.c
 src/qcc74x_acomp.c
 src/qcc74x_kys.c
@@ -58,6 +62,8 @@ src/qcc74x_ir.c
 )
 elseif("${CHIP}" STREQUAL "qcc743")
 sdk_library_add_sources(
+src/qcc74x_clock.c
+src/qcc74x_reset.c
 src/qcc74x_adc.c
 src/qcc74x_acomp.c
 src/qcc74x_dac.c
@@ -76,6 +82,8 @@ src/qcc74x_sdh.c
 )
 elseif("${CHIP}" STREQUAL "qcc74x_undef")
 sdk_library_add_sources(
+src/qcc74x_clock.c
+src/qcc74x_reset.c
 src/qcc74x_adc_v2.c
 src/qcc74x_emac.c
 src/qcc74x_mjpeg.c
@@ -92,6 +100,8 @@ src/qcc74x_ir.c
 )
 elseif("${CHIP}" STREQUAL "qcc74x_undef")
 sdk_library_add_sources(
+src/qcc74x_clock.c
+src/qcc74x_reset.c
 src/qcc74x_adc_v3.c
 src/qcc74x_acomp.c
 src/qcc74x_dac.c
@@ -117,7 +127,6 @@ src/qcc74x_acomp.c
 src/qcc74x_dac.c
 src/qcc74x_gmac.c
 src/qcc74x_sec_gmac.c
-src/qcc74x_clock.c
 src/qcc74x_pwm_v2.c
 src/qcc74x_wo.c
 src/qcc74x_sdio3.c
@@ -125,6 +134,8 @@ src/qcc74x_sdh.c
 )
 elseif("${CHIP}" STREQUAL "qcc74x_undef")
 sdk_library_add_sources(
+src/qcc74x_clock.c
+src/qcc74x_reset.c
 src/qcc74x_adc.c
 src/qcc74x_acomp.c
 src/qcc74x_dac.c
@@ -135,6 +146,20 @@ src/qcc74x_pwm_v2.c
 src/qcc74x_cam.c
 src/qcc74x_csi.c
 src/qcc74x_dbi.c
+src/qcc74x_i2s.c
+src/qcc74x_wo.c
+src/qcc74x_sdh.c
+)
+elseif("${CHIP}" STREQUAL "qcc74x_undef")
+sdk_library_add_sources(
+src/qcc74x_clock.c
+src/qcc74x_reset.c
+src/qcc74x_adc.c
+src/qcc74x_acomp.c
+src/qcc74x_dac.c
+src/qcc74x_ir.c
+src/qcc74x_mjpeg.c
+src/qcc74x_pwm_v2.c
 src/qcc74x_i2s.c
 src/qcc74x_wo.c
 src/qcc74x_sdh.c

@@ -25,7 +25,7 @@ static int at_setup_cmd_userram(int argc, const char **argv)
 }
 
 static const at_cmd_struct at_user_cmd[] = {
-    {"+USERRAM", NULL, at_query_cmd_userram, at_setup_cmd_userram, NULL, 0, 0},        
+    //{"+USERRAM", NULL, at_query_cmd_userram, at_setup_cmd_userram, NULL, 0, 0},        
 };
 
 bool at_user_cmd_regist(void)

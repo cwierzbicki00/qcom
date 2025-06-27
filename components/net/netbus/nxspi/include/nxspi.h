@@ -115,8 +115,9 @@ typedef struct spi_header {
     uint8_t  flags     : 5;
 #define NXSPI_TYPE_AT   (0)
 #define NXSPI_TYPE_NET  (1)
-#define NXSPI_TYPE_DEF  (2)
-#define NXSPI_TYPE_HCI  (3)
+#define NXSPI_TYPE_HCI  (2)
+#define NXSPI_TYPE_OT   (3)
+#define NXSPI_TYPE_MAX  (4)
     uint8_t  type;
     uint16_t rsvd;
 } spi_header_t;
@@ -129,15 +130,16 @@ typedef struct _trans_desc {
     char         *payload;
 } trans_desc_t;
 
+typedef void (* nxspi_rxd_notify_func_t)(void);
+
 typedef struct _nxspi_desc {
 //    QueueHandle_t dnvq;  // download valid queue
     QueueHandle_t dnfq;  // download free queue
     QueueHandle_t upvq;  // up valid queue
     QueueHandle_t upfq;  // up free queue
 
-    QueueHandle_t dnat;
-    QueueHandle_t dnnet;
-    QueueHandle_t dndef;
+    QueueHandle_t dn[NXSPI_TYPE_MAX];
+    nxspi_rxd_notify_func_t rxd_notify_func[NXSPI_TYPE_MAX];
 
     uint64_t cfg_starttime;
     uint64_t cfg_endtime;
@@ -204,6 +206,8 @@ int  nxspi_hwgpio_status(int pin);
 
 /* api */
 int nxspi_init(void);
+/* notify_func: message is available, and blocking calls are prohibited within  */
+int nxspi_rxd_callback_register(nxspi_rxd_notify_func_t notify_func, int type);
 
 /* api write */
 int nxspi_write(uint8_t type, uint8_t *buf, uint16_t len, uint32_t timeout);

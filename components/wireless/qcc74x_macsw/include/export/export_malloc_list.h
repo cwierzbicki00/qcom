@@ -61,6 +61,9 @@
 
     struct_func_alloc_def(twt_teardown_req);
     struct_func_alloc_def(twt_teardown_cfm);
+
+    struct_func_alloc_def(twt_statusget_req);
+    struct_func_alloc_def(twt_statusget_cfm);
 #endif
     struct_func_alloc_def(me_get_edca_req);
     struct_func_alloc_def(me_get_edca_cfm);

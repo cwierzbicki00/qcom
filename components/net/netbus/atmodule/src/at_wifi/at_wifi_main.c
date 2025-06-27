@@ -417,7 +417,10 @@ static int wifi_ap_start(void)
 
     struct netif *netif = fhost_to_net_if(MGMR_VIF_AP);
 
-    wifi_mgmr_ap_start(&config);
+    int ret = wifi_mgmr_ap_start(&config);
+    if (ret != 0) {
+        return ret;
+    }
     wifi_mgmr_conf_max_sta(at_wifi_config->ap_info.max_conn);
     vTaskDelay(100);
     dhcpd_status_callback_set(netif, _wifi_ap_status_callback);
@@ -858,8 +861,7 @@ int at_wifi_sta_set_reconnect(void)
 int at_wifi_ap_start(void)
 {
     wifiopt_ap_stop(0);
-    wifi_ap_start();
-    return 0;
+    return wifi_ap_start();
 }
 
 int at_wifi_ap_stop(void)

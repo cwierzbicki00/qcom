@@ -76,6 +76,7 @@ struct_func_get_def(sm_connect_ind, uint8_t, ap_idx)
     struct_func_get_def(sm_connect_ind, uint16_t, aid)
     struct_func_get_def(sm_connect_ind, struct mac_chan_op, chan)
     struct_func_get_def(sm_connect_ind, bool, qos)
+    struct_func_get_def(sm_connect_ind, uint8_t, bss_mode)
 
     struct_func_get_def(sm_disconnect_ind, uint16_t, status_code)
     struct_func_get_def(sm_disconnect_ind, uint16_t, reason_code)
@@ -488,4 +489,16 @@ void twt_setup_req_set_conf_wake_int_mantissa(void *pa, uint16_t val) {
 
     struct_func_get_def(twt_teardown_cfm, uint8_t, status);
 
+    struct_func_set_def(twt_statusget_req, uint8_t, vif_idx);
+    struct_func_len(twt_statusget_req)
+
+    struct_func_get_def(twt_statusget_cfm, uint8_t, status);
+    struct_func_get_def(twt_statusget_cfm, uint8_t, flows);
+void twt_statusget_cfm_get_conf(void *pa,  struct twt_statusget_cfm *cfm, uint8_t flow_conf_max) {
+    struct twt_conf_tag *p = (struct twt_conf_tag *)pa;
+    struct twt_conf_tag conf[NX_TWT_FLOW_NB];
+    uint8_t max = (NX_TWT_FLOW_NB > flow_conf_max ? NX_TWT_FLOW_NB : flow_conf_max);
+    memcpy(p, (struct twt_conf_tag *)(cfm->conf), sizeof(struct twt_conf_tag)*max); 
+};
+    struct_func_len(twt_statusget_cfm)
 #endif

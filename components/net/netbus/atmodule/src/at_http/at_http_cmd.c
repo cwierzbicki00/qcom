@@ -505,6 +505,9 @@ static int at_setup_cmd_httpclient(int argc, const char **argv)
     if (opt < 0 || opt > REQ_TYPE_PUT) {
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     }
+    if (content_type < CONTENT_TYPE_WWW || content_type > CONTENT_TYPE_TEXT) {
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
+    }
     ctx = &g_httpc_handle[linkid];
     //memset(ctx, 0, sizeof(struct at_http_ctx));
 
@@ -666,7 +669,7 @@ static int at_setup_cmd_httpcget(int argc, const char **argv)
 
 static int at_setup_cmd_httpcpost(int argc, const char **argv)
 {
-    int ret, linkid;
+    int ret, err, linkid;
     int len, recv_num = 0;
     struct at_http_ctx *ctx = NULL;
     char url_buf[256];
@@ -716,9 +719,9 @@ static int at_setup_cmd_httpcpost(int argc, const char **argv)
     at_response_string("Recv %d bytes\r\n", recv_num);
 
     if (len == recv_num) {
-        ret = AT_RESULT_CODE_SEND_OK;
+        err = AT_RESULT_CODE_SEND_OK;
     } else {
-        ret = AT_RESULT_CODE_SEND_FAIL;
+        err = AT_RESULT_CODE_SEND_FAIL;
     }
     
     ret = at_httpc_request(ctx, url_buf, cb_httpc_result, cb_httpc_headers_done_fn, cb_altcp_recv_fn, ctx);
@@ -728,12 +731,12 @@ static int at_setup_cmd_httpcpost(int argc, const char **argv)
         return ret;
     }
 
-    return AT_RESULT_CODE_IGNORE;
+    return err;
 }
 
 static int at_setup_cmd_httpcput(int argc, const char **argv)
 {
-    int ret, linkid;
+    int ret, err, linkid;
     int len, content_type, recv_num = 0;
     struct at_http_ctx *ctx = NULL;
     char url_buf[256];
@@ -746,7 +749,9 @@ static int at_setup_cmd_httpcput(int argc, const char **argv)
     if (linkid < 0 || linkid >= AT_HTTPC_HANDLE_MAX) {
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_HANDLE_INVALID);
     }
-    
+    if (content_type < CONTENT_TYPE_WWW || content_type > CONTENT_TYPE_TEXT) {
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
+    }
     ctx = &g_httpc_handle[linkid];
     if (ctx->used) {
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_PROCESSING);
@@ -785,9 +790,9 @@ static int at_setup_cmd_httpcput(int argc, const char **argv)
     at_response_string("Recv %d bytes\r\n", recv_num);
 
     if (len == recv_num) {
-        ret = AT_RESULT_CODE_SEND_OK;
+        err = AT_RESULT_CODE_SEND_OK;
     } else {
-        ret = AT_RESULT_CODE_SEND_FAIL;
+        err = AT_RESULT_CODE_SEND_FAIL;
     }
     
     ret = at_httpc_request(ctx, url_buf, cb_httpc_result, cb_httpc_headers_done_fn, cb_altcp_recv_fn, ctx);
@@ -797,7 +802,7 @@ static int at_setup_cmd_httpcput(int argc, const char **argv)
         return ret;
     }
 
-    return AT_RESULT_CODE_IGNORE;
+    return err;
 }
 
 static int at_setup_cmd_httpcurlcfg(int argc, const char **argv)

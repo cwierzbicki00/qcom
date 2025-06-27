@@ -91,7 +91,6 @@ static int at_exe_cmd_gmr(int argc, const char **argv)
     while ((version = qcc74x_sys_version(&ctx))) {
         snprintf(outbuf+strlen(outbuf), outbuf_len-strlen(outbuf), "%s\r\n", version);
     }
-    snprintf(outbuf+strlen(outbuf), outbuf_len-strlen(outbuf), "compile time:%s %s\r\n",  __DATE__, __TIME__);
     AT_CMD_RESPONSE(outbuf);
     vPortFree(outbuf);
 
@@ -577,6 +576,9 @@ static int at_setup_gpio_output(int argc, const char **argv)
     AT_CMD_PARSE_NUMBER(0, &pin);
     AT_CMD_PARSE_NUMBER(1, &pull_state);
 
+    if (GLB_GPIO_Pad_LeadOut_Sts(pin) != 1) {
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_IO_ERROR);
+    }
     if (pull_state == AT_GPIO_PULL_NONE) {
         cfgset = GPIO_OUTPUT | GPIO_FLOAT | GPIO_SMT_EN | GPIO_DRV_0;
     } else if (pull_state == AT_GPIO_PULL_UP) {
@@ -599,6 +601,13 @@ static int at_setup_gpio_set(int argc, const char **argv)
     AT_CMD_PARSE_NUMBER(0, &pin);
     AT_CMD_PARSE_NUMBER(1, &state);
 
+    if (GLB_GPIO_Pad_LeadOut_Sts(pin) != 1) {
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_IO_ERROR);
+    }
+    if (state < 0 || state > 1) {
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
+    }
+
     if (state) {
         qcc74x_gpio_set(gpio, pin);    
     } else {
@@ -616,6 +625,9 @@ static int at_setup_gpio_input(int argc, const char **argv)
     AT_CMD_PARSE_NUMBER(0, &pin);
     AT_CMD_PARSE_NUMBER(1, &pull_state);
 
+    if (GLB_GPIO_Pad_LeadOut_Sts(pin) != 1) {
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_IO_ERROR);
+    }
     if (pull_state == AT_GPIO_PULL_NONE) {
         cfgset = GPIO_INPUT | GPIO_FLOAT | GPIO_SMT_EN | GPIO_DRV_0;
     } else if (pull_state == AT_GPIO_PULL_UP) {
@@ -636,6 +648,10 @@ static int at_query_gpio_input(int argc, const char **argv)
     struct qcc74x_device_s *gpio = qcc74x_device_get_by_name("gpio");
 
     AT_CMD_PARSE_NUMBER(0, &pin);
+
+    if (GLB_GPIO_Pad_LeadOut_Sts(pin) != 1) {
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_IO_ERROR);
+    }
     at_response_string("+IOIN=%d:%d\r\n", pin, qcc74x_gpio_read(gpio, pin));
 
     return AT_RESULT_CODE_OK;
@@ -648,6 +664,9 @@ static int at_setup_gpio_analog_input(int argc, const char **argv)
 
     AT_CMD_PARSE_NUMBER(0, &pin);
 
+    if (GLB_GPIO_Pad_LeadOut_Sts(pin) != 1) {
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_IO_ERROR);
+    }
     qcc74x_gpio_init(gpio, pin, GPIO_ANALOG | GPIO_FLOAT | GPIO_SMT_EN | GPIO_DRV_0);
 
     return AT_RESULT_CODE_OK;
@@ -955,7 +974,7 @@ static int at_setup_fs(int argc, const char **argv)
             ret = AT_RESULT_CODE_OK;
         break;
         default:
-        break;
+            return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     }
     
     return ret;
@@ -1140,6 +1159,7 @@ static int at_query_vbat(int argc, const char **argv)
     return AT_RESULT_CODE_OK;
 }
 
+int at_minidump();
 static const at_cmd_struct at_base_cmd[] = {
     {"+RST", NULL, NULL, NULL, at_exe_cmd_rst, 0, 0},
     {"+GMR", NULL, NULL, NULL, at_exe_cmd_gmr, 0, 0},
@@ -1179,17 +1199,18 @@ static const at_cmd_struct at_base_cmd[] = {
     {"+FLASH-E", NULL, NULL, at_setup_flash_erase, NULL, 2, 2},
     {"+IOPUPD", NULL, NULL, at_setup_gpio_output, NULL, 2, 2},
     {"+IOOUT", NULL, NULL, at_setup_gpio_set, NULL, 2, 2},
-    {"+IOIN", NULL, at_query_gpio_input, at_setup_gpio_input, NULL, 1, 2},
+    {"+IOIN", NULL, at_query_gpio_input, at_setup_gpio_input, NULL, 2, 2},
     {"+IORST", NULL, NULL, at_setup_gpio_analog_input, NULL, 1, 1},
     {"+PART", NULL, at_query_part, NULL, NULL, 0, 0},
     {"+OTASTART", NULL, at_query_ota_start, at_setup_ota_start, NULL, 1, 1},
     {"+OTASEND", NULL, NULL, at_setup_ota_send, NULL, 1, 1},
     {"+OTAFIN", NULL, NULL, NULL, at_setup_ota_finish_reset, 0, 0},
-    {"+FS", NULL, NULL, at_setup_fs, NULL, 2, 5},
+    {"+FS", NULL, NULL, at_setup_fs, NULL, 3, 5},
     {"+GMAC", NULL, at_query_gmac, NULL, NULL, 0, 0},
     {"+PN", NULL, at_query_pn, NULL, NULL, 0, 0},
     {"+MFG", NULL, NULL, NULL, at_setup_mfg, 0, 0},
     {"+VBAT", NULL, at_query_vbat, NULL, NULL, 0, 0},
+    {"+MINIDUMP", NULL, NULL, NULL, at_minidump, 0, 0},
 };
 
 bool at_base_cmd_regist(void)

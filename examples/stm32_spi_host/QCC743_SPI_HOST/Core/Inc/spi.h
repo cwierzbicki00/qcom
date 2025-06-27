@@ -15,7 +15,9 @@
 #define SPI_MSG_CTRL_TRAFFIC_TYPE_LEN	1
 #define SPI_MSG_CTRL_TRAFFIC_AT_CMD		0
 #define SPI_MSG_CTRL_TRAFFIC_NETWORK	1
-#define SPI_MSG_CTRL_TRAFFIC_TYPE_MAX   2
+#define SPI_MSG_CTRL_TRAFFIC_HCI        2
+#define SPI_MSG_CTRL_TRAFFIC_OT         3
+#define SPI_MSG_CTRL_TRAFFIC_TYPE_MAX   4
 
 struct spi_msg_control {
 	/* Ref SPI_MSG_CTRL_xxx */

@@ -1,6 +1,5 @@
 #include "qcc743_romdriver_e907.h"
 
-
 __ALWAYS_INLINE ATTR_TCM_SECTION
 QCC74x_Err_Type AON_Power_Off_BG(void){
     return RomDriver_AON_Power_Off_BG();

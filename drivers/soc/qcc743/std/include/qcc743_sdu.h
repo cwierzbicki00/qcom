@@ -19,7 +19,6 @@
 // Address offset of CCR between two functions
 #define QCC74x_SDIO_CCR_FUNC_OFFSET     0x00000100
 
-
 // Address for sdio block size information
 #define SDIO_FN1_BLK_SIZE_0        (SDU_BASE + 0x00000028)
 #define SDIO_FN1_BLK_SIZE_1        (SDU_BASE + 0x00000029)
@@ -87,7 +86,6 @@ typedef struct
 #define SDIO_CCR_CS_ReadCISRdy                  (1<<2)
 #define SDIO_CCR_CS_IORdy                       (1<<3)
 
-
 // Bit Def. Card Interrupt Mask (Offset 0x134/234)
 #define SDIO_CCR_CIM_DnLdOvr                    (1<<0)
 #define SDIO_CCR_CIM_UpLdOvr                    (1<<1)
@@ -97,15 +95,12 @@ typedef struct
 
 #define SDIO_CCR_CIM_MASK                       0x0007
 
-
 // Bit Def. Card Interrupt Status (Offset 0x138/238)
 #define SDIO_CCR_CIC_DnLdOvr                    (1<<0)
 #define SDIO_CCR_CIC_UpLdOvr                    (1<<1)
 #define SDIO_CCR_CIC_Abort                      (1<<2)
 #define SDIO_CCR_CIC_PwrDn                      (1<<3)
 #define SDIO_CCR_CIC_PwrUp                      (1<<4)
-
-
 
 #define SDIO_CCR_CIC_MASK                       0x001F
 
@@ -117,10 +112,8 @@ typedef struct
 #define SDIO_CCR_CIO_PwrUp                      (1<<4)
 #define SDIO_CCR_CIO_MASK                       0x001F
 
-
 //Config2 register mask
 #define CONFIG2_MSK                             0x00000C00
-
 
 //CardIntMode register mask
 
@@ -172,7 +165,6 @@ typedef struct
 typedef enum
 {
   IOCTL_GET_CONFIG = 0,         /*!< Get configuration info */
-
 
  /* HID IOCTLs*/
   IOCTL_HID_GET_BLOCK_SIZE,		/*!< Get Block size */

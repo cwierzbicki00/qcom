@@ -148,6 +148,11 @@ Enter the build command under the `spiwifi`​ example directory:
 ```bash
 make CONFIG_RCP_ENABLE=1 CONFIG_MQTT=0 CONFIG_HTTP=0 CONFIG_NETWORK=0
 ```
+BLE RCP only compiles with Wi-Fi RCP:
+
+```bash
+make CONFIG_RCP_ENABLE=1 CONFIG_MQTT=0 CONFIG_HTTP=0 CONFIG_NETWORK=0 CONFIG_BLUETOOTH_APP=0 CONFIG_HCI_ENABLE=1
+```
 
 ### Flashing
 

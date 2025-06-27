@@ -204,6 +204,45 @@ void SystemInit(void)
     QCC74x_WR_REG(GLB_BASE, GLB_SRAM_CFG3, tmpVal);
 }
 
+static int ATTR_TCM_SECTION __attribute__((noinline)) system_setup_xtal_config()
+{
+    uint32_t tmpVal = 0;    
+    uint8_t mcuXclkSel;
+    uint8_t mcuRootClkSel;
+    int cnt = 0;
+    
+    mcuXclkSel = HBN_Get_MCU_XCLK_Sel();
+    mcuRootClkSel = HBN_Get_MCU_Root_CLK_Sel();
+
+    /* switch clock to rc32m */
+    HBN_Set_MCU_XCLK_Sel(HBN_MCU_XCLK_RC32M);
+    HBN_Set_MCU_Root_CLK_Sel(HBN_MCU_ROOT_CLK_XCLK);
+
+    /* set xtal config */
+    tmpVal = QCC74x_RD_REG(AON_BASE, AON_XTAL_CFG);
+
+#ifdef CONFIG_XTAL_POWER_TYPE_ACTIVE
+    /* for osc */
+    tmpVal = QCC74x_SET_REG_BITS_VAL(tmpVal, AON_XTAL_AMP_CTRL_AON, 3);
+    tmpVal = QCC74x_SET_REG_BITS_VAL(tmpVal, AON_XTAL_EXT_SEL_AON, 1);
+#else
+    /* for crystal */
+    tmpVal = QCC74x_SET_REG_BITS_VAL(tmpVal, AON_XTAL_AMP_CTRL_AON, 2);
+    tmpVal = QCC74x_SET_REG_BITS_VAL(tmpVal, AON_XTAL_EXT_SEL_AON, 0);
+#endif
+    QCC74x_WR_REG(AON_BASE, AON_XTAL_CFG, tmpVal);
+    
+    for (cnt = 0; cnt < 16; cnt++){
+        __NOP();
+    }
+
+    /* switch clock back */
+    HBN_Set_MCU_XCLK_Sel(mcuXclkSel);
+    HBN_Set_MCU_Root_CLK_Sel(mcuRootClkSel);
+
+    return 0;
+}
+
 void System_Post_Init(void)
 {
     /* config chip pod */
@@ -214,6 +253,8 @@ void System_Post_Init(void)
     csi_dcache_clean();
     csi_icache_invalid();
 #endif
+
+    system_setup_xtal_config();
 
 #ifndef CONFIG_FREERTOS
     /* global IRQ enable */

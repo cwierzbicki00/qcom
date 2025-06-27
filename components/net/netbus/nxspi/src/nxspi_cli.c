@@ -535,9 +535,9 @@ int cmd_nx(int argc, char *argv[])
 #endif
 
     NX_LOGP("dn (at+net):(%d+%d), fq:%d, dnmsg:%p, buf:%d*%d",
-            uxQueueMessagesWaiting(g_nxspi.dnat),
-            uxQueueMessagesWaiting(g_nxspi.dnnet),
-            uxQueueMessagesWaiting(g_nxspi.dnfq),
+            uxQueueMessagesWaiting(g_nxspi.dn[0]),
+            uxQueueMessagesWaiting(g_nxspi.dn[1]),
+            uxQueueMessagesWaiting(g_nxspi.dn[2]),
             g_nxspi.dnmsg,
             NXBD_ITEMS, NXBD_MTU);
     for (int i= 0; i < NXBD_ITEMS; i++) {

@@ -17,11 +17,31 @@
 #ifdef LP_APP
 #include "wifi_mgmr_ext.h"
 
+/// TWT Flow type
+enum twt_flow_type
+{
+    /// Announced TWT (with PS-Poll)
+    TWT_ANNOUNCED,
+    /// Unannounced TWT (without PS-Poll)
+    TWT_UNANNOUNCED
+};
+
 int lp_set_wakeup_by_io(uint8_t io, uint8_t mode);
 int lp_delete_wakeup_by_io(uint8_t io);
 void app_pm_enter_hbn(int level);
 int app_lp_timer_config(int mode, uint32_t ms);
 void app_pm_exit_pds15(void);
+
+static void pwr_enable_receive_broadcast_multicast(int flag)
+{
+    extern int enable_multicast_broadcas;
+
+    if (flag) {
+        enable_multicast_broadcas = 1;
+    } else {
+        enable_multicast_broadcas = 0;
+    }
+}
 
 static int at_pwr_cmd_pwrmode(int argc, const char **argv)
 {
@@ -34,18 +54,16 @@ static int at_pwr_cmd_pwrmode(int argc, const char **argv)
     AT_CMD_PARSE_NUMBER(0, &pwr_mode);
     AT_CMD_PARSE_OPT_NUMBER(1, &level, level_valid);
 
-    void set_wifi_ps_wakeup_configuration(int dtim_wakeup);
-
     if (pwr_mode  == 0) {
         app_pm_exit_pds15();
     } else if (pwr_mode == 1) {
         app_pm_enter_hbn(level);
     } else if (pwr_mode == 2) {
         if (level_valid && level == 1) {
-            set_wifi_ps_wakeup_configuration(1);
+            pwr_enable_receive_broadcast_multicast(1);
             app_pm_enter_pds15();
         } else if ((level_valid && level == 0) || level_valid == 0) {
-            set_wifi_ps_wakeup_configuration(0);
+            pwr_enable_receive_broadcast_multicast(0);
             app_pm_enter_pds15();
         } else {
             return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
@@ -261,6 +279,73 @@ static int at_clock_source_get_cmd(int argc, const char **argv)
     return AT_RESULT_CODE_OK;
 }
 
+static int at_twt_status_cmd(int argc, const char **argv)
+{
+    struct twt_conf_tag twt_confs[8]; // Array to hold TWT configurations
+    uint8_t twt_num = 0; // Number of active TWT flows
+    int ret;
+
+    // Get TWT status using WiFi manager function
+    ret = wifi_mgmr_sta_twt_statusget(twt_confs, &twt_num);
+
+    if (ret != 0) {
+        at_response_string("+TWT:INACTIVE\r\n");
+        return AT_RESULT_CODE_OK;
+    }
+
+    if (twt_num == 0) {
+        // No active TWT sessions
+        at_response_string("+TWT:INACTIVE\r\n");
+    } else {
+        // Process each active TWT flow
+        for (int i = 0; i < twt_num; i++) {
+            // Get flow type string
+            const char *flow_type_str = (twt_confs[i].flow_type == 0) ? "ANNOUNCED" : "UNANNOUNCED";
+
+            // Output TWT parameters from the struct
+            at_response_string("+TWT:ACTIVE:%d,%d,%s,%d,%d,%d\r\n",
+                             i,  // flow index
+                             twt_confs[i].flow_type,
+                             flow_type_str,
+                             twt_confs[i].wake_int_exp,
+                             twt_confs[i].min_twt_wake_dur,
+                             twt_confs[i].wake_int_mantissa);
+        }
+    }
+
+    return AT_RESULT_CODE_OK;
+}
+
+static int at_listen_itv_set_cmd(int argc, const char **argv)
+{
+    int listen_itv;
+
+    AT_CMD_PARSE_NUMBER(0, &listen_itv);
+
+    if (listen_itv < 1 || listen_itv > 255) {
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
+    }
+
+    int ret = wifi_mgmr_sta_set_listen_itv((uint8_t)listen_itv);
+    if (ret != 0) {
+        printf("Failed to set listen interval, error=%d\r\n", ret);
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_EXEC_FAIL);
+    }
+
+    return AT_RESULT_CODE_OK;
+}
+
+static int at_listen_itv_get_cmd(int argc, const char **argv)
+{
+    int listen_itv = wifi_mgmr_sta_get_listen_itv();
+
+    if (listen_itv < 0) {
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_EXEC_FAIL);
+    }
+
+    return AT_RESULT_CODE_OK;
+}
+
 static const at_cmd_struct at_pwr_cmd[] = {
     {"+PWR", NULL, NULL, at_pwr_cmd_pwrmode, NULL, 1, 3},
     {"+SLWKDTIM", NULL, NULL, at_dtim_cmd, NULL, 1, 1},
@@ -275,8 +360,11 @@ static const at_cmd_struct at_pwr_cmd[] = {
     {"+TWT_PARAM", NULL, NULL, at_twt_param_cmd, NULL, 5, 5},
     {"+TWT_SLEEP", NULL, NULL, NULL, at_twt_sleep_cmd, 0, 0},
     {"+TWT_TEARDOWN", NULL, NULL, at_twt_teardown_cmd, at_twt_teardown_cmd, 0, 3},
+    {"+TWT_STATUS", NULL, at_twt_status_cmd, NULL, NULL, 0, 0},
     {"+SET_CLOCK", NULL, NULL, at_clock_source_set_cmd, NULL, 1, 1},
     {"+GET_CLOCK", NULL, NULL, NULL, at_clock_source_get_cmd, 0, 0},
+    {"+PWR", NULL, NULL, at_pwr_cmd_pwrmode, NULL, 1, 3},
+    {"+LISTEN_ITV", NULL, at_listen_itv_get_cmd, at_listen_itv_set_cmd, NULL, 0, 1},
 };
 
 bool at_pwr_cmd_regist(void)

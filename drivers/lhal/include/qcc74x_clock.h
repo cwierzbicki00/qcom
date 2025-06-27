@@ -24,8 +24,11 @@
   */
 
 #if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
+#define QCC74x_GLB_CGEN0_BASE (0x40000000 + 0x20)
 #define QCC74x_GLB_CGEN1_BASE (0x40000000 + 0x24)
+#define QCC74x_GLB_CGEN2_BASE (0x40000000 + 0x28)
 #elif defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undef)
+#define QCC74x_GLB_CGEN0_BASE (0x20000000 + 0x580)
 #define QCC74x_GLB_CGEN1_BASE (0x20000000 + 0x584)
 #define QCC74x_GLB_CGEN2_BASE (0x20000000 + 0x588)
 #endif
@@ -272,6 +275,31 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/**
+ * @brief  enable/disable peri clock
+ *
+ * @param  peri: QCC74x_PERIPHERAL_xxx
+ * @param  enable: Boolean value to enable or disable the clock
+ * @return int
+ */
+int qcc74x_peripheral_clock_control(uint8_t peri, bool enable);
+
+/**
+ * @brief  get peri clock value
+ *
+ * @param  peri: QCC74x_PERIPHERAL_xxx
+ * @return int
+ */
+uint32_t qcc74x_peripheral_clock_get(uint8_t peri);
+
+/**
+ * @brief  get peri clock status
+ *
+ * @param  peri: QCC74x_PERIPHERAL_xxx
+ * @return int
+ */
+int qcc74x_peripheral_clock_status_get(uint8_t peri);
 
 /**
  * @brief Get system clock frequence

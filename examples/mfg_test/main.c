@@ -11,6 +11,9 @@
 #include "queue.h"
 #include "rfparam_adapter.h"
 #include "sdk_version.h"
+#if defined(CONFIG_MFG_USB_HOST_TEST)
+#include "usbh_core.h"
+#endif
 #if defined(MFG_QCC743)
 #include "qcc743_hbn.h"
 #include "qcc743_glb.h"
@@ -1376,10 +1379,11 @@ void main()
 #endif
 
 #if defined(MFG_GU)
-    GLB_Set_MCU_System_CLK_Div(3, 0);//320M clock div
-    *((volatile uint32_t*)0x20000580) = 1;
-    *((volatile uint32_t*)0x20000584) = (1<<17)|(1<<16)|(1<<11)|(1<<7);
-    *((volatile uint32_t*)0x20000588) = 1<<4;
+    GLB_Set_MCU_System_CLK_Div(3, 0); // 320M clock div
+    *((volatile uint32_t *)0x20000580) = 1;
+    *((volatile uint32_t *)0x20000584) = (1 << 17) | (1 << 16) | (1 << 11) | (1 << 7) | (1 << 13);
+    *((volatile uint32_t *)0x20000588) = (1 << 4);
+
 #endif
     CPU_Set_MTimer_CLK(1, QCC74x_MTIMER_SOURCE_CLOCK_MCU_XCLK, 39);
 

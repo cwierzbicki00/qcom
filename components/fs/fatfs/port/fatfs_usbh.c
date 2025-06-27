@@ -3,6 +3,8 @@
 #include "usbh_core.h"
 #include "usbh_msc.h"
 
+#include "qcc74x_l1c.h"
+
 struct usbh_msc *active_msc_class;
 
 int USB_disk_status(void)
@@ -12,9 +14,8 @@ int USB_disk_status(void)
 
 int USB_disk_initialize(void)
 {
-    active_msc_class = (struct usbh_msc *)usbh_find_class_instance("/dev/sda");
     if (active_msc_class == NULL) {
-        printf("do not find /dev/sda\r\n");
+        printf("Fatfs USBH MSC class is NULL!\r\n");
         return RES_NOTRDY;
     }
     return RES_OK;
@@ -22,12 +23,27 @@ int USB_disk_initialize(void)
 
 int USB_disk_read(BYTE *buff, LBA_t sector, UINT count)
 {
-    return usbh_msc_scsi_read10(active_msc_class, sector, buff, count);
+    qcc74x_l1c_dcache_clean_invalidate_range((uint8_t *)buff, 1);
+    qcc74x_l1c_dcache_clean_invalidate_range((uint8_t *)buff + active_msc_class->blocksize * count - 1, 1);
+
+    if (usbh_msc_scsi_read10(active_msc_class, sector, buff, count) < 0) {
+        return RES_ERROR;
+    }
+
+    qcc74x_l1c_dcache_clean_invalidate_range((uint8_t *)buff, active_msc_class->blocksize * count);
+
+    return RES_OK;
 }
 
 int USB_disk_write(const BYTE *buff, LBA_t sector, UINT count)
 {
-    return usbh_msc_scsi_write10(active_msc_class, sector, buff, count);
+    qcc74x_l1c_dcache_clean_invalidate_range((uint8_t *)buff, active_msc_class->blocksize * count);
+
+    if (usbh_msc_scsi_write10(active_msc_class, sector, buff, count) < 0) {
+        return RES_ERROR;
+    }
+
+    return RES_OK;
 }
 
 int USB_disk_ioctl(BYTE cmd, void *buff)
@@ -67,7 +83,7 @@ DSTATUS USB_Translate_Result_Code(int result)
     return result;
 }
 
-void fatfs_usbh_driver_register(void)
+void fatfs_usbh_driver_register(struct usbh_msc *msc_class)
 {
     FATFS_DiskioDriverTypeDef USBH_DiskioDriver = { NULL };
 
@@ -78,5 +94,6 @@ void fatfs_usbh_driver_register(void)
     USBH_DiskioDriver.disk_ioctl = USB_disk_ioctl;
     USBH_DiskioDriver.error_code_parsing = USB_Translate_Result_Code;
 
+    active_msc_class = msc_class;
     disk_driver_callback_init(DEV_USB, &USBH_DiskioDriver);
 }

@@ -34,8 +34,14 @@ sdk_library_add_sources(src/qcc743_mfg_flash.c)
 sdk_library_add_sources(src/qcc743_mfg_media.c)
 endif()
 
+if(CONFIG_XTAL_POWER_TYPE_ACTIVE)
+sdk_add_compile_definitions(-DCONFIG_XTAL_POWER_TYPE_ACTIVE)
+endif()
+
+
 sdk_library_add_sources(port/qcc743_gpio.c)
 sdk_library_add_sources(port/qcc743_clock.c)
+sdk_library_add_sources(port/qcc743_reset.c)
 
 sdk_add_include_directories(
 include

@@ -2520,6 +2520,11 @@ __UNUSED static const ATTR_TCM_CONST_SECTION flash_info_t flash_infos[] = {
         //.name="sk25e032_32_33",
         .cfg = &flash_cfg_puya_q80l_q80h_q16h,
     },
+    {
+        .jedec_id = 0x1460c4,
+        //.name="gt25q80_08_33",
+        .cfg = &flash_cfg_winb_16jv,
+    },
 #endif
     {
         .jedec_id = 0x176085,
@@ -2706,11 +2711,7 @@ __UNUSED static const ATTR_TCM_CONST_SECTION flash_info_t flash_infos[] = {
         //.name="gd_wq64e_64_1833",
         .cfg = &flash_cfg_gd_q32e_q128e,
     },
-    {
-        .jedec_id = 0x1460c4,
-        //.name="gt25q80_08_33",
-        .cfg = &flash_cfg_winb_16jv,
-    },
+
 };
 
 /*@} end of group SF_CFG_Private_Variables */
@@ -2982,6 +2983,7 @@ int ATTR_TCM_SECTION qcc74x_sf_cfg_deinit_ext_flash_gpio(uint8_t ext_flash_pin)
  *  @{
  */
 
+#if defined(QCC74x_undef) || defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undef)
 /****************************************************************************/ /**
  * @brief  Init flash GPIO according to flash Pin config
  *
@@ -2992,7 +2994,6 @@ int ATTR_TCM_SECTION qcc74x_sf_cfg_deinit_ext_flash_gpio(uint8_t ext_flash_pin)
  *
 *******************************************************************************/
 __WEAK
-#if defined(QCC74x_undef) || defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undef)
 int ATTR_TCM_SECTION qcc74x_sf_cfg_init_flash_gpio(uint8_t flash_pin_cfg, uint8_t restore_default)
 {
 #ifdef romapi_qcc74x_sf_cfg_init_flash_gpio
@@ -3049,6 +3050,16 @@ int ATTR_TCM_SECTION qcc74x_sf_cfg_init_flash_gpio(uint8_t flash_pin_cfg, uint8_
 #endif
 }
 #elif defined(QCC74x_undef) || defined(QCC74x_undef)
+/****************************************************************************/ /**
+ * @brief  Init flash GPIO according to flash Pin config
+ *
+ * @param  flash_pin_cfg: Specify flash Pin config
+ * @param  restore_default: Wether to restore default setting
+ *
+ * @return QCC74x_RET:0 means success and other value means error
+ *
+*******************************************************************************/
+__WEAK
 int ATTR_TCM_SECTION qcc74x_sf_cfg_init_flash_gpio(uint8_t flash_pin_cfg, uint8_t restore_default)
 {
     uint8_t sel_embedded = 0;

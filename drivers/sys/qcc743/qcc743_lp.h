@@ -43,7 +43,7 @@ extern int32_t (*shared_pds_default_level_config)(uint32_t*, uint32_t);
 
 #define BEACON_DATA_RATE          (iot2lp_para->beacon_leg_rate)
 
-// #define LPFW_WIFI_RX_BUFF         (iot2lp_para->wifi_rx_buff)
+#define LPFW_WIFI_RX_BUFF         (iot2lp_para->wifi_rx_buff)
 
 #define PDS_WAKEUP_MINI_LIMIT_US  (1220)
 #define PDS_WAKEUP_MINI_LIMIT_CNT (40)
@@ -218,6 +218,8 @@ typedef struct {
     int32_t last_beacon_delay_us; /* beacon delay */
     int32_t bcn_delay_offset;
 
+    uint32_t buf_addr;
+
     uint32_t continuous_loss_cnt;
     uint32_t continuous_loss_cnt_max;
     /* beacon loss ctrl */
@@ -263,11 +265,12 @@ typedef int (*qcc74x_lp_cb_t)(void *arg);
 #define LPFW_WAKEUP_UNKOWN    0
 #define LPFW_WAKEUP_TIME_OUT  (1 << 0)
 #define LPFW_WAKEUP_WIFI      (1 << 1)
-#define LPFW_WAKEUP_AP_LOSS   (1 << 2)
-#define LPFW_WAKEUP_IO        (1 << 3)
-#define LPFW_WAKEUP_ACOMP     (1 << 4)
-#define LPFW_WAKEUP_BLE       (1 << 5)
-#define LPFW_WAKEUP_LOSS_CFG_OVER   (1 << 6)
+#define LPFW_WAKEUP_WIFI_BROADCAST      (1 << 2)
+#define LPFW_WAKEUP_AP_LOSS   (1 << 3)
+#define LPFW_WAKEUP_IO        (1 << 4)
+#define LPFW_WAKEUP_ACOMP     (1 << 5)
+#define LPFW_WAKEUP_BLE       (1 << 6)
+#define LPFW_WAKEUP_LOSS_CFG_OVER   (1 << 7)
 
 /* beacon stamp valid type */
 #define BEACON_STAMP_LPFW     1
@@ -306,6 +309,8 @@ typedef struct {
     int32_t wakeup_reason;  /* Cause of wakeup */
     uint32_t lpfw_recv_cnt; /* count of loss packet during rtc_timeout_ms */
     uint32_t lpfw_loss_cnt; /* count of wakeup during rtc_timeout_ms */
+
+    uint32_t buf_addr;
 } qcc74x_lp_fw_cfg_t;
 
 extern qcc74x_lp_fw_cfg_t lpfw_cfg;

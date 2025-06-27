@@ -205,6 +205,70 @@ int qcc74x_sha1_update(struct qcc74x_device_s *dev, struct qcc74x_sha1_ctx_s *ct
 #endif
 }
 
+int qcc74x_sha1_once_padded(struct qcc74x_device_s *dev, const uint8_t *input, uint8_t *output, uint32_t nblock)
+{
+    uint32_t regval;
+    uint32_t reg_base;
+    uint32_t fill;
+    uint32_t left;
+    uint64_t start_time;
+
+    if (nblock == 0) {
+        return 0;
+    }
+
+    reg_base = dev->reg_base;
+
+    regval = getreg32(reg_base + SEC_ENG_SE_SHA_0_CTRL_OFFSET);
+    regval |= SEC_ENG_SE_SHA_0_EN;
+    regval &= ~SEC_ENG_SE_SHA_0_HASH_SEL;
+    //putreg32(regval, reg_base + SEC_ENG_SE_SHA_0_CTRL_OFFSET);
+
+    //regval = getreg32(reg_base + SEC_ENG_SE_SHA_0_CTRL_OFFSET);
+    putreg32((uint32_t)(uintptr_t)input, reg_base + SEC_ENG_SE_SHA_0_MSA_OFFSET);
+    regval &= ~SEC_ENG_SE_SHA_0_MSG_LEN_MASK;
+    regval |= (nblock << SEC_ENG_SE_SHA_0_MSG_LEN_SHIFT);
+    putreg32(regval, reg_base + SEC_ENG_SE_SHA_0_CTRL_OFFSET);
+
+    regval |= SEC_ENG_SE_SHA_0_TRIG_1T;
+    putreg32(regval, reg_base + SEC_ENG_SE_SHA_0_CTRL_OFFSET);
+
+    start_time = qcc74x_mtimer_get_time_ms();
+    while (getreg32(reg_base + SEC_ENG_SE_SHA_0_CTRL_OFFSET) & SEC_ENG_SE_SHA_0_BUSY) {
+        if ((qcc74x_mtimer_get_time_ms() - start_time) > 100) {
+            return -ETIMEDOUT;
+        }
+    }
+
+    regval = getreg32(reg_base + SEC_ENG_SE_SHA_0_HASH_L_0_OFFSET);
+    *output++ = (regval & 0xff);
+    *output++ = ((regval >> 8) & 0xff);
+    *output++ = ((regval >> 16) & 0xff);
+    *output++ = ((regval >> 24) & 0xff);
+    regval = getreg32(reg_base + SEC_ENG_SE_SHA_0_HASH_L_1_OFFSET);
+    *output++ = (regval & 0xff);
+    *output++ = ((regval >> 8) & 0xff);
+    *output++ = ((regval >> 16) & 0xff);
+    *output++ = ((regval >> 24) & 0xff);
+    regval = getreg32(reg_base + SEC_ENG_SE_SHA_0_HASH_L_2_OFFSET);
+    *output++ = (regval & 0xff);
+    *output++ = ((regval >> 8) & 0xff);
+    *output++ = ((regval >> 16) & 0xff);
+    *output++ = ((regval >> 24) & 0xff);
+    regval = getreg32(reg_base + SEC_ENG_SE_SHA_0_HASH_L_3_OFFSET);
+    *output++ = (regval & 0xff);
+    *output++ = ((regval >> 8) & 0xff);
+    *output++ = ((regval >> 16) & 0xff);
+    *output++ = ((regval >> 24) & 0xff);
+    regval = getreg32(reg_base + SEC_ENG_SE_SHA_0_HASH_L_4_OFFSET);
+    *output++ = (regval & 0xff);
+    *output++ = ((regval >> 8) & 0xff);
+    *output++ = ((regval >> 16) & 0xff);
+    *output++ = ((regval >> 24) & 0xff);
+
+    return 0;
+}
+
 int qcc74x_sha256_update(struct qcc74x_device_s *dev, struct qcc74x_sha256_ctx_s *ctx, const uint8_t *input, uint32_t len)
 {
 #ifdef romapi_qcc74x_sha256_update

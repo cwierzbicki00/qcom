@@ -9,6 +9,9 @@
 #include "qcc74x_mtimer.h"
 #include "wifi_mgmr_ext.h"
 #include "export/mac/mac_frame.h"
+#include "export/mac/mac_types.h"
+#include "export/common/co_list.h"
+#include "export/export_macsw.h"
 
 #define __MAYBE_UNUSED __attribute__((unused))
 void adhoc_rx_cb(struct qcc74x_frame_info *info, void *arg)
@@ -40,7 +43,8 @@ void adhoc_rx_cb(struct qcc74x_frame_info *info, void *arg)
 
 void adhoc_tx_cfm(void *env, uint32_t status)
 {
-    printf("tx status is %08lX\r\n", status);
+    struct mm_raw_send_start_req *req = (struct mm_raw_send_start_req *)env;
+    printf("tx status:%08lX, pkt addr: 0x%x acked: %s\r\n", status, req->pkt, (status & FRAME_SUCCESSFUL_TX_BIT) ? "Yes": "No");
     return;
 }
 
@@ -94,13 +98,11 @@ void cmd_wifi_adhoc_send(int argc, char **argv)
 
     wifi_mgmr_adhoc_pkt_params_t config;
     struct mac_addr ra = {{0x3333,0x3333,0x3333}};
-    struct mac_addr ta = {{0x5555,0x5555,0x5555}};
 
     memset(&config, 0, sizeof(config));
     config.eth_frame = packet_adhoc_test;
     config.len = sizeof(packet_adhoc_test);
     config.ra = &ra;
-    config.ta = &ta;
 
     for (int i = 0; i < 10; i++) {
         if (wifi_mgmr_adhoc_pkt_send(&config)) {

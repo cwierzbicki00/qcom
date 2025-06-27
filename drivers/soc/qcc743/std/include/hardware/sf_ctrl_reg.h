@@ -1715,7 +1715,6 @@
 #define SF_CTRL_SF_AES_R2_END_MSK                               (((1U<<SF_CTRL_SF_AES_R2_END_LEN)-1)<<SF_CTRL_SF_AES_R2_END_POS)
 #define SF_CTRL_SF_AES_R2_END_UMSK                              (~(((1U<<SF_CTRL_SF_AES_R2_END_LEN)-1)<<SF_CTRL_SF_AES_R2_END_POS))
 
-
 struct  sf_ctrl_reg {
     /* 0x0 : sf_ctrl_0 */
     union {
@@ -2760,7 +2759,6 @@ struct  sf_ctrl_reg {
 
 typedef volatile struct sf_ctrl_reg sf_ctrl_reg_t;
 
-
 /*Following is reg patch*/
 
 /* 0x0 : sf_if_sahb_0 */
@@ -2847,7 +2845,6 @@ typedef volatile struct sf_ctrl_reg sf_ctrl_reg_t;
 #define SF_CTRL_IF_0_CMD_BUF_1_MSK                              (((1U<<SF_CTRL_IF_0_CMD_BUF_1_LEN)-1)<<SF_CTRL_IF_0_CMD_BUF_1_POS)
 #define SF_CTRL_IF_0_CMD_BUF_1_UMSK                             (~(((1U<<SF_CTRL_IF_0_CMD_BUF_1_LEN)-1)<<SF_CTRL_IF_0_CMD_BUF_1_POS))
 
-
 struct  sf_if_sahb_0_reg {
     /* 0x0 : sf_if_sahb_0 */
     union {
@@ -2891,7 +2888,6 @@ typedef volatile struct sf_if_sahb_0_reg sf_if_sahb_0_reg_t;
 
 #define SF_CTRL_IF1_SAHB_OFFSET     0x8
 #define SF_CTRL_IF2_SAHB_OFFSET     0xC8
-
 
 /*Following is reg patch*/
 
@@ -3000,7 +2996,6 @@ typedef volatile struct sf_if_sahb_0_reg sf_if_sahb_0_reg_t;
 #define SF_CTRL_IO_3_DO_DLY_SEL_MSK                             (((1U<<SF_CTRL_IO_3_DO_DLY_SEL_LEN)-1)<<SF_CTRL_IO_3_DO_DLY_SEL_POS)
 #define SF_CTRL_IO_3_DO_DLY_SEL_UMSK                            (~(((1U<<SF_CTRL_IO_3_DO_DLY_SEL_LEN)-1)<<SF_CTRL_IO_3_DO_DLY_SEL_POS))
 
-
 struct  sf_if_io_dly_0_reg {
     /* 0x0 : if_io_dly_0 */
     union {
@@ -3076,7 +3071,6 @@ typedef volatile struct sf_if_io_dly_0_reg sf_if_io_dly_0_reg_t;
 #define SF_CTRL_IF_IO_DLY_1_OFFSET     0x30
 #define SF_CTRL_IF_IO_DLY_2_OFFSET     0x48
 #define SF_CTRL_IF_IO_DLY_3_OFFSET     0x5C
-
 
 /*Following is reg patch*/
 
@@ -3207,7 +3201,6 @@ typedef volatile struct sf_if_io_dly_0_reg sf_if_io_dly_0_reg_t;
 #define SF_CTRL_SF_AES_REGION_END_MSK                           (((1U<<SF_CTRL_SF_AES_REGION_END_LEN)-1)<<SF_CTRL_SF_AES_REGION_END_POS)
 #define SF_CTRL_SF_AES_REGION_END_UMSK                          (~(((1U<<SF_CTRL_SF_AES_REGION_END_LEN)-1)<<SF_CTRL_SF_AES_REGION_END_POS))
 
-
 struct  sf_ctrl_aes_region_reg {
     /* 0x0 : sf_aes_key_0 */
     union {
@@ -3331,6 +3324,5 @@ struct  sf_ctrl_aes_region_reg {
 typedef volatile struct sf_ctrl_aes_region_reg sf_ctrl_aes_region_reg_t;
 
 #define SF_CTRL_AES_REGION_OFFSET     0x200
-
 
 #endif  /* __SF_CTRL_REG_H__ */

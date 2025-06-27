@@ -4,9 +4,11 @@ include(proj.conf)
 
 find_package(qcc74x_sdk REQUIRED HINTS $ENV{QCC74x_SDK_BASE})
 
+if (CONFIG_USBH_MSC)
 target_sources(app PRIVATE
-                app_clock_manager.c
+    usbh_msc_fatfs.c
               )
+endif()
 
 sdk_add_include_directories(.)
 

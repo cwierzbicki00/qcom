@@ -52,16 +52,17 @@ endif
 RM = $(CMAKE) -E remove_directory
 
 CPU_ID ?=
-CONFIG_USB_HS ?=y
 CONFIG_ROMAPI ?=y
 CONFIG_DEBUG ?=y
 CONFIG_TLSF ?=y
 CONFIG_COREDUMP ?=y
 CONFIG_ANTI_ROLLBACK ?= n
 CONFIG_APP_ANTI_ROLLBACK_VER ?= 0
+CONFIG_XTAL_POWER_TYPE_ACTIVE ?= n
 COMX ?=COM5
 BAUDRATE ?=2000000
 BOARD_DIR ?=
+PROJECT_PARAM := $(if $(CONFIG_SW_IMAGE),_$(CONFIG_SW_IMAGE))
 
 #cmake definition config
 cmake_definition+= -DCROSS_COMPILE=${CROSS_COMPILE}
@@ -71,13 +72,14 @@ cmake_definition+= -DBOARD=$(BOARD)
 cmake_definition+= -DBOARD_DIR=$(BOARD_DIR)
 cmake_definition+= -DCONFIG_DEBUG=$(CONFIG_DEBUG)
 cmake_definition+= -DCONFIG_ROMAPI=$(CONFIG_ROMAPI)
-cmake_definition+= -DCONFIG_USB_HS=$(CONFIG_USB_HS)
 cmake_definition+= -DCONFIG_COMX=$(COMX)
 cmake_definition+= -DCMAKE_EXPORT_COMPILE_COMMANDS=OFF
 cmake_definition+= -DCONFIG_TLSF=$(CONFIG_TLSF)
 cmake_definition+= -DCONFIG_COREDUMP=$(CONFIG_COREDUMP)
 cmake_definition+= -DCONFIG_ANTI_ROLLBACK=$(CONFIG_ANTI_ROLLBACK)
 cmake_definition+= -DCONFIG_APP_ANTI_ROLLBACK_VER=$(CONFIG_APP_ANTI_ROLLBACK_VER)
+cmake_definition+= -DCONFIG_XTAL_POWER_TYPE_ACTIVE=$(CONFIG_XTAL_POWER_TYPE_ACTIVE)
+cmake_definition+= -DCONFIG_PROJECT_PARAM="${PROJECT_PARAM}"
 
 build:Makefile
 	$(CMAKE) -S . -B build -G $(cmake_generator) $(cmake_definition)

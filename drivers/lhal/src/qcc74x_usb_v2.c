@@ -12,39 +12,39 @@
 // #define CONFIG_USB_TRIPLE_ENABLE
 
 #if defined(QCC743)
-#define QCC74x_USB_BASE               ((uint32_t)0x20072000)
-#define QCC74x_PDS_BASE               ((uint32_t)0x2000E000)
-#define QCC74x_USB_IRQ_NUM            37
-#define PDS_USB_CTL_OFFSET          (0x500) /* usb_ctl */
-#define PDS_USB_PHY_CTRL_OFFSET     (0x504) /* usb_phy_ctrl */
+#define QCC74x_USB_BASE         ((uint32_t)0x20072000)
+#define QCC74x_PDS_BASE         ((uint32_t)0x2000E000)
+#define QCC74x_USB_IRQ_NUM      37
+#define PDS_USB_CTL_OFFSET      (0x500) /* usb_ctl */
+#define PDS_USB_PHY_CTRL_OFFSET (0x504) /* usb_phy_ctrl */
 #elif defined(QCC74x_undef)
-#define QCC74x_USB_BASE               ((uint32_t)0x20072000)
-#define QCC74x_PDS_BASE               ((uint32_t)0x2000E000)
-#define QCC74x_USB_IRQ_NUM            37
-#define PDS_USB_CTL_OFFSET          (0x500) /* usb_ctl */
-#define PDS_USB_PHY0_CTRL_OFFSET    (0x504) /* usb_phy0_ctrl */
-#define PDS_USB_PHY1_CTRL_OFFSET    (0x508) /* usb_phy1_ctrl */
-#define PDS_USB_PHY2_CTRL_OFFSET    (0x50C) /* usb_phy2_ctrl */
-#define PDS_USB_PHY3_CTRL_OFFSET    (0x510) /* usb_phy3_ctrl */
+#define QCC74x_USB_BASE          ((uint32_t)0x20072000)
+#define QCC74x_PDS_BASE          ((uint32_t)0x2000E000)
+#define QCC74x_USB_IRQ_NUM       37
+#define PDS_USB_CTL_OFFSET       (0x500) /* usb_ctl */
+#define PDS_USB_PHY0_CTRL_OFFSET (0x504) /* usb_phy0_ctrl */
+#define PDS_USB_PHY1_CTRL_OFFSET (0x508) /* usb_phy1_ctrl */
+#define PDS_USB_PHY2_CTRL_OFFSET (0x50C) /* usb_phy2_ctrl */
+#define PDS_USB_PHY3_CTRL_OFFSET (0x510) /* usb_phy3_ctrl */
 #elif defined(QCC74x_undef)
-#define QCC74x_USB_BASE               ((uint32_t)0x20087000)
-#define QCC74x_PDS_BASE               ((uint32_t)0x2008E000)
-#define QCC74x_USB_IRQ_NUM            19
-#define PDS_USB_CTL_OFFSET          (0x500) /* usb_ctl */
-#define PDS_USB_PHY0_CTRL_OFFSET    (0x504) /* usb_phy0_ctrl */
-#define PDS_USB_PHY1_CTRL_OFFSET    (0x508) /* usb_phy1_ctrl */
-#define PDS_USB_PHY2_CTRL_OFFSET    (0x50C) /* usb_phy2_ctrl */
-#define PDS_USB_PHY3_CTRL_OFFSET    (0x510) /* usb_phy3_ctrl */
+#define QCC74x_USB_BASE          ((uint32_t)0x20087000)
+#define QCC74x_PDS_BASE          ((uint32_t)0x2008E000)
+#define QCC74x_USB_IRQ_NUM       19
+#define PDS_USB_CTL_OFFSET       (0x500) /* usb_ctl */
+#define PDS_USB_PHY0_CTRL_OFFSET (0x504) /* usb_phy0_ctrl */
+#define PDS_USB_PHY1_CTRL_OFFSET (0x508) /* usb_phy1_ctrl */
+#define PDS_USB_PHY2_CTRL_OFFSET (0x50C) /* usb_phy2_ctrl */
+#define PDS_USB_PHY3_CTRL_OFFSET (0x510) /* usb_phy3_ctrl */
 #endif
 
 #if defined(QCC743)
 /* 0x500 : usb_ctl */
-#define PDS_REG_USB_SW_RST_N   (1 << 0U)
-#define PDS_REG_USB_EXT_SUSP_N (1 << 1U)
-#define PDS_REG_USB_WAKEUP     (1 << 2U)
-#define PDS_REG_USB_L1_WAKEUP  (1 << 3U)
-#define PDS_REG_USB_DRVBUS_POL (1 << 4U)
-#define PDS_REG_USB_IDDIG      (1 << 5U)
+#define PDS_REG_USB_SW_RST_N         (1 << 0U)
+#define PDS_REG_USB_EXT_SUSP_N       (1 << 1U)
+#define PDS_REG_USB_WAKEUP           (1 << 2U)
+#define PDS_REG_USB_L1_WAKEUP        (1 << 3U)
+#define PDS_REG_USB_DRVBUS_POL       (1 << 4U)
+#define PDS_REG_USB_IDDIG            (1 << 5U)
 
 /* 0x504 : usb_phy_ctrl */
 #define PDS_REG_USB_PHY_PONRST       (1 << 0U)
@@ -58,34 +58,37 @@
 
 #if defined(QCC74x_undef) || defined(QCC74x_undef)
 /* 0x500 : usb_ctl */
-#define PDS_REG_USB_SW_RST_N                (1 << 0U)
+#define PDS_REG_USB_SW_RST_N (1 << 0U)
 #if defined(QCC74x_undef)
-#define PDS_REG_USB_IDDIG                   (1 << 1U)
+#define PDS_REG_USB_IDDIG (1 << 1U)
 #endif
-#define PDS_REG_USB_L1_WAKEUP               (1 << 2U)
-#define PDS_REG_USB_WAKEUP                  (1 << 3U)
-#define PDS_REG_USB_VBUS_VALID_FORCE        (1 << 4U)
-#define PDS_REG_USB_VBUS_VALID_FROM_PHY     (1 << 5U)
-#define PDS_REG_USB_VBUS_VALID_FROM_GPIO    (1 << 6U)
-#define PDS_REG_USB_LP_MODE_UCLK_DISBALE    (1 << 7U)
-#define PDS_REG_USB_EXIT_SUSPEND_N          (1 << 8U)
+#define PDS_REG_USB_L1_WAKEUP            (1 << 2U)
+#define PDS_REG_USB_WAKEUP               (1 << 3U)
+#define PDS_REG_USB_VBUS_VALID_FORCE     (1 << 4U)
+#define PDS_REG_USB_VBUS_VALID_FROM_PHY  (1 << 5U)
+#define PDS_REG_USB_VBUS_VALID_FROM_GPIO (1 << 6U)
+#define PDS_REG_USB_LP_MODE_UCLK_DISABLE (1 << 7U)
+#define PDS_REG_USB_EXIT_SUSPEND_N       (1 << 8U)
 #if defined(QCC74x_undef)
-#define PDS_REG_USB_IDDIG                   (1 << 16U)
+#define PDS_REG_USB_IDDIG (1 << 16U)
 #endif
-#define PDS_REG_PU_USB20_PSW                (1 << 31U)
+#define PDS_REG_PU_USB20_PSW              (1 << 31U)
 /* 0x508 : usb_phy1_ctrl */
-#define PDS_REG_USB_PHY_SUSPENDM0_USE_REG   (1 << 0U)
-#define PDS_REG_USB_PHY_SIDDQ               (1 << 28U)
+#define PDS_REG_USB_PHY_SUSPENDM0_USE_REG (1 << 0U)
+#define PDS_REG_USB_PHY_SIDDQ             (1 << 28U)
 /* 0x510 : usb_phy3_ctrl */
-#define PDS_REG_USB_PHY_POR                 (1 << 31U)
+#define PDS_REG_USB_PHY_POR               (1 << 31U)
 #endif
 
 #define USB_SOF_TIMER_MASK_AFTER_RESET_HS (0x44C)
 #define USB_SOF_TIMER_MASK_AFTER_RESET_FS (0x2710)
 
-void USBD_IRQHandler(int irq, void *arg);
+extern void USBD_IRQHandler(uint8_t busid);
 
-extern void USBH_IRQHandler();
+void USBD_IRQ(int irq, void *arg)
+{
+    USBD_IRQHandler(0);
+}
 
 static void qcc74x_usb_phy_init(void)
 {
@@ -164,6 +167,13 @@ static void qcc74x_usb_phy_init(void)
 
     qcc74x_mtimer_delay_us(50);
 
+    qcc74x_mtimer_delay_us(50);
+
+    /* reset usb macro */
+    regval = getreg32(QCC74x_PDS_BASE + PDS_USB_PHY2_CTRL_OFFSET);
+    regval |= (1 << 18);
+    putreg32(regval, QCC74x_PDS_BASE + PDS_USB_PHY2_CTRL_OFFSET);
+
     /* reset usb macro */
     regval = getreg32(QCC74x_PDS_BASE + PDS_USB_PHY3_CTRL_OFFSET);
     regval |= PDS_REG_USB_PHY_POR;
@@ -176,19 +186,34 @@ static void qcc74x_usb_phy_init(void)
     putreg32(regval, QCC74x_PDS_BASE + PDS_USB_PHY3_CTRL_OFFSET);
 
     qcc74x_mtimer_delay_us(50);
+
+    /* SW force mode to assert VBUS valid signal */
+    regval = getreg32(QCC74x_PDS_BASE + PDS_USB_CTL_OFFSET);
+    regval &= ~PDS_REG_USB_VBUS_VALID_FROM_PHY;
+    regval &= ~PDS_REG_USB_VBUS_VALID_FROM_GPIO;
+    regval |= PDS_REG_USB_VBUS_VALID_FORCE;
+    putreg32(regval, QCC74x_PDS_BASE + PDS_USB_CTL_OFFSET);
+
 #endif
 }
 
-void usb_hc_low_level_init(void)
+extern void USBH_IRQHandler(uint8_t busid);
+
+void USBH_IRQ(int irq, void *arg)
+{
+    USBH_IRQHandler(0);
+}
+
+void usb_hc_low_level_init(uint8_t busid)
 {
     uint32_t regval;
 
     qcc74x_usb_phy_init();
 
-    qcc74x_irq_attach(QCC74x_USB_IRQ_NUM, USBH_IRQHandler, NULL);
+    qcc74x_irq_attach(QCC74x_USB_IRQ_NUM, USBH_IRQ, NULL);
     qcc74x_irq_enable(QCC74x_USB_IRQ_NUM);
 
-#if defined(QCC743) || defined(QCC74x_undef)
+#if defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undef)
     /* enable device-A for host */
     regval = getreg32(QCC74x_PDS_BASE + PDS_USB_CTL_OFFSET);
     regval &= ~PDS_REG_USB_IDDIG;
@@ -215,6 +240,10 @@ void usb_hc_low_level_init(void)
     putreg32(regval, QCC74x_USB_BASE + USB_GLB_INT_OFFSET);
 }
 
+void usb_hc_low_level_deinit(uint8_t busid)
+{
+}
+
 uint8_t usbh_get_port_speed(const uint8_t port)
 {
     uint8_t speed = 3;
@@ -231,34 +260,34 @@ uint8_t usbh_get_port_speed(const uint8_t port)
     return USB_SPEED_HIGH;
 }
 
-#define USB_FIFO_F0  0
-#define USB_FIFO_F1  1
-#define USB_FIFO_F2  2
-#define USB_FIFO_F3  3
+#define USB_FIFO_F0 0
+#define USB_FIFO_F1 1
+#define USB_FIFO_F2 2
+#define USB_FIFO_F3 3
 #if defined(QCC74x_undef) || defined(QCC74x_undef)
-#define USB_FIFO_F4  4
-#define USB_FIFO_F5  5
-#define USB_FIFO_F6  6
-#define USB_FIFO_F7  7
+#define USB_FIFO_F4 4
+#define USB_FIFO_F5 5
+#define USB_FIFO_F6 6
+#define USB_FIFO_F7 7
 #endif
-#define USB_FIFO_CXF 0xff
+#define USB_FIFO_CXF          0xff
 
-#define USB_FIFO_DIR_OUT 0
-#define USB_FIFO_DIR_IN  1
-#define USB_FIFO_DIR_BID 2
+#define USB_FIFO_DIR_OUT      0
+#define USB_FIFO_DIR_IN       1
+#define USB_FIFO_DIR_BID      2
 
 #define USB_VDMA_DIR_FIFO2MEM 0
 #define USB_VDMA_DIR_MEM2FIFO 1
 
 #if defined(QCC743)
-#define USB_MAX_EP_WITH_EP0      5
-#define USB_MAX_EP_EXCLUDE_EP0   4
-#define USB_NUM_BIDIR_ENDPOINTS  5
+#define USB_MAX_EP_WITH_EP0     5
+#define USB_MAX_EP_EXCLUDE_EP0  4
+#define USB_NUM_BIDIR_ENDPOINTS 5
 #endif
 #if defined(QCC74x_undef) || defined(QCC74x_undef)
-#define USB_MAX_EP_WITH_EP0      9
-#define USB_MAX_EP_EXCLUDE_EP0   8
-#define USB_NUM_BIDIR_ENDPOINTS  9
+#define USB_MAX_EP_WITH_EP0     9
+#define USB_MAX_EP_EXCLUDE_EP0  8
+#define USB_NUM_BIDIR_ENDPOINTS 9
 #endif
 
 /* Endpoint state */
@@ -278,7 +307,7 @@ struct qcc74x_udc {
     struct qcc74x_ep_state out_ep[USB_NUM_BIDIR_ENDPOINTS]; /*!< OUT endpoint parameters            */
 } g_qcc74x_udc;
 
-USB_NOCACHE_RAM_SECTION USB_MEM_ALIGNX uint8_t g_setup_buffer[8];
+static USB_NOCACHE_RAM_SECTION USB_MEM_ALIGNX uint8_t g_setup_buffer[8];
 
 static void qcc74x_usb_reset_fifo(uint8_t fifo)
 {
@@ -372,17 +401,17 @@ int qcc74x_usb_get_inep_mps(uint8_t ep_idx)
     uint32_t regval;
 
     regval = getreg32(QCC74x_USB_BASE + USB_DEV_INMPS1_OFFSET + (ep_idx - 1) * 4);
-    
-    return regval &=USB_MAXPS_IEP1_MASK;
+
+    return regval &= USB_MAXPS_IEP1_MASK;
 }
 
 int qcc74x_usb_get_outep_mps(uint8_t ep_idx)
 {
     uint32_t regval;
 
-    regval = getreg32(QCC74x_USB_BASE + USB_DEV_OUTMPS1_OFFSET + (ep_idx - 1) * 4);    
-    
-    return regval &=USB_MAXPS_OEP1_MASK;
+    regval = getreg32(QCC74x_USB_BASE + USB_DEV_OUTMPS1_OFFSET + (ep_idx - 1) * 4);
+
+    return regval &= USB_MAXPS_OEP1_MASK;
 }
 
 static void qcc74x_usb_set_inep_mps(uint8_t ep_idx, uint16_t ep_mps)
@@ -662,15 +691,22 @@ static uint8_t usb_get_transfer_fifo(uint8_t ep_idx)
     return target_fifo_id;
 }
 
-int usb_dc_init(void)
+int usb_dc_init(uint8_t busid)
 {
     uint32_t regval;
 
     qcc74x_usb_phy_init();
 
 #ifndef NOT_USE_QCC74x_LHAL_IRQ_ATTACH
-    qcc74x_irq_attach(QCC74x_USB_IRQ_NUM, USBD_IRQHandler, NULL);
+    qcc74x_irq_attach(QCC74x_USB_IRQ_NUM, USBD_IRQ, NULL);
     qcc74x_irq_enable(QCC74x_USB_IRQ_NUM);
+#endif
+
+#if defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undef)
+    /* disable device-A for host */
+    regval = getreg32(QCC74x_PDS_BASE + PDS_USB_CTL_OFFSET);
+    regval |= PDS_REG_USB_IDDIG;
+    putreg32(regval, QCC74x_PDS_BASE + PDS_USB_CTL_OFFSET);
 #endif
 
     /* disable global irq */
@@ -804,7 +840,7 @@ int usb_dc_init(void)
     return 0;
 }
 
-int usb_dc_deinit(void)
+int usb_dc_deinit(uint8_t busid)
 {
 #if defined(QCC743)
     uint32_t regval;
@@ -838,7 +874,7 @@ int usb_dc_deinit(void)
     return 0;
 }
 
-int usbd_set_address(const uint8_t addr)
+int usbd_set_address(uint8_t busid, const uint8_t addr)
 {
     uint32_t regval;
 
@@ -850,7 +886,24 @@ int usbd_set_address(const uint8_t addr)
     return 0;
 }
 
-uint8_t usbd_get_port_speed(const uint8_t port)
+int usbd_set_remote_wakeup(uint8_t busid)
+{
+    uint32_t regval;
+
+    regval = getreg32(QCC74x_USB_BASE + USB_DEV_CTL_OFFSET);
+    regval |= USB_CAP_RMWAKUP;
+    putreg32(regval, QCC74x_USB_BASE + USB_DEV_CTL_OFFSET);
+
+    qcc74x_mtimer_delay_ms(10);
+
+    regval = getreg32(QCC74x_USB_BASE + USB_DEV_CTL_OFFSET);
+    regval &= ~USB_CAP_RMWAKUP;
+    putreg32(regval, QCC74x_USB_BASE + USB_DEV_CTL_OFFSET);
+
+    return 0;
+}
+
+uint8_t usbd_get_port_speed(uint8_t busid)
 {
     uint8_t speed = 3;
 
@@ -866,14 +919,14 @@ uint8_t usbd_get_port_speed(const uint8_t port)
     return USB_SPEED_HIGH;
 }
 
-int usbd_ep_open(const struct usbd_endpoint_cfg *ep_cfg)
+int usbd_ep_open(uint8_t busid, const struct usb_endpoint_descriptor *ep)
 {
-    uint8_t ep;
+    uint8_t ep_addr;
     uint32_t regval;
 
-    ep = ep_cfg->ep_addr;
+    ep_addr = ep->bEndpointAddress;
 
-    uint8_t ep_idx = USB_EP_GET_IDX(ep);
+    uint8_t ep_idx = USB_EP_GET_IDX(ep_addr);
 
 #if defined(QCC743)
     if ((ep_idx > 4) && (ep_idx < 9)) {
@@ -885,22 +938,22 @@ int usbd_ep_open(const struct usbd_endpoint_cfg *ep_cfg)
     }
 #endif
 
-    if (USB_EP_DIR_IS_OUT(ep)) {
-        g_qcc74x_udc.out_ep[ep_idx].ep_mps = ep_cfg->ep_mps;
-        g_qcc74x_udc.out_ep[ep_idx].ep_type = ep_cfg->ep_type;
+    if (USB_EP_DIR_IS_OUT(ep_addr)) {
+        g_qcc74x_udc.out_ep[ep_idx].ep_mps = USB_GET_MAXPACKETSIZE(ep->wMaxPacketSize);
+        g_qcc74x_udc.out_ep[ep_idx].ep_type = USB_GET_ENDPOINT_TYPE(ep->bmAttributes);
         g_qcc74x_udc.out_ep[ep_idx].ep_enable = 1U;
-        qcc74x_usb_set_outep_mps(ep_idx, ep_cfg->ep_mps);
+        qcc74x_usb_set_outep_mps(ep_idx, USB_GET_MAXPACKETSIZE(ep->wMaxPacketSize));
     } else {
-        g_qcc74x_udc.in_ep[ep_idx].ep_mps = ep_cfg->ep_mps;
-        g_qcc74x_udc.in_ep[ep_idx].ep_type = ep_cfg->ep_type;
+        g_qcc74x_udc.in_ep[ep_idx].ep_mps = USB_GET_MAXPACKETSIZE(ep->wMaxPacketSize);
+        g_qcc74x_udc.in_ep[ep_idx].ep_type = USB_GET_ENDPOINT_TYPE(ep->bmAttributes);
         g_qcc74x_udc.in_ep[ep_idx].ep_enable = 1U;
-        qcc74x_usb_set_inep_mps(ep_idx, ep_cfg->ep_mps);
+        qcc74x_usb_set_inep_mps(ep_idx, USB_GET_MAXPACKETSIZE(ep->wMaxPacketSize));
         qcc74x_usb_set_mult(ep_idx, 0);
     }
 
     if (ep_idx != 0) {
 #if !defined(CONFIG_USB_PINGPONG_ENABLE) && !defined(CONFIG_USB_TRIPLE_ENABLE)
-        if (ep_cfg->ep_mps > 512) {
+        if (USB_GET_MAXPACKETSIZE(ep->wMaxPacketSize) > 512) {
             qcc74x_usb_set_ep_fifomap(1, USB_FIFO_F0);
             qcc74x_usb_set_ep_fifomap(2, USB_FIFO_F2);
 #if defined(QCC74x_undef) || defined(QCC74x_undef)
@@ -919,18 +972,18 @@ int usbd_ep_open(const struct usbd_endpoint_cfg *ep_cfg)
             qcc74x_usb_set_fifo_epmap(USB_FIFO_F7, 4, USB_FIFO_DIR_BID);
 #endif
             if (ep_idx == 1) {
-                qcc74x_usb_fifo_config(USB_FIFO_F0, ep_cfg->ep_type, 1024, 1, true);
-                qcc74x_usb_fifo_config(USB_FIFO_F1, ep_cfg->ep_type, 1024, 1, false);
+                qcc74x_usb_fifo_config(USB_FIFO_F0, USB_GET_ENDPOINT_TYPE(ep->bmAttributes), 1024, 1, true);
+                qcc74x_usb_fifo_config(USB_FIFO_F1, USB_GET_ENDPOINT_TYPE(ep->bmAttributes), 1024, 1, false);
             } else if (ep_idx == 2) {
-                qcc74x_usb_fifo_config(USB_FIFO_F2, ep_cfg->ep_type, 1024, 1, true);
-                qcc74x_usb_fifo_config(USB_FIFO_F3, ep_cfg->ep_type, 1024, 1, false);
+                qcc74x_usb_fifo_config(USB_FIFO_F2, USB_GET_ENDPOINT_TYPE(ep->bmAttributes), 1024, 1, true);
+                qcc74x_usb_fifo_config(USB_FIFO_F3, USB_GET_ENDPOINT_TYPE(ep->bmAttributes), 1024, 1, false);
 #if defined(QCC74x_undef) || defined(QCC74x_undef)
             } else if (ep_idx == 3) {
-                qcc74x_usb_fifo_config(USB_FIFO_F4, ep_cfg->ep_type, 1024, 1, true);
-                qcc74x_usb_fifo_config(USB_FIFO_F5, ep_cfg->ep_type, 1024, 1, false);
+                qcc74x_usb_fifo_config(USB_FIFO_F4, USB_GET_ENDPOINT_TYPE(ep->bmAttributes), 1024, 1, true);
+                qcc74x_usb_fifo_config(USB_FIFO_F5, USB_GET_ENDPOINT_TYPE(ep->bmAttributes), 1024, 1, false);
             } else if (ep_idx == 4) {
-                qcc74x_usb_fifo_config(USB_FIFO_F6, ep_cfg->ep_type, 1024, 1, true);
-                qcc74x_usb_fifo_config(USB_FIFO_F7, ep_cfg->ep_type, 1024, 1, false);
+                qcc74x_usb_fifo_config(USB_FIFO_F6, USB_GET_ENDPOINT_TYPE(ep->bmAttributes), 1024, 1, true);
+                qcc74x_usb_fifo_config(USB_FIFO_F7, USB_GET_ENDPOINT_TYPE(ep->bmAttributes), 1024, 1, false);
 #endif
             } else {
                 return -1;
@@ -958,29 +1011,29 @@ int usbd_ep_open(const struct usbd_endpoint_cfg *ep_cfg)
             qcc74x_usb_set_fifo_epmap(USB_FIFO_F7, 8, USB_FIFO_DIR_BID);
 #endif
             if (ep_idx == 1) {
-                qcc74x_usb_fifo_config(USB_FIFO_F0, ep_cfg->ep_type, 512, 1, true);
+                qcc74x_usb_fifo_config(USB_FIFO_F0, USB_GET_ENDPOINT_TYPE(ep->bmAttributes), 512, 1, true);
             } else if (ep_idx == 2) {
-                qcc74x_usb_fifo_config(USB_FIFO_F1, ep_cfg->ep_type, 512, 1, true);
+                qcc74x_usb_fifo_config(USB_FIFO_F1, USB_GET_ENDPOINT_TYPE(ep->bmAttributes), 512, 1, true);
             } else if (ep_idx == 3) {
-                qcc74x_usb_fifo_config(USB_FIFO_F2, ep_cfg->ep_type, 512, 1, true);
+                qcc74x_usb_fifo_config(USB_FIFO_F2, USB_GET_ENDPOINT_TYPE(ep->bmAttributes), 512, 1, true);
             } else if (ep_idx == 4) {
-                qcc74x_usb_fifo_config(USB_FIFO_F3, ep_cfg->ep_type, 512, 1, true);
+                qcc74x_usb_fifo_config(USB_FIFO_F3, USB_GET_ENDPOINT_TYPE(ep->bmAttributes), 512, 1, true);
 #if defined(QCC74x_undef) || defined(QCC74x_undef)
             } else if (ep_idx == 5) {
-                qcc74x_usb_fifo_config(USB_FIFO_F4, ep_cfg->ep_type, 512, 1, true);
+                qcc74x_usb_fifo_config(USB_FIFO_F4, USB_GET_ENDPOINT_TYPE(ep->bmAttributes), 512, 1, true);
             } else if (ep_idx == 6) {
-                qcc74x_usb_fifo_config(USB_FIFO_F5, ep_cfg->ep_type, 512, 1, true);
+                qcc74x_usb_fifo_config(USB_FIFO_F5, USB_GET_ENDPOINT_TYPE(ep->bmAttributes), 512, 1, true);
             } else if (ep_idx == 7) {
-                qcc74x_usb_fifo_config(USB_FIFO_F6, ep_cfg->ep_type, 512, 1, true);
+                qcc74x_usb_fifo_config(USB_FIFO_F6, USB_GET_ENDPOINT_TYPE(ep->bmAttributes), 512, 1, true);
             } else if (ep_idx == 8) {
-                qcc74x_usb_fifo_config(USB_FIFO_F7, ep_cfg->ep_type, 512, 1, true);
+                qcc74x_usb_fifo_config(USB_FIFO_F7, USB_GET_ENDPOINT_TYPE(ep->bmAttributes), 512, 1, true);
 #endif
             } else {
                 return -1;
             }
         }
 #elif defined(CONFIG_USB_PINGPONG_ENABLE)
-        if (ep_cfg->ep_mps > 512) {
+        if (USB_GET_MAXPACKETSIZE(ep->wMaxPacketSize) > 512) {
             qcc74x_usb_set_ep_fifomap(1, USB_FIFO_F0);
 
             qcc74x_usb_set_fifo_epmap(USB_FIFO_F0, 1, USB_FIFO_DIR_BID);
@@ -994,16 +1047,16 @@ int usbd_ep_open(const struct usbd_endpoint_cfg *ep_cfg)
             qcc74x_usb_set_fifo_epmap(USB_FIFO_F7, 2, USB_FIFO_DIR_BID);
 #endif
             if (ep_idx == 1) {
-                qcc74x_usb_fifo_config(USB_FIFO_F0, ep_cfg->ep_type, 1024, 2, true);
-                qcc74x_usb_fifo_config(USB_FIFO_F1, ep_cfg->ep_type, 1024, 2, false);
-                qcc74x_usb_fifo_config(USB_FIFO_F2, ep_cfg->ep_type, 1024, 2, false);
-                qcc74x_usb_fifo_config(USB_FIFO_F3, ep_cfg->ep_type, 1024, 2, false);
+                qcc74x_usb_fifo_config(USB_FIFO_F0, USB_GET_ENDPOINT_TYPE(ep->bmAttributes), 1024, 2, true);
+                qcc74x_usb_fifo_config(USB_FIFO_F1, USB_GET_ENDPOINT_TYPE(ep->bmAttributes), 1024, 2, false);
+                qcc74x_usb_fifo_config(USB_FIFO_F2, USB_GET_ENDPOINT_TYPE(ep->bmAttributes), 1024, 2, false);
+                qcc74x_usb_fifo_config(USB_FIFO_F3, USB_GET_ENDPOINT_TYPE(ep->bmAttributes), 1024, 2, false);
 #if defined(QCC74x_undef) || defined(QCC74x_undef)
             } else if (ep_idx == 2) {
-                qcc74x_usb_fifo_config(USB_FIFO_F4, ep_cfg->ep_type, 1024, 2, true);
-                qcc74x_usb_fifo_config(USB_FIFO_F5, ep_cfg->ep_type, 1024, 2, false);
-                qcc74x_usb_fifo_config(USB_FIFO_F6, ep_cfg->ep_type, 1024, 2, false);
-                qcc74x_usb_fifo_config(USB_FIFO_F7, ep_cfg->ep_type, 1024, 2, false);
+                qcc74x_usb_fifo_config(USB_FIFO_F4, USB_GET_ENDPOINT_TYPE(ep->bmAttributes), 1024, 2, true);
+                qcc74x_usb_fifo_config(USB_FIFO_F5, USB_GET_ENDPOINT_TYPE(ep->bmAttributes), 1024, 2, false);
+                qcc74x_usb_fifo_config(USB_FIFO_F6, USB_GET_ENDPOINT_TYPE(ep->bmAttributes), 1024, 2, false);
+                qcc74x_usb_fifo_config(USB_FIFO_F7, USB_GET_ENDPOINT_TYPE(ep->bmAttributes), 1024, 2, false);
 #endif
             } else {
                 return -1;
@@ -1026,25 +1079,25 @@ int usbd_ep_open(const struct usbd_endpoint_cfg *ep_cfg)
             qcc74x_usb_set_fifo_epmap(USB_FIFO_F7, 4, USB_FIFO_DIR_BID);
 #endif
             if (ep_idx == 1) {
-                qcc74x_usb_fifo_config(USB_FIFO_F0, ep_cfg->ep_type, 512, 2, true);
-                qcc74x_usb_fifo_config(USB_FIFO_F1, ep_cfg->ep_type, 512, 2, false);
+                qcc74x_usb_fifo_config(USB_FIFO_F0, USB_GET_ENDPOINT_TYPE(ep->bmAttributes), 512, 2, true);
+                qcc74x_usb_fifo_config(USB_FIFO_F1, USB_GET_ENDPOINT_TYPE(ep->bmAttributes), 512, 2, false);
             } else if (ep_idx == 2) {
-                qcc74x_usb_fifo_config(USB_FIFO_F2, ep_cfg->ep_type, 512, 2, true);
-                qcc74x_usb_fifo_config(USB_FIFO_F3, ep_cfg->ep_type, 512, 2, false);
+                qcc74x_usb_fifo_config(USB_FIFO_F2, USB_GET_ENDPOINT_TYPE(ep->bmAttributes), 512, 2, true);
+                qcc74x_usb_fifo_config(USB_FIFO_F3, USB_GET_ENDPOINT_TYPE(ep->bmAttributes), 512, 2, false);
 #if defined(QCC74x_undef) || defined(QCC74x_undef)
             } else if (ep_idx == 3) {
-                qcc74x_usb_fifo_config(USB_FIFO_F4, ep_cfg->ep_type, 512, 2, true);
-                qcc74x_usb_fifo_config(USB_FIFO_F5, ep_cfg->ep_type, 512, 2, false);
+                qcc74x_usb_fifo_config(USB_FIFO_F4, USB_GET_ENDPOINT_TYPE(ep->bmAttributes), 512, 2, true);
+                qcc74x_usb_fifo_config(USB_FIFO_F5, USB_GET_ENDPOINT_TYPE(ep->bmAttributes), 512, 2, false);
             } else if (ep_idx == 4) {
-                qcc74x_usb_fifo_config(USB_FIFO_F6, ep_cfg->ep_type, 512, 2, true);
-                qcc74x_usb_fifo_config(USB_FIFO_F7, ep_cfg->ep_type, 512, 2, false);
+                qcc74x_usb_fifo_config(USB_FIFO_F6, USB_GET_ENDPOINT_TYPE(ep->bmAttributes), 512, 2, true);
+                qcc74x_usb_fifo_config(USB_FIFO_F7, USB_GET_ENDPOINT_TYPE(ep->bmAttributes), 512, 2, false);
 #endif
             } else {
                 return -1;
             }
         }
 #elif defined(CONFIG_USB_TRIPLE_ENABLE)
-        if (ep_cfg->ep_mps > 512) {
+        if (USB_GET_MAXPACKETSIZE(ep->wMaxPacketSize) > 512) {
             return -1;
         } else {
             qcc74x_usb_set_ep_fifomap(1, USB_FIFO_F0);
@@ -1058,13 +1111,13 @@ int usbd_ep_open(const struct usbd_endpoint_cfg *ep_cfg)
             qcc74x_usb_set_fifo_epmap(USB_FIFO_F5, 2, USB_FIFO_DIR_BID);
 
             if (ep_idx == 1) {
-                qcc74x_usb_fifo_config(USB_FIFO_F0, ep_cfg->ep_type, 512, 3, true);
-                qcc74x_usb_fifo_config(USB_FIFO_F1, ep_cfg->ep_type, 512, 3, false);
-                qcc74x_usb_fifo_config(USB_FIFO_F2, ep_cfg->ep_type, 512, 3, false);
+                qcc74x_usb_fifo_config(USB_FIFO_F0, USB_GET_ENDPOINT_TYPE(ep->bmAttributes), 512, 3, true);
+                qcc74x_usb_fifo_config(USB_FIFO_F1, USB_GET_ENDPOINT_TYPE(ep->bmAttributes), 512, 3, false);
+                qcc74x_usb_fifo_config(USB_FIFO_F2, USB_GET_ENDPOINT_TYPE(ep->bmAttributes), 512, 3, false);
             } else if (ep_idx == 2) {
-                qcc74x_usb_fifo_config(USB_FIFO_F3, ep_cfg->ep_type, 512, 3, true);
-                qcc74x_usb_fifo_config(USB_FIFO_F4, ep_cfg->ep_type, 512, 3, true);
-                qcc74x_usb_fifo_config(USB_FIFO_F5, ep_cfg->ep_type, 512, 3, true);
+                qcc74x_usb_fifo_config(USB_FIFO_F3, USB_GET_ENDPOINT_TYPE(ep->bmAttributes), 512, 3, true);
+                qcc74x_usb_fifo_config(USB_FIFO_F4, USB_GET_ENDPOINT_TYPE(ep->bmAttributes), 512, 3, true);
+                qcc74x_usb_fifo_config(USB_FIFO_F5, USB_GET_ENDPOINT_TYPE(ep->bmAttributes), 512, 3, true);
             } else {
                 return -1;
             }
@@ -1077,12 +1130,12 @@ int usbd_ep_open(const struct usbd_endpoint_cfg *ep_cfg)
     return 0;
 }
 
-int usbd_ep_close(const uint8_t ep)
+int usbd_ep_close(uint8_t busid, const uint8_t ep)
 {
     return 0;
 }
 
-int usbd_ep_set_stall(const uint8_t ep)
+int usbd_ep_set_stall(uint8_t busid, const uint8_t ep)
 {
     uint32_t regval;
 
@@ -1109,7 +1162,7 @@ int usbd_ep_set_stall(const uint8_t ep)
     return 0;
 }
 
-int usbd_ep_clear_stall(const uint8_t ep)
+int usbd_ep_clear_stall(uint8_t busid, const uint8_t ep)
 {
     uint32_t regval;
 
@@ -1133,12 +1186,35 @@ int usbd_ep_clear_stall(const uint8_t ep)
     return 0;
 }
 
-int usbd_ep_is_stalled(const uint8_t ep, uint8_t *stalled)
+int usbd_ep_is_stalled(uint8_t busid, const uint8_t ep, uint8_t *stalled)
 {
+    uint32_t regval;
+
+    uint8_t ep_idx = USB_EP_GET_IDX(ep);
+
+    if (ep_idx == 0) {
+    } else {
+        if (USB_EP_DIR_IS_OUT(ep)) {
+            regval = getreg32(QCC74x_USB_BASE + USB_DEV_OUTMPS1_OFFSET + (ep_idx - 1) * 4);
+            if (regval & USB_STL_OEP1) {
+                *stalled = 1;
+            } else {
+                *stalled = 0;
+            }
+        } else {
+            regval = getreg32(QCC74x_USB_BASE + USB_DEV_INMPS1_OFFSET + (ep_idx - 1) * 4);
+            if (regval & USB_STL_IEP1) {
+                *stalled = 1;
+            } else {
+                *stalled = 0;
+            }
+        }
+    }
+
     return 0;
 }
 
-int usbd_ep_start_write(const uint8_t ep, const uint8_t *data, uint32_t data_len)
+int usbd_ep_start_write(uint8_t busid, const uint8_t ep, const uint8_t *data, uint32_t data_len)
 {
     uint8_t ep_idx = USB_EP_GET_IDX(ep);
 
@@ -1160,12 +1236,8 @@ int usbd_ep_start_write(const uint8_t ep, const uint8_t *data, uint32_t data_len
             g_qcc74x_udc.in_ep[ep_idx].ep_active = false;
             qcc74x_usb_control_transfer_done();
         } else {
-#ifndef NOT_USE_QCC74x_LHAL_USB_EP0_SETUP_FLOW
-            /* cherry usb stack control setup packet length,
-               but others will send long packet */
             data_len = MIN(data_len, g_qcc74x_udc.in_ep[ep_idx].ep_mps);
             g_qcc74x_udc.in_ep[ep_idx].xfer_len = data_len;
-#endif
             qcc74x_usb_vdma_start_write(USB_FIFO_CXF, data, data_len);
         }
     } else {
@@ -1179,7 +1251,7 @@ int usbd_ep_start_write(const uint8_t ep, const uint8_t *data, uint32_t data_len
     return 0;
 }
 
-int usbd_ep_start_read(const uint8_t ep, uint8_t *data, uint32_t data_len)
+int usbd_ep_start_read(uint8_t busid, const uint8_t ep, uint8_t *data, uint32_t data_len)
 {
     uint8_t ep_idx = USB_EP_GET_IDX(ep);
 
@@ -1210,7 +1282,7 @@ int usbd_ep_start_read(const uint8_t ep, uint8_t *data, uint32_t data_len)
     return 0;
 }
 
-void USBD_IRQHandler(int irq, void *arg)
+void USBD_IRQHandler(uint8_t busid)
 {
     uint32_t glb_intstatus;
     uint32_t dev_intstatus;
@@ -1232,7 +1304,7 @@ void USBD_IRQHandler(int irq, void *arg)
 
                 qcc74x_usb_source_group_int_clear(3, USB_VDMA_CMPLT_CXF);
 
-                usbd_event_ep0_setup_complete_handler(g_setup_buffer);
+                usbd_event_ep0_setup_complete_handler(busid, g_setup_buffer);
             }
         }
         if (dev_intstatus & USB_INT_G1) {
@@ -1255,17 +1327,17 @@ void USBD_IRQHandler(int irq, void *arg)
 #endif
                 qcc74x_usb_reset_fifo(USB_FIFO_CXF);
 
-                usbd_event_suspend_handler();
+                usbd_event_suspend_handler(busid);
             }
             if (subgroup_intstatus & USB_RESM_INT) {
                 qcc74x_usb_source_group_int_clear(2, USB_RESM_INT);
-                usbd_event_resume_handler();
+                usbd_event_resume_handler(busid);
             }
             if (subgroup_intstatus & USB_TX0BYTE_INT) {
                 for (uint8_t i = 1; i < USB_MAX_EP_WITH_EP0; i++) {
                     if (qcc74x_usb_get_tx_zlp_intstatus() & (1 << (i - 1))) {
                         qcc74x_usb_clear_tx_zlp_intstatus(i);
-                        usbd_event_ep_in_complete_handler(i | 0x80, 0);
+                        usbd_event_ep_in_complete_handler(busid, i | 0x80, 0);
                     }
                 }
                 qcc74x_usb_source_group_int_clear(2, USB_TX0BYTE_INT);
@@ -1274,7 +1346,7 @@ void USBD_IRQHandler(int irq, void *arg)
                 for (uint8_t i = 1; i < USB_MAX_EP_WITH_EP0; i++) {
                     if (qcc74x_usb_get_rx_zlp_intstatus() & (1 << (i - 1))) {
                         qcc74x_usb_clear_rx_zlp_intstatus(i);
-                        usbd_event_ep_out_complete_handler(i, 0);
+                        usbd_event_ep_out_complete_handler(busid, i, 0);
                     }
                 }
 
@@ -1304,10 +1376,8 @@ void USBD_IRQHandler(int irq, void *arg)
 #endif
                 putreg32(regval, QCC74x_USB_BASE + USB_DEV_SMT_OFFSET);
 
-#ifndef NOT_USE_QCC74x_LHAL_USB_EP0_SETUP_FLOW
                 arch_memset(&g_qcc74x_udc, 0, sizeof(g_qcc74x_udc));
-#endif
-                usbd_event_reset_handler();
+                usbd_event_reset_handler(busid);
             }
         }
         if (dev_intstatus & USB_INT_G3) {
@@ -1317,18 +1387,14 @@ void USBD_IRQHandler(int irq, void *arg)
                 if (g_qcc74x_udc.in_ep[0].ep_active) {
                     g_qcc74x_udc.in_ep[0].ep_active = false;
                     g_qcc74x_udc.in_ep[0].actual_xfer_len = g_qcc74x_udc.in_ep[0].xfer_len - qcc74x_usb_vdma_get_remain_size(USB_FIFO_CXF);
-#ifndef NOT_USE_QCC74x_LHAL_USB_EP0_SETUP_FLOW
                     if (g_qcc74x_udc.in_ep[0].actual_xfer_len < g_qcc74x_udc.in_ep[0].ep_mps) {
-#else
-                    if (g_qcc74x_udc.in_ep[0].actual_xfer_len == g_qcc74x_udc.in_ep[0].xfer_len) {
-#endif
                         qcc74x_usb_control_transfer_done();
                     }
-                    usbd_event_ep_in_complete_handler(0x80, g_qcc74x_udc.in_ep[0].actual_xfer_len);
+                    usbd_event_ep_in_complete_handler(busid, 0x80, g_qcc74x_udc.in_ep[0].actual_xfer_len);
                 } else {
                     g_qcc74x_udc.out_ep[0].ep_active = false;
                     g_qcc74x_udc.out_ep[0].actual_xfer_len = g_qcc74x_udc.out_ep[0].xfer_len - qcc74x_usb_vdma_get_remain_size(USB_FIFO_CXF);
-                    usbd_event_ep_out_complete_handler(0x00, g_qcc74x_udc.out_ep[0].actual_xfer_len);
+                    usbd_event_ep_out_complete_handler(busid, 0x00, g_qcc74x_udc.out_ep[0].actual_xfer_len);
                 }
             }
 
@@ -1338,11 +1404,11 @@ void USBD_IRQHandler(int irq, void *arg)
                     if (g_qcc74x_udc.in_ep[ep_idx].ep_active) {
                         g_qcc74x_udc.in_ep[ep_idx].ep_active = 0;
                         g_qcc74x_udc.in_ep[ep_idx].actual_xfer_len = g_qcc74x_udc.in_ep[ep_idx].xfer_len - qcc74x_usb_vdma_get_remain_size(i);
-                        usbd_event_ep_in_complete_handler(ep_idx | 0x80, g_qcc74x_udc.in_ep[ep_idx].actual_xfer_len);
+                        usbd_event_ep_in_complete_handler(busid, ep_idx | 0x80, g_qcc74x_udc.in_ep[ep_idx].actual_xfer_len);
                     } else if (g_qcc74x_udc.out_ep[ep_idx].ep_active) {
                         g_qcc74x_udc.out_ep[ep_idx].ep_active = 0;
                         g_qcc74x_udc.out_ep[ep_idx].actual_xfer_len = g_qcc74x_udc.out_ep[ep_idx].xfer_len - qcc74x_usb_vdma_get_remain_size(i);
-                        usbd_event_ep_out_complete_handler(ep_idx & 0x7f, g_qcc74x_udc.out_ep[ep_idx].actual_xfer_len);
+                        usbd_event_ep_out_complete_handler(busid, ep_idx & 0x7f, g_qcc74x_udc.out_ep[ep_idx].actual_xfer_len);
                     }
                 }
             }
@@ -1353,12 +1419,11 @@ void USBD_IRQHandler(int irq, void *arg)
 }
 
 #ifdef CONFIG_USBDEV_TEST_MODE
-void usbd_execute_test_mode(struct usb_setup_packet *setup)
+void usbd_execute_test_mode(uint8_t busid, uint8_t test_mode)
 {
     uint32_t regval;
-    uint8_t index = setup->wIndex >> 8;
 
-    switch (index) {
+    switch (test_mode) {
         case 1: // Test_J
         {
             regval = getreg32(QCC74x_USB_BASE + USB_PHY_TST_OFFSET);

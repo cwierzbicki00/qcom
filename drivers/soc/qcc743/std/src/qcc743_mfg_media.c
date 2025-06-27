@@ -319,8 +319,6 @@ int mfg_media_read_macaddr(uint8_t mac[6], uint8_t reload)
     return mfg_media_read_macaddr_need_lock(mac, reload);
 }
 
-
-
 uint8_t mfg_media_is_bz_poweroffset_slot_empty(uint8_t reload)
 {
     if (rf_para_on_flash) {

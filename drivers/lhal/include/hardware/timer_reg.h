@@ -43,7 +43,7 @@
 #define TIMER_TCVSYN0_OFFSET (0xB4) /* Timer0 Counter Sync Value */
 #define TIMER_TCVSYN1_OFFSET (0xB8) /* Timer1 Counter Sync Value */
 #define TIMER_TCDR_OFFSET    (0xBC) /* Timer Division */
-#if !defined(QCC74x_undef) || !defined(QCC74x_undef)
+#if !defined(QCC74x_undef) && !defined(QCC74x_undef)
 #define TIMER_GPIO_OFFSET       (0xC0) /* GPIO Mode */
 #define TIMER_GPIO_LAT1_OFFSET  (0xC4) /* GPIO Latch Value1 */
 #define TIMER_GPIO_LAT2_OFFSET  (0xC8) /* GPIO Latch Value2 */
@@ -243,7 +243,7 @@
 #define TIMER_WCDR_SHIFT  (24U)
 #define TIMER_WCDR_MASK   (0xff << TIMER_WCDR_SHIFT)
 
-#if !defined(QCC74x_undef) || !defined(QCC74x_undef)
+#if !defined(QCC74x_undef) && !defined(QCC74x_undef)
 /* 0xC0 : GPIO Mode */
 #define TIMER0_GPIO_EN     (1 << 1U)
 #define TIMER0_GPIO_INV    (1 << 5U)

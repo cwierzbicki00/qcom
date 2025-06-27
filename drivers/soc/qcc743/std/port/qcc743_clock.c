@@ -1,4 +1,5 @@
 #include "qcc74x_clock.h"
+#include "qcc74x_peri.h"
 #include "qcc743_clock.h"
 
 uint32_t qcc74x_clk_get_system_clock(uint8_t type)
@@ -49,5 +50,330 @@ uint32_t qcc74x_clk_get_peripheral_clock(uint8_t type, uint8_t idx)
     } else if (type == QCC74x_DEVICE_TYPE_RTC) {
         return Clock_Peripheral_Clock_Get(QCC74x_PERIPHERAL_CLOCK_RTC);
     }
+
     return 0;
+}
+
+uint32_t qcc74x_peripheral_clock_get_by_id(uint8_t peri)
+{
+    uint8_t dev_type = 0;
+    uint8_t idx = 0;
+
+    switch (peri) {
+        case QCC74x_PERIPHERAL_GPADC0:
+            dev_type = QCC74x_DEVICE_TYPE_ADC;
+            idx = 0;
+            break;
+        case QCC74x_PERIPHERAL_GPDAC0:
+            dev_type = QCC74x_DEVICE_TYPE_DAC;
+            idx = 0;
+            break;
+        case QCC74x_PERIPHERAL_SF_CTRL:
+            dev_type = QCC74x_DEVICE_TYPE_FLASH;
+            idx = 0;
+            break;
+        case QCC74x_PERIPHERAL_UART0:
+            dev_type = QCC74x_DEVICE_TYPE_UART;
+            idx = 0;
+            break;
+        case QCC74x_PERIPHERAL_UART1:
+            dev_type = QCC74x_DEVICE_TYPE_UART;
+            idx = 1;
+            break;
+        case QCC74x_PERIPHERAL_UART2:
+            dev_type = QCC74x_DEVICE_TYPE_UART;
+            idx = 2;
+            break;
+        case QCC74x_PERIPHERAL_SPI0:
+            dev_type = QCC74x_DEVICE_TYPE_SPI;
+            idx = 0;
+            break;
+        case QCC74x_PERIPHERAL_I2C0:
+            dev_type = QCC74x_DEVICE_TYPE_I2C;
+            idx = 0;
+            break;
+        case QCC74x_PERIPHERAL_PWM0:
+            dev_type = QCC74x_DEVICE_TYPE_PWM;
+            idx = 0;
+            break;
+        case QCC74x_PERIPHERAL_TIMER0:
+            dev_type = QCC74x_DEVICE_TYPE_TIMER;
+            idx = 0;
+            break;
+        case QCC74x_PERIPHERAL_IR:
+            dev_type = QCC74x_DEVICE_TYPE_IR;
+            idx = 0;
+            break;
+        case QCC74x_PERIPHERAL_I2S0:
+            dev_type = QCC74x_DEVICE_TYPE_I2S;
+            idx = 0;
+            break;
+        case QCC74x_PERIPHERAL_PSRAM1_CTRL:
+            dev_type = QCC74x_DEVICE_TYPE_PSRAM;
+            idx = 1;
+            break;
+        case QCC74x_PERIPHERAL_SDH0:
+            dev_type = QCC74x_DEVICE_TYPE_SDH;
+            idx = 0;
+            break;
+        case QCC74x_PERIPHERAL_I2C1:
+            dev_type = QCC74x_DEVICE_TYPE_I2C;
+            idx = 1;
+            break;
+        case QCC74x_PERIPHERAL_DBI:
+            dev_type = QCC74x_DEVICE_TYPE_DBI;
+            idx = 0;
+            break;
+        case QCC74x_PERIPHERAL_AUADC0:
+            dev_type = QCC74x_DEVICE_TYPE_AUDIOADC;
+            idx = 0;
+            break;
+        case QCC74x_PERIPHERAL_CAM0:
+            dev_type = QCC74x_DEVICE_TYPE_CAMERA;
+            idx = 0;
+            break;
+        case QCC74x_PERIPHERAL_PKA:
+            dev_type = QCC74x_DEVICE_TYPE_PKA;
+            idx = 0;
+            break;
+        case QCC74x_PERIPHERAL_RTC:
+            dev_type = QCC74x_DEVICE_TYPE_RTC;
+            idx = 0;
+            break;
+        default:
+            return 0;
+    }
+
+    return qcc74x_clk_get_peripheral_clock(dev_type, idx);
+}
+
+static void set_bit(uint32_t *value, int bit)
+{
+    *value |= (1 << bit);
+}
+
+static void clear_bit(uint32_t *value, int bit)
+{
+    *value &= ~(1 << bit);
+}
+
+int qcc74x_peripheral_clock_control_by_id(uint8_t peri, bool enable)
+{
+    uint32_t regval0 = getreg32(QCC74x_GLB_CGEN0_BASE);
+    uint32_t regval1 = getreg32(QCC74x_GLB_CGEN1_BASE);
+    uint32_t regval2 = getreg32(QCC74x_GLB_CGEN2_BASE);
+
+    void (*bitop)(uint32_t*, int) = enable ? set_bit : clear_bit;
+
+    switch (peri) {
+        case QCC74x_PERIPHERAL_CPU:
+            bitop(&regval0, 0);
+            break;
+        case QCC74x_PERIPHERAL_SDU0:
+            bitop(&regval1, 13);
+            break;
+        case QCC74x_PERIPHERAL_SEC0:
+            bitop(&regval0, 2);
+            bitop(&regval1, 3);
+            bitop(&regval1, 4);
+            break;
+        case QCC74x_PERIPHERAL_DMA0:
+            bitop(&regval0, 3);
+            bitop(&regval1, 12);
+            break;
+        case QCC74x_PERIPHERAL_CCI:
+            bitop(&regval0, 4);
+            break;
+        case QCC74x_PERIPHERAL_GPADC0:
+            bitop(&regval1, 2);
+            break;
+        case QCC74x_PERIPHERAL_GPDAC0:
+            bitop(&regval1, 2);
+            break;
+        case QCC74x_PERIPHERAL_TZ1:
+            bitop(&regval1, 5);
+            break;
+        case QCC74x_PERIPHERAL_TZ2:
+            bitop(&regval1, 5);
+            break;
+        case QCC74x_PERIPHERAL_EF_CTRL:
+            bitop(&regval1, 7);
+            break;
+        case QCC74x_PERIPHERAL_SF_CTRL:
+            bitop(&regval1, 11);
+            break;
+        case QCC74x_PERIPHERAL_EMAC0:
+            bitop(&regval2, 23);
+            break;
+        case QCC74x_PERIPHERAL_UART0:
+            bitop(&regval1, 16);
+            break;
+        case QCC74x_PERIPHERAL_UART1:
+            bitop(&regval1, 17);
+            break;
+        case QCC74x_PERIPHERAL_SPI0:
+            bitop(&regval1, 18);
+            break;
+        case QCC74x_PERIPHERAL_I2C0:
+            bitop(&regval1, 19);
+            break;
+        case QCC74x_PERIPHERAL_I2C1:
+            bitop(&regval1, 25);
+            break;
+        case QCC74x_PERIPHERAL_PWM0:
+            bitop(&regval1, 20);
+            break;
+        case QCC74x_PERIPHERAL_TIMER0:
+            bitop(&regval1, 21);
+            break;
+        case QCC74x_PERIPHERAL_IR:
+            bitop(&regval1, 22);
+            break;
+        case QCC74x_PERIPHERAL_CHECKSUM:
+            bitop(&regval1, 23);
+            break;
+        case QCC74x_PERIPHERAL_I2S0:
+            bitop(&regval1, 27);
+            break;
+        case QCC74x_PERIPHERAL_PSRAM1_CTRL:
+            bitop(&regval2, 18);
+            break;
+        case QCC74x_PERIPHERAL_USB20:
+            bitop(&regval1, 13);
+            break;
+        case QCC74x_PERIPHERAL_AUDAC0:
+            bitop(&regval2, 21);
+            break;
+        case QCC74x_PERIPHERAL_SDH0:
+            bitop(&regval2, 22);
+            break;
+        case QCC74x_PERIPHERAL_DBI:
+            bitop(&regval1, 24);
+            break;
+        case QCC74x_PERIPHERAL_AUADC0:
+            bitop(&regval1, 28);
+            break;
+        case QCC74x_PERIPHERAL_DMA_GPIO:
+            bitop(&regval1, 0);
+            break;
+        case QCC74x_PERIPHERAL_MM_MISC:
+            bitop(&regval2, 16);
+            break;
+        default:
+            return -1;
+    }
+
+    putreg32(regval0, QCC74x_GLB_CGEN0_BASE);
+    putreg32(regval1, QCC74x_GLB_CGEN1_BASE);
+    putreg32(regval2, QCC74x_GLB_CGEN2_BASE);
+
+    return 0;
+}
+
+int qcc74x_peripheral_clock_status_get_by_id(uint8_t peri)
+{
+    uint32_t regval0 = getreg32(QCC74x_GLB_CGEN0_BASE);
+    uint32_t regval1 = getreg32(QCC74x_GLB_CGEN1_BASE);
+    uint32_t regval2 = getreg32(QCC74x_GLB_CGEN2_BASE);
+    uint8_t tmpval = 0;
+
+    switch (peri) {
+        case QCC74x_PERIPHERAL_CPU:
+            tmpval = (regval0 >> 0) & 0x01;
+            break;
+        case QCC74x_PERIPHERAL_SDU0:
+            tmpval = (regval1 >> 13) & 0x01;
+            break;
+        case QCC74x_PERIPHERAL_SEC0:
+            tmpval = (regval0 >> 2) & 0x01;
+            tmpval &= (regval1 >> 3) & 0x01;
+            tmpval &= (regval1 >> 4) & 0x01;
+            break;
+        case QCC74x_PERIPHERAL_DMA0:
+            tmpval = (regval0 >> 3) & 0x01;
+            tmpval &= (regval1 >> 12) & 0x01;
+            break;
+        case QCC74x_PERIPHERAL_CCI:
+            tmpval = (regval0 >> 4) & 0x01;
+            break;
+        case QCC74x_PERIPHERAL_GPADC0:
+            tmpval = (regval1 >> 2) & 0x01;
+            break;
+        case QCC74x_PERIPHERAL_GPDAC0:
+            tmpval = (regval1 >> 2) & 0x01;
+            break;
+        case QCC74x_PERIPHERAL_TZ1:
+            tmpval = (regval1 >> 5) & 0x01;
+            break;
+        case QCC74x_PERIPHERAL_TZ2:
+            tmpval = (regval1 >> 5) & 0x01;
+            break;
+        case QCC74x_PERIPHERAL_EF_CTRL:
+            tmpval = (regval1 >> 7) & 0x01;
+            break;
+        case QCC74x_PERIPHERAL_SF_CTRL:
+            tmpval = (regval1 >> 11) & 0x01;
+            break;
+        case QCC74x_PERIPHERAL_EMAC0:
+            tmpval = (regval2 >> 23) & 0x01;
+            break;
+        case QCC74x_PERIPHERAL_UART0:
+            tmpval = (regval1 >> 16) & 0x01;
+            break;
+        case QCC74x_PERIPHERAL_UART1:
+            tmpval = (regval1 >> 17) & 0x01;
+            break;
+        case QCC74x_PERIPHERAL_SPI0:
+            tmpval = (regval1 >> 18) & 0x01;
+            break;
+        case QCC74x_PERIPHERAL_I2C0:
+            tmpval = (regval1 >> 19) & 0x01;
+            break;
+        case QCC74x_PERIPHERAL_I2C1:
+            tmpval = (regval1 >> 25) & 0x01;
+            break;
+        case QCC74x_PERIPHERAL_PWM0:
+            tmpval = (regval1 >> 20) & 0x01;
+            break;
+        case QCC74x_PERIPHERAL_TIMER0:
+            tmpval = (regval1 >> 21) & 0x01;
+            break;
+        case QCC74x_PERIPHERAL_IR:
+            tmpval = (regval1 >> 22) & 0x01;
+            break;
+        case QCC74x_PERIPHERAL_CHECKSUM:
+            tmpval = (regval1 >> 23) & 0x01;
+            break;
+        case QCC74x_PERIPHERAL_I2S0:
+            tmpval = (regval1 >> 27) & 0x01;
+            break;
+        case QCC74x_PERIPHERAL_PSRAM1_CTRL:
+            tmpval = (regval2 >> 18) & 0x01;
+            break;
+        case QCC74x_PERIPHERAL_USB20:
+            tmpval = (regval1 >> 13) & 0x01;
+            break;
+        case QCC74x_PERIPHERAL_AUDAC0:
+            tmpval = (regval2 >> 21) & 0x01;
+            break;
+        case QCC74x_PERIPHERAL_SDH0:
+            tmpval = (regval2 >> 22) & 0x01;
+            break;
+        case QCC74x_PERIPHERAL_DBI:
+            tmpval = (regval1 >> 24) & 0x01;
+            break;
+        case QCC74x_PERIPHERAL_AUADC0:
+            tmpval = (regval1 >> 28) & 0x01;
+            break;
+        case QCC74x_PERIPHERAL_DMA_GPIO:
+            tmpval = (regval1 >> 0) & 0x01;
+            break;
+        case QCC74x_PERIPHERAL_MM_MISC:
+            tmpval = (regval2 >> 16) & 0x01;
+            break;
+        default:
+            return -1;
+    }
+
+    return tmpval;
 }

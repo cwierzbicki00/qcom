@@ -284,6 +284,16 @@ bool k_is_current_thread(struct k_thread *thread)
         return false;
 }
 
+bool k_thread_check_by_name(const char *name)
+{
+    TaskHandle_t current_task_handle = xTaskGetCurrentTaskHandle();
+    char *current_task_name = pcTaskGetName(current_task_handle);
+    if((strlen(current_task_name) == strlen(name)) && (!memcmp(current_task_name, name, strlen(name))))
+        return true;
+
+    return false;
+}
+
 int k_yield(void)
 {
     taskYIELD();

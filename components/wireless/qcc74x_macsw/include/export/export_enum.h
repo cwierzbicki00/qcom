@@ -483,6 +483,10 @@ enum twt_msg_tag
     TWT_TEARDOWN_REQ,
     /// Confirm to destroy a TWT Establishment or all of them
     TWT_TEARDOWN_CFM,
+    /// Request to destroy a TWT Establishment or all of them
+    TWT_STATUSGET_REQ,
+    /// Confirm to destroy a TWT Establishment or all of them
+    TWT_STATUSGET_CFM,
 
     /// MAX number of messages
     TWT_MAX,

@@ -536,7 +536,7 @@ static void auth_cancel(struct bt_conn *conn)
 
     bt_addr_le_to_str(bt_conn_get_dst(conn), addr, sizeof(addr));
 	
-	at_response_string("+BLE:PAIRCANNELED:%s\r\n", addr);
+	at_response_string("+BLE:PAIRCANCELED:%s\r\n", addr);
 }
 
 static void auth_pairing_confirm(struct bt_conn *conn)
@@ -789,7 +789,7 @@ void ble_dynamic_noti_cb(const struct bt_gatt_attr* attr ,u8_t data)
 
 int at_ble_set_public_addr(uint8_t *addr)
 {
-    memcpy(g_ble_public_addr, addr, 6);
+    reverse_bytearray(addr,g_ble_public_addr, 6);
     bt_set_local_public_address(g_ble_public_addr);
     return 0;
 }
@@ -1295,10 +1295,6 @@ int at_ble_disconn(int idx)
         AT_BLE_PRINTF("Disconnect successfully\r\n");
     }
 
-    /*Notice:Because conn is got via bt_conn_lookup_addr_le in which bt_conn_ref(increase conn_ref by 1)
-      this conn, we need to bt_conn_unref(decrease conn_ref by 1) this conn.*/
-    bt_conn_unref(conn);
-
     return 1;
 }
 
@@ -1762,7 +1758,16 @@ static int ble_disc_srv_set(int idx,char *uuid, uint16_t start_handle, uint16_t 
 
     return 0;
 }
-
+static int ble_disc_srv_handle_check(uint16_t handle)
+{
+    int i;
+    for (i = 0; i < BLE_GATTC_SRV_MAX_NUM; i++) {
+        if (g_ble_disc_srv[i].valid == 1 && g_ble_disc_srv[i].start_handle <= handle && g_ble_disc_srv[i].end_handle >= handle) {
+            return 1;
+        }
+    }
+    return 0;
+}
 static void ble_disc_srv_clean_char(int srv_idx)
 {
     int index = srv_idx - 1;
@@ -1983,7 +1988,8 @@ int at_ble_gattc_service_char_discover(int idx, int srv_idx, int timeout)
         return 0;
     }
 }
-static struct bt_gatt_subscribe_params subscribe_params;
+static struct bt_gatt_subscribe_params subscribe_params[BLE_GATTC_CHAR_MAX_NUM] = {0};
+
 
 static uint8_t notify_func(struct bt_conn *conn,
 			struct bt_gatt_subscribe_params *params,
@@ -2000,16 +2006,35 @@ static uint8_t notify_func(struct bt_conn *conn,
 int at_ble_subscribe(int idx, int ccc_handle, int value_handle,int value)
 {
     struct ble_conn_data *conn_data = NULL;
+    struct bt_gatt_subscribe_params *subscribe_index = NULL;
 
     conn_data = ble_conn_data_get_by_idx(idx);
     if (conn_data == NULL || conn_data->state != BLE_CONN_STATE_CONNECTED)
         return 0;
-    subscribe_params.ccc_handle=ccc_handle;
-    subscribe_params.value_handle=value_handle;
-    subscribe_params.value=value;
-    subscribe_params.notify = notify_func;
+    if(!ble_disc_srv_handle_check(value_handle)||!ble_disc_srv_handle_check(ccc_handle))
+    {
+        AT_BLE_PRINTF("Unsubscribe failed (err: Invalid handle)\r\n");
+        return 0;
+    }
+    // Iterate through the subscriptions array to find an available entry
+    for (int i = 0; i < sizeof(subscribe_params) / sizeof(subscribe_params[0]); i++) {
+        if(subscribe_params[i].value_handle == 0U){
+            subscribe_index = &subscribe_params[i];
+            break;
+        }
+    }    
 
-    int err = bt_gatt_subscribe(conn_data->conn, &subscribe_params);
+    if(subscribe_index == NULL){
+        AT_BLE_PRINTF("Unsubscribe failed (err: Invalid handle)\r\n");
+        return 0;
+    }
+
+    subscribe_index->ccc_handle=ccc_handle;
+    subscribe_index->value_handle=value_handle;
+    subscribe_index->value=value;
+    subscribe_index->notify = notify_func;
+
+    int err = bt_gatt_subscribe(conn_data->conn, subscribe_index);
     if (err) {
         AT_BLE_PRINTF("Subscribe failed (err %d)\r\n", err);
         return 0;
@@ -2023,14 +2048,30 @@ int at_ble_subscribe(int idx, int ccc_handle, int value_handle,int value)
 int at_ble_unsubscribe(int idx, int value_handle)
 {
     struct ble_conn_data *conn_data = NULL;
+    struct bt_gatt_subscribe_params *subscribe_index = NULL;
 
     conn_data = ble_conn_data_get_by_idx(idx);
     if (conn_data == NULL || conn_data->state != BLE_CONN_STATE_CONNECTED)
         return 0;
+    if(!ble_disc_srv_handle_check(value_handle))
+    {
+        AT_BLE_PRINTF("Unsubscribe failed (err: Invalid handle)\r\n");
+        return 0;
+    }
+    // Iterate through the subscriptions array to find an available entry
+    for (int i = 0; i < sizeof(subscribe_params) / sizeof(subscribe_params[0]); i++) {
+        if(subscribe_params[i].value_handle == value_handle){
+            subscribe_index = &subscribe_params[i];
+            break;
+        }
+    } 
 
-    subscribe_params.value_handle=value_handle;
+    if(subscribe_index == NULL){
+        AT_BLE_PRINTF("Unsubscribe failed (err: Invalid handle)\r\n");
+        return 0;
+    }
 
-    int err = bt_gatt_unsubscribe(conn_data->conn, &subscribe_params);
+    int err = bt_gatt_unsubscribe(conn_data->conn, subscribe_index);
     if (err) {
         AT_BLE_PRINTF("Unsubscribe failed (err %d)\r\n", err);
         return 0;

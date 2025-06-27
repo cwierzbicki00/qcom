@@ -51,11 +51,11 @@ make flash CHIP=chip_name COMX=xxx # xxx is your com name
 
 ```
 (qcc743dk)
-../../tools/qcc74x_tools/QConn_Flash/QConn_Flash_Cmd-ubuntu --port your-serial-port --read --start 0x2f8000 --len 0x80000 --file crash.bin
+../../tools/qcc74x_tools/QConn_Flash/QConn_Flash_Cmd-ubuntu --port your-serial-port --read --start 0x2f8000 --len your-partition-size --file crash.bin
 mv ../../tools/qcc74x_tools/QConn_Flash/crash.bin .
 
 (qcc744dk)
-../../tools/qcc74x_tools/QConn_Flash/QConn_Flash_Cmd-ubuntu --port your-serial-port --read --start 0x6e0000 --len 0x480000 --file crash.bin
+../../tools/qcc74x_tools/QConn_Flash/QConn_Flash_Cmd-ubuntu --port your-serial-port --read --start 0x6e0000 --len your-parittion-size --file crash.bin
 mv ../../tools/qcc74x_tools/QConn_Flash/crash.bin .
 ```
 

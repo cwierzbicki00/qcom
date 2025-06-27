@@ -218,7 +218,8 @@ static int initserver_tls(ssl_param_t **ctx, const char* addr, const char* port,
 
     rv = mbedtls_net_set_nonblock(&net_ctx);
     if (rv != 0) {
-        return -1;
+        close(net_ctx.fd);
+        net_ctx.fd = -1;
     }
     //mbedtls_ssl_conf_read_timeout(&(*ctx)->conf, 200);
 
@@ -281,7 +282,10 @@ static void socketfd_close(mqtt_pal_socket_handle sockfd)
     }
 
     if (sockfd->type == MQTTC_PAL_CONNTION_TYPE_TLS && sockfd->ctx.ssl_ctx) {
-        mbedtls_ssl_close((ssl_param_t *)_at_container_of(sockfd->ctx.ssl_ctx, ssl_param_t, ssl));
+        ssl_param_t *ssl_param = (ssl_param_t *)_at_container_of(sockfd->ctx.ssl_ctx, ssl_param_t, ssl);
+        mbedtls_ssl_close(ssl_param);
+        close(ssl_param->net.fd);
+        ssl_param->net.fd = 0;
         sockfd->ctx.ssl_ctx = NULL;
     }
 }
@@ -535,6 +539,9 @@ static int at_setup_cmd_mqttusercfg(int argc, const char **argv)
 
     if (strlen(password) > AT_MQTT_PASSWD_MAX_LEN) {
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_LENGTH_MISMATCH);
+    }
+    if (scheme < AT_MQTT_OVER_TCP || scheme > AT_MQTT_OVER_TLS_BOTH_AUTH) {
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     }
 
     if (g_at_mqtt[linkid].client_id) {
@@ -875,6 +882,9 @@ static int at_setup_cmd_mqttconn(int argc, const char **argv)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     }
 
+    if (reconnect != 0 && reconnect != 1) {
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
+    }
     if (socketfd_is_connected(&g_at_mqtt[linkid].sockfd)) {
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     }
@@ -974,6 +984,10 @@ static int at_setup_cmd_mqttpub(int argc, const char **argv)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_HANDLE_INVALID);
     }
 
+    if (qos < 0 || qos > 2) {
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_HANDLE_INVALID);
+    }
+
     if (!socketfd_is_connected(&g_at_mqtt[linkid].sockfd)) {
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_ALLOWED);
     }
@@ -1016,6 +1030,10 @@ static int at_setup_cmd_mqttpubraw(int argc, const char **argv)
     }
 
     if (length <= 0) {
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_HANDLE_INVALID);
+    }
+
+    if (qos < 0 || qos > 2) {
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_HANDLE_INVALID);
     }
 
@@ -1184,6 +1202,9 @@ static int at_setup_cmd_mqttclean(int argc, const char **argv)
     if (mqtt_linkid_valid(linkid)) {
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_HANDLE_INVALID);
     }
+    if (!socketfd_is_connected(&g_at_mqtt[linkid].sockfd)) {
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_ALLOWED);
+    }
 
     if (mqtt_disconnect(&g_at_mqtt[linkid].client) == MQTT_OK) {
         mqtt_sync(&g_at_mqtt[linkid].client);
@@ -1207,6 +1228,10 @@ static int at_setup_cmd_mqttalpn(int argc, const char **argv)
     }
 
     AT_CMD_PARSE_NUMBER(1, &count);
+
+    if (count < 0 || count >= AT_MQTT_ALPN_MAX) {
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
+    }
     if (count != argc - 2) {
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_NUM_MISMATCH);
     }
@@ -1216,7 +1241,7 @@ static int at_setup_cmd_mqttalpn(int argc, const char **argv)
         AT_CMD_PARSE_STRING(i + offset, alpn, sizeof(alpn));
         at_ssl_alpn_set(linkid, i, alpn);
     }
-    for (; i < 6; i++) {
+    for (; i < AT_MQTT_ALPN_MAX; i++) {
         at_ssl_alpn_set(linkid, i, NULL);
     }
     return AT_RESULT_CODE_OK;

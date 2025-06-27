@@ -76,7 +76,7 @@ int nxspi_fakewrite_forread(uint8_t *buf, uint16_t len, uint32_t timeout)
         buf += chunk_size;  // Move the buffer pointer forward by the written chunk size
 
         // Send the message to the queue for transmission
-        while (xQueueSend(g_nxspi.dnat, &msg, portMAX_DELAY) != pdPASS);
+        while (xQueueSend(g_nxspi.dn[0], &msg, portMAX_DELAY) != pdPASS);
 
         // 
         total_sent += chunk_size;
@@ -90,11 +90,14 @@ static int _init_queue(void)
     g_nxspi.upvq = xQueueCreate(NXBD_ITEMS + 1, sizeof(trans_desc_t *));
     g_nxspi.upfq = xQueueCreate(NXBD_ITEMS + 1, sizeof(trans_desc_t *));
 
-    g_nxspi.dnat = xQueueCreate(NXBD_ITEMS + 1, sizeof(trans_desc_t *));
-    g_nxspi.dnnet = xQueueCreate(NXBD_ITEMS + 1, sizeof(trans_desc_t *));
-    g_nxspi.dndef = xQueueCreate(NXBD_ITEMS + 1, sizeof(trans_desc_t *));
+    for (int i = 0; i < NXSPI_TYPE_MAX; i++) {
+        g_nxspi.dn[i] = xQueueCreate(NXBD_ITEMS + 1, sizeof(trans_desc_t *));
+        if (!g_nxspi.dn[i]) {
+            return -1;
+        }
+    }
 
-    if (!g_nxspi.dnfq || !g_nxspi.upvq || !g_nxspi.upfq || !g_nxspi.dnat || !g_nxspi.dnnet || !g_nxspi.dndef) {
+    if (!g_nxspi.dnfq || !g_nxspi.upvq || !g_nxspi.upfq) {
         NX_LOGE("failed to create queue\r\n");
         return -1;
     }
@@ -179,3 +182,21 @@ int nxspi_init(void)
     return 0;
 }
 
+int nxspi_rxd_callback_register(nxspi_rxd_notify_func_t notify_func, int type)
+{
+    if (NULL == g_nxspi.task_hdl) {
+        NX_LOGE("task nxspi is not created\r\n");
+        return -1;
+    }
+    if (type >= NXSPI_TYPE_MAX) {
+        NX_LOGE("invalid nxspi type\r\n");
+    }
+    if (NULL == notify_func) {
+        NX_LOGE("notify function is not input\r\n");
+        return -1;
+    }
+
+    g_nxspi.rxd_notify_func[type] = notify_func;
+
+    return 0;
+}

@@ -727,6 +727,10 @@ static int at_setup_cmd_cwqap(int argc, const char **argv)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_OP_ERROR);
     }
 
+    if (restore != 0 && restore != 1) {
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
+    }
+
     if (restore_valid && restore) {
         memset(&at_wifi_config->sta_info.ssid, 0, sizeof(at_wifi_config->sta_info.ssid));
         ef_del_env(AT_CONFIG_KEY_WIFI_STA_INFO);
@@ -786,7 +790,11 @@ static int at_setup_cmd_cwsap(int argc, const char **argv)
     }
 
     strlcpy(at_wifi_config->ap_info.ssid, ssid, sizeof(at_wifi_config->ap_info.ssid));
-    strlcpy(at_wifi_config->ap_info.pwd, pwd, sizeof(at_wifi_config->ap_info.pwd));
+    if (ecn == AT_WIFI_ENC_OPEN) {
+        memset(at_wifi_config->ap_info.pwd, 0, sizeof(at_wifi_config->ap_info.pwd));
+    } else {
+        strlcpy(at_wifi_config->ap_info.pwd, pwd, sizeof(at_wifi_config->ap_info.pwd));
+    }
     at_wifi_config->ap_info.channel = channel;
     at_wifi_config->ap_info.ecn = ecn;
 
@@ -800,7 +808,9 @@ static int at_setup_cmd_cwsap(int argc, const char **argv)
         at_wifi_config_save(AT_CONFIG_KEY_WIFI_AP_INFO);
     }
 
-    at_wifi_ap_start();
+    if (at_wifi_ap_start() != 0) {
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_EXEC_FAIL);
+    }
     return AT_RESULT_CODE_OK;
 }
 
@@ -1385,6 +1395,9 @@ static int at_setup_cmd_cwmonitor(int argc, const char **argv)
     AT_CMD_PARSE_OPT_NUMBER(2, &min_pkg_len, min_pkg_len_valid);
     AT_CMD_PARSE_OPT_NUMBER(3, &max_pkg_len, max_pkg_len_valid);
 
+    if (enable < 0 || enable > 1) {
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
+    }
 
     if (enable == 0) {
         at_wifi_sniffer_stop();
@@ -1527,6 +1540,9 @@ static int at_setup_cmd_cwevt(int argc, const char **argv)
 {
     int enable;
     AT_CMD_PARSE_NUMBER(0, &enable);
+    if (enable < 0 || enable > 1) {
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
+    }
     at_wifi_config->wevt_enable = enable;
     return AT_RESULT_CODE_OK;
 }
@@ -1547,6 +1563,14 @@ static int at_setup_cmd_cwantenable(int argc, const char **argv)
     AT_CMD_PARSE_NUMBER(0, &dynamic_enable);
     AT_CMD_PARSE_NUMBER(1, &static_enable);
     AT_CMD_PARSE_OPT_NUMBER(2, &pin, pin_is_vaild);
+
+    if (dynamic_enable < 0 || dynamic_enable > 1) {
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
+    }
+
+    if (static_enable < 0 || static_enable > 1) {
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
+    }
 
     if ((dynamic_enable || static_enable) && pin_is_vaild == 0) {
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
@@ -1611,22 +1635,23 @@ static const at_cmd_struct at_wifi_cmd[] = {
     {"+CWLAPOPT",     NULL, at_query_cmd_cwlapopt,    at_setup_cmd_cwlapopt,     NULL,                    2, 5},
     {"+CWLAP",        NULL, NULL,                     at_setup_cmd_cwlap,        at_exe_cmd_cwlap,        1, 6},
     {"+CWQAP",        NULL, NULL,                     at_setup_cmd_cwqap,        at_exe_cmd_cwqap,        0, 1},
+    {"+CWAUTOCONN",   NULL, at_query_cmd_cwautoconn,  at_setup_cmd_cwautoconn,   NULL,                    1, 1},
+    {"+CWSTAPROTO",   NULL, at_query_cmd_cwstaproto,  at_setup_cmd_cwstaproto,   NULL,                    1, 1},
+    {"+CIPSTAMAC",    NULL, at_query_cmd_cipstamac,   at_setup_cmd_cipstamac,    NULL,                    1, 1},
+    {"+CIPSTA",       NULL, at_query_cmd_cipsta,      at_setup_cmd_cipsta,       NULL,                    1, 3},
+    {"+CWMONITOR",    NULL, NULL,                     at_setup_cmd_cwmonitor,    NULL,                    1, 4},
+    {"+WPS",          NULL, NULL,                     at_setup_cmd_wps,          NULL,                    1, 2},
+#if (!CONFIG_RCP_ENABLE)
     {"+CWSAP",        NULL, at_query_cmd_cwsap,       at_setup_cmd_cwsap,        NULL,                    4, 6},
     {"+CWLIF",        NULL, NULL,                     NULL,                      at_exe_cmd_cwlif,        0, 0},
     {"+CWQIF",        NULL, NULL,                     at_setup_cmd_cwqif,        at_exe_cmd_cwqif,        1, 1},
+    {"+CWAPPROTO",    NULL, at_query_cmd_cwapproto,   at_setup_cmd_cwapproto,    NULL,                    1, 1},
+    {"+CIPAPMAC",     NULL, at_query_cmd_cipapmac,    at_setup_cmd_cipapmac,     NULL,                    1, 1},
+    {"+CIPAP",        NULL, at_query_cmd_cipap,       at_setup_cmd_cipap,        NULL,                    1, 3},
     {"+CWDHCP",       NULL, at_query_cmd_cwdhcp,      at_setup_cmd_cwdhcp,       NULL,                    2, 2},
     {"+CWDHCPS",      NULL, at_query_cmd_cwdhcps,     at_setup_cmd_cwdhcps,      NULL,                    1, 4},
-    {"+CWAUTOCONN",   NULL, at_query_cmd_cwautoconn,  at_setup_cmd_cwautoconn,   NULL,                    1, 1},
-    {"+CWAPPROTO",    NULL, at_query_cmd_cwapproto,   at_setup_cmd_cwapproto,    NULL,                    1, 1},
-    {"+CWSTAPROTO",   NULL, at_query_cmd_cwstaproto,  at_setup_cmd_cwstaproto,   NULL,                    1, 1},
-    {"+CIPSTAMAC",    NULL, at_query_cmd_cipstamac,   at_setup_cmd_cipstamac,    NULL,                    1, 1},
-    {"+CIPAPMAC",     NULL, at_query_cmd_cipapmac,    at_setup_cmd_cipapmac,     NULL,                    1, 1},
-    {"+CIPSTA",       NULL, at_query_cmd_cipsta,      at_setup_cmd_cipsta,       NULL,                    1, 3},
-    {"+CIPAP",        NULL, at_query_cmd_cipap,       at_setup_cmd_cipap,        NULL,                    1, 3},
-    {"+CWMONITOR",    NULL, NULL,                     at_setup_cmd_cwmonitor,    NULL,                    1, 4},
-    {"+WPS",          NULL, NULL,                     at_setup_cmd_wps,          NULL,                    1, 2},
-    {"+MDNS",         NULL, NULL,                     at_setup_cmd_mdns,         NULL,                    1, 4},
     {"+CWHOSTNAME",   NULL, at_query_cmd_cwhostname,  at_setup_cmd_cwhostname,   NULL,                    1, 1},
+#endif
     {"+CWCOUNTRY",    NULL, at_query_cmd_cwcountry,   at_setup_cmd_cwcountry,    NULL,                    2, 2},
     {"+CWEVT",        NULL, at_query_cmd_cwevt,       at_setup_cmd_cwevt,        NULL,                    1, 1},
     {"+CWNETMODE",    NULL, at_query_cmd_cwnetmode,   NULL,                      NULL,                    1, 1},

@@ -96,19 +96,19 @@ void create_elf_section(Elf32_Phdr *prog_hdr, Elf32_Shdr *sec_hdr, uint32_t vma,
     sec_hdr->sh_addralign = 0x1;
 }
 
-void core_bin_start_hook(uint32_t *lma, size_t len)
+void core_bin_start_hook(uint32_t *lma, size_t len, struct dump_section *dump_sections)
 {
     int seg_cnt = 0;
     uint32_t size = 0;
     flash_addr_start = *lma;
 
-    for (int i = 0; (&_dump_sections + i)->addr != 0xffffffff; i++) {
-        if ((&_dump_sections + i)->addr == 0)
+    for (int i = 0; (dump_sections + i)->addr != 0xffffffff; i++) {
+        if ((dump_sections + i)->addr == 0)
             break;
-        if ((&_dump_sections + i)->len == 0)
+        if ((dump_sections + i)->len == 0)
             continue;
         seg_cnt++;
-        size += (&_dump_sections + i)->len;
+        size += (dump_sections + i)->len;
     }
 
     create_elf_header(&elf_header, seg_cnt, size);

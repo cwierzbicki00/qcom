@@ -1,0 +1,168 @@
+From 73666c6cf6e46a0a77467e85a2051102f2fae66f Mon Sep 17 00:00:00 2001
+From: Ganesh Kondabattini <quic_ganeshk@quicinc.com>
+Date: Thu, 26 Jun 2025 15:56:10 +0530
+Subject: [PATCH 2/2] fix wifi scan and increase psm region (#2)
+
+---
+ .../qcc74x/flash_config/partition_cfg_4M.toml | 20 ++++++------
+ .../qcc74x/ConnectivityManagerImpl.cpp        |  2 ++
+ .../qcc74x/NetworkCommissioningDriver.cpp     | 32 +++++++++++--------
+ .../qcc74x/NetworkCommissioningDriver.h       |  2 +-
+ 4 files changed, 32 insertions(+), 24 deletions(-)
+
+diff --git a/examples/platform/qualcomm/qcc74x/flash_config/partition_cfg_4M.toml b/examples/platform/qualcomm/qcc74x/flash_config/partition_cfg_4M.toml
+index c6fa8320dd..9cdd930082 100644
+--- a/examples/platform/qualcomm/qcc74x/flash_config/partition_cfg_4M.toml
++++ b/examples/platform/qualcomm/qcc74x/flash_config/partition_cfg_4M.toml
+@@ -25,9 +25,9 @@ type = 0
+ name = "FW"
+ device = 0
+ address0 = 0x10000
+-size0 = 0x200000
+-address1 = 0x210000
+-size1 = 0x168000
++size0 = 0x1FA000
++address1 = 0x20A000
++size1 = 0x164000
+ # compressed image must set len,normal image can left it to 0
+ len = 0
+ # If header is 1, it will add the header.
+@@ -39,8 +39,8 @@ security = 1
+ type = 10
+ name = "mfg"
+ device = 0
+-address0 = 0x210000
+-size0 = 0x168000
++address0 = 0x20A000
++size0 = 0x164000
+ address1 = 0
+ size1 = 0
+ # compressed image must set len,normal image can left it to 0
+@@ -54,7 +54,7 @@ security = 1
+ type = 2
+ name = "media"
+ device = 0
+-address0 = 0x378000
++address0 = 0x36E000
+ size0 = 0x71000
+ address1 = 0
+ size1 = 0
+@@ -69,8 +69,8 @@ security = 0
+ type = 3
+ name = "PSM"
+ device = 0
+-address0 = 0x3E9000
+-size0 = 0x8000
++address0 = 0x3DF000
++size0 = 0x10000
+ address1 = 0
+ size1 = 0
+ # compressed image must set len,normal image can left it to 0
+@@ -84,7 +84,7 @@ security = 0
+ type = 4
+ name = "KEY"
+ device = 0
+-address0 = 0x3F1000
++address0 = 0x3EF000
+ size0 = 0x2000
+ address1 = 0
+ size1 = 0
+@@ -138,4 +138,4 @@ len = 0
+ # If header is 1, it will add the header.
+ header = 0
+ # If header is 1 and security is 1, It will be encrypted.
+-security = 0
++security = 0
+\ No newline at end of file
+diff --git a/src/platform/qualcomm/qcc74x/ConnectivityManagerImpl.cpp b/src/platform/qualcomm/qcc74x/ConnectivityManagerImpl.cpp
+index d935c940a9..9e334add92 100644
+--- a/src/platform/qualcomm/qcc74x/ConnectivityManagerImpl.cpp
++++ b/src/platform/qualcomm/qcc74x/ConnectivityManagerImpl.cpp
+@@ -104,7 +104,9 @@ CHIP_ERROR ConnectivityManagerImpl::_SetWiFiStationMode(WiFiStationMode val)
+ 
+     if (val != kWiFiStationMode_ApplicationControlled)
+     {
++        chip::DeviceLayer::PlatformMgr().LockChipStack();
+         DeviceLayer::SystemLayer().ScheduleWork(DriveStationState, NULL);
++        chip::DeviceLayer::PlatformMgr().UnlockChipStack();
+     }
+ 
+     if (mWiFiStationMode != val)
+diff --git a/src/platform/qualcomm/qcc74x/NetworkCommissioningDriver.cpp b/src/platform/qualcomm/qcc74x/NetworkCommissioningDriver.cpp
+index d30612613d..1a63b66d6b 100644
+--- a/src/platform/qualcomm/qcc74x/NetworkCommissioningDriver.cpp
++++ b/src/platform/qualcomm/qcc74x/NetworkCommissioningDriver.cpp
+@@ -205,12 +205,14 @@ void Qcc74xWiFiDriver::ScanNetworks(ByteSpan ssid, WiFiDriver::ScanCallback * ca
+ {
+     if (callback != nullptr)
+     {
+-        mpScanCallback = nullptr;
+-        memcpy(mScanSSID, ssid.data(), ssid.size());
+-        mScanSSIDlength = ssid.size();
+-        if (0 == wifi_start_scan(ssid.data(), ssid.size()))
++        mpScanCallback  = nullptr;
++        mScanSSIDlength = 0;
++
++        if (ssid.size() <= sizeof(mScanSSID) && 0 == wifi_start_scan(ssid.data(), ssid.size()))
+         {
+-            mpScanCallback = callback;
++            memcpy(mScanSSID, ssid.data(), ssid.size());
++            mScanSSIDlength = ssid.size();
++            mpScanCallback  = callback;
+         }
+         else
+         {
+@@ -234,25 +236,29 @@ void Qcc74xWiFiDriver::OnScanWiFiNetworkDone()
+         else
+         {
+             wifi_mgmr_scan_item_t * pScanResult = NULL;
+-            uint32_t                scanResultNum = 0;
++            uint32_t scanResultNum              = 0;
+ 
+-            if (mScanSSIDlength) {
+-                for (uint32_t i = 0; i < nums; i ++) {
+-                    if (mScanSSIDlength == pScanList[i].ssid_len && memcmp(pScanList[i].ssid, mScanSSID, mScanSSIDlength) == 0) {
+-                        pScanResult = pScanList;
++            if (mScanSSIDlength)
++            {
++                for (uint32_t i = 0; i < nums; i++)
++                {
++                    if (mScanSSIDlength == pScanList[i].ssid_len && memcmp(pScanList[i].ssid, mScanSSID, mScanSSIDlength) == 0)
++                    {
++                        pScanResult   = &pScanList[i];
+                         scanResultNum = 1;
+                         break;
+                     }
+                 }
+             }
+-            else {
+-                pScanResult = pScanList;
++            else
++            {
++                pScanResult   = pScanList;
+                 scanResultNum = nums;
+             }
+ 
+             if (CHIP_NO_ERROR != DeviceLayer::SystemLayer().ScheduleLambda([scanResultNum, pScanResult, pScanList]() {
+-
+                     Qcc74xScanResponseIterator iter(scanResultNum, pScanResult);
++
+                     if (GetInstance().mpScanCallback)
+                     {
+                         GetInstance().mpScanCallback->OnFinished(Status::kSuccess, CharSpan(), &iter);
+diff --git a/src/platform/qualcomm/qcc74x/NetworkCommissioningDriver.h b/src/platform/qualcomm/qcc74x/NetworkCommissioningDriver.h
+index 478d4f4ccd..a9bbdfe4e9 100644
+--- a/src/platform/qualcomm/qcc74x/NetworkCommissioningDriver.h
++++ b/src/platform/qualcomm/qcc74x/NetworkCommissioningDriver.h
+@@ -142,7 +142,7 @@ private:
+     NetworkStatusChangeCallback * mpStatusChangeCallback = nullptr;
+     int32_t mLastDisconnectedReason;
+ 
+-    char mScanSSID[DeviceLayer::Internal::kMaxWiFiSSIDLength + 1];
++    char mScanSSID[DeviceLayer::Internal::kMaxWiFiSSIDLength];
+     int mScanSSIDlength;
+ };
+ 
+-- 
+2.25.1
+

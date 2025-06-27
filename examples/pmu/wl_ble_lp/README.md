@@ -38,6 +38,14 @@ The following test data reduced the power of BLE TX. The modification is as foll
 
 ## WiFi Low Power：
 
+### WIFI only Compile
+
+Enter the build command line:
+
+```bash
+make CONFIG_BLE_ENABLE=0
+```
+
 ### Test DTIM:
 
 1.Reset board
@@ -69,3 +77,26 @@ BLE and Wi-Fi dual low power mode, which can maintain Wi-Fi keep-alive while als
 2.Connect wifi, and got ip.
 3.Enter ADV connectable mode: Enter the command "ble\_start\_adv 0 0 0x320 0x320" in the command line.
 4.DTIM = 10: Enter the command "tickless 10" in the command line.
+
+
+
+## USB Host for MSC
+Start usbh msc test with a specified time duration, during which perform write and read operation on a usb msc device.
+
+Please be noticed, the USB Host feature in this demo is only for purpose of Wi-Fi performance verification when USB traffic is on. QCC743 cannot go to sleep once there is a USB device connected, so this demo only works in active mode.
+
+### Build Command
+
+```bash
+make CONFIG_USBH_MSC=1
+```
+
+### Test Step
+
+1.Make sure QCC743 is not in sleep mode during this test
+
+2.Plug in a usb msc device
+
+3.Initialize usb host: Enter the command "usbh\_init" in the command line.
+
+4.Enter the test command with a time duration in seconds as argument (uint32_t type), e.g. "usbh\_msc\_test 60" in the command line.

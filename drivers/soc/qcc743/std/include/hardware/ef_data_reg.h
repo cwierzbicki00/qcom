@@ -1083,7 +1083,6 @@
 #define EF_DATA_WR_LOCK_EF_ZONE_15_MSK                          (((1U<<EF_DATA_WR_LOCK_EF_ZONE_15_LEN)-1)<<EF_DATA_WR_LOCK_EF_ZONE_15_POS)
 #define EF_DATA_WR_LOCK_EF_ZONE_15_UMSK                         (~(((1U<<EF_DATA_WR_LOCK_EF_ZONE_15_LEN)-1)<<EF_DATA_WR_LOCK_EF_ZONE_15_POS))
 
-
 struct  ef_data_reg {
     /* 0x0 : ef_cfg_0 */
     union {
@@ -2185,6 +2184,5 @@ struct  ef_data_reg {
 };
 
 typedef volatile struct ef_data_reg ef_data_reg_t;
-
 
 #endif  /* __EF_DATA_REG_H__ */

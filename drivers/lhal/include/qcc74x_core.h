@@ -98,6 +98,7 @@
 #define QCC74x_DEVICE_TYPE_GMAC     43
 #define QCC74x_DEVICE_TYPE_IPC      44
 #define QCC74x_DEVICE_TYPE_MJDEC    45
+#define QCC74x_DEVICE_TYPE_PSRAM    46
 
 struct qcc74x_device_s {
     const char *name;

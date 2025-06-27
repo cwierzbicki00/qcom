@@ -7,7 +7,9 @@
 #define QCC743_A1              1
 
 #if defined(QCC74x_undefL)
-#include "misc.h"
+#define ATTR_STRINGIFY(x)          #x
+#define ATTR_TOSTRING(x)           ATTR_STRINGIFY(x)
+#define ATTR_UNI_SYMBOL            __FILE__ ATTR_TOSTRING(__LINE__)
 #ifndef ATTR_PDS_SECTION
 #define ATTR_PDS_SECTION           __attribute__((section(".pds_code." ATTR_UNI_SYMBOL), noinline))
 #endif

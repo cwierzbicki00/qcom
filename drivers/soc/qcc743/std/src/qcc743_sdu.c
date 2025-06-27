@@ -47,7 +47,6 @@ void sdio_GEN_CARD2HOST_INT(uint32_t port_id, uint16_t value)
     SdioFuncReg[port_id]->CardToHostEvent = value;
 }
 
-
 uint32_t sdio_ioctl(uint32_t port_id, SDIO_CMD_TYPE cmd, void *arg)
 {
     switch(cmd)

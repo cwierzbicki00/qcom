@@ -98,13 +98,14 @@ int at_arg_is_null(const char *arg)
 
 int at_arg_get_number(const char *arg, int *value)
 {
-    int i;
+    int i, len = 0;
 
-    if (!arg) {
+    len = strlen(arg);
+    if (!arg || (!len)) {
         return 0;
     }
-    for (i=0; i<strlen(arg); i++) {
-        if (!((arg[i] >= '0' && arg[i] <= '9') || (i == 0 && arg[i] == '-')))
+    for (i=0; i<len; i++) {
+        if (!((arg[i] >= '0' && arg[i] <= '9')  || (i == 0 && arg[i] == '-' && len > 1)))
             return 0;
     }
 
@@ -309,22 +310,22 @@ static int at_cmd_gettype(int equal, int quest, int argc, char **argv)
 
     if (equal && quest) {
         if (argc > 0)
-            return AT_RESULT_CODE_ERROR;
+            return AT_CMD_TYPE_QUERY;
         type = AT_CMD_TYPE_TEST;
     }
     else if (!equal && quest) {
         if (argc > 0)
-            return AT_RESULT_CODE_ERROR;
+            return AT_CMD_TYPE_ERROR;
         type = AT_CMD_TYPE_QUERY;
     }
     else  if (equal && !quest) {
         if (argc <= 0)
-            return AT_RESULT_CODE_ERROR;
+            return AT_CMD_TYPE_ERROR;
         type = AT_CMD_TYPE_SETUP;
     }
     else {
         if (argc > 0)
-            return AT_RESULT_CODE_ERROR;
+            return AT_CMD_TYPE_ERROR;
         type = AT_CMD_TYPE_EXE;
     }
  

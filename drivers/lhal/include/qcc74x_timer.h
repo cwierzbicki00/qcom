@@ -183,6 +183,17 @@ struct qcc74x_timer_capture_value_s {
     uint32_t gpio_lat3;
     uint32_t gpio_lat4;
 };
+#elif defined(QCC743)
+/**
+ * @brief TIMER capture configuration structure
+ *
+ * @param pin      Timer capture pin
+ * @param polarity Timer capture polarity, use @ref TIMER_GPIO_PULSE_POLARITY
+ */
+struct qcc74x_timer_capture_config_s {
+    uint8_t pin;
+    uint8_t polarity;
+};
 #endif
 
 #ifdef __cplusplus
@@ -329,6 +340,14 @@ int qcc74x_timer_capture_get_latch_value(struct qcc74x_device_s *dev, struct qcc
  * @return The calculated pulse width, or 0 if the pulse width cannot be determined.
  */
 int qcc74x_timer_capture_get_pulsewidth(struct qcc74x_timer_capture_value_s *gpio_lat);
+#elif defined(QCC743)
+/**
+ * @brief Initialize the timer capture feature.
+ *
+ * @param [in] dev device handle
+ * @param [in] config pointer to the timer capture configuration structure
+ */
+void qcc74x_timer_capture_init(struct qcc74x_device_s *dev, const struct qcc74x_timer_capture_config_s *config);
 #endif
 
 #ifdef __cplusplus

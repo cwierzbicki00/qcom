@@ -32,6 +32,7 @@ struct_func_dcl(sm_connect_ind, uint8_t, acm);
 struct_func_dcl(sm_connect_ind, uint16_t, aid);
 struct_func_dcl(sm_connect_ind, struct mac_chan_op, chan);
 struct_func_dcl(sm_connect_ind, bool, qos);
+struct_func_dcl(sm_connect_ind, uint8_t, bss_mode);
 struct_func_dcl(sm_disconnect_ind, uint16_t, status_code);
 struct_func_dcl(sm_disconnect_ind, uint16_t, reason_code);
 struct_func_dcl(sm_disconnect_ind, uint8_t, vif_idx);
@@ -371,6 +372,13 @@ struct_func_dcl(twt_teardown_req, uint8_t, vif_idx);
 struct_func_len(twt_teardown_req);
 struct_func_dcl(twt_teardown_cfm, uint8_t, status);
 struct_func_len(twt_teardown_cfm);
+
+struct_func_dcl(twt_statusget_req, uint8_t, vif_idx);
+struct_func_len(twt_statusget_req);
+struct_func_dcl(twt_statusget_cfm, uint8_t, status);
+struct_func_dcl(twt_statusget_cfm, uint8_t, flows);
+void twt_statusget_cfm_get_conf(void *pa,  struct twt_statusget_cfm *cfm, uint8_t flow_conf_max); 
+struct_func_len(twt_statusget_cfm);
 
 struct_func_dcl(me_get_edca_req, uint8_t, hw_queue);
 struct_func_len(me_get_edca_req);

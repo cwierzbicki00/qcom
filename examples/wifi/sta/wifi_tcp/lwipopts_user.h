@@ -139,6 +139,10 @@
 #endif
 #endif
 
+#if CFG_CSIDMA_CLI 
+#undef CONFIG_HIGH_PERFORMANCE
+#endif 
+
 #if defined(CONFIG_HIGH_PERFORMANCE) && (CONFIG_HIGH_PERFORMANCE == 1)
 #undef MEM_MIN
 #define MEM_MIN (78 * 1024)

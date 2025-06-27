@@ -6,6 +6,7 @@
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
 ../Core/Src/app_atmodule.c \
+../Core/Src/app_bt_hci.c \
 ../Core/Src/app_freertos.c \
 ../Core/Src/at_host.c \
 ../Core/Src/main.c \
@@ -21,6 +22,7 @@ C_SRCS += \
 
 OBJS += \
 ./Core/Src/app_atmodule.o \
+./Core/Src/app_bt_hci.o \
 ./Core/Src/app_freertos.o \
 ./Core/Src/at_host.o \
 ./Core/Src/main.o \
@@ -36,6 +38,7 @@ OBJS += \
 
 C_DEPS += \
 ./Core/Src/app_atmodule.d \
+./Core/Src/app_bt_hci.d \
 ./Core/Src/app_freertos.d \
 ./Core/Src/at_host.d \
 ./Core/Src/main.d \
@@ -57,7 +60,7 @@ Core/Src/%.o Core/Src/%.su Core/Src/%.cyclo: ../Core/Src/%.c Core/Src/subdir.mk
 clean: clean-Core-2f-Src
 
 clean-Core-2f-Src:
-	-$(RM) ./Core/Src/app_atmodule.cyclo ./Core/Src/app_atmodule.d ./Core/Src/app_atmodule.o ./Core/Src/app_atmodule.su ./Core/Src/app_freertos.cyclo ./Core/Src/app_freertos.d ./Core/Src/app_freertos.o ./Core/Src/app_freertos.su ./Core/Src/at_host.cyclo ./Core/Src/at_host.d ./Core/Src/at_host.o ./Core/Src/at_host.su ./Core/Src/main.cyclo ./Core/Src/main.d ./Core/Src/main.o ./Core/Src/main.su ./Core/Src/spi.cyclo ./Core/Src/spi.d ./Core/Src/spi.o ./Core/Src/spi.su ./Core/Src/spi_iface.cyclo ./Core/Src/spi_iface.d ./Core/Src/spi_iface.o ./Core/Src/spi_iface.su ./Core/Src/spi_test.cyclo ./Core/Src/spi_test.d ./Core/Src/spi_test.o ./Core/Src/spi_test.su ./Core/Src/stm32u5xx_hal_msp.cyclo ./Core/Src/stm32u5xx_hal_msp.d ./Core/Src/stm32u5xx_hal_msp.o ./Core/Src/stm32u5xx_hal_msp.su ./Core/Src/stm32u5xx_hal_timebase_tim.cyclo ./Core/Src/stm32u5xx_hal_timebase_tim.d ./Core/Src/stm32u5xx_hal_timebase_tim.o ./Core/Src/stm32u5xx_hal_timebase_tim.su ./Core/Src/stm32u5xx_it.cyclo ./Core/Src/stm32u5xx_it.d ./Core/Src/stm32u5xx_it.o ./Core/Src/stm32u5xx_it.su ./Core/Src/syscalls.cyclo ./Core/Src/syscalls.d ./Core/Src/syscalls.o ./Core/Src/syscalls.su ./Core/Src/sysmem.cyclo ./Core/Src/sysmem.d ./Core/Src/sysmem.o ./Core/Src/sysmem.su ./Core/Src/system_stm32u5xx.cyclo ./Core/Src/system_stm32u5xx.d ./Core/Src/system_stm32u5xx.o ./Core/Src/system_stm32u5xx.su
+	-$(RM) ./Core/Src/app_atmodule.cyclo ./Core/Src/app_atmodule.d ./Core/Src/app_atmodule.o ./Core/Src/app_atmodule.su ./Core/Src/app_bt_hci.cyclo ./Core/Src/app_bt_hci.d ./Core/Src/app_bt_hci.o ./Core/Src/app_bt_hci.su ./Core/Src/app_freertos.cyclo ./Core/Src/app_freertos.d ./Core/Src/app_freertos.o ./Core/Src/app_freertos.su ./Core/Src/at_host.cyclo ./Core/Src/at_host.d ./Core/Src/at_host.o ./Core/Src/at_host.su ./Core/Src/main.cyclo ./Core/Src/main.d ./Core/Src/main.o ./Core/Src/main.su ./Core/Src/spi.cyclo ./Core/Src/spi.d ./Core/Src/spi.o ./Core/Src/spi.su ./Core/Src/spi_iface.cyclo ./Core/Src/spi_iface.d ./Core/Src/spi_iface.o ./Core/Src/spi_iface.su ./Core/Src/spi_test.cyclo ./Core/Src/spi_test.d ./Core/Src/spi_test.o ./Core/Src/spi_test.su ./Core/Src/stm32u5xx_hal_msp.cyclo ./Core/Src/stm32u5xx_hal_msp.d ./Core/Src/stm32u5xx_hal_msp.o ./Core/Src/stm32u5xx_hal_msp.su ./Core/Src/stm32u5xx_hal_timebase_tim.cyclo ./Core/Src/stm32u5xx_hal_timebase_tim.d ./Core/Src/stm32u5xx_hal_timebase_tim.o ./Core/Src/stm32u5xx_hal_timebase_tim.su ./Core/Src/stm32u5xx_it.cyclo ./Core/Src/stm32u5xx_it.d ./Core/Src/stm32u5xx_it.o ./Core/Src/stm32u5xx_it.su ./Core/Src/syscalls.cyclo ./Core/Src/syscalls.d ./Core/Src/syscalls.o ./Core/Src/syscalls.su ./Core/Src/sysmem.cyclo ./Core/Src/sysmem.d ./Core/Src/sysmem.o ./Core/Src/sysmem.su ./Core/Src/system_stm32u5xx.cyclo ./Core/Src/system_stm32u5xx.d ./Core/Src/system_stm32u5xx.o ./Core/Src/system_stm32u5xx.su
 
 .PHONY: clean-Core-2f-Src
 

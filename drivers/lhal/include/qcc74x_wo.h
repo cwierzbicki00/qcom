@@ -30,7 +30,9 @@
 /**
  * @brief WO configuration structure
  *
+#if defined(QCC74x_undef)
  * @param clk_div           WO clock divider, should be less than 0xFFFF, only available for QCC74x_undef
+#endif
  * @param code_total_cnt    WO total count of one period, should be less than 512
  * @param code0_first_cnt   WO first phase count of code0, should be less than 256
  * @param code1_first_cnt   WO first phase count of code1, should be less than 256

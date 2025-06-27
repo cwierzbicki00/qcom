@@ -64,7 +64,7 @@ __ALWAYS_STATIC_INLINE uint32_t __get_MXSTATUS(void)
 {
     uint32_t result;
 
-    __ASM volatile("csrr %0, mxstatus"
+    __ASM volatile("csrr %0, 0x7c0"
                    : "=r"(result));
     return (result);
 }
@@ -76,7 +76,7 @@ __ALWAYS_STATIC_INLINE uint32_t __get_MXSTATUS(void)
  */
 __ALWAYS_STATIC_INLINE void __set_MXSTATUS(uint32_t mxstatus)
 {
-    __ASM volatile("csrw mxstatus, %0"
+    __ASM volatile("csrw 0x7c0, %0"
                    :
                    : "r"(mxstatus));
 }
@@ -90,7 +90,7 @@ __ALWAYS_STATIC_INLINE uint32_t __get_MEXSTATUS(void)
 {
     uint32_t result;
 
-    __ASM volatile("csrr %0, mexstatus"
+    __ASM volatile("csrr %0, 0x7E1;"
                    : "=r"(result));
     return (result);
 }
@@ -102,7 +102,7 @@ __ALWAYS_STATIC_INLINE uint32_t __get_MEXSTATUS(void)
  */
 __ALWAYS_STATIC_INLINE void __set_MEXSTATUS(uint32_t mexstatus)
 {
-    __ASM volatile("csrw mexstatus, %0"
+    __ASM volatile("csrw 0x7E1, %0"
                    :
                    : "r"(mexstatus));
 }
@@ -116,7 +116,7 @@ __ALWAYS_STATIC_INLINE uint32_t __get_MRADDR(void)
 {
     uint32_t result;
 
-    __ASM volatile("csrr %0, mraddr"
+    __ASM volatile("csrr %0, 0x7E0"
                    : "=r"(result));
     return (result);
 }
@@ -182,7 +182,7 @@ __ALWAYS_STATIC_INLINE uint32_t __get_MHCR(void)
 {
     uint32_t result;
 
-    __ASM volatile("csrr %0, mhcr"
+    __ASM volatile("csrr %0, 0x7c1"
                    : "=r"(result));
     return (result);
 }
@@ -194,7 +194,7 @@ __ALWAYS_STATIC_INLINE uint32_t __get_MHCR(void)
  */
 __ALWAYS_STATIC_INLINE void __set_MHCR(uint32_t mhcr)
 {
-    __ASM volatile("csrw mhcr, %0"
+    __ASM volatile("csrw 0x7c1, %0"
                    :
                    : "r"(mhcr));
 }
@@ -208,7 +208,7 @@ __ALWAYS_STATIC_INLINE uint32_t __get_MHINT(void)
 {
     uint32_t result;
 
-    __ASM volatile("csrr %0, mhint"
+    __ASM volatile("csrr %0, 0x7c5"
                    : "=r"(result));
     return (result);
 }
@@ -220,7 +220,7 @@ __ALWAYS_STATIC_INLINE uint32_t __get_MHINT(void)
  */
 __ALWAYS_STATIC_INLINE void __set_MHINT(uint32_t mhint)
 {
-    __ASM volatile("csrw mhint, %0"
+    __ASM volatile("csrw 0x7c5, %0"
                    :
                    : "r"(mhint));
 }
@@ -1252,7 +1252,10 @@ __ALWAYS_STATIC_INLINE void __STOP(void)
  */
 __ALWAYS_STATIC_INLINE void __ISB(void)
 {
-    __ASM volatile("fence.i");
+    //__ASM volatile("fence.i");
+    __asm__ volatile (
+        ".word 0x0000100f\n"
+    );
 }
 
 /**
@@ -1262,7 +1265,10 @@ __ALWAYS_STATIC_INLINE void __ISB(void)
  */
 __ALWAYS_STATIC_INLINE void __DSB(void)
 {
-    __ASM volatile("fence");
+    //__ASM volatile("fence");
+    __asm__ volatile (
+        ".word 0x0ff0000f\n"
+    );
 }
 
 /**
@@ -1271,7 +1277,10 @@ __ALWAYS_STATIC_INLINE void __DSB(void)
  */
 __ALWAYS_STATIC_INLINE void __ICACHE_IALL(void)
 {
-    __ASM volatile("icache.iall");
+    //__ASM volatile("icache.iall");
+    __asm__ volatile (
+        ".word 0x0100000b\n"
+    );
 }
 
 /**
@@ -1292,7 +1301,10 @@ __ALWAYS_STATIC_INLINE void __ICACHE_IPA(uint32_t addr)
  */
 __ALWAYS_STATIC_INLINE void __DCACHE_IALL(void)
 {
-    __ASM volatile("dcache.iall");
+    //__ASM volatile("dcache.iall");
+    __asm__ volatile (
+        ".word 0x0020000b\n"
+    );
 }
 
 /**
@@ -1301,7 +1313,10 @@ __ALWAYS_STATIC_INLINE void __DCACHE_IALL(void)
  */
 __ALWAYS_STATIC_INLINE void __DCACHE_CALL(void)
 {
-    __ASM volatile("dcache.call");
+    //__ASM volatile("dcache.call");
+    __asm__ volatile (
+        ".word 0x0010000b\n"
+    );
 }
 
 /**
@@ -1310,9 +1325,22 @@ __ALWAYS_STATIC_INLINE void __DCACHE_CALL(void)
  */
 __ALWAYS_STATIC_INLINE void __DCACHE_CIALL(void)
 {
-    __ASM volatile("dcache.ciall");
+    //__ASM volatile("dcache.ciall");
+    __asm__ volatile (
+        ".word 0x0030000b\n"
+    );
 }
 
+__ALWAYS_STATIC_INLINE void __CUSTOM_DCACHE_IPA(uint32_t addr) 
+{
+    __asm__ volatile (
+        "mv a0, %0\n\t"
+        ".word 0x02a5000b\n\t"
+        : 
+        : "r" (addr)
+        : "a0", "memory"
+    );
+}
 /**
   \brief   Invalid Dcache by addr
   \details Invalid Dcache by addr.
@@ -1320,11 +1348,22 @@ __ALWAYS_STATIC_INLINE void __DCACHE_CIALL(void)
  */
 __ALWAYS_STATIC_INLINE void __DCACHE_IPA(uint32_t addr)
 {
-    __ASM volatile("dcache.ipa %0"
-                   :
-                   : "r"(addr));
+    //__ASM volatile("dcache.ipa %0"
+    //               :
+    //               : "r"(addr));
+    __CUSTOM_DCACHE_IPA(addr);
 }
 
+__ALWAYS_STATIC_INLINE void __CUSTOM_DCACHE_CPA(uint32_t addr) 
+{
+    __asm__ volatile (
+        "mv a0, %0\n\t"
+        ".word 0x0295000b\n\t"
+        : 
+        : "r" (addr)
+        : "a0", "memory"
+    );
+}
 /**
   \brief   Clear Dcache by addr
   \details Clear Dcache by addr.
@@ -1332,11 +1371,22 @@ __ALWAYS_STATIC_INLINE void __DCACHE_IPA(uint32_t addr)
  */
 __ALWAYS_STATIC_INLINE void __DCACHE_CPA(uint32_t addr)
 {
-    __ASM volatile("dcache.cpa %0"
-                   :
-                   : "r"(addr));
+    //__ASM volatile("dcache.cpa %0"
+    //               :
+    //               : "r"(addr));
+    __CUSTOM_DCACHE_CPA(addr);
 }
 
+__ALWAYS_STATIC_INLINE void __CUSTOM_DCACHE_CIPA(uint32_t addr) 
+{
+    __asm__ volatile (
+        "mv a0, %0\n\t"
+        ".word 0x02b5000b\n\t"
+        : 
+        : "r" (addr)
+        : "a0", "memory"
+    );
+}
 /**
   \brief   Clear & Invalid Dcache by addr
   \details Clear & Invalid Dcache by addr.
@@ -1344,9 +1394,10 @@ __ALWAYS_STATIC_INLINE void __DCACHE_CPA(uint32_t addr)
  */
 __ALWAYS_STATIC_INLINE void __DCACHE_CIPA(uint32_t addr)
 {
-    __ASM volatile("dcache.cipa %0"
-                   :
-                   : "r"(addr));
+    //__ASM volatile("dcache.cipa %0"
+    //               :
+    //               : "r"(addr));
+    __CUSTOM_DCACHE_CIPA(addr);
 }
 
 /**
@@ -1356,7 +1407,10 @@ __ALWAYS_STATIC_INLINE void __DCACHE_CIPA(uint32_t addr)
  */
 __ALWAYS_STATIC_INLINE void __DMB(void)
 {
-    __ASM volatile("fence");
+    //__ASM volatile("fence");    
+    __asm__ volatile (
+        ".word 0x0ff0000f\n"
+    );
 }
 
 /**
