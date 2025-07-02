@@ -536,7 +536,7 @@ static void auth_cancel(struct bt_conn *conn)
 
     bt_addr_le_to_str(bt_conn_get_dst(conn), addr, sizeof(addr));
 	
-	at_response_string("+BLE:PAIRCANCELED:%s\r\n", addr);
+	at_response_string("+BLE:PAIRCANNELED:%s\r\n", addr);
 }
 
 static void auth_pairing_confirm(struct bt_conn *conn)

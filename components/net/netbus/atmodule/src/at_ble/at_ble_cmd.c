@@ -1352,7 +1352,7 @@ static const at_cmd_struct at_ble_cmd[] = {
     {"+BLEGATTCUNSUBSCRIBE", NULL, NULL, at_setup_cmd_ble_gattc_unsubscribe, NULL, 2, 2},
     {"+BLETXPWR", NULL, at_query_cmd_ble_tx_power, at_setup_cmd_ble_tx_power, NULL, 1, 1},
     {"+BLESECPARAM", NULL, at_query_cmd_ble_sec_param, at_setup_cmd_ble_sec_param, NULL, 1, 1},
-    {"+BLESECCANCEL", NULL, NULL, at_setup_cmd_ble_sec_cancel, NULL, 1, 1},
+    {"+BLESECCANNEL", NULL, NULL, at_setup_cmd_ble_sec_cancel, NULL, 1, 1},
     {"+BLESECPASSKEYCONFIRM", NULL, NULL, at_setup_cmd_ble_sec_passkey_confirm, NULL, 1, 1},
     {"+BLESECPAIRINGCONFIRM", NULL, NULL, at_setup_cmd_ble_sec_pairing_confirm, NULL, 1, 1},
     {"+BLESECPASSKEY", NULL, NULL, at_setup_cmd_ble_sec_passkey, NULL, 2, 2},
