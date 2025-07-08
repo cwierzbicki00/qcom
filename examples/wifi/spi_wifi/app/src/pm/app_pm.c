@@ -267,9 +267,7 @@ void set_dtim_config(int dtim)
 
 void clear_dtim_config(void)
 {
-    // Use default config
-    lpfw_cfg.dtim_origin = 10;
-    wifi_mgmr_sta_set_listen_itv(lpfw_cfg.dtim_origin);
+	pm_exit_lp_perparation();
 }
 
 static void cmd_twt(int argc, char **argv)

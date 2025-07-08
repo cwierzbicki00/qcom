@@ -363,7 +363,6 @@ static const at_cmd_struct at_pwr_cmd[] = {
     {"+TWT_STATUS", NULL, at_twt_status_cmd, NULL, NULL, 0, 0},
     {"+SET_CLOCK", NULL, NULL, at_clock_source_set_cmd, NULL, 1, 1},
     {"+GET_CLOCK", NULL, NULL, NULL, at_clock_source_get_cmd, 0, 0},
-    {"+LISTEN_ITV", NULL, at_listen_itv_get_cmd, at_listen_itv_set_cmd, NULL, 0, 1},
 };
 
 bool at_pwr_cmd_regist(void)
