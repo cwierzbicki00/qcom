@@ -138,8 +138,15 @@ static int _check_ota_header(at_ota_header_t *ota_header, uint32_t *ota_len, int
 
 at_ota_handle_t at_ota_start(at_ota_header_t *ota_header)
 {
+    if (!ota_header) {
+        printf("[OTA] Error: ota_header is NULL\r\n");
+        return NULL;
+    }
     at_ota_handle_t ota_handle = pvPortMalloc(sizeof(struct at_ota_handle));
-
+    if (!ota_handle) {
+        printf("[OTA] Error: pvPortMalloc failed\r\n");
+        return NULL;
+    }
     memset(ota_handle, 0, sizeof(struct at_ota_handle));
 
     /* Set flash operation function, read via xip */
@@ -191,6 +198,11 @@ _fail:
 
 int at_ota_update(at_ota_handle_t handle, uint32_t offset, uint8_t *buf, uint32_t buf_len)
 {
+    if (!handle || !buf) {
+        printf("[OTA] Error: handle or buf is NULL\r\n");
+        return -1;
+    }
+
     uint32_t write_size, slice_size;
     int ret;
 
@@ -220,6 +232,11 @@ int at_ota_update(at_ota_handle_t handle, uint32_t offset, uint8_t *buf, uint32_
 
 int at_ota_finish(at_ota_handle_t handle, uint8_t check_hash, uint8_t reboot)
 {
+    if (!handle) {
+        printf("[OTA] Error: handle is NULL\r\n");
+        return -1;
+    }
+
     int status;
     if (handle->file_size != handle->total_size) {
         printf("[OTA] file_size error file_size:%d total_size:%d\r\n", handle->file_size, handle->total_size);
@@ -253,6 +270,10 @@ int at_ota_finish(at_ota_handle_t handle, uint8_t check_hash, uint8_t reboot)
 
 int at_ota_abort(at_ota_handle_t handle)
 {
+    if (!handle) {
+        printf("[OTA] Error: handle is NULL\r\n");
+        return -1;
+    }
     utils_sha256_free(&handle->ctx_sha256);
     vPortFree(handle->sector_erased);
     vPortFree(handle);

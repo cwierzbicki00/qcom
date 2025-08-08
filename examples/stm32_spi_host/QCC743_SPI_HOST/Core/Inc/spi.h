@@ -13,11 +13,17 @@
 
 #define SPI_MSG_CTRL_TRAFFIC_TYPE		0x1
 #define SPI_MSG_CTRL_TRAFFIC_TYPE_LEN	1
-#define SPI_MSG_CTRL_TRAFFIC_AT_CMD		0
-#define SPI_MSG_CTRL_TRAFFIC_NETWORK	1
-#define SPI_MSG_CTRL_TRAFFIC_HCI        2
-#define SPI_MSG_CTRL_TRAFFIC_OT         3
-#define SPI_MSG_CTRL_TRAFFIC_TYPE_MAX   4
+
+typedef void (*spi_rxd_notify_func_t)(void *arg);
+
+typedef enum {
+    SPI_MSG_CTRL_TRAFFIC_AT_CMD   = 0,
+    SPI_MSG_CTRL_TRAFFIC_NETWORK_STA,
+    SPI_MSG_CTRL_TRAFFIC_NETWORK_AP,
+    SPI_MSG_CTRL_TRAFFIC_HCI,
+    SPI_MSG_CTRL_TRAFFIC_OT,
+    SPI_MSG_CTRL_TRAFFIC_TYPE_MAX,
+} spi_msg_ctrl_t;
 
 struct spi_msg_control {
 	/* Ref SPI_MSG_CTRL_xxx */
@@ -111,6 +117,8 @@ int spi_bind(unsigned char type, int rxq_size);
 int spi_read(struct spi_msg *msg, int timeout_ms);
 
 int spi_write(struct spi_msg *msg, int timeout_ms);
+
+int spi_rxd_callback_register(spi_msg_ctrl_t type, spi_rxd_notify_func_t cb, void *arg);
 
 void spi_show_throuput_enable(int en);
 

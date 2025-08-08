@@ -112,8 +112,23 @@ struct lwip_cyclic_timer lwip_cyclic_timers[] = {
 #if LWIP_DNS
   {LWIP_TIMER_STATUS_RUNNING, DNS_TMR_INTERVAL, HANDLER(dns_tmr)},
 #endif /* LWIP_DNS */
+#if IPV6_TIMER_PRECISE_NEEDED
+#if LWIP_IPV6
+  {LWIP_TIMER_STATUS_IDLE, ND6_TMR_INTERVAL, HANDLER(nd6_tmr)},
+#endif /* LWIP_IPV6 */
+#if LWIP_IPV6_REASS
+  {LWIP_TIMER_STATUS_IDLE, IP6_REASS_TMR_INTERVAL, HANDLER(ip6_reass_tmr)},
+#endif /* LWIP_IPV6_REASS */
+#if LWIP_IPV6_MLD
+  {LWIP_TIMER_STATUS_IDLE, MLD6_TMR_INTERVAL, HANDLER(mld6_tmr)},
+#endif /* LWIP_IPV6_MLD */
+#if LWIP_IPV6_DHCP6
+  {LWIP_TIMER_STATUS_IDLE, DHCP6_TIMER_MSECS, HANDLER(dhcp6_tmr)},
+#endif /* LWIP_IPV6_DHCP6 */
+#else
 #if LWIP_IPV6
   {LWIP_TIMER_STATUS_RUNNING, ND6_TMR_INTERVAL, HANDLER(nd6_tmr)},
+#endif /* LWIP_IPV6 */
 #if LWIP_IPV6_REASS
   {LWIP_TIMER_STATUS_RUNNING, IP6_REASS_TMR_INTERVAL, HANDLER(ip6_reass_tmr)},
 #endif /* LWIP_IPV6_REASS */
@@ -123,7 +138,7 @@ struct lwip_cyclic_timer lwip_cyclic_timers[] = {
 #if LWIP_IPV6_DHCP6
   {LWIP_TIMER_STATUS_RUNNING, DHCP6_TIMER_MSECS, HANDLER(dhcp6_tmr)},
 #endif /* LWIP_IPV6_DHCP6 */
-#endif /* LWIP_IPV6 */
+#endif
 };
 const int lwip_num_cyclic_timers = LWIP_ARRAYSIZE(lwip_cyclic_timers);
 
@@ -719,6 +734,29 @@ sys_timeouts_sleeptime(void)
     return ret;
   }
 }
+
+#if LWIP_IPV6
+void ipv6_timer_switch(u8_t enable)
+{
+  for (size_t i = 0; i < LWIP_ARRAYSIZE(lwip_cyclic_timers); i++) {
+    lwip_cyclic_timer_handler h = lwip_cyclic_timers[i].handler;
+
+    if (   h == nd6_tmr
+#if LWIP_IPV6_REASS
+        || h == ip6_reass_tmr
+#endif
+#if LWIP_IPV6_MLD
+        || h == mld6_tmr
+#endif
+#if LWIP_IPV6_DHCP6
+        || h == dhcp6_tmr
+#endif
+       ) {
+        sys_timeouts_set_timer_enable(enable, h);
+    }
+  }
+}
+#endif
 
 #else /* LWIP_TIMERS && !LWIP_TIMERS_CUSTOM */
 /* Satisfy the TCP code which calls this function */

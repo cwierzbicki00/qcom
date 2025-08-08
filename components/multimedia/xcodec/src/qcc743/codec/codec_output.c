@@ -681,7 +681,8 @@ int auo_tx_dma_link(auo_ch_t *context, void *dma)
     return 0;
 }
 
-// 返回CODEC输出缓冲区内可用(用户根据该数值了解到还可以write多少)数据量 (bytes)
+// Get the available writable bytes in the codec output buffer.
+//This value indicates how many bytes can be written into the buffer.
 uint32_t auo_buffer_avail(auo_ch_t *context)
 {
     uint32_t len;
@@ -693,7 +694,7 @@ uint32_t auo_buffer_avail(auo_ch_t *context)
     return len;
 }
 
-// 返回CODEC输出缓冲区内已用(可用于dma搬运的)数据量
+// Get the amount of used data (ready for DMA transfer) in the codec output buffer.
 uint32_t auo_buffer_remain(auo_ch_t *context)
 {
     uint32_t len;
@@ -705,7 +706,7 @@ uint32_t auo_buffer_remain(auo_ch_t *context)
     return len;
 }
 
-// 暂停dma，清空buffer里面的数据
+// Pause DMA transfer and clear the data in the buffer.
 uint32_t auo_buffer_reset(auo_ch_t *context)
 {
 #if 0

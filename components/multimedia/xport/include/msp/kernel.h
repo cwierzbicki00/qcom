@@ -30,7 +30,7 @@ typedef void * msp_queue_t;
 typedef void * msp_timer_t;
 typedef void * msp_event_t;
 
-typedef int32_t msp_status_t; /**< MSP返回值状态类型 */
+typedef int32_t msp_status_t; /**< MSP return value status type */
 
 msp_task_t msp_task_self();
 

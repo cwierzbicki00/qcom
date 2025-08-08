@@ -70,6 +70,10 @@ static int __at_iperf_statis(uint8_t *buf, uint32_t size, void *arg)
 #define TEST_RX_BUFFER_SIZE (6000)
 int at_iperf_udp_tx_start(at_host_handle_t at, char ip_addr[20], int port)
 {
+    if (!at) {
+        printf("Error: NULL at in at_iperf_udp_tx_start.\n");
+        return -1;
+    }
 	static uint32_t last = 0;
 	static uint32_t totle_len = 0;
 	int ret, run_count = 0;
@@ -120,6 +124,10 @@ int at_iperf_udp_tx_start(at_host_handle_t at, char ip_addr[20], int port)
 
 int at_iperf_tcp_tx_start(at_host_handle_t at, char ip_addr[20], int port)
 {
+    if (!at) {
+        printf("Error: NULL at in at_iperf_tcp_tx_start.\n");
+        return -1;
+    }
 	static uint32_t last = 0;
 	static uint32_t totle_len = 0;
 	int ret, run_count = 0;
@@ -166,6 +174,10 @@ int at_iperf_tcp_tx_start(at_host_handle_t at, char ip_addr[20], int port)
 
 int at_iperf_udp_rx_start(at_host_handle_t at, char ip_addr[20], int port)
 {
+    if (!at) {
+        printf("Error: NULL at in at_iperf_udp_rx_start.\n");
+        return -1;
+    }
 	static uint32_t last = 0;
 	static uint32_t totle_len = 0;
 	int ret, run_count = 0;
@@ -220,6 +232,10 @@ int at_iperf_udp_rx_start(at_host_handle_t at, char ip_addr[20], int port)
 
 int at_iperf_tcp_rx_start(at_host_handle_t at, char ip_addr[20], int port)
 {
+    if (!at) {
+        printf("Error: NULL at in at_iperf_tcp_rx_start.\n");
+        return -1;
+    }
 	static uint32_t last = 0;
 	static uint32_t totle_len = 0;
 	int ret, run_count = 0;
@@ -578,7 +594,7 @@ static int _at_to_console(uint8_t *buf, uint32_t len, void *arg)
 
     if (strstr((char *)buf, "+CW:CONNECTED\r\n") != NULL) {
     	virt_net_get_netmode(g_virt_eth, &netmode);
-    	if (netmode == VIRTNET_NET_MODE_RCP) {
+    	if (netmode == VIRTNET_NET_MODE_LWIP_ONHOST) {
     		virt_net_dhcp_start(g_virt_eth, 15*1000);
     	}
     }

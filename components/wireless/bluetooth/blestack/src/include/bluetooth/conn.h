@@ -110,9 +110,7 @@ void notify_disconnected(struct bt_conn *conn);
 #if (CONFIG_BT_REMOTE_VERSION)
 void notify_remote_version(struct bt_conn *conn);
 #endif /* CONFIG_BT_REMOTE_VERSION */
-#if defined(QCC74x_HOST_ASSISTANT)
-void bt_notify_disconnected(void);
-#endif
+void bt_conn_cleanup_all(void);
 #endif
 
 /** @brief Get destination (peer) address of a connection.

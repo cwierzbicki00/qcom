@@ -10,8 +10,8 @@ CROSS_COMPILE ?= riscv64-unknown-elf-
 # add custom cmake definition
 #cmake_definition+=-Dxxx=sss
 
-CONFIG_RCP_ENABLE ?= 0
-cmake_definition+=-DCONFIG_RCP_ENABLE=$(CONFIG_RCP_ENABLE)
+CONFIG_LWIP_ONHOST_ENABLE ?= 0
+cmake_definition+=-DCONFIG_LWIP_ONHOST_ENABLE=$(CONFIG_LWIP_ONHOST_ENABLE)
 
 CONFIG_USE_LPAPP ?= 1
 cmake_definition+=-DCONFIG_USE_LPAPP=$(CONFIG_USE_LPAPP)
@@ -22,13 +22,21 @@ cmake_definition+=-DCONFIG_BLUETOOTH_APP=$(CONFIG_BLUETOOTH_APP)
 CONFIG_HCI_ENABLE ?= 0
 ifeq ($(CONFIG_HCI_ENABLE), 1)
     cmake_definition+=-DCONFIG_HCI_ENABLE=$(CONFIG_HCI_ENABLE)
-    ifneq ($(CONFIG_RCP_ENABLE), 1)
-        $(error "Bluetooth HCI mode only runs with Wi-Fi RCP mode.")
+    ifneq ($(CONFIG_LWIP_ONHOST_ENABLE), 1)
+        $(error "Bluetooth HCI mode only runs with Wi-Fi Lwip On Host mode.")
     endif
     ifneq ($(CONFIG_BLUETOOTH_APP), 0)
         $(error "BLE AT CMD NOT run Bluetooth HCI mode.")
     endif
 endif
+
+ifeq ($(CONFIG_LWIP_ONHOST_ENABLE), 1)
+CONFIG_IPV6 = 0
+else
+CONFIG_IPV6 ?= 1
+endif
+
+cmake_definition+=-DCONFIG_IPV6=$(CONFIG_IPV6)
 
 CONFIG_MQTT ?= 1
 cmake_definition+=-DCONFIG_MQTT=$(CONFIG_MQTT)

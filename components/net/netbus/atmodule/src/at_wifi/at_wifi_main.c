@@ -91,11 +91,16 @@ static int wifi_ap_get_sta_ip(uint8_t mac[6], uint32_t *ip);
 /* todo: wifi_mgmr_ext.c */
 int wifi_mgmr_sta_disconnect(void)
 {
+    // Defensive: check WiFi state if possible
     return wifi_sta_disconnect();
 }
 
 int wifi_mgmr_sta_mac_set(uint8_t mac[6])
 {
+    if (!mac) {
+        printf("[WIFI_MAIN] Error: mac is NULL\r\n");
+        return -1;
+    }
     memcpy(wifiMgmr.wlan_sta.mac, mac, 6);
 
     return 0;
@@ -103,6 +108,10 @@ int wifi_mgmr_sta_mac_set(uint8_t mac[6])
 
 int wifi_mgmr_ap_mac_set(uint8_t mac[6])
 {
+    if (!mac) {
+        printf("[WIFI_MAIN] Error: mac is NULL\r\n");
+        return -1;
+    }
     memcpy(wifiMgmr.wlan_ap.mac, mac, 6);
     return 0;
 }
@@ -181,6 +190,10 @@ static void wifiopt_sta_disconnect(int force)
 
 void wifiopt_sta_connect(void)
 {
+    if (!at_wifi_config) {
+        printf("[WIFI_MAIN] Error: at_wifi_config is NULL\r\n");
+        return;
+    }
     char *ssid = at_wifi_config->sta_info.ssid;
     char *psk = at_wifi_config->sta_info.psk;
 
@@ -201,6 +214,7 @@ void wifiopt_sta_connect(void)
     //struct ap_connect_adv ext_param;
 
     if (strlen(ssid) <= 0) {
+        printf("[WIFI_MAIN] Error: ssid is NULL or empty\r\n");
         return;
     }
 
@@ -758,6 +772,10 @@ void wifi_event_handler(uint32_t code)
         case CODE_WIFI_ON_GOT_IP: {
             LOG_I("[APP] [EVT] %s, CODE_WIFI_ON_GOT_IP\r\n", __func__);
             LOG_I("[SYS] Memory left is %d Bytes\r\n", kfree_size());
+            wifi_event_start(code);
+        } break;
+        case CODE_WIFI_ON_LOST_IP: {
+            LOG_I("[APP] [EVT] %s, CODE_WIFI_ON_LOST_IP\r\n", __func__);
             wifi_event_start(code);
         } break;
         case CODE_WIFI_ON_DISCONNECT: {

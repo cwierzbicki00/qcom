@@ -64,7 +64,7 @@ static int media_dec_key_cb(const void *in, size_t ilen, void *out, size_t *olen
 }
 #endif
 
-//系统音、在线音乐回调函数
+// Callback function for system sounds and online music
 static void _aui_evt_cb_(int type, const char *url, aui_player_evtid_t evt_id, const void *data, size_t size)
 {
     ctrl_local_play.callback(type, evt_id);

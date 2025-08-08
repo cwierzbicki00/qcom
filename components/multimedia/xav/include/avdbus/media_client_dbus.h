@@ -12,7 +12,7 @@
 __BEGIN_DECLS__
 
 typedef struct {
-    int              resume;    /* 自动重启音乐(0：手动 1：自动)  */
+    int              resume;    /* Automatic music restart configuration(0：Manual restart 1：Automatic restart)  */
     uint64_t         seek_time;
 } auic_ply_t;
 

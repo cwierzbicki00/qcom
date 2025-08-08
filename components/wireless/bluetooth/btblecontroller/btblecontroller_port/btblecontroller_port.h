@@ -32,7 +32,7 @@ void btblecontroller_software_btdm_reset();
 void btblecontroller_software_pds_reset();
 void btblecontroller_pds_trim_rc32m();
 uint8_t btblecontrolller_get_chip_version();
-#if defined(QCC74x_undefL) || defined(QCC743)
+#if defined(QCC74x_undefL) || defined(QCC743) || defined(QCC743D)
 void btblecontroller_sys_reset(void);
 #endif
 #if defined(CONFIG_BT_MFG_HCI_CMD) || defined(CONFIG_BLE_MFG_HCI_CMD)

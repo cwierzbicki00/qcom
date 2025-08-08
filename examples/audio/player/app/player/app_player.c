@@ -15,7 +15,7 @@
 #include <msp_fs.h>
 #include <xav_port.h>
 
-/* 相关配置需要调整到板卡中，或者app配置文件中 */
+/* Relevant configurations need to be adjusted either in the board or in the app's configuration file. */
 //#define PA_PIN                 4
 //#define INPUT_NEGATIVE_PIN      (28)
 //#define INPUT_POSITIVE_PIN      (27)
@@ -124,23 +124,23 @@ static void _fifo_task(void *arg)
     smtaudio_start(MEDIA_SYSTEM, "fifo://tts/1", 0, 0);
 
     while (cnt < sizeof(music_mp3)) {
-        /* 获取fifo的可写指针及长度 */
+        /* Get the writable pointer and length of the FIFO */
         wlen = nsfifo_get_wpos(tts_fifo, &pos, 8*1000);
 
-        /* 获取播放器fifo读端是否退出(可能播放出错) */
+        /* Check if the read end of the player FIFO has exited (possible playback error) */
         nsfifo_get_eof(tts_fifo, &reof, NULL);
         if (wlen <= 0 || reof) {
             printf("get wpos err. wlen = %d, reof = %d", wlen, reof);
             break;
         }
 
-        /* 计算一次写入的长度，不超过 wlen */
+        /* Calculate the length of a single write operation, not exceeding wlen */
         rc = MIN(wlen, sizeof(music_mp3) - cnt);
         int real_len = (rc > FRANE_SIZE) ? FRANE_SIZE : rc;
 
         memcpy(pos, music_mp3 + cnt, real_len);
 
-        /* 设置写指针 */
+        /* Set the write pointer */
         nsfifo_set_wpos(tts_fifo, real_len);
         cnt += real_len;
     }

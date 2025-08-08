@@ -43,8 +43,13 @@ int cmd_atef_set(int argc, char **argv)
 {
     int ret;
 
-    if (argc != 3) {
+    if (argc != 3 || argv == NULL) {
         printf("arg error\r\n");
+        return -1;
+    }
+    if (!argv[1] || !argv[2]) {
+        printf("key or value is NULL\r\n");
+        return -1;
     }
 
     ret = ef_set_env_blob(argv[1], (const char *)(argv[2]), strlen(argv[2]));
@@ -63,8 +68,14 @@ SHELL_CMD_EXPORT_ALIAS(cmd_atef_dump, atef_dump, at easyflash dump.);
 
 void app_easyflash4_init(void)
 {
-    qcc74x_mtd_init();
-    easyflash_init();
+    if (qcc74x_mtd_init() != 0) {
+        printf("[EASYFLASH4] Error: qcc74x_mtd_init failed\r\n");
+        return;
+    }
+    if (easyflash_init() != 0) {
+        printf("[EASYFLASH4] Error: easyflash_init failed\r\n");
+        return;
+    }
 }
 
 

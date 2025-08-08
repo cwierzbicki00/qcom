@@ -1987,7 +1987,11 @@ int bt_gatt_notify_cb(struct bt_conn *conn,
 
 	__ASSERT(params, "invalid parameters\n");
 	__ASSERT(params->attr, "invalid parameters\n");
-
+	#if defined(QCC74x_HOST_PARAMETER_CHECK)
+	if (!params->data || params->len <= 0) {
+		return -EINVAL;
+	}
+	#endif
 	attr = params->attr;
 
 	if (conn && conn->state != BT_CONN_CONNECTED) {
@@ -2054,6 +2058,12 @@ int bt_gatt_indicate(struct bt_conn *conn,
 	__ASSERT(params, "invalid parameters\n");
 	__ASSERT(params->attr, "invalid parameters\n");
 
+	#if defined(QCC74x_HOST_PARAMETER_CHECK)
+	if(params->data == NULL|| params->len <= 0)
+	{
+		return -EINVAL;
+	}
+	#endif
 	attr = params->attr;
 
 	if (conn && conn->state != BT_CONN_CONNECTED) {
@@ -2444,8 +2454,8 @@ void bt_gatt_notification(struct bt_conn *conn, u16_t handle,
 			  const void *data, u16_t length)
 {
 	struct bt_gatt_subscribe_params *params, *tmp;
-
 	BT_DBG("handle 0x%04x length %u", handle, length);
+	
     #if defined(QCC74x_BLE_NOTIFY_ALL)
     if(gatt_notify_all_cb){
         gatt_notify_all_cb(conn,handle,data,length);
@@ -3625,7 +3635,11 @@ int bt_gatt_read(struct bt_conn *conn, struct bt_gatt_read_params *params)
 	if (conn->state != BT_CONN_CONNECTED) {
 		return -ENOTCONN;
 	}
-	
+	#if defined(QCC74x_HOST_PARAMETER_CHECK)
+	if(params->single.handle < 0){
+		return -EINVAL;
+	}
+	#endif
 	if (params->handle_count == 0) {
 		return gatt_read_uuid(conn, params);
 	}
@@ -3675,6 +3689,13 @@ int bt_gatt_write_without_response_cb(struct bt_conn *conn, u16_t handle,
 	if (conn == NULL || conn->state != BT_CONN_CONNECTED) {
 		return -ENOTCONN;
 	}
+	
+	#if defined(QCC74x_HOST_PARAMETER_CHECK)
+	if(data == NULL|| length <= 0)
+	{
+		return -EINVAL;
+	}
+	#endif
 
 #if defined(CONFIG_BT_SMP)
 	if (conn->encrypt) {
@@ -3889,7 +3910,13 @@ int bt_gatt_write(struct bt_conn *conn, struct bt_gatt_write_params *params)
 	if (conn->state != BT_CONN_CONNECTED) {
 		return -ENOTCONN;
 	}
-
+	
+	#if defined(QCC74x_HOST_PARAMETER_CHECK)
+	if(params->data == NULL || params->length <= 0)
+	{
+		return -EINVAL;
+	}
+	#endif
 	/* Use Prepare Write if offset is set or Long Write is required */
 	if (params->offset ||
 	    params->length > (bt_att_get_mtu(conn) - sizeof(*req) - 1)) {
@@ -5128,6 +5155,11 @@ int bt_gatts_add_char(const struct bt_gatt_attr *char_attr,uint32_t val_prop)
     struct bt_gatt_service *last;
     struct customer_svc_list *last_list;
 
+	#if defined(QCC74x_HOST_PARAMETER_CHECK)
+	__ASSERT(char_attr, "invalid parameters\n");
+	__ASSERT(char_attr->uuid, "invalid parameters\n");
+	#endif
+
     last_list = SYS_SLIST_PEEK_TAIL_CONTAINER(&custom_services_db, last_list, node);
     if(!last_list){
         BT_ERR("Not found svc list");
@@ -5189,6 +5221,11 @@ int bt_gatts_add_desc(const struct bt_gatt_attr *desp_attr)
     struct bt_gatt_service *last;
     struct add_gatts_attr *d;
     struct customer_svc_list *list;
+
+	#if defined(QCC74x_HOST_PARAMETER_CHECK)
+	__ASSERT(desp_attr, "invalid parameters\n");
+	__ASSERT(desp_attr->uuid, "invalid parameters\n");
+	#endif
 
     list = SYS_SLIST_PEEK_TAIL_CONTAINER(&custom_services_db, list, node);
     if(!list){

@@ -6,6 +6,10 @@
 #include "qcc743_glb.h"
 #include "board.h"
 
+#define MIC_ANALOG_CASE 0
+#define MIC_PDM_CASE    1
+#define MIC_CASE_SELECT MIC_PDM_CASE
+
 struct qcc74x_device_s *auadc_dma_hd;
 struct qcc74x_device_s *audac_dma_hd;
 
@@ -30,6 +34,13 @@ void audio_gpio_init(void)
 
     gpio = qcc74x_device_get_by_name("gpio");
 
+#ifdef CONFIG_AUDIO_MIC_PDM_MODE
+    /* data */
+    qcc74x_gpio_init(gpio, GPIO_PIN_25, GPIO_FUNC_PDM | GPIO_ALTERNATE | GPIO_FLOAT | GPIO_SMT_EN | GPIO_DRV_2);
+    /* clk */
+    qcc74x_gpio_init(gpio, GPIO_PIN_26, GPIO_FUNC_PDM | GPIO_ALTERNATE | GPIO_FLOAT | GPIO_SMT_EN | GPIO_DRV_2);
+
+#else
     /* auadc ch0 */
     //qcc74x_gpio_init(gpio, GPIO_PIN_20, GPIO_ANALOG | GPIO_FLOAT | GPIO_SMT_EN | GPIO_DRV_2);
     /* auadc ch3 */
@@ -38,20 +49,17 @@ void audio_gpio_init(void)
     qcc74x_gpio_init(gpio, GPIO_PIN_27, GPIO_ANALOG | GPIO_FLOAT | GPIO_SMT_EN | GPIO_DRV_2);
     /* auadc ch7 */
     qcc74x_gpio_init(gpio, GPIO_PIN_30, GPIO_ANALOG | GPIO_FLOAT | GPIO_SMT_EN | GPIO_DRV_2);
+#endif
 
     /* audac pwm output mode */
-    // qcc74x_gpio_init(gpio, GPIO_PIN_14, GPIO_FUNC_AUDAC_PWM | GPIO_ALTERNATE | GPIO_PULLUP | GPIO_SMT_EN | GPIO_DRV_2);
-    // qcc74x_gpio_init(gpio, GPIO_PIN_15, GPIO_FUNC_AUDAC_PWM | GPIO_ALTERNATE | GPIO_PULLUP | GPIO_SMT_EN | GPIO_DRV_2);
+    qcc74x_gpio_init(gpio, GPIO_PIN_14, GPIO_FUNC_AUDAC_PWM | GPIO_ALTERNATE | GPIO_PULLUP | GPIO_SMT_EN | GPIO_DRV_2);
+    qcc74x_gpio_init(gpio, GPIO_PIN_15, GPIO_FUNC_AUDAC_PWM | GPIO_ALTERNATE | GPIO_PULLUP | GPIO_SMT_EN | GPIO_DRV_2);
 
     // qcc74x_gpio_init(gpio, GPIO_PIN_22, GPIO_FUNC_AUDAC_PWM | GPIO_ALTERNATE | GPIO_PULLUP | GPIO_SMT_EN | GPIO_DRV_2);
     // qcc74x_gpio_init(gpio, GPIO_PIN_23, GPIO_FUNC_AUDAC_PWM | GPIO_ALTERNATE | GPIO_PULLUP | GPIO_SMT_EN | GPIO_DRV_2);
 
     // qcc74x_gpio_init(gpio, GPIO_PIN_27, GPIO_FUNC_AUDAC_PWM | GPIO_ALTERNATE | GPIO_PULLUP | GPIO_SMT_EN | GPIO_DRV_2);
     // qcc74x_gpio_init(gpio, GPIO_PIN_28, GPIO_FUNC_AUDAC_PWM | GPIO_ALTERNATE | GPIO_PULLUP | GPIO_SMT_EN | GPIO_DRV_2);
-
-    /* audac gpdac output mode */
-    qcc74x_gpio_init(gpio, GPIO_PIN_2, GPIO_ANALOG | GPIO_SMT_EN | GPIO_DRV_0);
-    qcc74x_gpio_init(gpio, GPIO_PIN_3, GPIO_ANALOG | GPIO_SMT_EN | GPIO_DRV_0);
 }
 
 /* audio adc init */
@@ -60,19 +68,13 @@ static void auadc_init(void)
     /* audio adc config */
     struct qcc74x_auadc_init_config_s auadc_init_cfg = {
         .sampling_rate = AUADC_SAMPLING_RATE_32K,
+#ifdef CONFIG_AUDIO_MIC_PDM_MODE
+        .input_mode = AUADC_INPUT_MODE_PDM_L,
+#else
         .input_mode = AUADC_INPUT_MODE_ADC,
+#endif
         .data_format = AUADC_DATA_FORMAT_16BIT,
         .fifo_threshold = 3,
-    };
-
-    /* audio adc analog config */
-    struct qcc74x_auadc_adc_init_config_s auadc_analog_init_cfg = {
-        .auadc_analog_en = true,
-        .adc_mode = AUADC_ADC_MODE_AUDIO,
-        .adc_pga_mode = AUADC_ADC_PGA_MODE_AC_DIFFER,
-        .adc_pga_posi_ch = AUADC_ADC_ANALOG_CH_4,
-        .adc_pga_nega_ch = AUADC_ADC_ANALOG_CH_7,
-        .adc_pga_gain = 21,
     };
 
     /* clock cfg */
@@ -82,7 +84,18 @@ static void auadc_init(void)
     /* auadc init */
     auadc_hd = qcc74x_device_get_by_name("auadc");
     qcc74x_auadc_init(auadc_hd, &auadc_init_cfg);
+#ifndef CONFIG_AUDIO_MIC_PDM_MODE
+    /* audio adc analog config */
+    struct qcc74x_auadc_adc_init_config_s auadc_analog_init_cfg = {
+        .auadc_analog_en = true,
+        .adc_mode = AUADC_ADC_MODE_AUDIO,
+        .adc_pga_mode = AUADC_ADC_PGA_MODE_AC_DIFFER,
+        .adc_pga_posi_ch = AUADC_ADC_ANALOG_CH_4,
+        .adc_pga_nega_ch = AUADC_ADC_ANALOG_CH_7,
+        .adc_pga_gain = 21,
+    };
     qcc74x_auadc_adc_init(auadc_hd, &auadc_analog_init_cfg);
+#endif
     /* auadc enable dma */
     qcc74x_auadc_link_rxdma(auadc_hd, true);
 }
@@ -122,7 +135,7 @@ static void audac_init(void)
     /* audio dac config */
     struct qcc74x_audac_init_config_s audac_init_cfg = {
         .sampling_rate = AUDAC_SAMPLING_RATE_32K,
-        .output_mode = AUDAC_OUTPUT_MODE_GPDAC_CH_A_B,      /* gpdac output */
+        .output_mode = AUDAC_OUTPUT_MODE_PWM,
         .source_channels_num = AUDAC_SOURCE_CHANNEL_SINGLE,
         .mixer_mode = AUDAC_MIXER_MODE_ONLY_L,
         .data_format = AUDAC_DATA_FORMAT_16BIT,
@@ -198,7 +211,7 @@ int main(void)
 
     /* delay 10ms */
     qcc74x_mtimer_delay_ms(10);
-    
+
     /* audac init */
     audac_init();
     audac_dma_init();

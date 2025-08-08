@@ -494,6 +494,8 @@ void twt_setup_req_set_conf_wake_int_mantissa(void *pa, uint16_t val) {
 
     struct_func_get_def(twt_statusget_cfm, uint8_t, status);
     struct_func_get_def(twt_statusget_cfm, uint8_t, flows);
+    struct_func_get_def(twt_statusget_cfm, uint8_t, twt_supported);
+    struct_func_get_def(twt_statusget_cfm, uint8_t, dtim);
 void twt_statusget_cfm_get_conf(void *pa,  struct twt_statusget_cfm *cfm, uint8_t flow_conf_max) {
     struct twt_conf_tag *p = (struct twt_conf_tag *)pa;
     struct twt_conf_tag conf[NX_TWT_FLOW_NB];

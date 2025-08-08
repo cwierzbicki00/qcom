@@ -2,6 +2,9 @@
 #include <string.h>
 #include <stdio.h>
 #include "qcc74x_flash.h"
+#ifdef CONFIG_QCC74x_MTD
+#include "qcc74x_mtd.h"
+#endif
 #include "coredump.h"
 
 uint8_t core_build_id[BUILD_ID_LEN];
@@ -45,10 +48,46 @@ static void coredump_print_n_k(uintptr_t addr, uintptr_t lma_addr, uint32_t len,
  */
 static uint32_t coredump_flash_addr;
 static size_t coredump_flash_size;
-void core_partition_init(uint32_t flash_addr, size_t flash_size) {
-    coredump_flash_addr = flash_addr;
-    coredump_flash_size = flash_size;
+
+#ifdef CONFIG_QCC74x_MTD
+uint32_t core_partition_addr(void) {
+    return coredump_flash_addr;
 }
+size_t core_partition_size(void) {
+    return coredump_flash_size;
+}
+void core_partition_init(void) {
+    qcc74x_mtd_info_t info;
+    qcc74x_mtd_handle_t handle;
+    int ret;
+    uint32_t offset;
+    size_t size;
+
+    qcc74x_mtd_init();
+    ret = qcc74x_mtd_open("FW", &handle, 0);
+    if (ret < 0) {
+        puts("No valid FW partition found\r\n");
+        return;
+    } else {
+        memset(&info, 0, sizeof(info));
+        qcc74x_mtd_info(handle, &info);
+        extern char __start[];
+        extern char __text_code_end__[];
+        // 32K include lpfw and other
+        if(__text_code_end__ - __start + 32 * 1024 + 16 * 1024 >= info.size) {
+            puts("FW partition no space for coredump\r\n");
+            qcc74x_mtd_close(handle);
+            return;
+        }
+        size = 16 * 1024;
+        offset = info.offset +  info.size - 16 * 1024;
+    }
+    qcc74x_mtd_close(handle);
+
+    coredump_flash_addr = offset;
+    coredump_flash_size = size;
+}
+#endif
 
 /* write xip flash buffer to flash */
 int coredump_xip_flash_write(uint32_t lma, uint8_t *lma_xip, size_t len)
@@ -75,15 +114,23 @@ void coredump_run(void) {
     uint32_t lma = coredump_flash_addr;
     struct dump_section only_task_stack[5];
     struct dump_section *dump_sections;
+    struct dump_section *flash_dump_sections;
 
-    if(coredump_flash_size >= get_size_of_sections() + 4096) {
+    int enable_coredump_config = CONFIG_COREDUMP;
+    int enable_print = enable_coredump_config & 0x1;
+    int enable_flash = enable_coredump_config & 0x2;
+
+    // if(enable_flash && coredump_flash_size >= get_size_of_sections() + 4096) {
+    //     dump_sections = &_dump_sections;
+
+    //     /* erase flash sector first */
+    //     qcc74x_flash_erase(lma, coredump_flash_size);
+    //     core_bin_start_hook(&lma, coredump_flash_size, dump_sections);
+    // } else
+
+    if(enable_flash && coredump_flash_size >= 12 * 1024) {
         dump_sections = &_dump_sections;
-
-        /* erase flash sector first */
-        qcc74x_flash_erase(lma, coredump_flash_size);
-        core_bin_start_hook(&lma, coredump_flash_size, dump_sections);
-    } else if(coredump_flash_size >= 12 * 1024) {
-        dump_sections = only_task_stack;
+        flash_dump_sections = only_task_stack;
 
         qcc74x_flash_erase(lma, coredump_flash_size);
         current_task_stack(only_task_stack, sizeof(only_task_stack)/sizeof(only_task_stack[0]));
@@ -102,15 +149,24 @@ void coredump_run(void) {
             break;
         if ((dump_sections + i)->len == 0)
             continue;
-        coredump_print_n_k((uintptr_t)(dump_sections + i)->addr, (uintptr_t)(dump_sections + i)->addr, (dump_sections + i)->len, "predefined");
-        if(!coredump_flash_disable) {
-            core_bin_sections_hook(&lma, (uint8_t *)(dump_sections + i)->addr, (dump_sections + i)->len);
+        if(enable_print)
+            coredump_print_n_k((uintptr_t)(dump_sections + i)->addr, (uintptr_t)(dump_sections + i)->addr, (dump_sections + i)->len, "predefined");
+    }
+
+    if(!coredump_flash_disable) {
+        for (int i = 0; (flash_dump_sections + i)->addr != 0xffffffff; i++) {
+            if ((flash_dump_sections + i)->addr == 0)
+                break;
+            if ((flash_dump_sections + i)->len == 0)
+                continue;
+            core_bin_sections_hook(&lma, (uint8_t *)(flash_dump_sections + i)->addr, (flash_dump_sections + i)->len);
         }
     }
 
     if(!coredump_flash_disable) {
         core_bin_end_hook(coredump_flash_addr);
     }
+
     printf("\r\n-+-+-+- QCC74x COREDUMP END +-+-+-+\r\n");
     while (1) {
         asm ("nop");

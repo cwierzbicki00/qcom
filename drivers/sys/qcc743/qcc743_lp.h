@@ -219,6 +219,7 @@ typedef struct {
     int32_t bcn_delay_offset;
 
     uint32_t buf_addr;
+    uint32_t pack_env;
 
     uint32_t continuous_loss_cnt;
     uint32_t continuous_loss_cnt_max;
@@ -311,6 +312,7 @@ typedef struct {
     uint32_t lpfw_loss_cnt; /* count of wakeup during rtc_timeout_ms */
 
     uint32_t buf_addr;
+    uint32_t pack_env;
 } qcc74x_lp_fw_cfg_t;
 
 extern qcc74x_lp_fw_cfg_t lpfw_cfg;

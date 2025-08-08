@@ -7,6 +7,12 @@
 
 typedef const struct virt_net *virt_net_t;
 
+typedef enum virt_net_type {
+	VIRT_NET_STA = 0,
+	VIRT_NET_AP  = 1,
+	VIRT_NET_MAX,
+} virt_net_type_t;
+
 enum virt_net_event_code {
   VIRT_NET_EV_ON_INIT_DONE = 1,
   VIRT_NET_EV_ON_MGMR_DONE,
@@ -45,13 +51,14 @@ typedef int (*virt_net_event_callback)(virt_net_t obj, enum virt_net_event_code 
 
 struct virt_net {
   unsigned int mtu;
-  unsigned char mac[6];
+  unsigned char mac_sta[6];
+  unsigned char mac_ap[6];
 #if 0
   unsigned int flags;
 #endif
 
-  struct netif netif;
-#define VIRTNET_NET_MODE_RCP  0
+  struct netif netif[VIRT_NET_MAX];
+#define VIRTNET_NET_MODE_LWIP_ONHOST  0
 #define VIRTNET_NET_MODE_NCP  1
   int netmode;
   TimerHandle_t dhcp_timer;
@@ -69,7 +76,8 @@ struct virt_net {
 enum virt_net_cmd{
   VIRT_NET_CTRL_RESET = 0x1000,
   VIRT_NET_CTRL_HANDSHAKE,
-  VIRT_NET_CTRL_GET_MAC,
+  VIRT_NET_CTRL_GET_STAMAC,
+  VIRT_NET_CTRL_GET_APMAC,
   VIRT_NET_CTRL_GET_NETMODE,
   VIRT_NET_CTRL_MAC_IND,
   VIRT_NET_CTRL_CONNECT_AP,
@@ -110,11 +118,14 @@ enum virt_net_cmd{
 typedef int (*virt_net_cmd_callback_t)(virt_net_t obj, enum virt_net_cmd cmd, void *param);
 
 int virt_net_initial(virt_net_t obj);
-int virt_net_get_mac(virt_net_t obj, uint8_t mac[6]);
+int virt_net_get_sta_mac(virt_net_t obj, uint8_t mac[6]);
+int virt_net_get_ap_mac(virt_net_t obj, uint8_t mac[6]);
 int virt_net_get_netmode(virt_net_t obj, int *netmode);
 int virt_net_dhcp_start(virt_net_t obj, uint32_t timeout);
 int virt_net_dhcp_done(virt_net_t obj);
 
-int virt_net_get_ip(virt_net_t obj, uint32_t *ip, uint32_t *mask, uint32_t *gw);
+int virt_net_get_sta_ip(virt_net_t obj, uint32_t *ip, uint32_t *mask, uint32_t *gw);
+
+#define VIRT_NET_NETIF(vnet, net_type) (&(vnet)->netif[net_type])
 
 #endif

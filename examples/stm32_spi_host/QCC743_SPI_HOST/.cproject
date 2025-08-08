@@ -77,6 +77,7 @@
 									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/Wireless_Connectivity/LwIP/src/include/lwip/apps"/>
 									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/Wireless_Connectivity/LwIP/src/include/lwip/priv"/>
 									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/Wireless_Connectivity/LwIP/src/include/lwip/prot"/>
+									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/Wireless_Connectivity/LwIP/src/apps/lwip_dhcpd"/>
 									<listOptionValue builtIn="false" value="../Core/virt_net/include"/>
 									<listOptionValue builtIn="false" value="../Core/iperf"/>
 								</option>

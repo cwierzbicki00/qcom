@@ -220,7 +220,7 @@ static void task_cmd(char *buf, int len, int argc, char **argv)
     } else if (argc == 2 && strcmp(argv[1], "stop") == 0) {
         if (is_record_start == 1) {
 
-            /* 停止数据 */
+            /* Stop data */
             is_record_start           = 0;
             is_websocket_record_start = 0;
             mic_rec_stop();

@@ -697,6 +697,9 @@ happens, which cause memory leak issue.*/
  * Then bt_conn_set_state called with parameter BT_CONN_DISCONNECT. the conn->ref shall be error.
  */
 #define QCC74x_BLE_PATCH_DISCONNECT_ERROR_WHEN_TASK_YEILD
+/*Host stack check API input parameter*/
+#define QCC74x_HOST_PARAMETER_CHECK
+
 #if defined(CONFIG_BT_GATT_DYNAMIC_DB)
 #define QCC74x_BLE_DYNAMIC_SERVICE
 #endif

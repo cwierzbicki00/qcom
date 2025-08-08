@@ -31,7 +31,6 @@
 #include "at_ble_cmd.h"
 #define ATCMD_TASK_STACK_SIZE (896)
 #define ATCMD_TASK_PRIORITY 28
-#define AT_CMD_PRINTF printf
 
 #define AT_WORK_QUEUE 1
 
@@ -389,7 +388,12 @@ int at_module_func(char *cmd, int (*resp_func) (uint8_t *data, int len))
 
 int at_output_redirect_register(int (*f_output_redirect) (void))
 {
+    if (!at) {
+        AT_CMD_PRINTF("ERROR: atcmd has not been initialized\r\n");
+        return -1;
+    }
     at->device_ops.f_output_redirect = f_output_redirect;
+    return 0;
 }
 
 int at_output_is_redirect()

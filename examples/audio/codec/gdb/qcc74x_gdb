@@ -4,7 +4,7 @@ killall DebugServerConsole.elf
 DebugServerConsole &
 
 cd ..
-# 获取当前文件夹的名字
+# Get the name of the current folder.
 current_folder=$(basename "$PWD")
 
 current_dir=$PWD

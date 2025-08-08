@@ -375,7 +375,7 @@ struct iperf_server_udp_ctx {
     float f_min, f_max;
 };
 
-// 网络字节序转本地字节序，直接从内存读取
+// Convert network byte order to host byte order, reading directly from memory
 #define NTOHL_PTR(ptr)                     \
   ({                                       \
     uint32_t _tmp = 0;                     \
@@ -385,7 +385,7 @@ struct iperf_server_udp_ctx {
     _tmp |= *((uint8_t *)(ptr) + 3) << 0;  \
   })
 
-// 本地字节序转网络字节序，直接写入内存
+// Convert host byte order to network byte order, writing directly to memory
 #define HTONL_PTR(ptr, data)                       \
   {                                                \
     uint32_t _tmp = (uint32_t)(data);              \
@@ -402,7 +402,7 @@ static void iperf_server_udp_recv_fn(void *arg, struct udp_pcb *pcb, struct pbuf
     char speed[64] = { 0 };
     UDP_datagram udp_header;
 
-    // 接收数据，等待接收时间
+    // Receive data and wait for the reception timeout
     if (p == NULL)
         return;
 
@@ -410,18 +410,18 @@ static void iperf_server_udp_recv_fn(void *arg, struct udp_pcb *pcb, struct pbuf
     ctx->receive_start = ctx->receive_start ? : ctx->current;
     ctx->period_start = ctx->period_start ? : ctx->current;
 
-    // 记录当前接收的总字节数：payload+Ethernet Link+IP header + UDP header
+    // Record the total number of bytes received so far: payload + Ethernet Link + IP header + UDP header
     ctx->recv_now += p->tot_len + PBUF_LINK_HLEN + PBUF_IP_HLEN + PBUF_TRANSPORT_HLEN;
 
     ctx->datagram_cnt ++;
 
-    // 获得packet id
+    // Obtain the packet ID
     udp_header.id = NTOHL_PTR(p->payload);
-    if ((signed)udp_header.id < 0) {    // 发送完成，client端等待应答
-        server_hdr *hdr = (server_hdr *)((UDP_datagram *)p->payload + 1);   // server hdr 跟在UDP_datagram后面
+    if ((signed)udp_header.id < 0) {    // Transmission completed, client waiting for response
+        server_hdr *hdr = (server_hdr *)((UDP_datagram *)p->payload + 1);   // Server header follows the UDP datagram
         HTONL_PTR(&hdr->flags, 0x80000000u);
         HTONL_PTR(&hdr->total_len1, 0);
-        HTONL_PTR(&hdr->total_len2, ctx->recv_total_len);   // 低32位
+        HTONL_PTR(&hdr->total_len2, ctx->recv_total_len);   // Lower 32 bits
         HTONL_PTR(&hdr->stop_sec, 0);
         HTONL_PTR(&hdr->stop_usec, 0);
         HTONL_PTR(&hdr->error_cnt, ctx->error_cnt);
@@ -468,7 +468,7 @@ static void iperf_server_udp_recv_fn(void *arg, struct udp_pcb *pcb, struct pbuf
         ctx->out_of_order_curr = 0;
     }
 
-    // 乱序和错误个数
+    // Number of out-of-order packets and errors
     if ((signed)udp_header.id != ctx->packet_id + 1) {
       if ((signed)udp_header.id < ctx->packet_id + 1) {
         ctx->out_of_order_curr++;
@@ -494,7 +494,7 @@ static void iperf_server_udp(void *arg)
 
     configASSERT(arg != NULL);
 
-    // FIXME bug here: lwip thread context 创建pcb控制块
+    // FIXME bug here: Creating PCB control blocks outside lwIP thread context
     server = udp_new();
     if (!server) {
         printf("Create UDP Control block failed!\r\n");
@@ -515,7 +515,7 @@ static void iperf_server_udp(void *arg)
     context.packet_id = -1;
     udp_recv(server, iperf_server_udp_recv_fn, (void *)&context);
 
-    // 等待接收退出信号
+    // Wait for the reception of an exit signal
     while (!context.exit_flag) {
         vTaskDelay(1000);
     }

@@ -28,6 +28,7 @@
 #include "at_net_ssl.h"
 #include "at_wifi_config.h"
 
+#define AT_LOCAL_LOOP_SOCKET_PORT  (9000)
 #define AT_UDP_MAX_BUFFER_LEN      (1470)
 #define AT_NET_TASK_STACK_SIZE     (1024)
 #define AT_NET_TASK_PRIORITY_LOW   (27)
@@ -126,25 +127,25 @@ typedef struct {
 static at_net_client_handle *g_at_client_handle = NULL;
 static at_net_server_handle *g_at_server_handle = NULL;
 static SemaphoreHandle_t net_mutex;
-static SemaphoreHandle_t net_reconnect_ref;
 static uint8_t g_at_net_task_is_start = 0;
 static uint8_t g_at_net_sntp_is_start = 0;
 static char g_at_net_savelink_host[128];
+static int wake_socket_fd = -1;
 
-static void sockaddr_to_ipaddr(struct sockaddr *sa, ip_addr_t *ipaddr) 
+static void sockaddr_to_ipaddr(const struct sockaddr *sa, ip_addr_t *ipaddr)
 {
     if (sa->sa_family == AF_INET) {
-        struct sockaddr_in *sa_in = (struct sockaddr_in *)sa;
+        const struct sockaddr_in *sa_in = (const struct sockaddr_in *)sa;
         ip4_addr_set_u32(ip_2_ip4(ipaddr), sa_in->sin_addr.s_addr);
     }
 #if CFG_IPV6
     else if (sa->sa_family == AF_INET6) {
-        struct sockaddr_in6 *sa_in6 = (struct sockaddr_in6 *)sa;
+        const struct sockaddr_in6 *sa_in6 = (const struct sockaddr_in6 *)sa;
         ip6_addr_set(ip_2_ip6(ipaddr), (const ip6_addr_t *)(&sa_in6->sin6_addr));
     } 
 #endif
     else {
-        printf("Unsupported address family: %d\n", sa->sa_family);
+        AT_NET_PRINTF("Unsupported address family: %d\n", sa->sa_family);
     }
 }
 
@@ -342,13 +343,15 @@ static int tcp_nodelay_disable(int fd)
     return 0;
 }
 
+#define UDP_LOCALPORT_BASE 50000
+#define UDP_LOCALPORT_RANGE 10000
 static uint16_t udp_localport_rand(void)
 {
-    uint16_t port = 50000 + ((random())%10000);
+    uint16_t port = UDP_LOCALPORT_BASE + ((random()) % UDP_LOCALPORT_RANGE);
     return port;
 }
 
-static int tcp_client_connect(ip_addr_t *ipaddr, uint16_t port, uint32_t timeout)
+static int tcp_client_connect(const ip_addr_t *ipaddr, uint16_t port, uint32_t timeout)
 {
     int fd;
     int res;
@@ -815,13 +818,40 @@ static int net_is_active(void)
     return 0;
 }
 
+static int net_main_wakeup(void)
+{
+    ip_addr_t loopback_addr;
+    IP_ADDR4(&loopback_addr, 127, 0, 0, 1); 
+
+    return udp_client_send(wake_socket_fd, "wake", 4, &loopback_addr, AT_LOCAL_LOOP_SOCKET_PORT);
+}
+
+static int select_wake_clear(void)
+{
+    struct sockaddr_in remote_addr;
+    int len = sizeof(remote_addr);
+    int ret = -1;
+    uint8_t clear_buf[10] = {0};
+
+    ret = recvfrom(wake_socket_fd,
+    		clear_buf,
+            sizeof(clear_buf),
+            0,
+            (struct sockaddr *)&remote_addr,
+            (socklen_t *)(&len));
+    AT_NET_PRINTF("wake_clear: %d %s\r\n", ret, clear_buf);
+    return ret;
+}
+
 static int net_socket_ipd(net_ipdinfo_type ipd, int id, void *buffer, int length, ip_addr_t *ipaddr, uint16_t port, uint32_t timeout)
 {
     char tmp[10];
     char ipd_evt[64] = {"+IPD:"};
 
     if (ipd == NET_IPDINFO_CONNECTED) {
-        
+       
+        net_main_wakeup();
+
         if (tcp_connected()) {
             vTaskPrioritySet(NULL, AT_NET_TASK_PRIORITY_LOW);
         } else {
@@ -873,7 +903,6 @@ static int net_socket_ipd(net_ipdinfo_type ipd, int id, void *buffer, int length
                     strncat(ipd_evt, itoa(length, tmp, 10), sizeof(ipd_evt) - strlen(ipd_evt));
                     strncat(ipd_evt, AT_NET_IPD_EVT_HEAD(""), sizeof(ipd_evt) - strlen(ipd_evt));
                     AT_CMD_DATA_SEND(ipd_evt, strlen(ipd_evt));
-                    //at_write(AT_NET_IPD_EVT_HEAD("+IPD:%d"), length);
                 } else {
                     /* Use strncat + itoa instead of snprintf to improve performance. */
                     strncat(ipd_evt, itoa(id, tmp, 10), sizeof(ipd_evt) - strlen(ipd_evt));
@@ -881,7 +910,6 @@ static int net_socket_ipd(net_ipdinfo_type ipd, int id, void *buffer, int length
                     strncat(ipd_evt, itoa(length, tmp, 10), sizeof(ipd_evt) - strlen(ipd_evt));
                     strncat(ipd_evt, AT_NET_IPD_EVT_HEAD(""), sizeof(ipd_evt) - strlen(ipd_evt));
                     AT_CMD_DATA_SEND(ipd_evt, strlen(ipd_evt));
-                    //at_write(AT_NET_IPD_EVT_HEAD("+IPD:%d,%d"), id, length);
                 }
             } else {
 
@@ -990,7 +1018,6 @@ static int net_socket_connect(int id, net_client_type type, ip_addr_t *ipaddr, u
 
     net_lock();
     g_at_client_handle[id].valid = 1;
-    xSemaphoreGive(net_reconnect_ref);
     g_at_client_handle[id].type = type;
     g_at_client_handle[id].fd = fd;
     g_at_client_handle[id].priv = priv;
@@ -1036,7 +1063,6 @@ static int net_socket_close_sync(int evtid, void *arg)
     net_lock();
     if (at_get_work_mode() != AT_WORK_MODE_THROUGHPUT) {
         g_at_client_handle[id].valid = 0;
-        xSemaphoreTake(net_reconnect_ref, 0);
     }
     g_at_client_handle[id].fd = -1;
     g_at_client_handle[id].priv = NULL;
@@ -1242,7 +1268,6 @@ static int net_socket_accept(int fd, int type, uint16_t port, uint16_t timeout, 
 
         net_lock();
         g_at_client_handle[id].valid = 1;
-        xSemaphoreGive(net_reconnect_ref);
         g_at_client_handle[id].type = type;
         g_at_client_handle[id].fd = sock;
         g_at_client_handle[id].priv = priv;
@@ -1295,19 +1320,20 @@ static void net_poll_reconnect(void)
         if ((at_get_work_mode() != AT_WORK_MODE_THROUGHPUT) && (at_get_work_mode() != AT_WORK_MODE_CMD_THROUGHPUT)) {
             net_lock();
             g_at_client_handle[id].valid = 0;
-            xSemaphoreTake(net_reconnect_ref, 0);
             net_unlock();
             return;
         }
 
         if (os_get_time_ms() - g_at_client_handle[id].disconnect_time <= at_net_config->reconn_intv*100) {
             vTaskDelay(at_net_config->reconn_intv*100);
+            net_main_wakeup();
             return;
         }
         g_at_client_handle[id].disconnect_time = os_get_time_ms();
 
         if (!net_is_active()) {
             vTaskDelay(at_net_config->reconn_intv*100);
+            net_main_wakeup();
             return;
         }
 
@@ -1362,6 +1388,7 @@ static void net_poll_reconnect(void)
                 g_at_client_handle[id].recv_buf = xStreamBufferCreate(g_at_client_handle[id].recvbuf_size, 1);
             }
         }
+        net_main_wakeup();
         net_unlock();
     }
 }
@@ -1374,6 +1401,10 @@ static void net_poll_recv(void)
     int i;
 
     FD_ZERO(&fdR);
+    if (wake_socket_fd >= 0) {
+        FD_SET(wake_socket_fd, &fdR);
+        maxfd = wake_socket_fd;
+    }
     for (i = 0; i < AT_NET_CLIENT_HANDLE_MAX; i++) {
         if (g_at_client_handle[i].valid && g_at_client_handle[i].fd >= 0) {
             FD_SET(g_at_client_handle[i].fd, &fdR);
@@ -1415,6 +1446,9 @@ static void net_poll_recv(void)
                 }
             }
         }
+        if ((wake_socket_fd >= 0) && FD_ISSET(wake_socket_fd, &fdR)) {
+        	select_wake_clear();
+        }
     }
 }
 
@@ -1451,7 +1485,6 @@ static void net_init_save_link(void)
         id = at_net_client_get_valid_id();
         net_lock();
         g_at_client_handle[id].valid = 1;
-        xSemaphoreGive(net_reconnect_ref);
         g_at_client_handle[id].type = type;
         g_at_client_handle[id].fd = -1;
         ip_addr_set_any(
@@ -1481,11 +1514,6 @@ static void net_main_task(void *pvParameters)
     g_at_net_task_is_start = 1;
 
     while(1) {
-        if (!uxSemaphoreGetCount(net_reconnect_ref)) {
-            xSemaphoreTake(net_reconnect_ref, portMAX_DELAY);
-            xSemaphoreGive(net_reconnect_ref);
-        }
-
         net_poll_reconnect();
 
         net_poll_recv();
@@ -1519,7 +1547,6 @@ static int at_net_init(void)
         return -1;
     }
     net_mutex = xSemaphoreCreateMutex();
-    net_reconnect_ref = xSemaphoreCreateCounting(AT_NET_SERVER_HANDLE_MAX + AT_NET_CLIENT_HANDLE_MAX, 0);
 
     memset(g_at_client_handle, 0, sizeof(at_net_client_handle) * AT_NET_CLIENT_HANDLE_MAX);
     memset(g_at_server_handle, 0, sizeof(at_net_server_handle) * AT_NET_SERVER_HANDLE_MAX);
@@ -1530,6 +1557,18 @@ static int at_net_init(void)
                             at_net_config->sslconf[id].cert_file, 
                             at_net_config->sslconf[id].key_file); 
     }
+
+    wake_socket_fd =  socket(AF_INET, SOCK_DGRAM, 0);
+    if (wake_socket_fd < 0) {
+        AT_NET_PRINTF("loopback socket create failed\r\n");
+        return -1;
+    }
+    struct sockaddr_in addr = {
+        .sin_family = AF_INET,
+        .sin_port = htons(AT_LOCAL_LOOP_SOCKET_PORT),
+        .sin_addr.s_addr = PP_HTONL(INADDR_LOOPBACK),
+    };
+    bind(wake_socket_fd, (struct sockaddr *)&addr, sizeof(addr));
 
     return 0;
 }
@@ -1543,6 +1582,7 @@ static int at_net_deinit(void)
         vPortFree(g_at_server_handle);
         g_at_server_handle = NULL;
     }
+    
     return 0;
 }
 
@@ -1738,7 +1778,7 @@ int at_net_server_udp_create(uint16_t port, int max_conn,  int timeout, uint8_t 
 
     net_lock();
     g_at_server_handle[id].valid = 1;
-    xSemaphoreGive(net_reconnect_ref);
+    net_main_wakeup();
     g_at_server_handle[id].type = NET_SERVER_UDP;
     g_at_server_handle[id].fd = fd;
     g_at_server_handle[id].is_ipv6 = is_ipv6;
@@ -1770,7 +1810,7 @@ int at_net_server_tcp_create(uint16_t port, int max_conn,  int timeout, uint8_t 
 
     net_lock();
     g_at_server_handle[id].valid = 1;
-    xSemaphoreGive(net_reconnect_ref);
+    net_main_wakeup();
     g_at_server_handle[id].type = NET_SERVER_TCP;
     g_at_server_handle[id].fd = fd;
     g_at_server_handle[id].is_ipv6 = is_ipv6;
@@ -1802,7 +1842,7 @@ int at_net_server_ssl_create(uint16_t port, int max_conn,  int timeout, int ca_e
 
     net_lock();
     g_at_server_handle[id].valid = 1;
-    xSemaphoreGive(net_reconnect_ref);
+    net_main_wakeup();
     g_at_server_handle[id].type = NET_SERVER_SSL;
     g_at_server_handle[id].fd = fd;
     g_at_server_handle[id].is_ipv6 = is_ipv6;
@@ -1858,7 +1898,6 @@ int at_net_server_close(void)
 
     net_lock();
     g_at_server_handle[id].valid = 0;
-    xSemaphoreTake(net_reconnect_ref, 0);
     net_unlock();
 
     if (type == NET_SERVER_TCP || type == NET_SERVER_SSL)
@@ -1964,8 +2003,12 @@ int at_net_start(void)
 int at_net_stop(void)
 {
     at_net_client_close_all();
+
+    if (wake_socket_fd >= 0) {
+        close(wake_socket_fd);
+        wake_socket_fd = -1;
+    }
     if (g_at_net_task_is_start) {
-        xSemaphoreGive(net_reconnect_ref);
         g_at_net_task_is_start = 2;
         while(g_at_net_task_is_start != 0)
             vTaskDelay(100);

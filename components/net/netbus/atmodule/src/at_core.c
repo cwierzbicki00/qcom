@@ -33,7 +33,7 @@ typedef enum {
 } at_cmd_type;
 
 
-#define AT_CORE_PRINTF //printf
+#define AT_CORE_PRINTF AT_CMD_PRINTF
 
 struct at_struct *at = NULL;
 static uint32_t at_error = AT_SUB_OK;
@@ -98,10 +98,13 @@ int at_arg_is_null(const char *arg)
 
 int at_arg_get_number(const char *arg, int *value)
 {
+    if (!arg || !value) {
+        return 0;
+    }
     int i, len = 0;
 
     len = strlen(arg);
-    if (!arg || (!len)) {
+    if (!len) {
         return 0;
     }
     for (i=0; i<len; i++) {
@@ -115,6 +118,9 @@ int at_arg_get_number(const char *arg, int *value)
 
 int at_arg_get_string(const char *arg, char *string, int max)
 {
+    if (!arg || !string || max <= 0) {
+        return 0;
+    }
     int len;
 
     if (!at_arg_is_string(arg))

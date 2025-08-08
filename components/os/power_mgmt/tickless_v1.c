@@ -238,7 +238,7 @@ __enter_disconnected:
     /* measure overhead */
     ulLowPowerTimeAfterSleep = qcc74x_rtc_get_time(NULL);
 
-    /* 实际测试得出睡眠实际和期望时间的差值 */
+    /* Difference between actual sleep time and expected sleep time, determined through actual testing */
     real_rtc_tick = (int32_t)rtc_diff_to_tick(ulLowPowerTimeEnterFunction, ulLowPowerTimeAfterSleep);
 
     wake_reason = qcc74x_lp_get_wake_reason();

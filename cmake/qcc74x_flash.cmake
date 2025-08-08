@@ -69,7 +69,7 @@ file(GLOB OLD_MFG_BIN "${QCC74x_SDK_BASE}/bsp/board/${BOARD}/config/mfg*.bin")
 file(GLOB DTS_FILES "${QCC74x_SDK_BASE}/bsp/board/${BOARD}/config/*.dts")
 file(GLOB BOOT2_BIN_FILES "${QCC74x_SDK_BASE}/bsp/board/${BOARD}/config/boot2*.bin")
 file(GLOB INI_FILES "${CMAKE_CURRENT_SOURCE_DIR}/*.ini")
-set(PARTITION_BIN_FILES "${CMAKE_CURRENT_SOURCE_DIR}/build/build_out/partition.bin")
+set(PARTITION_BIN_FILES "${CMAKE_CURRENT_SOURCE_DIR}/${BUILD_DIR}/build_out/partition.bin")
 
 set(post_build_cmds)
 foreach(item ${CONFIG_POST_BUILDS})
@@ -84,12 +84,12 @@ foreach(item ${CONFIG_POST_BUILDS})
 
     if("${item}" STREQUAL "GENERATE_ROMFS")
     list(APPEND post_build_cmds COMMAND ${CMAKE} -E echo "[romfs] generate romfs.bin using romfs directory"
-                                COMMAND ${QCC74x_SDK_BASE}/tools/genromfs/genromfs${TOOL_SUFFIX} -d romfs/ -f ./build/build_out/romfs.bin)
+                                COMMAND ${QCC74x_SDK_BASE}/tools/genromfs/genromfs${TOOL_SUFFIX} -d romfs/ -f ./${BUILD_DIR}/build_out/romfs.bin)
     endif()
 
     if("${item}" STREQUAL "GENERATE_LITTLEFS")
     list(APPEND post_build_cmds COMMAND ${CMAKE} -E echo "[littlefs] generate littlefs.bin using littlefs directory"
-                                COMMAND ${QCC74x_SDK_BASE}/tools/genlfs/mklfs${TOOL_SUFFIX} -c lfs -b 4096 -p 256 -r 256 -s 0x6d000 -i ./build/build_out/littlefs.bin)
+                                COMMAND ${QCC74x_SDK_BASE}/tools/genlfs/mklfs${TOOL_SUFFIX} -c lfs -b 4096 -p 256 -r 256 -s 0x6d000 -i ./${BUILD_DIR}/build_out/littlefs.bin)
     endif()
 
 endforeach()
@@ -98,7 +98,7 @@ add_custom_target(post_build
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         ${post_build_cmds})
 
-file(GLOB BUILD_BINS "${CMAKE_CURRENT_SOURCE_DIR}/build/build_out/*.bin" "${CMAKE_CURRENT_SOURCE_DIR}/build/build_out/*.elf" "${CMAKE_CURRENT_SOURCE_DIR}/build/build_out/*.xz" "${CMAKE_CURRENT_SOURCE_DIR}/build/build_out/*.ota")
+file(GLOB BUILD_BINS "${CMAKE_CURRENT_SOURCE_DIR}/${BUILD_DIR}/build_out/*.bin" "${CMAKE_CURRENT_SOURCE_DIR}/${BUILD_DIR}/build_out/*.elf" "${CMAKE_CURRENT_SOURCE_DIR}/${BUILD_DIR}/build_out/*.xz" "${CMAKE_CURRENT_SOURCE_DIR}/${BUILD_DIR}/build_out/*.ota")
 
 set(pre_build_cmds)
 if(BUILD_BINS)

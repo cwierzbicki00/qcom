@@ -647,7 +647,7 @@ endif()
 # CONFIG_CTE := 0
 # CONFIG_LE_PWR_CTRL := 0
 # endif
-if(("${CHIP}" STREQUAL "qcc743") OR ("${CHIP}" STREQUAL "qcc74x_undef"))
+if(("${CHIP}" STREQUAL "qcc743") OR ("${CHIP}" STREQUAL "qcc74x_undef") OR ("${CHIP}" STREQUAL "qcc743d"))
 	if("${PRIV_CONFIG_GEN_BLE}" STREQUAL "ble1m0s1bredr0")
 		set(CONFIG_BT_BREDR 0)
 		set(CONFIG_BLE_PDS 1)
@@ -1025,6 +1025,14 @@ endif()
 # endif
 if("${CHIP}" STREQUAL "qcc743")
 #	sdk_add_compile_definitions(-DQCC743)
+	set(CONFIG_BT_RESET, 0)
+endif()
+# ifeq ($(CONFIG_CHIP_NAME),QCC743D)
+# CFLAGS   += -DQCC743D
+# CONFIG_BT_RESET=0
+# endif
+if("${CHIP}" STREQUAL "qcc743d")
+#	sdk_add_compile_definitions(-DQCC743D)
 	set(CONFIG_BT_RESET, 0)
 endif()
 # 

@@ -33,7 +33,7 @@
 #ifdef NXSPI_NET
 #define NXSPI_BUFMALLOC         (0)
 #define NXBD_MTU                (2*1024)
-#define NXBD_ITEMS              (4)
+#define NXBD_ITEMS              (6)
 #define DMATX_LLIPOOL_CNT       (8) // dma config
 #define DMARX_LLIPOOL_CNT       (8) // dma config
 #else
@@ -106,6 +106,15 @@ typedef struct {
 } nx_stats_t;
 #endif
 
+typedef enum {
+    NXSPI_TYPE_AT = 0,
+    NXSPI_TYPE_NET_STA,
+    NXSPI_TYPE_NET_AP,
+    NXSPI_TYPE_HCI,
+    NXSPI_TYPE_OT,
+    NXSPI_TYPE_MAX,
+} nxspi_chan_t;
+
 /* header */
 typedef struct spi_header {
     uint16_t magic;
@@ -113,12 +122,7 @@ typedef struct spi_header {
     uint8_t  version   : 2;
     uint8_t  rx_stall  : 1;
     uint8_t  flags     : 5;
-#define NXSPI_TYPE_AT   (0)
-#define NXSPI_TYPE_NET  (1)
-#define NXSPI_TYPE_HCI  (2)
-#define NXSPI_TYPE_OT   (3)
-#define NXSPI_TYPE_MAX  (4)
-    uint8_t  type;
+    nxspi_chan_t  type;
     uint16_t rsvd;
 } spi_header_t;
 

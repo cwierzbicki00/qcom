@@ -242,7 +242,8 @@ macro(project name)
     set(proj_name ${name}_${CHIP})
   endif()
 
-  target_compile_definitions(sdk_intf_lib INTERFACE CONFIG_PROJECT_NAME="${name}")
+  target_compile_definitions(sdk_intf_lib INTERFACE CONFIG_PROJECT_NAME="${name}_${BOARD}")
+  target_compile_definitions(sdk_intf_lib INTERFACE CONFIG_CHIP_CPUNAME="${BOARD}")
 
   _project(${proj_name} ASM C CXX)
 

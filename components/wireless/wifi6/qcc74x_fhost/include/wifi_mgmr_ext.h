@@ -36,6 +36,7 @@
 #define  CODE_WIFI_ON_EMERGENCY_MAC     23
 #define  CODE_WIFI_ON_EXIT_PS           24
 #define  CODE_WIFI_ON_GOT_IP6           25
+#define  CODE_WIFI_ON_LOST_IP           26
 
 #define WIFI_EVENT_BEACON_IND_AUTH_OPEN            0
 #define WIFI_EVENT_BEACON_IND_AUTH_WEP             1
@@ -934,6 +935,29 @@ int wifi_mgmr_sta_twt_teardown(twt_teardown_params_struct_t *twt_teardown_params
 int wifi_mgmr_sta_twt_statusget(struct twt_conf_tag *conf, uint8_t *twt_num);
 
 /**
+ *  @brief Get the current ap twt ability.
+ *  
+ *  @return 1 support twt, 0  not support twt:
+ *          -1 get fail.
+ */
+int wifi_mgmr_twt_support(void);
+
+/**
+ *  @brief Get twt flows.
+ *  
+ *  @return twt flows
+ */
+int wifi_mgmr_sta_twt_flow_get(void);
+
+/**
+ *  @brief Get the current ap dtim.
+ *  
+ *  @return 1 support twt, 0  not support twt:
+ *          -1 get fail.
+ */
+int wifi_mgmr_get_dtim(void);
+
+/**
  * wifi_mgmr_sta_set_listen_itv
  * Set listen interval
  * return:
@@ -1318,3 +1342,10 @@ int wifi_mgmr_adhoc_start(const wifi_mgmr_adhoc_start_params_t *config);
  * Stop adhoc mode
  */
 int wifi_mgmr_adhoc_stop(void);
+/**
+ * wifi_sta_ipv6_enable
+ * Enable or disable ipv6 
+ */
+#ifdef CFG_IPV6
+int wifi_sta_ipv6_enable(int enable);
+#endif

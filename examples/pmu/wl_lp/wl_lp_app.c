@@ -108,7 +108,7 @@ void tcp_client_task(void *pvParameters)
 
     printf("create tcp client task.\r\n");
 
-    // 创建 socket
+    // Create socket
     sock = socket(AF_INET, SOCK_STREAM, 0);
     if (sock < 0) {
         printf("Failed to create socket, errno: %d\n", errno);
@@ -117,7 +117,7 @@ void tcp_client_task(void *pvParameters)
         return;
     }
 
-    // 设置服务器地址
+    // Set server address.
     printf("set server address.\r\n");
     memset(&server_addr, 0, sizeof(server_addr));
     server_addr.sin_family = AF_INET;
@@ -130,7 +130,7 @@ void tcp_client_task(void *pvParameters)
         return;
     }
 
-    // 连接到服务器
+    // Connect to the server.
     printf("start connect server.\r\n");
     if (connect(sock, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
         printf("Failed to connect to server, errno: %d\n", errno);
@@ -143,7 +143,7 @@ void tcp_client_task(void *pvParameters)
     printf("Connected to server %s:%d\n", server_info->server_ip, server_info->server_port);
 
     while (1) {
-        // 接收服务器发送的数据
+        // Receive data sent by the server.
         bytes_received = recv(sock, buffer, BUFFER_SIZE, 0);
         if (bytes_received < 0) {
             printf("Failed to receive data, errno: %d\n", errno);
@@ -153,7 +153,7 @@ void tcp_client_task(void *pvParameters)
             break;
         }
 
-        // 处理接收到的数据
+        // Process the received data.
         buffer[bytes_received] = '\0';
         printf("Received from server: %s\n", buffer);
     }
@@ -176,7 +176,7 @@ void start_tcp_client_task(const char *ip, uint16_t port)
     printf("copy ip.\r\n");
 
     strncpy(server_info->server_ip, ip, sizeof(server_info->server_ip) - 1);
-    server_info->server_ip[sizeof(server_info->server_ip) - 1] = '\0';  // 确保字符串以 NULL 结尾
+    server_info->server_ip[sizeof(server_info->server_ip) - 1] = '\0';  // Ensure that the string is NULL-terminated
     server_info->server_port = port;
 
     printf("start create.\r\n");

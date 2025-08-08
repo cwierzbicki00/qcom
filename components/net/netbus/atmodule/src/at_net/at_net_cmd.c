@@ -20,6 +20,7 @@
 #include <at_net_ping.h>
 #include <time.h>
 //#include <utils_time.h>
+#include <sys/stat.h>
 
 #include "at_main.h"
 #include "at_core.h"
@@ -54,6 +55,11 @@ static __attribute__((section(".wifi_ram."))) uint8_t at_net_tx_buffer[AT_NET_TX
 
     return 1;
 }*/
+
+static int file_exists(const char *path) {
+    struct stat st;
+    return (path && path[0] && at_fs_stat(path, &st) == 0);
+}
 
 static int at_exe_cmd_cifsr(int argc, const char **argv)
 {
@@ -136,6 +142,9 @@ static int at_setup_cmd_cipv6(int argc, const char **argv)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     }
     at_net_config->ipv6_enable = ipv6;
+#if LWIP_IPV6
+    wifi_sta_ipv6_enable(ipv6);
+#endif
     
     if (at->store) {
         at_net_config_save(AT_CONFIG_KEY_NET_IPV6_ENABLE);
@@ -1819,7 +1828,7 @@ static int at_setup_cmd_cipreconnintv(int argc, const char **argv)
 
 static int _ping_callback(int ping_time)
 {
-    if (ping_time > 0) {
+    if (ping_time >= 0) {
         at_response_string("+PING:%dms\r\n", ping_time);
     } else {
         at_response_string("+PING:%s\r\n", "TIMEOUT");
@@ -2027,15 +2036,24 @@ static int at_setup_cmd_cipsslcconf(int argc, const char **argv)
         if (cert_file_valid == 0 || key_file_valid == 0) {
             return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_ALLOWED);
         }
+        if (!file_exists(cert_file) || !file_exists(key_file)) {
+            return AT_RESULT_WITH_SUB_CODE(AT_SUB_OP_ADDR_ERROR);
+        }
         at_net_ssl_path_set(linkid, NULL, cert_file, key_file);
     } else if (auth_mode == AT_NET_SSL_SERVER_AUTH) {
         if (ca_file_valid == 0) {
             return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_ALLOWED);
         }
+        if (!file_exists(ca_file)) {
+            return AT_RESULT_WITH_SUB_CODE(AT_SUB_OP_ADDR_ERROR);
+        }
         at_net_ssl_path_set(linkid, ca_file, NULL, NULL);
     } else if (auth_mode == AT_NET_SSL_BOTH_AUTH) {
         if (cert_file_valid == 0 || key_file_valid == 0 || ca_file_valid == 0) {
             return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_ALLOWED);
+        }
+        if (!file_exists(cert_file) || !file_exists(key_file) || !file_exists(ca_file)) {
+            return AT_RESULT_WITH_SUB_CODE(AT_SUB_OP_ADDR_ERROR);
         }
         at_net_ssl_path_set(linkid, ca_file, cert_file, key_file);
     }

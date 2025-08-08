@@ -32,6 +32,7 @@ Middlewares/Third_Party/FreeRTOS/Source \
 Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM33_NTZ/non_secure \
 Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang \
 Middlewares/Third_Party/Wireless_Connectivity/LwIP/src/api \
+Middlewares/Third_Party/Wireless_Connectivity/LwIP/src/apps/lwip_dhcpd \
 Middlewares/Third_Party/Wireless_Connectivity/LwIP/src/core \
 Middlewares/Third_Party/Wireless_Connectivity/LwIP/src/core/ipv4 \
 Middlewares/Third_Party/Wireless_Connectivity/LwIP/src/core/ipv6 \

@@ -14,11 +14,18 @@
 //#ifdef EASYFLASH_ENABLE
 #include <easyflash.h>
 //#endif
+#include "at_main.h"
+#include "at_core.h"
 
-#define AT_CONFIG_PRINTF printf
+#define AT_CONFIG_PRINTF AT_CMD_PRINTF
     
 int at_config_read(const char *key, void *config, int len)
 {
+    if (!key || !config || len <= 0) {
+        AT_CONFIG_PRINTF("Invalid arguments to at_config_read\r\n");
+        return 0;
+    }
+
     size_t ret, value_len;
 
     memset(config, 0, len);
@@ -34,7 +41,15 @@ int at_config_read(const char *key, void *config, int len)
 
 int at_config_write(const char *key, void *config, int len)
 {
-    ef_set_env_blob(key, config, len);
+    if (!key || !config || len <= 0) {
+        AT_CONFIG_PRINTF("Invalid arguments to at_config_write\r\n");
+        return 0;
+    }
+    int ret = ef_set_env_blob(key, config, len);
+    if (ret != 0) {
+        AT_CONFIG_PRINTF("ef_set_env_blob failed for '%s' (%d)\r\n", key, len);
+        return 0;
+    }
     return 1;
 }
 

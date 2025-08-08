@@ -25,6 +25,7 @@ int at_wifi_config_init(void)
 {
     at_wifi_config = (wifi_config *)pvPortMalloc(sizeof(wifi_config));
     if (at_wifi_config == NULL) {
+        printf("[WIFI_CONFIG] Error: memory allocation failed\r\n");
         return -1;
     }
 
@@ -114,6 +115,11 @@ int at_wifi_config_init(void)
 
 int at_wifi_config_save(const char *key)
 {
+    if (!key || !at_wifi_config) {
+        printf("[WIFI_CONFIG] Error: null key or config\r\n");
+        return -1;
+    }
+
     if (strcmp(key, AT_CONFIG_KEY_WIFI_AP_MAC) == 0)
         return at_config_write(key, &at_wifi_config->ap_mac.addr, sizeof(wifi_mac_addr));
     else if (strcmp(key, AT_CONFIG_KEY_WIFI_STA_MAC) == 0)
@@ -156,6 +162,11 @@ int at_wifi_config_save(const char *key)
 
 int at_wifi_config_default(void)
 {
+    // Defensive: clear in-memory config as well
+    if (at_wifi_config) {
+        memset(at_wifi_config, 0, sizeof(wifi_config));
+    }
+
     ef_del_env(AT_CONFIG_KEY_WIFI_AP_MAC);
     ef_del_env(AT_CONFIG_KEY_WIFI_STA_MAC);
     ef_del_env(AT_CONFIG_KEY_WIFI_MODE);

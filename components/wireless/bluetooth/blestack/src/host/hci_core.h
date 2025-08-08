@@ -321,7 +321,7 @@ int bt_ble_rx_test_cmd(u8_t rx_ch);
 int bt_le_test_end(void);
 
 #if defined(QCC74x_HOST_ASSISTANT)
-struct blhast_cb{
+struct hast_cb{
     void (*le_scan_cb)(const struct bt_le_scan_param *param, bt_le_scan_cb_t cb);
     void (*le_adv_cb)(const struct bt_le_adv_param *param, const struct bt_data *ad, 
 		size_t ad_len, const struct bt_data *sd, size_t sd_len);
@@ -330,7 +330,7 @@ int bt_set_flow_control(void);
 int bt_set_event_mask(void);
 int bt_le_set_event_mask(void);
 void bt_hci_reset_complete(struct net_buf *buf);
-void bt_register_host_assist_cb(struct blhast_cb *cb);
+void bt_register_host_assist_cb(struct hast_cb *cb);
 #endif
 
 typedef void (*bredr_name_callback)(const char *name);

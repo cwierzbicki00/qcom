@@ -39,7 +39,7 @@
 static const char * k_rws_socket_min_http_ver = "1.1";
 static const char * k_rws_socket_sec_websocket_accept = "sec-websocket-accept";
 
-// 分片传输开始，持续，结束的状态
+// Status of fragment transmission: start, ongoing, end
 typedef enum _rws_rd_frame_st {
     RWS_RD_FRAME_START,
     RWS_RD_FRAME_CONTINUE,
@@ -47,29 +47,29 @@ typedef enum _rws_rd_frame_st {
 } rws_rd_frame_st;
 
 
-// EAI_ADDRFAMILY 不支持hostname的地址族
-// EAI_AGAIN 名字解析中的暂时失败
-// EAI_BADFLAGS ai_flags的值无效
-// EAI_FAIL 名字解析中不可恢复的失败
-// EAI_FAMILY 不支持ai_family
-// EAI_MEMORY 内存分配失败
-// EAI_NODATA 没有与hostname相关联的地址
-// EAI_NONAME hostname或service未提供，或者不可知
-// EAI_SERVICE 不支持ai_socktype类型的service
-// EAI_SOCKTYPE 不支持ai_socktype
-// EAI_SYSTEM errno中有系统错误返回
+// EAI_ADDRFAMILY Address family of hostname not supported
+// EAI_AGAIN Temporary failure in name resolution
+// EAI_BADFLAGS Invalid value for ai_flags
+// EAI_FAIL Non-recoverable failure in name resolution
+// EAI_FAMILY ai_family not supported
+// EAI_MEMORY Memory allocation failure
+// EAI_NODATA No address associated with hostname
+// EAI_NONAME Hostname or service not provided, or unknown
+// EAI_SERVICE Service not supported for ai_socktype
+// EAI_SOCKTYPE ai_socktype not supported
+// EAI_SYSTEM System error returned in errno
 const char * strerror_arr[] = {
-    "不支持hostname的地址族",
-    "名字解析中的暂时失败",
-    "ai_flags的值无效",
-    "名字解析中不可恢复的失败",
-    "不支持ai_family",
-    "内存分配失败",
-    "没有与hostname相关联的地址",
-    "hostname或service未提供，或者不可知",
-    "不支持ai_socktype类型的service",
-    "不支持ai_socktype",
-    "errno中有系统错误返回"
+    "Address family of hostname not supported",
+    "Temporary failure in name resolution",
+    "Invalid value for ai_flags",
+    "Non-recoverable failure in name resolution",
+    "ai_family not supported",
+    "Memory allocation failure",
+    "No address associated with hostname",
+    "Hostname or service not provided, or unknown",
+    "Service not supported for ai_socktype",
+    "ai_socktype not supported",
+    "System error returned in errno"
 };
 
 static const char *gai_strerror(int ret)

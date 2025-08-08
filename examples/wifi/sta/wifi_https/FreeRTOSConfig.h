@@ -74,6 +74,8 @@
 #define configUSE_PORT_OPTIMISED_TASK_SELECTION 1
 #define configUSE_TICKLESS_IDLE                 0
 #define configUSE_POSIX_ERRNO                   1
+#define configTHREAD_LOCAL_STORAGE_DELETE_CALLBACKS 1
+#define configNUM_THREAD_LOCAL_STORAGE_POINTERS     1
 
 /* Co-routine definitions. */
 #define configUSE_CO_ROUTINES           0

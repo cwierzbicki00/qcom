@@ -16,6 +16,7 @@
  */
 #include "rtos_al.h"
 #include "net_al.h"
+#include "net_al_ext.h"
 #include "platform_al.h"
 #include "lwip/tcpip.h"
 #include "lwip/etharp.h"
@@ -289,6 +290,7 @@ static err_t net_if_init(struct netif *net_if)
 #else
     net_if->linkoutput = net_if_output;
 #endif
+    netif_set_status_callback(net_if, net_al_ext_netif_status_callback);
 
     return status;
 }

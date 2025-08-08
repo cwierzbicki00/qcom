@@ -190,6 +190,7 @@ static void uart_isr(int irq, void *arg)
 
 __attribute__((weak)) void btble_uart_pin_config(uint8_t uartid, uint8_t tx, uint8_t rx, uint8_t cts, uint8_t rts)
 {
+#if !(QCC74x_DMA_UART)
     struct qcc74x_device_s *gpio;
     gpio = qcc74x_device_get_by_name("gpio");
 
@@ -214,6 +215,7 @@ __attribute__((weak)) void btble_uart_pin_config(uint8_t uartid, uint8_t tx, uin
             qcc74x_gpio_uart_init(gpio, rts, GPIO_UART_FUNC_UART1_RTS);
         }
     }
+#endif
 }
 
 __attribute__((weak)) void btble_uart_init(uint8_t uartid)

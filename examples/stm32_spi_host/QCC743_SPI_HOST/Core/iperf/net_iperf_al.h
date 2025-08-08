@@ -34,7 +34,7 @@ extern virt_net_t g_virt_eth;
  */
 #define net_al_if_t struct netif*
 
-#define fhost_to_net_if(x) (&g_virt_eth->netif)
+#define fhost_to_net_if(x) (&g_virt_eth->netif[VIRT_NET_STA])
 
 #define FHOST_IPERF_STACK_SIZE (4096)
 #define FHOST_IPERF_PRIORITY   (28)

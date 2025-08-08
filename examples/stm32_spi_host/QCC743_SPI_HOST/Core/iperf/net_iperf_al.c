@@ -40,7 +40,7 @@
 #if NX_IPERF
 int net_if_get_ip(net_al_if_t net_if, uint32_t *ip, uint32_t *mask, uint32_t *gw)
 {
-	virt_net_get_ip(g_virt_eth, ip, mask, gw);
+	virt_net_get_sta_ip(g_virt_eth, ip, mask, gw);
 }
 
 /*

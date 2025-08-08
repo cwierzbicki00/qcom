@@ -50,16 +50,9 @@ def main():
 #    check_dependencies()
 
     parser = argparse.ArgumentParser(description="Setup Matter SDK environment.", add_help=False)
-    parser.add_argument(
-        "app_type",
-        type=int,
-        choices=[1, 2],
-        nargs="?",
-        default=2,  # Set to 2 for light as default
-        help="App type: 1 for contact sensor, 2 for light (default)"
-    )
-    # Print help if invalid argument is given
-    if len(sys.argv) > 1 and sys.argv[1] not in ("1", "2"):
+    parser.add_argument("app_type", type=int, choices=[1, 2], help="App type: 1 for contact sensor, 2 for light")
+    # Print help if no arguments are given
+    if len(sys.argv) == 1:
         parser.print_help(sys.stderr)
         print("\nExample usage:")
         print("python3 prepare_matter_code_for_qcc74x.py <app_type>")
@@ -104,6 +97,7 @@ def main():
     env = os.environ.copy()
     env["QCC74X_SDK_ROOT"] = sdk_root
     env["QCC74X_SDK_TOOLCHAIN"] = os.path.join(sdk_root, "toolchain/linux_x86_64/bin")
+    env["PW_PROJECT_ROOT"] = chip_dir  # Set PW_PROJECT_ROOT to connectedhomeip directory
 
     # Ensure scripts are executable
     ensure_executable("scripts/activate.sh")
@@ -111,42 +105,20 @@ def main():
 
     print("Environment setup complete.")
 
-    # Determine the build target based on app_type
+    # Run setup commands in bash
+    setup_script = (
+        "source scripts/activate.sh && "
+        "scripts/bootstrap.sh -p qualcomm"
+    )
+    run_command(f"bash -c \"{setup_script}\"", env=env)
+
+    # Determine the build command based on app_type
     if args.app_type == 1:
-        build_target = "qcc74x-qcc743dk-contact-sensor-wifi"
+        build_command = "./scripts/build/build_examples.py --target qcc74x-qcc743dk-contact-sensor-wifi build"
     else:
-        build_target = "qcc74x-qcc743dk-light-wifi"
+        build_command = "./scripts/build/build_examples.py --target qcc74x-qcc743dk-light-wifi build"
 
-    # Check if Matter environment is already set
-    matter_env_set = os.environ.get("PW_PROJECT_ROOT") is not None
-
-    # Run all setup and build commands in a single bash session to preserve environment variables
-    if not matter_env_set:
-        bash_script = (
-            "set -e;"
-            f"export QCC74X_SDK_ROOT='{sdk_root}';"
-            f"export QCC74X_SDK_TOOLCHAIN='{os.path.join(sdk_root, 'toolchain/linux_x86_64/bin')}';"
-            "source scripts/activate.sh;"
-            "scripts/bootstrap.sh -p qualcomm;"
-            f"./scripts/build/build_examples.py --target {build_target} build"
-        )
-        run_command(f"bash -c \"{bash_script}\"")
-    else:
-        print("Matter environment detected (PW_PROJECT_ROOT set). Skipping environment setup and bootstrap.")
-        build_cmd = f"./scripts/build/build_examples.py --target {build_target} build"
-        run_command(build_cmd)
-
-    # Print instructions for user to flash after successful compilation in a box
-    print("\n" + "*" * 60)
-    print("** Build completed successfully. **")
-    print("** To flash the firmware, run the following command from the connectedhomeip directory")
-    print(f"** connectedhomeip directory ({chip_dir}):")
-    if args.app_type == 1:
-        print("** python3 out/qcc74x-qcc743dk-contact-sensor-wifi/chip-qcc74x-contact-sensor-example.flash.py --port <your_serial_port>")
-    else:
-        print("** python3 out/qcc74x-qcc743dk-light-wifi/chip-qcc74x-lighting-example.flash.py --port <your_serial_port>")
-    print("** Replace <your_serial_port> with the appropriate port (e.g., /dev/ttyACM1 or COM3).")
-    print("*" * 60 + "\n")
+    run_command(build_command, env=env)
 
 if __name__ == "__main__":
     main()

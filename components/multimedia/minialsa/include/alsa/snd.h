@@ -30,7 +30,7 @@ typedef struct module
     char test;
 } module_t;
 
-//提供声卡注册和查询
+// Provide sound card registration and query
 
 int msp_card_new(int *parent, int idx, const char *xid, struct module *module, int size, snd_card_drv_t **card_ret);
 int msp_card_free(snd_card_drv_t *card);

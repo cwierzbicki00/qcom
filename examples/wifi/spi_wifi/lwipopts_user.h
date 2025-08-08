@@ -29,6 +29,8 @@
 #define TCPIP_THREAD_STACKSIZE        512
 #define TCPIP_THREAD_PRIO             28
 
+#define LWIP_SOCKET_POLL              1
+
 #define DEFAULT_THREAD_STACKSIZE      1024
 #define DEFAULT_THREAD_PRIO           1
 #define DEFAULT_RAW_RECVMBOX_SIZE     32
@@ -37,6 +39,8 @@
 #define DEFAULT_ACCEPTMBOX_SIZE       32
 
 #define SNTP_SERVER_DNS               1
+#define LWIP_DHCP_MAX_NTP_SERVERS     3
+#define SNTP_STARTUP_DELAY            0
 #define LWIP_NETIF_LOOPBACK           1
 #define LWIP_HAVE_LOOPIF              1
 #define LWIP_LOOPBACK_MAX_PBUFS       0
@@ -52,13 +56,16 @@
 
 #define IP_REASS_MAX_PBUFS            (2 * CONFIG_MAC_RXQ_DEPTH - 2)
 
-#define MEMP_NUM_NETBUF               28
+#define MEMP_NUM_NETBUF               26
 #define MEMP_NUM_ALTCP_PCB            2
 #define MEMP_NUM_UDP_PCB              6
-#define MEMP_NUM_TCP_PCB              6
+#define MEMP_NUM_TCP_PCB              5
+#define MEMP_NUM_RAW_PCB              2
 #define MEMP_NUM_TCP_PCB_LISTEN       1
 #define MEMP_NUM_NETCONN              (MEMP_NUM_TCP_PCB + MEMP_NUM_TCP_PCB_LISTEN)
 #define MEMP_NUM_REASSDATA            LWIP_MIN((IP_REASS_MAX_PBUFS), 5)
+#define MEMP_NUM_ND6_QUEUE            3
+#define MEMP_NUM_FRAG_PBUF            5
 
 #define MAC_TXQ_DEPTH                 CONFIG_MAC_TXQ_DEPTH
 #define MAC_RXQ_DEPTH                 CONFIG_MAC_RXQ_DEPTH
@@ -77,7 +84,11 @@
 #define TCP_RCV_SCALE                 2
 #define TCP_SNDLOWAT                  LWIP_MIN(LWIP_MAX(((TCP_SND_BUF) / 4), (2 * TCP_MSS) + 1), (TCP_SND_BUF)-1)
 
+#if CONFIG_IPV6
+#define MEM_MIN_TCP                   (1200 + MEMP_NUM_PBUF * (100 + PBUF_LINK_ENCAPSULATION_HLEN))
+#else
 #define MEM_MIN_TCP                   (2300 + MEMP_NUM_PBUF * (100 + PBUF_LINK_ENCAPSULATION_HLEN))
+#endif
 #define MEM_MIN                       MEM_MIN_TCP
 #define MEM_ALIGNMENT                 4
 
@@ -121,6 +132,7 @@
 #define ARP_TIMER_PRECISE_NEEDED        1
 #define IP4_FRAG_TIMER_PRECISE_NEEDED   1
 #define DNS_TIMER_PRECISE_NEEDED        1
+#define IPV6_TIMER_PRECISE_NEEDED       1
 
 #define LWIP_IGMP                       0
 #else

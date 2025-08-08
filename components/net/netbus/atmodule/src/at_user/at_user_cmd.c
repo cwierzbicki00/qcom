@@ -16,11 +16,21 @@
 
 static int at_query_cmd_userram(int argc, const char **argv)
 {
+    if (argv == NULL) {
+        AT_CMD_PRINTF("[AT_USER] Error: argv is NULL\r\n");
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
+    }
+    // Add further query logic here if needed
     return AT_RESULT_CODE_OK;
 }
 
 static int at_setup_cmd_userram(int argc, const char **argv)
 {
+    if (argv == NULL) {
+        AT_CMD_PRINTF("[AT_USER] Error: argv is NULL\r\n");
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
+    }
+    // Add further setup logic here if needed
     return AT_RESULT_CODE_OK;
 }
 

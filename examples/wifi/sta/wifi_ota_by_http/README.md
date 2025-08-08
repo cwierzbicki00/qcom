@@ -37,11 +37,10 @@ make flash COMX=xxx ## xxx is your com name
 
 ### Start simple OTA server
 
-Run an http server using the python command in the directory where the OTA bin file is located. like this:
+Run an https server using the python command in the directory where the OTA bin file is located. like this:
 
 ```bash
-$ cd build/build_out
-$ python -m http.server 3365
+$ python https.py --https --cert ./ssl/server_1.crt --key ./ssl/server_1.key
 ```
 
 ### Connect wifi
@@ -53,7 +52,7 @@ When this program is downloaded to the chip, it will automatically search for th
 /* config your wifi ssid and password */
 static const uint8_t wifi_sta_connet[] = "wifi_sta_connect QCC74x_TEST 12345678\r";
 /* config your OTA server and port */
-static const uint8_t wifi_ota_test[] = "wifi_ota_test 192.168.1.2 3365 /wifi_ota_qcc743.bin.ota\r";
+static const uint8_t wifi_ota_test[] = "wifi_ota_test https://192.168.31.112:5000/build/build_out/wifi_ota_qcc743.bin.ota\r";
 
 ```
 
@@ -62,7 +61,7 @@ On QCC743 board, using <wifi_sta_connect> command connect your WiFi router, and 
 
 ```bash
 qcc74x />wifi_sta_connect QCC74x_TEST 12345678
-qcc74x />wifi_ota_test 192.168.1.2 3365 /wifi_ota_qcc743.bin.ota
+qcc74x />wifi_ota_test https://192.168.31.112:5000/build/build_out/wifi_ota_qcc743.bin.ota
 
 ```
 

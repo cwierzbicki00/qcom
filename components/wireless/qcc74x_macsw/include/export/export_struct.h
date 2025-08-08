@@ -377,6 +377,8 @@ struct_func_dcl(twt_statusget_req, uint8_t, vif_idx);
 struct_func_len(twt_statusget_req);
 struct_func_dcl(twt_statusget_cfm, uint8_t, status);
 struct_func_dcl(twt_statusget_cfm, uint8_t, flows);
+struct_func_dcl(twt_statusget_cfm, uint8_t, twt_supported);
+struct_func_dcl(twt_statusget_cfm, uint8_t, dtim);
 void twt_statusget_cfm_get_conf(void *pa,  struct twt_statusget_cfm *cfm, uint8_t flow_conf_max); 
 struct_func_len(twt_statusget_cfm);
 

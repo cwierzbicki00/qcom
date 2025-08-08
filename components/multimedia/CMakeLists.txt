@@ -8,7 +8,6 @@ sdk_add_subdirectory_ifdef(CONFIG_VORBIS vorbis)
 sdk_add_subdirectory_ifdef(CONFIG_OGG ogg)
 
 sdk_add_subdirectory_ifdef(CONFIG_AUIDIO_FLOWCTRL_BRIDGE audio_flowctrl_bridge)
-sdk_add_subdirectory_ifdef(CONFIG_QCC743_IMPLS qcc743_impls)
 
 sdk_add_subdirectory_ifdef(CONFIG_SONIC sonic)
 sdk_add_subdirectory_ifdef(CONFIG_MINIALSA minialsa)

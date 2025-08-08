@@ -5,5 +5,5 @@
 
 int tickless_enter(void);
 int tickless_exit(void);
-
+int *tickless_handke_get(void);
 #endif

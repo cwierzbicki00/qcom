@@ -42,7 +42,7 @@ target_sources(app PRIVATE
             )
 
 sdk_add_include_directories(.)
-sdk_add_include_directories(./build/generated/)
+sdk_add_include_directories(./${BUILD_DIR}/generated/)
 
 sdk_set_main_file(main.c)
 

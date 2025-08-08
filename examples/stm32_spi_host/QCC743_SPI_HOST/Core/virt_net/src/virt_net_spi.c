@@ -24,6 +24,9 @@
 #include "spi.h"
 #include "at_host.h"
 
+#define VIRT_NET_STA_RX_RDY (1 << 0)
+#define VIRT_NET_AP_RX_RDY  (1 << 1)
+
 struct virt_net_spi;
 struct spi_custom_pbuf {
   struct pbuf_custom p;
@@ -98,13 +101,24 @@ static err_t net_if_output(struct netif *net_if, struct pbuf *p_buf)
     int ret;
     struct virt_net *obj = (struct virt_net *)net_if->state;
 	struct spi_msg_control ctrl;
-	uint8_t traffic = SPI_MSG_CTRL_TRAFFIC_NETWORK;
+	uint8_t traffic = SPI_MSG_CTRL_TRAFFIC_NETWORK_STA;
 	struct spi_msg m;
+    virt_net_type_t i;
 
 	if (obj->netmode == VIRTNET_NET_MODE_NCP) {
 		return ERR_OK;
 	}
 
+    for (i = 0; i < VIRT_NET_MAX; i++) {
+        if (net_if == &obj->netif[i]) {
+            break;
+        }
+    }
+    if (i >= VIRT_NET_MAX) {
+		return ERR_OK;
+    }
+
+    traffic = (i == VIRT_NET_STA) ? SPI_MSG_CTRL_TRAFFIC_NETWORK_STA : SPI_MSG_CTRL_TRAFFIC_NETWORK_AP;
 	SPI_MSG_CONTROL_INIT(ctrl, SPI_MSG_CTRL_TRAFFIC_TYPE,
 		SPI_MSG_CTRL_TRAFFIC_TYPE_LEN, &traffic);
 
@@ -141,13 +155,12 @@ static err_t virt_netif_init(struct netif *netif)
 {
   struct virt_net * obj = (struct virt_net *)netif->state;
 
-  obj->netif.hostname = "spi_eth0";
+  netif->hostname = "spi_eth0";
   
-  obj->netif.name[0] = "w";
-  obj->netif.name[1] = "l";
+  netif->name[0] = "w";
+  netif->name[1] = "l";
 
   netif->hwaddr_len = ETHARP_HWADDR_LEN;
-  memcpy(netif->hwaddr, obj->mac, ETHARP_HWADDR_LEN);
 
   /* set netif maximum transfer unit */
   netif->mtu = obj->mtu;
@@ -162,17 +175,12 @@ static err_t virt_netif_init(struct netif *netif)
   netif->output = etharp_output;
   netif->linkoutput = net_if_output;
 
-  /* Set callback to be called when interface is brought up/down or address is changed while up */
-  netif_set_status_callback(&obj->netif, netif_status_callback);
-
   return ERR_OK;
 }
 
 static int virt_net_spi_init(virt_net_t obj)
 {
   assert(obj != NULL);
-
-  struct virt_net_spi *sobj = (struct virt_net_spi *)obj;
 
 #if 0
   ip4_addr_t ipaddr;
@@ -184,18 +192,29 @@ static int virt_net_spi_init(virt_net_t obj)
   IP4_ADDR(&gw, 192, 168, 11, 1);
 #endif
 
-  if (netifapi_netif_add(&obj->netif, NULL, NULL, NULL, (void *)obj, virt_netif_init, tcpip_input) != ERR_OK) {
+  if (netifapi_netif_add(&obj->netif[VIRT_NET_STA], NULL, NULL, NULL, (void *)obj, virt_netif_init, tcpip_input) != ERR_OK) {
     printf("add spi netif failed\r\n");
     return -1;
   }
+  memcpy(obj->netif[VIRT_NET_STA].hwaddr, obj->mac_sta, ETHARP_HWADDR_LEN);
 
+  /* Set callback to be called when interface is brought up/down or address is changed while up */
+  netif_set_status_callback(&obj->netif[VIRT_NET_STA], netif_status_callback);
+
+
+  if (netifapi_netif_add(&obj->netif[VIRT_NET_AP], NULL, NULL, NULL, (void *)obj, virt_netif_init, tcpip_input) != ERR_OK) {
+    printf("add spi netif failed\r\n");
+    return -1;
+  }
+  memcpy(obj->netif[VIRT_NET_AP].hwaddr, obj->mac_ap, ETHARP_HWADDR_LEN);
+
+  netifapi_netif_set_default(&obj->netif[VIRT_NET_STA]);
   return 0;
 }
 
-static int _virl_net_spi_read(struct spi_buffer **spbuf)
+static int _virl_net_spi_read(struct spi_buffer **spbuf, spi_msg_ctrl_t traffic_type)
 {
 	int ret;
-	uint8_t traffic_type = SPI_MSG_CTRL_TRAFFIC_NETWORK;
 	struct spi_msg_control ctrl;
 	struct spi_msg m = {0};
 
@@ -203,7 +222,7 @@ static int _virl_net_spi_read(struct spi_buffer **spbuf)
 		SPI_MSG_CTRL_TRAFFIC_TYPE_LEN, &traffic_type);
 	SPI_MSG_INIT(m, SPI_MSG_OP_BUFFER_PTR, &ctrl, 0);
 	m.buffer_ptr = spbuf;
-	ret = spi_read(&m, pdMS_TO_TICKS(10000));
+	ret = spi_read(&m, 0);
 #if 0
 	if (ret > 0) {
 		printf("virl_net_read %d\r\n", ret);
@@ -252,61 +271,92 @@ static int virt_net_spi_control(virt_net_t obj, int cmd, ...)
 	}
 
 	switch (cmd) {
-	case VIRT_NET_CTRL_GET_NETMODE:
-		int netmode;
-		int *tmp_netmode;
-		at_host_send(sobj->athandle, 0, "AT+CWNETMODE?\r\n", strlen("AT+CWNETMODE?\r\n"), (uint32_t)-1);
-		// +CWNETMODE:1
-		memset(resp, 0, sizeof(resp));
-		at_host_read(sobj->athandle, resp, sizeof(resp));
-		if (strstr(resp, "+CWNETMODE:") == NULL) {
-		  printf("CWNETMODE:%s\r\n", resp);
-		  ret = -1;
-		  break;
+		case VIRT_NET_CTRL_GET_NETMODE: {
+			int netmode;
+			int *tmp_netmode;
+			at_host_send(sobj->athandle, 0, "AT+CWNETMODE?\r\n", strlen("AT+CWNETMODE?\r\n"), (uint32_t)-1);
+			// +CWNETMODE:1
+			memset(resp, 0, sizeof(resp));
+			at_host_read(sobj->athandle, resp, sizeof(resp));
+			if (strstr(resp, "+CWNETMODE:") == NULL) {
+			  printf("CWNETMODE:%s\r\n", resp);
+			  ret = -1;
+			  break;
+			}
+			netmode = atoi(&resp[11]);
+
+			// OK
+			at_host_read(sobj->athandle, resp, sizeof(resp));
+			if (strstr(resp, "OK\r\n") == NULL) {
+			  printf("OK error\r\n");
+			  ret = -1;
+			  break;
+			}
+
+			va_start(args, cmd);
+			tmp_netmode = va_arg(args, int *);
+			*tmp_netmode = netmode;
+			va_end(args);
+
+			break;
 		}
-		netmode = atoi(&resp[11]);
+		case VIRT_NET_CTRL_GET_STAMAC: {
+			char mac[6];
+			uint8_t *tmp;
+			at_host_send(sobj->athandle, 0, "AT+CIPSTAMAC?\r\n", strlen("AT+CIPSTAMAC?\r\n"), (uint32_t)-1);
+			// +CIPSTAMAC:"c4:cc:37:a0:6d:6e"
+			memset(resp, 0, sizeof(resp));
+			at_host_read(sobj->athandle, resp, sizeof(resp));
+			if (strstr(resp, "+CIPSTAMAC:") == NULL) {
+			  printf("CIPSTAMAC:%s\r\n", resp);
+			  ret = -1;
+			  break;
+			}
+			parse_mac((const char *)&resp[12], mac);
+			// OK
+			at_host_read(sobj->athandle, resp, sizeof(resp));
+			if (strstr(resp, "OK\r\n") == NULL) {
+			  printf("OK error\r\n");
+			  ret = -1;
+			  break;
+			}
 
-		// OK
-		at_host_read(sobj->athandle, resp, sizeof(resp));
-		if (strstr(resp, "OK\r\n") == NULL) {
-		  printf("OK error\r\n");
-		  ret = -1;
-		  break;
+			va_start(args, cmd);
+			tmp = va_arg(args, uint8_t *);
+			memcpy(tmp, mac, sizeof(obj->mac_sta));
+			va_end(args);
+
+			break;
 		}
 
-		va_start(args, cmd);
-		tmp_netmode = va_arg(args, int *);
-		*tmp_netmode = netmode;
-		va_end(args);
+		case VIRT_NET_CTRL_GET_APMAC: {
+			char mac[6];
+			uint8_t *tmp;
+			at_host_send(sobj->athandle, 0, "AT+CIPAPMAC?\r\n", strlen("AT+CIPAPMAC?\r\n"), (uint32_t)-1);
+			// +CIPSTAMAC:"c4:cc:37:a0:6d:6e"
+			memset(resp, 0, sizeof(resp));
+			at_host_read(sobj->athandle, resp, sizeof(resp));
+			if (strstr(resp, "+CIPAPMAC:") == NULL) {
+			  printf("CIPAPMAC:%s\r\n", resp);
+			  ret = -1;
+			  break;
+			}
+			parse_mac((const char *)&resp[12], mac);
+			// OK
+			at_host_read(sobj->athandle, resp, sizeof(resp));
+			if (strstr(resp, "OK\r\n") == NULL) {
+			  printf("OK error\r\n");
+			  ret = -1;
+			  break;
+			}
 
-		break;
-	case VIRT_NET_CTRL_GET_MAC:
-		char mac[6];
-		uint8_t *tmp;
-		at_host_send(sobj->athandle, 0, "AT+CIPSTAMAC?\r\n", strlen("AT+CIPSTAMAC?\r\n"), (uint32_t)-1);
-		// +CIPSTAMAC:"c4:cc:37:a0:6d:6e"
-		memset(resp, 0, sizeof(resp));
-		at_host_read(sobj->athandle, resp, sizeof(resp));
-		if (strstr(resp, "+CIPSTAMAC:") == NULL) {
-		  printf("CIPSTAMAC:%s\r\n", resp);
-		  ret = -1;
-		  break;
+			va_start(args, cmd);
+			tmp = va_arg(args, uint8_t *);
+			memcpy(tmp, mac, sizeof(obj->mac_ap));
+			va_end(args);
+
+			break;
 		}
-		parse_mac((const char *)&resp[12], mac);
-		// OK
-		at_host_read(sobj->athandle, resp, sizeof(resp));
-		if (strstr(resp, "OK\r\n") == NULL) {
-		  printf("OK error\r\n");
-		  ret = -1;
-		  break;
-		}
-
-		va_start(args, cmd);
-		tmp = va_arg(args, uint8_t *);
-		memcpy(tmp, mac, sizeof(obj->mac));
-		va_end(args);
-
-		break;
 	}
 	if (osThreadGetId() != sobj->athandle->at_rx_task) {
 		osThreadResume(sobj->athandle->at_rx_task);
@@ -319,45 +369,90 @@ static int virt_net_spi_deinit(virt_net_t *obj)
 	return -1;
 }
 
+static void network_sta_notify_callback(void *arg)
+{
+	struct virt_net_spi *sobj = (struct virt_net_spi *)arg;
+
+    xTaskNotify(sobj->task, VIRT_NET_STA_RX_RDY, eSetBits);
+}
+
+static void network_ap_notify_callback(void *arg)
+{
+    struct virt_net_spi *sobj = (struct virt_net_spi *)arg;
+
+    xTaskNotify(sobj->task, VIRT_NET_AP_RX_RDY, eSetBits);
+}
+
 static void __pbuf_free_custom(struct pbuf *p)
 {
 	struct spi_custom_pbuf *pbuf_desc = (struct spi_custom_pbuf *)p;
 
 	spi_buffer_free(pbuf_desc->spbuf);
 	xQueueSend(pbuf_desc->sobj->txq, &pbuf_desc, 0);
-	//printf("free:%p\r\n", pbuf_desc);
+	SPI_NET_LOG("[%d] pbuf free:%p\r\n", __LINE__, pbuf_desc);
+}
+
+static int _virl_net_rx_process(struct virt_net_spi *sobj, uint8_t type)
+{
+    int ret;
+    struct spi_custom_pbuf *pbuf_desc = NULL;
+
+    SPI_NET_LOG("txq count:%d\r\n", uxQueueMessagesWaiting(sobj->txq));
+    xQueueReceive(sobj->txq, &pbuf_desc, portMAX_DELAY);
+    SPI_NET_LOG("[%d] txq pop:%p\r\n", __LINE__, pbuf_desc);
+
+    ret = _virl_net_spi_read(&pbuf_desc->spbuf, type);
+
+	if (sobj->vnet.netmode == VIRTNET_NET_MODE_NCP) {
+		if (ret > 0) {
+			spi_buffer_free(pbuf_desc->spbuf);
+		}
+		xQueueSend(sobj->txq, &pbuf_desc, 0);
+		SPI_NET_LOG("[%d] txq push:%p\r\n", __LINE__, pbuf_desc);
+		return -1;
+	}
+	if (ret > 0) {
+        virt_net_spi_input(&sobj->vnet.netif[(type == SPI_MSG_CTRL_TRAFFIC_NETWORK_STA) ? VIRT_NET_STA : VIRT_NET_AP],
+                           (net_buf_t)pbuf_desc, pbuf_desc->spbuf->data, ret, __pbuf_free_custom);
+	} else {
+		xQueueSend(sobj->txq, &pbuf_desc, 0);
+		SPI_NET_LOG("[%d] txq push:%p\r\n", __LINE__, pbuf_desc);
+	}
+    return ret;
 }
 
 static void __virt_net_spi_task(void *arg)
 {
-	int ret;
 	struct virt_net_spi *sobj = (struct virt_net_spi *)arg;
     struct spi_custom_pbuf *pbuf_desc = NULL;
+    uint32_t vnet_event = 0;
+    int ret = -1;
 
 	while (1) {
-		//printf("%d\r\n", uxQueueMessagesWaiting(sobj->txq));
-		xQueueReceive(sobj->txq, &pbuf_desc, portMAX_DELAY);
-		//printf("txq:%p\r\n", pbuf_desc);
+        
+        SPI_NET_LOG("xTaskNotifyWait...\r\n");
+        xTaskNotifyWait(0, VIRT_NET_STA_RX_RDY | VIRT_NET_AP_RX_RDY, &vnet_event, portMAX_DELAY);
+        SPI_NET_LOG("Wait event:%d\r\n", vnet_event);
 
-		ret = _virl_net_spi_read(&pbuf_desc->spbuf);
-		if (sobj->vnet.netmode == VIRTNET_NET_MODE_NCP) {
-			if (ret > 0) {
-				spi_buffer_free(pbuf_desc->spbuf);
-			}
-			xQueueSend(sobj->txq, &pbuf_desc, 0);
-			//printf("111 free:%p\r\n", pbuf_desc);
-			continue;
-		}
-		if (ret > 0) {
-			virt_net_spi_input(sobj, (net_buf_t)pbuf_desc, pbuf_desc->spbuf->data, ret, __pbuf_free_custom);
-		} else {
-			xQueueSend(sobj->txq, &pbuf_desc, 0);
-			//printf("222 free:%p\r\n", pbuf_desc);
-		}
+        do {
+            if (vnet_event & VIRT_NET_STA_RX_RDY) {
+                ret = _virl_net_rx_process(sobj, SPI_MSG_CTRL_TRAFFIC_NETWORK_STA);
+                if (ret <= 0) {
+                    vnet_event &= ~VIRT_NET_STA_RX_RDY;
+                }
+            }
+
+            if (vnet_event & VIRT_NET_AP_RX_RDY) {
+                ret = _virl_net_rx_process(sobj, SPI_MSG_CTRL_TRAFFIC_NETWORK_AP);
+                if (ret <= 0) {
+                    vnet_event &= ~VIRT_NET_AP_RX_RDY;
+                }
+            }
+        } while(vnet_event);
 	}
 }
 
-int virt_net_spi_input(struct virt_net_spi *sobj,
+int virt_net_spi_input(struct netif *netif,
                   net_buf_t net_buf,
                   void *payload,
                   uint16_t length,
@@ -370,11 +465,11 @@ int virt_net_spi_input(struct virt_net_spi *sobj,
     p = pbuf_alloced_custom(PBUF_RAW, length, PBUF_REF | PBUF_TYPE_FLAG_STRUCT_DATA_CONTIGUOUS, &spi_pbuf->p, payload, length);
     assert(p != NULL);
 
-    if (sobj->vnet.netif.input == NULL) {
+    if (netif->input == NULL) {
     	free_fn(net_buf);
     	return -1;
     }
-    if (sobj->vnet.netif.input(p, &sobj->vnet.netif))
+    if (netif->input(p, netif))
     {
         free_fn(net_buf);
         return -1;
@@ -386,11 +481,6 @@ virt_net_t virt_net_spi_create(void)
 {
 	int ret = -1;
 	struct spi_custom_pbuf *tx_desc;
-	static const osThreadAttr_t _virt_net_task_attr = {
-	  .name = "spi_eth",
-	  .priority = (osPriority_t) osPriorityRealtime6,
-	  .stack_size = 2048
-	};
 
     struct virt_net_spi *sobj = pvPortMalloc(sizeof(struct virt_net_spi));
     if (sobj == NULL) {
@@ -418,10 +508,13 @@ virt_net_t virt_net_spi_create(void)
     	xQueueSend(sobj->txq, &tx_desc, 0);
     }
 
-    spi_bind(SPI_MSG_CTRL_TRAFFIC_NETWORK, 16);
+    spi_bind(SPI_MSG_CTRL_TRAFFIC_NETWORK_STA, 16);
+    spi_bind(SPI_MSG_CTRL_TRAFFIC_NETWORK_AP, 8);
 
-    osThreadNew(__virt_net_spi_task, sobj, &_virt_net_task_attr);
+    spi_rxd_callback_register(SPI_MSG_CTRL_TRAFFIC_NETWORK_STA, network_sta_notify_callback, sobj);
+    spi_rxd_callback_register(SPI_MSG_CTRL_TRAFFIC_NETWORK_AP, network_ap_notify_callback, sobj);
 
+    xTaskCreate(__virt_net_spi_task, "spi_eth", 2048, sobj, osPriorityRealtime6, &sobj->task);
     sobj->athandle = at_spisync_init();
 
     vTaskDelay(100);
@@ -435,15 +528,25 @@ virt_net_t virt_net_spi_create(void)
     } while(ret != 0);
 
     do {
-        ret = sobj->vnet.ctrl(&sobj->vnet, VIRT_NET_CTRL_GET_MAC, sobj->vnet.mac);
+        ret = sobj->vnet.ctrl(&sobj->vnet, VIRT_NET_CTRL_GET_STAMAC, sobj->vnet.mac_sta);
     	if (ret != 0) {
     		vTaskDelay(1000);
     	}
     } while(ret != 0);
 
-	printf("The device:%02X:%02X:%02X:%02X:%02X:%02X  is work on %s mode.\r\n",
-			sobj->vnet.mac[0], sobj->vnet.mac[1], sobj->vnet.mac[2], sobj->vnet.mac[3], sobj->vnet.mac[4], sobj->vnet.mac[5],
-			sobj->vnet.netmode?"NCP":"RCP");
+    do {
+        ret = sobj->vnet.ctrl(&sobj->vnet, VIRT_NET_CTRL_GET_APMAC, sobj->vnet.mac_ap);
+    	if (ret != 0) {
+    		vTaskDelay(1000);
+    	}
+    } while(ret != 0);
+
+	printf("ether_sta %02X:%02X:%02X:%02X:%02X:%02X\r\n"
+           "ether_ap %02X:%02X:%02X:%02X:%02X:%02X\r\n"
+           "is work on %s mode.\r\n",
+			sobj->vnet.mac_sta[0], sobj->vnet.mac_sta[1], sobj->vnet.mac_sta[2], sobj->vnet.mac_sta[3], sobj->vnet.mac_sta[4], sobj->vnet.mac_sta[5],
+			sobj->vnet.mac_ap[0], sobj->vnet.mac_ap[1], sobj->vnet.mac_ap[2], sobj->vnet.mac_ap[3], sobj->vnet.mac_ap[4], sobj->vnet.mac_ap[5],
+			sobj->vnet.netmode?"NCP":"Lwip On Host");
 
     sobj->vnet.mtu = 1500;
 

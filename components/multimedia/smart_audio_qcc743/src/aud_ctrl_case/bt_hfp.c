@@ -90,7 +90,7 @@ smtaudio_ops_node_t ctrl_bt_hfp = {
 //     }
 // }
 
-/* mic 数据回调(20 ms)，格式为mic1/mic2/ref/null/null从回调中取出一路 mic 数据 */
+/* Mic data callback (20 ms), format is mic1/mic2/ref/null/null. Extract one channel of mic data from the callback. */
 // static void mic_data_get_cb(void *data, int len)
 // {
 //     int    ret_len = len / 5;
@@ -799,9 +799,7 @@ static int bt_hfp_vol_set(int vol)
 static int bt_hfp_vol_up(int vol)
 {
     int ret = -1;
-    /*调整 bt call 音量*/
-
-    /*同时提高本地音音量*/
+    /*Adjust the BT call volume and simultaneously increase the local audio volume.*/
     smtaudio_ops_node_t *audio_default_ops;
 
     extern smtaudio_ops_node_t *get_default_audio_ops(void);
@@ -816,9 +814,7 @@ static int bt_hfp_vol_up(int vol)
 static int bt_hfp_vol_down(int vol)
 {
     int ret = -1;
-    /*调整 bt call 音量*/
-
-    /*同时提高本地音音量*/
+    /*Adjust the BT call volume and simultaneously increase the local audio volume.*/
     smtaudio_ops_node_t *audio_default_ops;
 
     extern smtaudio_ops_node_t *get_default_audio_ops(void);

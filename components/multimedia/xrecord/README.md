@@ -1,85 +1,85 @@
-# 概述
+# Overview
 
-record支持将设备上的文件或者内存数据通过长连接的方式输出到websocket服务器。
+The record module supports streaming files or in-memory data from the device to a WebSocket server via a persistent connection.
 
-# 接口
+# Interfaces
 
-## 注册
+## Registration
 
 ```C
 rec_hdl_t record_register(const char *from, const char *to);
 ```
 
-* 参数
-  * from: 数据来源，例如：ringbuffer://handle=403913384；mem://address=403913384&size=1024
-  * to: 数据存储的地方，例如：ringbuffer://handle=403913384；ws://192.168.1.102:9090/mic.pcm
-* 返回值
-  * `rec_hdl_t`：成功
-  * NULL: 失败
+* Parameters
+  * from: Data source. For example:ringbuffer://handle=403913384;mem://address=403913384&size=1024
+  * to: Data destination. For example:ringbuffer://handle=403913384;ws://192.168.1.102:9090/mic.pcm
+* Return Values
+  * `rec_hdl_t`:Success
+  * NULL: Failure
 
-## 设置数据ready的回调函数
+## Set Data Ready Callback Function
 
 ```C
 void record_set_data_ready_cb(rec_hdl_t hdl, data_ready_func cb, void *arg);
 ```
 
-* 参数
-  * hdl: `rec_hdl_t`句柄
-  * cb: 回调函数
-  * arg: 回调函数的参数
-* 返回值
-  * 无
+* Parameters
+  * hdl: `rec_hdl_t`handle
+  * cb: Callback function
+  * arg:  User data passed to the callback function
+* Return Values
+  * None
 
-## 设置一次读取的块大小
+## Set the Block Size for Each Read Operation
 
 ```C
 void record_set_chunk_size(rec_hdl_t hdl, int chunk_size);
 ```
 
-* 参数
-  * hdl: `rec_hdl_t`句柄
-  * chunk_size: 块大小
-* 返回值
-  * 无
+* Parameters
+  * hdl: `rec_hdl_t`handle
+  * chunk_size: Block size
+* Return Values
+  * None
 
-## 开始录制
+## Start Recording
 
 ```C
 int record_start(rec_hdl_t hdl);
 ```
 
-* 参数
-  * hdl: `rec_hdl_t`句柄
-* 返回值
-  * 0: 成功
-  * < 0: 失败
+* Parameters
+  * hdl: `rec_hdl_t`handle
+* Return Values
+  * 0: Success
+  * < 0: Failure
 
-## 停止录制
+## Stop Recording
 
 ```C
 int record_stop(rec_hdl_t hdl);
 ```
 
-* 参数
-  * hdl: `rec_hdl_t`句柄
-* 返回值
-  * 0: 成功
-  * < 0: 失败
+* Parameters
+  * hdl: `rec_hdl_t`handle
+* Return Values
+  * 0: Success
+  * < 0: Failure
 
-## 注销，释放资源
+## Deregister and Release Resources
 
 ```C
 int record_unregister(rec_hdl_t hdl);
 ```
 
-* 参数
-  * hdl: `rec_hdl_t`句柄
-* 返回值
-  * 0: 成功
-  * < 0: 失败
+* Parameters
+  * hdl: `rec_hdl_t`handle
+* Return Values
+  * 0: Success
+  * < 0: Failure
 
 
-# 示例
+# Example
 
 ```C
 #include "app_config.h"

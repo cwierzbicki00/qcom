@@ -1232,6 +1232,7 @@ int ATTR_TCM_SECTION qcc74x_lp_fw_enter(qcc74x_lp_fw_cfg_t *qcc74x_lp_fw_cfg)
     qcc74x_lp_debug_record_time(iot2lp_para, "qcc74x_lp_fw_enter");
 
     iot2lp_para->buf_addr = qcc74x_lp_fw_cfg->buf_addr;
+    iot2lp_para->pack_env = qcc74x_lp_fw_cfg->pack_env;
 
     /* clean wake bits */
     iot2lp_para->wake_io_bits = 0;

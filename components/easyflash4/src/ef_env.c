@@ -517,7 +517,7 @@ static uint32_t get_next_env_addr(sector_meta_data_t sector, env_node_obj_t pre_
             addr = find_next_env_addr(addr, sector->addr + SECTOR_SIZE - SECTOR_HDR_DATA_SIZE);
 
             if (addr > sector->addr + SECTOR_SIZE || pre_env->len == 0) {
-                //TODO 扇区连续模式
+                //TODO Sector continuous mode
                 return FAILED_ADDR;
             }
         } else {
@@ -552,7 +552,7 @@ static EfErrCode read_env(env_node_obj_t env)
         env->crc_is_ok = false;
         return EF_READ_ERR;
     } else if (env->len > SECTOR_SIZE - SECTOR_HDR_DATA_SIZE && env->len < ENV_AREA_SIZE) {
-        //TODO 扇区连续模式，或者写入长度没有写入完整
+        //TODO Sector continuous mode, or incomplete write length
         EF_ASSERT(0);
     }
 
@@ -1836,7 +1836,7 @@ static bool check_and_recovery_env_cb(env_node_obj_t env, void *arg1, void *arg2
     } else if (env->status == ENV_PRE_WRITE) {
         uint8_t status_table[ENV_STATUS_TABLE_SIZE];
         /* the ENV has not write finish, change the status to error */
-        //TODO 绘制异常处理的状态装换图
+        //TODO Draw a state transition diagram for exception handling
         write_status(env->addr.start, status_table, ENV_STATUS_NUM, ENV_ERR_HDR);
         return true;
     }

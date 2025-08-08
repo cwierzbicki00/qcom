@@ -38,18 +38,18 @@ int bsp_wm8978_init(struct qcc74x_device_s *i2c)
         return -1;
     }
 
-    bsp_wm8978_write_reg(1, 0X1B);  //R1,MICEN设置为1(MIC使能),BIASEN设置为1(模拟器工作),VMIDSEL[1:0]设置为:11(5K)
-    bsp_wm8978_write_reg(2, 0X1B0); //R2,ROUT1,LOUT1输出使能(耳机可以工作),BOOSTENR,BOOSTENL使能
-    bsp_wm8978_write_reg(3, 0X6C);  //R3,LOUT2,ROUT2输出使能(喇叭工作),RMIX,LMIX使能
-    // bsp_wm8978_write_reg(6, 0x048);   //R6,MCLK由外部提供
-    bsp_wm8978_write_reg(6, 0);       //R6,MCLK由外部提供
-    // bsp_wm8978_write_reg(6, 0x6D);    //R6,MCLK由外部提供
-    bsp_wm8978_write_reg(43, 1 << 4); //R43,INVROUT2反向,驱动喇叭
-    bsp_wm8978_write_reg(47, 1 << 8); //R47设置,PGABOOSTL,左通道MIC获得20倍增益
-    bsp_wm8978_write_reg(48, 1 << 8); //R48设置,PGABOOSTR,右通道MIC获得20倍增益
-    bsp_wm8978_write_reg(49, 1 << 1); //R49,TSDEN,开启过热保护
-    bsp_wm8978_write_reg(10, 1 << 3); //R10,SOFTMUTE关闭,128x采样,最佳SNR
-    bsp_wm8978_write_reg(14, 1 << 3); //R14,ADC 128x采样率
+    bsp_wm8978_write_reg(1, 0X1B);  // Set R1, MICEN to 1 (enable MIC), BIASEN to 1 (enable emulator operation), and VMIDSEL[1:0] to 11 (5K)
+    bsp_wm8978_write_reg(2, 0X1B0); // Set R2, enable ROUT1 and LOUT1 outputs (headphones can operate), enable BOOSTENR and BOOST
+    bsp_wm8978_write_reg(3, 0X6C);  // In R3, enable LOUT2 and ROUT2 outputs (speaker operation), enable RMIX and LMIX
+    // bsp_wm8978_write_reg(6, 0x048);   // In R6, MCLK is provided externally
+    bsp_wm8978_write_reg(6, 0);       // In R6, MCLK is provided externally
+    // bsp_wm8978_write_reg(6, 0x6D);    // In R6, MCLK is provided externally
+    bsp_wm8978_write_reg(43, 1 << 4); // In R43, invert ROUT2 to drive the speaker
+    bsp_wm8978_write_reg(47, 1 << 8); // Configure R47: Set PGABOOSTL to provide 20x gain for the left channel MIC
+    bsp_wm8978_write_reg(48, 1 << 8); // Configure R48: Set PGABOOSTR to provide 20x gain for the right channel MIC
+    bsp_wm8978_write_reg(49, 1 << 1); // In R49, enable TSDEN to turn on thermal shutdown protection
+    bsp_wm8978_write_reg(10, 1 << 3); // Configure R10: Disable SOFTMUTE, set 128x oversampling for optimal SNR
+    bsp_wm8978_write_reg(14, 1 << 3); // Configure R14: Set ADC to 128x oversampling rate
     return 0;
 }
 
@@ -77,7 +77,7 @@ int bsp_wm8978_write_reg(uint8_t reg, uint16_t val)
     msgs[1].buffer = &reg_data;
     msgs[1].length = 1;
 
-    bsp_wm8978_reg_tbl[reg] = val; //保存寄存器值到本地
+    bsp_wm8978_reg_tbl[reg] = val; // Save register values to local storage
 
     qcc74x_mtimer_delay_ms(1);
     return qcc74x_i2c_transfer(wm8978_i2c, msgs, 2);
@@ -105,20 +105,20 @@ uint16_t bsp_wm8978_read_reg(uint8_t reg)
 void bsp_wm8978_config_adda(uint8_t dacen, uint8_t adcen)
 {
     uint16_t regval;
-    regval = bsp_wm8978_read_reg(3); //读取R3
+    regval = bsp_wm8978_read_reg(3); //Read R3
     if (dacen) {
-        regval |= 3 << 0; //R3最低2个位设置为1,开启DACR&DACL
+        regval |= 3 << 0; //The lowest 2 bits of R3 are set to 1 to enable DACR and DACL.
     } else {
-        regval &= ~(3 << 0); //R3最低2个位清零,关闭DACR&DACL.
+        regval &= ~(3 << 0); // Clear the lowest 2 bits of R3 to disable DACR & DACL.
     }
-    bsp_wm8978_write_reg(3, regval); //设置R3
-    regval = bsp_wm8978_read_reg(2); //读取R2
+    bsp_wm8978_write_reg(3, regval); //Set R3
+    regval = bsp_wm8978_read_reg(2); //Read R2
     if (adcen) {
-        regval |= 3 << 0; //R2最低2个位设置为1,开启ADCR&ADCL
+        regval |= 3 << 0; // Set the lowest 2 bits of R2 to 1 to enable ADCR & ADCL.
     } else {
-        regval &= ~(3 << 0); //R2最低2个位清零,关闭ADCR&ADCL.
+        regval &= ~(3 << 0); // Clear the lowest 2 bits of R2 to disable ADCR & ADCL.
     }
-    bsp_wm8978_write_reg(2, regval); //设置R2
+    bsp_wm8978_write_reg(2, regval); //Set R2
 }
 
 /*****************************************************************************
@@ -132,31 +132,31 @@ void bsp_wm8978_config_adda(uint8_t dacen, uint8_t adcen)
 void bsp_wm8978_config_input(uint8_t micen, uint8_t lineinen, uint8_t auxen)
 {
     uint16_t regval;
-    regval = bsp_wm8978_read_reg(2); //读取R2
+    regval = bsp_wm8978_read_reg(2); //Read R2
     if (micen) {
-        regval |= 3 << 2; //开启INPPGAENR,INPPGAENL(MIC的PGA放大)
+        regval |= 3 << 2; // Enable INPPGAENR and INPPGAENL (MIC PGA amplifiers).
     } else {
-        regval &= ~(3 << 2); //关闭INPPGAENR,INPPGAENL.
+        regval &= ~(3 << 2); // Disable INPPGAENR and INPPGAENL.
     }
-    bsp_wm8978_write_reg(2, regval); //设置R2
+    bsp_wm8978_write_reg(2, regval); //Set R2
 
-    regval = bsp_wm8978_read_reg(44); //读取R44
+    regval = bsp_wm8978_read_reg(44); //Read R44
     if (micen) {
-        regval |= 3 << 4 | 3 << 0; //开启LIN2INPPGA,LIP2INPGA,RIN2INPPGA,RIP2INPGA.
+        regval |= 3 << 4 | 3 << 0; //Open LIN2INPPGA,LIP2INPGA,RIN2INPPGA,RIP2INPGA.
     } else {
-        regval &= ~(3 << 4 | 3 << 0); //关闭LIN2INPPGA,LIP2INPGA,RIN2INPPGA,RIP2INPGA.
+        regval &= ~(3 << 4 | 3 << 0); //Close LIN2INPPGA,LIP2INPGA,RIN2INPPGA,RIP2INPGA.
     }
-    bsp_wm8978_write_reg(44, regval); //设置R44
+    bsp_wm8978_write_reg(44, regval); //Set R44
 
     if (lineinen) {
-        bsp_wm8978_setgain_linein(5); //LINE IN 0dB增益
+        bsp_wm8978_setgain_linein(5); // Set LINE IN gain to 0dB.
     } else {
-        bsp_wm8978_setgain_linein(0); //关闭LINE IN
+        bsp_wm8978_setgain_linein(0); //Close LINE IN
     }
     if (auxen)
-        bsp_wm8978_setgain_aux(7); //AUX 6dB增益
+        bsp_wm8978_setgain_aux(7); // Set AUX gain to 6dB.
     else
-        bsp_wm8978_setgain_aux(0); //关闭AUX输入
+        bsp_wm8978_setgain_aux(0); // Disable AUX input.
 }
 
 /*****************************************************************************
@@ -170,14 +170,14 @@ void bsp_wm8978_config_output(uint8_t dacen, uint8_t bpsen)
 {
     uint16_t regval = 0;
     if (dacen) {
-        regval |= 1 << 0; //DAC输出使能
+        regval |= 1 << 0; // Enable DAC output.
     }
     if (bpsen) {
-        regval |= 1 << 1; //BYPASS使能
-        regval |= 5 << 2; //0dB增益
+        regval |= 1 << 1; // Enable BYPASS mode.
+        regval |= 5 << 2; // Set gain to 0dB.
     }
-    bsp_wm8978_write_reg(50, regval); //R50设置
-    bsp_wm8978_write_reg(51, regval); //R51设置
+    bsp_wm8978_write_reg(50, regval); //Set R50
+    bsp_wm8978_write_reg(51, regval); //Set R51
 }
 
 /*****************************************************************************
@@ -189,8 +189,8 @@ void bsp_wm8978_config_output(uint8_t dacen, uint8_t bpsen)
 void bsp_wm8978_setgain_mic(uint8_t gain)
 {
     gain &= 0X3F;
-    bsp_wm8978_write_reg(45, gain);          //R45,左通道PGA设置
-    bsp_wm8978_write_reg(46, gain | 1 << 8); //R46,右通道PGA设置
+    bsp_wm8978_write_reg(45, gain);          // R45, Left channel PGA configuration.
+    bsp_wm8978_write_reg(46, gain | 1 << 8); // R46, Right channel PGA configuration.
 }
 
 /*****************************************************************************
@@ -203,12 +203,12 @@ void bsp_wm8978_setgain_linein(uint8_t gain)
 {
     uint16_t regval;
     gain &= 0X07;
-    regval = bsp_wm8978_read_reg(47);             //读取R47
-    regval &= ~(7 << 4);                          //清除原来的设置
-    bsp_wm8978_write_reg(47, regval | gain << 4); //设置R47
-    regval = bsp_wm8978_read_reg(48);             //读取R48
-    regval &= ~(7 << 4);                          //清除原来的设置
-    bsp_wm8978_write_reg(48, regval | gain << 4); //设置R48
+    regval = bsp_wm8978_read_reg(47);             //Read R47
+    regval &= ~(7 << 4);                          // Clear previous configurations.
+    bsp_wm8978_write_reg(47, regval | gain << 4); //Set R47
+    regval = bsp_wm8978_read_reg(48);             //Read R48
+    regval &= ~(7 << 4);                          // Clear previous configurations.
+    bsp_wm8978_write_reg(48, regval | gain << 4); //Set R48
 }
 
 /*****************************************************************************
@@ -221,26 +221,26 @@ void bsp_wm8978_setgain_aux(uint8_t gain)
 {
     uint16_t regval;
     gain &= 0X07;
-    regval = bsp_wm8978_read_reg(47);             //读取R47
-    regval &= ~(7 << 0);                          //清除原来的设置
-    bsp_wm8978_write_reg(47, regval | gain << 0); //设置R47
-    regval = bsp_wm8978_read_reg(48);             //读取R48
-    regval &= ~(7 << 0);                          //清除原来的设置
-    bsp_wm8978_write_reg(48, regval | gain << 0); //设置R48
+    regval = bsp_wm8978_read_reg(47);             //Read R47
+    regval &= ~(7 << 0);                          // Clear previous configurations.
+    bsp_wm8978_write_reg(47, regval | gain << 0); //Set R47
+    regval = bsp_wm8978_read_reg(48);             //Read R48
+    regval &= ~(7 << 0);                          // Clear previous configurations.
+    bsp_wm8978_write_reg(48, regval | gain << 0); //Set R48
 }
 
 /*****************************************************************************
 * @brief        config i2s format ang bit
-* 
-* @param[in]    fmt         0:右对齐 LSB 1:左对齐 MSB 2:飞利浦标准 3:PCM/DSP
+*
+* @param[in]    fmt         0: Right-justified LSB, 1: Left-justified MSB, 2: Philips standard, 3: PCM/DSP
 * @param[in]    bit         0:16bit 1:20bit 2:24bit 3:32bit
 * 
 *****************************************************************************/
 void bsp_wm8978_config_i2s(uint8_t fmt, uint8_t bit)
 {
     fmt &= 0X03;
-    bit &= 0X03;                                      //限定范围
-    bsp_wm8978_write_reg(4, (fmt << 3) | (bit << 5)); //R4,WM8978工作模式设置
+    bit &= 0X03;                                      // Limit the range.
+    bsp_wm8978_write_reg(4, (fmt << 3) | (bit << 5)); // R4, WM8978 operating mode configuration.
 }
 
 /*****************************************************************************
@@ -253,13 +253,13 @@ void bsp_wm8978_config_i2s(uint8_t fmt, uint8_t bit)
 void bsp_wm8978_setvol_headset(uint8_t voll, uint8_t volr)
 {
     voll &= 0X3F;
-    volr &= 0X3F; //限定范围
+    volr &= 0X3F; // Limit the range.
     if (voll == 0)
-        voll |= 1 << 6; //音量为0时,直接mute
+        voll |= 1 << 6; // Mute directly when volume is 0.
     if (volr == 0)
-        volr |= 1 << 6;                        //音量为0时,直接mute
-    bsp_wm8978_write_reg(52, voll);            //R52,耳机左声道音量设置
-    bsp_wm8978_write_reg(53, volr | (1 << 8)); //R53,耳机右声道音量设置,同步更新(HPVU=1)
+        volr |= 1 << 6;                        // Mute directly when volume is 0.
+    bsp_wm8978_write_reg(52, voll);            // R52, Headphone left channel volume setting.
+    bsp_wm8978_write_reg(53, volr | (1 << 8)); // R53, Headphone right channel volume setting, update synchronously (HPVU=1).
 }
 
 /*****************************************************************************
@@ -270,11 +270,11 @@ void bsp_wm8978_setvol_headset(uint8_t voll, uint8_t volr)
 *****************************************************************************/
 void bsp_wm8978_setvol_speaker(uint8_t volx)
 {
-    volx &= 0X3F; //限定范围
+    volx &= 0X3F; // Limit the range.
     if (volx == 0)
-        volx |= 1 << 6;                        //音量为0时,直接mute
-    bsp_wm8978_write_reg(54, volx);            //R54,喇叭左声道音量设置
-    bsp_wm8978_write_reg(55, volx | (1 << 8)); //R55,喇叭右声道音量设置,同步更新(SPKVU=1)
+        volx |= 1 << 6;                        // Mute directly when volume is 0.
+    bsp_wm8978_write_reg(54, volx);            // R54, Speaker left channel volume setting.
+    bsp_wm8978_write_reg(55, volx | (1 << 8)); // R55, Speaker right channel volume setting, update synchronously (SPKVU=1).
 }
 
 /*****************************************************************************
@@ -285,8 +285,8 @@ void bsp_wm8978_setvol_speaker(uint8_t volx)
 *****************************************************************************/
 void bsp_wm8978_config_3d(uint8_t depth)
 {
-    depth &= 0XF;                    //限定范围
-    bsp_wm8978_write_reg(41, depth); //R41,3D环绕设置
+    depth &= 0XF;                    // Limit the range.
+    bsp_wm8978_write_reg(41, depth); // R41, 3D surround configuration.
 }
 
 /*****************************************************************************
@@ -303,7 +303,7 @@ void bsp_wm8978_config_3deq(uint8_t dir)
         regval |= 1 << 8;
     else
         regval &= ~(1 << 8);
-    bsp_wm8978_write_reg(18, regval); //R18,EQ1的第9位控制EQ/3D方向
+    bsp_wm8978_write_reg(18, regval); // R18, Bit 9 of EQ1 controls EQ/3D direction.
 }
 
 /*****************************************************************************
@@ -316,15 +316,15 @@ void bsp_wm8978_config_3deq(uint8_t dir)
 void bsp_wm8978_config_eq1(uint8_t cfreq, uint8_t gain)
 {
     uint16_t regval;
-    cfreq &= 0X3; //限定范围
+    cfreq &= 0X3; // Limit the range.
     if (gain > 24)
         gain = 24;
     gain = 24 - gain;
     regval = bsp_wm8978_read_reg(18);
     regval &= 0X100;
-    regval |= cfreq << 5;             //设置截止频率
-    regval |= gain;                   //设置增益
-    bsp_wm8978_write_reg(18, regval); //R18,EQ1设置
+    regval |= cfreq << 5;             // Set cutoff frequency.
+    regval |= gain;                   // Set gain.
+    bsp_wm8978_write_reg(18, regval); // R18, EQ1 configuration.
 }
 
 /*****************************************************************************
@@ -337,13 +337,13 @@ void bsp_wm8978_config_eq1(uint8_t cfreq, uint8_t gain)
 void bsp_wm8978_config_eq2(uint8_t cfreq, uint8_t gain)
 {
     uint16_t regval = 0;
-    cfreq &= 0X3; //限定范围
+    cfreq &= 0X3; // Limit the range.
     if (gain > 24)
         gain = 24;
     gain = 24 - gain;
-    regval |= cfreq << 5;             //设置截止频率
-    regval |= gain;                   //设置增益
-    bsp_wm8978_write_reg(19, regval); //R19,EQ2设置
+    regval |= cfreq << 5;             // Set cutoff frequency.
+    regval |= gain;                   // Set gain.
+    bsp_wm8978_write_reg(19, regval); // R19, EQ2 configuration.
 }
 
 /*****************************************************************************
@@ -356,13 +356,13 @@ void bsp_wm8978_config_eq2(uint8_t cfreq, uint8_t gain)
 void bsp_wm8978_config_eq3(uint8_t cfreq, uint8_t gain)
 {
     uint16_t regval = 0;
-    cfreq &= 0X3; //限定范围
+    cfreq &= 0X3; // Limit the range.
     if (gain > 24)
         gain = 24;
     gain = 24 - gain;
-    regval |= cfreq << 5;             //设置截止频率
-    regval |= gain;                   //设置增益
-    bsp_wm8978_write_reg(20, regval); //R20,EQ3设置
+    regval |= cfreq << 5;             // Set cutoff frequency.
+    regval |= gain;                   // Set gain.
+    bsp_wm8978_write_reg(20, regval); // R20, EQ3 configuration.
 }
 
 /*****************************************************************************
@@ -375,13 +375,13 @@ void bsp_wm8978_config_eq3(uint8_t cfreq, uint8_t gain)
 void bsp_wm8978_config_eq4(uint8_t cfreq, uint8_t gain)
 {
     uint16_t regval = 0;
-    cfreq &= 0X3; //限定范围
+    cfreq &= 0X3; // Limit the range.
     if (gain > 24)
         gain = 24;
     gain = 24 - gain;
-    regval |= cfreq << 5;             //设置截止频率
-    regval |= gain;                   //设置增益
-    bsp_wm8978_write_reg(21, regval); //R21,EQ4设置
+    regval |= cfreq << 5;             // Set cutoff frequency.
+    regval |= gain;                   // Set gain.
+    bsp_wm8978_write_reg(21, regval); //R21,EQ4 configuration.
 }
 
 /*****************************************************************************
@@ -394,11 +394,11 @@ void bsp_wm8978_config_eq4(uint8_t cfreq, uint8_t gain)
 void bsp_wm8978_config_eq5(uint8_t cfreq, uint8_t gain)
 {
     uint16_t regval = 0;
-    cfreq &= 0X3; //限定范围
+    cfreq &= 0X3; // Limit the range.
     if (gain > 24)
         gain = 24;
     gain = 24 - gain;
-    regval |= cfreq << 5;             //设置截止频率
-    regval |= gain;                   //设置增益
-    bsp_wm8978_write_reg(22, regval); //R22,EQ5设置
+    regval |= cfreq << 5;             // Set cutoff frequency.
+    regval |= gain;                   // Set gain.
+    bsp_wm8978_write_reg(22, regval); //R22,EQ5 configuration.
 }

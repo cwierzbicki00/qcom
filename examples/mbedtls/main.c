@@ -85,11 +85,11 @@ void mbedtls_ecdh_test(void)
     mbedtls_mpi_init(&srv_pri);
     mbedtls_mpi_init(&cli_secret);
     mbedtls_mpi_init(&srv_secret);
-    mbedtls_ecp_group_init(&grp);     //初始化椭圆曲线群结构体
-    mbedtls_ecp_point_init(&cli_pub); //初始化椭圆曲线点结构体 cli
-    mbedtls_ecp_point_init(&srv_pub); //初始化椭圆曲线点结构体 srv
-    mbedtls_entropy_init(&entropy);   //初始化熵结构体
-    mbedtls_ctr_drbg_init(&ctr_drbg); //初始化随机数结构体
+    mbedtls_ecp_group_init(&grp);     // Initialize elliptic curve group structure.
+    mbedtls_ecp_point_init(&cli_pub); // Initialize elliptic curve point structure for cli.
+    mbedtls_ecp_point_init(&srv_pub); // Initialize elliptic curve point structure for srv
+    mbedtls_entropy_init(&entropy);   // Initialize entropy structure.
+    mbedtls_ctr_drbg_init(&ctr_drbg); // Initialize random number structure.
     /*
     mbedtls_entropy_add_source(&entropy, entropy_source, NULL,
                        MBEDTLS_ENTROPY_MAX_GATHER, MBEDTLS_ENTROPY_SOURCE_STRONG);*/
@@ -97,55 +97,55 @@ void mbedtls_ecdh_test(void)
                           pers, strlen(pers));
     mbedtls_printf("setup rng ... ok\r\n");
 
-    //加载椭圆曲线，选择SECP256R1
+    // Load elliptic curve, select SECP256R1.
     ret = mbedtls_ecp_group_load(&grp, MBEDTLS_ECP_DP_SECP256R1);
     mbedtls_printf("select ecp group SECP256R1 ... ok\r\n");
-    //cli生成公开参数
+    //cli generates public parameters.
     start_time = qcc74x_mtimer_get_time_ms();
-    ret = mbedtls_ecdh_gen_public(&grp,     //椭圆曲线结构体
-                                  &cli_pri, //输出cli私密参数d
-                                  &cli_pub, //输出cli公开参数Q
+    ret = mbedtls_ecdh_gen_public(&grp,     // Elliptic curve structure.
+                                  &cli_pri, // Output cli private parameter d.
+                                  &cli_pub, // Output cli public parameter Q.
                                   mbedtls_ctr_drbg_random, &ctr_drbg);
     assert_exit(ret == 0, ret);
     printf("Get public key time=%dms\r\n", (unsigned int)(qcc74x_mtimer_get_time_ms() - start_time));
-    mbedtls_ecp_point_write_binary(&grp, &cli_pub, //把cli的公开参数到处到buf中
+    mbedtls_ecp_point_write_binary(&grp, &cli_pub, // Export cli public parameters to buffer.
                                    MBEDTLS_ECP_PF_UNCOMPRESSED, &olen, buf, sizeof(buf));
     dump_buf("1. ecdh client generate public parameter:", buf, olen);
 
-    //srv生成公开参数
-    ret = mbedtls_ecdh_gen_public(&grp,     //椭圆曲线结构体
-                                  &srv_pri, //输出srv私密参数d
-                                  &srv_pub, //输出srv公开参数Q
+    // SRV generates public parameters.
+    ret = mbedtls_ecdh_gen_public(&grp,     // Elliptic curve structure.
+                                  &srv_pri, // Output srv private parameter d.
+                                  &srv_pub, // Output srv public parameter Q.
                                   mbedtls_ctr_drbg_random, &ctr_drbg);
     assert_exit(ret == 0, ret);
-    mbedtls_ecp_point_write_binary(&grp, &srv_pub, //把srv的公开参数导出到buf中
+    mbedtls_ecp_point_write_binary(&grp, &srv_pub, // Export srv public parameters to buffer.
                                    MBEDTLS_ECP_PF_UNCOMPRESSED, &olen, buf, sizeof(buf));
     dump_buf("2. ecdh server generate public parameter:", buf, olen);
-    //cli计算共享密钥
+    // CLI computes shared secret.
     start_time = qcc74x_mtimer_get_time_ms();
-    ret = mbedtls_ecdh_compute_shared(&grp,        //椭圆曲线结构体
-                                      &cli_secret, //cli计算出的共享密钥
-                                      &srv_pub,    //输入srv公开参数Q
-                                      &cli_pri,    //输入cli本身的私密参数d
+    ret = mbedtls_ecdh_compute_shared(&grp,        // Elliptic curve structure.
+                                      &cli_secret, // Shared secret computed by cli.
+                                      &srv_pub,    // Input srv public parameter Q.
+                                      &cli_pri,    // Input cli's own private parameter d.
                                       mbedtls_ctr_drbg_random, &ctr_drbg);
     assert_exit(ret == 0, ret);
     printf("Get share key time=%dms\r\n", (unsigned int)(qcc74x_mtimer_get_time_ms() - start_time));
-    //把cli计算出的共享密钥导出buf中
+    // Export the shared secret computed by cli to buffer.
     mbedtls_mpi_write_binary(&cli_secret, buf, mbedtls_mpi_size(&cli_secret));
     dump_buf("3. ecdh client generate secret:", buf, mbedtls_mpi_size(&cli_secret));
 
-    //srv计算共享密钥
-    ret = mbedtls_ecdh_compute_shared(&grp,        //椭圆曲线结构体
-                                      &srv_secret, //srv计算出的共享密钥
-                                      &cli_pub,    //输入cli公开参数Q
-                                      &srv_pri,    //输入srv本身的私密参数d
+    // srv computes shared secret.
+    ret = mbedtls_ecdh_compute_shared(&grp,        // Elliptic curve structure.
+                                      &srv_secret, // Shared secret computed by srv.
+                                      &cli_pub,    // Input cli public parameter Q.
+                                      &srv_pri,    // Input srv's own private parameter d.
                                       mbedtls_ctr_drbg_random, &ctr_drbg);
     assert_exit(ret == 0, ret);
-    //把srv计算出的共享密钥导出buf中
+    // Export the shared secret computed by srv to buffer.
     mbedtls_mpi_write_binary(&srv_secret, buf, mbedtls_mpi_size(&srv_secret));
     dump_buf("4. ecdh server generate secret:", buf, mbedtls_mpi_size(&srv_secret));
 
-    //比较2个大数是否相等
+    // Compare if two big numbers are equal.
     ret = mbedtls_mpi_cmp_mpi(&cli_secret, &srv_secret);
     assert_exit(ret == 0, ret);
     mbedtls_printf("  5. ecdh checking secrets ... ok\n");
@@ -181,7 +181,7 @@ void mbedtls_ecdsa_test()
 
     mbedtls_mpi_init(&r);
     mbedtls_mpi_init(&s);
-    mbedtls_ecdsa_init(&ctx); //初始化ECDSA结构体
+    mbedtls_ecdsa_init(&ctx); // Initialize ECDSA structure.
     mbedtls_entropy_init(&entropy);
     mbedtls_ctr_drbg_init(&ctr_drbg);
     /*
@@ -194,9 +194,9 @@ void mbedtls_ecdsa_test()
 
     mbedtls_md_init(&md_ctx);
     mbedtls_md(mbedtls_md_info_from_type(MBEDTLS_MD_SHA256), msg, sizeof(msg), hash);
-    mbedtls_printf("1. hash msg ... ok\n"); //计算出msg的hash值
-    //产生ECDSA密钥对
-    ret = mbedtls_ecdsa_genkey(&ctx, MBEDTLS_ECP_DP_SECP256R1, //选择SECP256R1
+    mbedtls_printf("1. hash msg ... ok\n"); // Compute hash value of msg.
+    // Generate ECDSA key pair.
+    ret = mbedtls_ecdsa_genkey(&ctx, MBEDTLS_ECP_DP_SECP256R1, // Select the SECP256R1 curve
                                mbedtls_ctr_drbg_random, &ctr_drbg);
     assert_exit(ret == 0, ret);
     mbedtls_ecp_point_write_binary(&ctx.grp, &ctx.Q,
@@ -204,7 +204,7 @@ void mbedtls_ecdsa_test()
     dlen = mbedtls_mpi_size(&ctx.d);
     mbedtls_mpi_write_binary(&ctx.d, buf + qlen, dlen);
     dump_buf("2. ecdsa generate keypair:", buf, qlen + dlen);
-    //ECDSA签名，得到r , s
+    // Perform ECDSA signature to obtain r and s.
     start_time = qcc74x_mtimer_get_time_ms();
     ret = mbedtls_ecdsa_sign(&ctx.grp, &r, &s, &ctx.d,
                              hash, sizeof(hash), mbedtls_ctr_drbg_random, &ctr_drbg);
@@ -216,7 +216,7 @@ void mbedtls_ecdsa_test()
     mbedtls_mpi_write_binary(&r, buf, rlen);
     mbedtls_mpi_write_binary(&s, buf + rlen, slen);
     dump_buf("3. ecdsa generate signature:", buf, rlen + slen);
-    //ECDSA验签，返回0表示验证成功
+    // Verify ECDSA signature, return 0 if verification succeeds.
     start_time = qcc74x_mtimer_get_time_ms();
     ret = mbedtls_ecdsa_verify(&ctx.grp, hash, sizeof(hash), &ctx.Q, &r, &s);
     assert_exit(ret == 0, ret);

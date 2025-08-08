@@ -145,7 +145,7 @@ volatile u8_t event_flag = 0;
 #endif
 
 #if defined(QCC74x_HOST_ASSISTANT)
-struct blhast_cb *host_assist_cb;
+struct hast_cb *host_assist_cb;
 #endif
 
 #if defined(CONFIG_BT_CONN)
@@ -424,7 +424,7 @@ int bt_hci_cmd_send(u16_t opcode, struct net_buf *buf)
 }
 
 #if defined(QCC74x_HOST_ASSISTANT)
-extern void blhast_bt_reset(void);
+extern void hast_bt_reset(void);
 uint16_t hci_cmd_to_cnt = 0;
 #endif
 int bt_hci_cmd_send_sync(u16_t opcode, struct net_buf *buf,
@@ -491,7 +491,7 @@ int bt_hci_cmd_send_sync(u16_t opcode, struct net_buf *buf,
   			    atomic_set_bit_to(update->target, update->bit, update->val);
 			}
             #if defined(QCC74x_HOST_ASSISTANT)
-		    blhast_bt_reset();
+		    hast_bt_reset();
             #endif
 			#else
             BT_ASSERT(err == 0);
@@ -5792,7 +5792,7 @@ void bt_finalize_init(void)
 }
 
 #if defined(QCC74x_HOST_ASSISTANT)
-extern void blhast_init(struct blhast_cb *cb);
+extern void hast_init(struct hast_cb *cb);
 #endif
 static int bt_init(void)
 {
@@ -5817,7 +5817,7 @@ static int bt_init(void)
 	}
 #endif
 #if defined(QCC74x_HOST_ASSISTANT)
-	blhast_init(host_assist_cb);
+	hast_init(host_assist_cb);
 #endif
 #endif
 
@@ -6192,6 +6192,27 @@ int bt_disable_action(void)
     memset(&bt_dev, 0, sizeof(bt_dev));
 
     return 0;
+}
+
+int bt_force_disable(void)
+{
+	struct net_buf *rsp;
+	int err;
+
+	if (!(bt_dev.drv->quirks & BT_QUIRK_NO_RESET)) {
+		/* Send HCI_RESET */
+		err = bt_hci_cmd_send_sync(BT_HCI_OP_RESET, NULL, &rsp);
+		if (err) {
+			return err;
+		}
+		hci_reset_complete(rsp);
+		net_buf_unref(rsp);
+	}
+	#if defined(CONFIG_BT_CONN)
+	bt_conn_cleanup_all();
+	#endif
+
+	return bt_disable_action();
 }
 
 int bt_disable(void)
@@ -8734,7 +8755,7 @@ void bt_hci_reset_complete(struct net_buf *buf)
     hci_reset_complete(buf);
 }
 
-void bt_register_host_assist_cb(struct blhast_cb *cb)
+void bt_register_host_assist_cb(struct hast_cb *cb)
 {
     host_assist_cb = cb;
 }

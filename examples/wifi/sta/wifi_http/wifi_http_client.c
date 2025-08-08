@@ -13,43 +13,58 @@
 #include "shell.h"
 #include "utils_getopt.h"
 #include "qcc74x_mtimer.h"
+#include "https_client.h"
 
-#define HOST_NAME "www.gov.cn"
+#ifndef ARRAY_SIZE
+#define ARRAY_SIZE(array) (sizeof(array) / sizeof((array)[0]))
+#endif 
 
-// clang-format off
-static const uint8_t get_buf[] = "GET / HTTP/1.1 \r\nHost: www.gov.cn\r\n\r\n";
-uint32_t recv_buf[4 * 1024] = { 0 };
-// clang-format on
-
-shell_sig_func_ptr abort_exec;
-uint64_t total_cnt = 0;
-int sock_client = -1;
-
-static void test_close(int sig)
+static int payload_cb(int sock, struct http_request *req, void *user_data)
 {
-    if (sock_client) {
-        closesocket(sock_client);
-    }
-    abort_exec(sig);
-    if (total_cnt > 0) {
-        printf("Total send data=%lld\r\n", total_cnt);
-    }
+	const char *content[] = {
+		"foobar",
+		"chunked",
+		"last"
+	};
+	char tmp[64];
+	int i, pos = 0;
+
+	for (i = 0; i < ARRAY_SIZE(content); i++) {
+		pos += snprintf(tmp + pos, sizeof(tmp) - pos,
+				"%x\r\n%s\r\n",
+				(unsigned int)strlen(content[i]),
+				content[i]);
+	}
+
+	pos += snprintf(tmp + pos, sizeof(tmp) - pos, "0\r\n\r\n");
+
+	(void)zsock_send(sock, tmp, pos, 0);
+
+	return pos;
+}
+
+static void response_cb(struct http_response *rsp,
+			enum http_final_call final_data,
+			void *user_data)
+{
+    rsp->recv_buf[rsp->data_len] = 0;
+    printf(rsp->recv_buf);
+	if (final_data == HTTP_DATA_MORE) {
+		//printf("Partial data received (%zd bytes)\r\n", rsp->data_len);
+	} else if (final_data == HTTP_DATA_FINAL) {
+		//printf("All the data received (%zd bytes)\r\n", rsp->data_len);
+	}
 }
 
 #define PING_USAGE                                \
-    "wifi_http_test [hostname] [port]\r\n"        \
-    "\t hostname: hostname or dest server ip\r\n" \
-    "\t port: dest server listen port, defualt port:80\r\n"
+    "wifi_http_test [url]\r\n"        \
+    "\t url: url or dest server ip\r\n" \
 
 static void wifi_test_http_client_init(int argc, char **argv)
 {
-    abort_exec = shell_signal(SHELL_SIGINT, test_close);
-    printf("Http client task start ...\r\n");
-
-    char *host_name;
-    char *addr;
-    char *port;
-    struct sockaddr_in remote_addr;
+    int ret;
+    char *url;
+    struct https_client_request req;
 
     if (argc < 2) {
         printf("%s", PING_USAGE);
@@ -57,51 +72,40 @@ static void wifi_test_http_client_init(int argc, char **argv)
     }
 
     /* get address (argv[1] if present) */
-    host_name = argv[1];
-#ifdef LWIP_DNS
-    ip4_addr_t dns_ip;
-    netconn_gethostbyname(host_name, &dns_ip);
-    addr = ip_ntoa(&dns_ip);
-#endif
-    /* get port number (argv[2] if present) */
-    if (argc > 2) {
-        port = argv[2];
+    url = argv[1];
+
+    memset(&req, 0, sizeof(req));
+	req.method = HTTP_GET;
+	req.url = url;
+	req.protocol = "HTTP/1.1";
+	req.response = response_cb;
+
+	ret = https_client_request(&req, 3*1000, "IPv4 GET");
+    if (ret < 0) {
+        printf("http_client get request fail ret:%d\r\n", ret);
     } else {
-        port = "80";
+    	printf("Http client GET request server success\r\n");
     }
 
-    while (1) {
-        if ((sock_client = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-            printf("Http Client create socket error\r\n");
-            return;
-        }
-        remote_addr.sin_family = AF_INET;
-        remote_addr.sin_port = htons(atoi(port));
-        remote_addr.sin_addr.s_addr = inet_addr(addr);
-        memset(&(remote_addr.sin_zero), 0, sizeof(remote_addr.sin_zero));
+    const char *headers[] = {
+		"Transfer-Encoding: chunked\r\n",
+		NULL
+	};
 
-        printf("Host:%s, Server ip Address : %s:%s\r\n", host_name, addr, port);
+    memset(&req, 0, sizeof(req));
 
-        if (connect(sock_client, (struct sockaddr *)&remote_addr, sizeof(struct sockaddr)) != 0) {
-            printf("Http client connect server falied!\r\n");
-            closesocket(sock_client);
-            return;
-        }
+    req.method = HTTP_POST;
+    req.url = url;
+    req.protocol = "HTTP/1.1";
+    req.payload_cb = payload_cb;
+    req.header_fields = headers;
+    req.response = response_cb;
 
-        printf("Http client connect server success!\r\n");
-        printf("Press CTRL-C to exit.\r\n");
-        memset(recv_buf, 0, sizeof(recv_buf));
-        total_cnt = 0;
-        write(sock_client, get_buf, sizeof(get_buf));
-        while (1) {
-            total_cnt = recv(sock_client, (uint8_t *)recv_buf, sizeof(recv_buf), 0);
-            if (total_cnt <= 0)
-                break;
-            printf("%s\r\n", (uint8_t *)recv_buf);
-            // vTaskDelay(10000);
-        }
-        closesocket(sock_client);
-        return;
+    ret = https_client_request(&req, 3*1000, "IPv4 POST");
+    if (ret < 0) {
+        printf("http_client post request fail ret:%d\r\n", ret);
+    } else {
+    	printf("Http client POST request server success\r\n");
     }
 }
 

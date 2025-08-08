@@ -66,8 +66,8 @@ int main(void)
 
     extern int lua_main(int argc, char **argv);
 
-    /*!< 请将system.zip 解压到sd卡根目录下 */
-    /*!< 如果使用终端上位机软件(MobaXterm)，需要启用 Implicit CR in every LF 保证打印格式正常 */
+    /*!< Please unzip system.zip to the root directory of the SD card /
+    /!< If using terminal host computer software (MobaXterm), you need to enable "Implicit CR in every LF" to ensure normal printing format */
 
     char *lua_argv[] = {
         "lua",                 /*!< name */

@@ -13,7 +13,7 @@
 #include <msp/kernel.h>
 #include <board.h>
 
-/* 相关配置需要调整到板卡中，或者app配置文件中 */
+/* Relevant configurations need to be adjusted either in the board or in the app's configuration file. */
 //#define PA_PIN                 4
 //#define INPUT_NEGATIVE_PIN      (28)
 //#define INPUT_POSITIVE_PIN      (27)

@@ -1,4 +1,3 @@
-
 #include <stdio.h>
 
 #include <lwip/tcpip.h>
@@ -27,29 +26,50 @@ int app_spiwifi_init(void)
     /* RF param init */
     if (0 != rfparam_init(0, NULL, 0)) {
         LOG_I("PHY RF init failed!\r\n");
-        return 0;
+        return -1;
     }
 
     /* TCP/IP stack init */
     tcpip_init(NULL, NULL);
 
     /* enable wifi clock */
-    GLB_PER_Clock_UnGate(GLB_AHB_CLOCK_IP_WIFI_PHY | GLB_AHB_CLOCK_IP_WIFI_MAC_PHY | GLB_AHB_CLOCK_IP_WIFI_PLATFORM);
-    GLB_AHB_MCU_Software_Reset(GLB_AHB_MCU_SW_WIFI);
+    if (GLB_PER_Clock_UnGate(GLB_AHB_CLOCK_IP_WIFI_PHY | GLB_AHB_CLOCK_IP_WIFI_MAC_PHY | GLB_AHB_CLOCK_IP_WIFI_PLATFORM) != 0) {
+        LOG_I("Failed to un-gate WiFi clocks!\r\n");
+        return -1;
+    }
+    if (GLB_AHB_MCU_Software_Reset(GLB_AHB_MCU_SW_WIFI) != 0) {
+        LOG_I("Failed to reset WiFi MCU!\r\n");
+        return -1;
+    }
 
     /* Enable wifi irq */
     extern void interrupt0_handler(void);
-    qcc74x_irq_attach(WIFI_IRQn, (irq_callback)interrupt0_handler, NULL);
+    if (qcc74x_irq_attach(WIFI_IRQn, (irq_callback)interrupt0_handler, NULL) != 0) {
+        LOG_I("Failed to attach WiFi IRQ!\r\n");
+        return -1;
+    }
     qcc74x_irq_enable(WIFI_IRQn);
 
     /* Enable easyflash(littlefs) */
-    qcc74x_mtd_init();
-    easyflash_init();
+    if (qcc74x_mtd_init() != 0) {
+        LOG_I("Failed to init MTD!\r\n");
+        return -1;
+    }
+    if (easyflash_init() != 0) {
+        LOG_I("Failed to init easyflash!\r\n");
+        return -1;
+    }
 
     #ifdef LP_APP
-    app_pm_init();
+    if (app_pm_init() != 0) {
+        LOG_I("Failed to init power management!\r\n");
+        return -1;
+    }
     #else 
-    app_atmoudle_init();
+    if (app_atmoudle_init() != 0) {
+        LOG_I("Failed to init AT module!\r\n");
+        return -1;
+    }
     #endif
 
     return 0;

@@ -1,5 +1,5 @@
 /* C:\Users\lvjiazhen\Desktop\test_64x64_64x64.YUYV (2022/11/3 17:38:55)
-   起始位置(h): 00000000, 结束位置(h): 00001FFF, 长度(h): 00002000 */
+   start position(h): 00000000, end position(h): 00001FFF, length(h): 00002000 */
 
  __attribute__((aligned(16))) unsigned char test_64x64[8192 * 4] = {
 	0xB3, 0x99, 0xB3, 0x6F, 0xB4, 0x99, 0xB4, 0x6F, 0xB4, 0x99, 0xB4, 0x6F,

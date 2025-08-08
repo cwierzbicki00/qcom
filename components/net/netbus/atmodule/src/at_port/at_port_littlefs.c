@@ -286,6 +286,26 @@ size_t at_fs_write(int fd, const void *ptr, size_t size)
     return fresult;
 }
 
+size_t at_fs_stat(const char *path, struct stat *st)
+{
+    int fresult;
+    struct lfs_info fsinfo;
+    char dirpath[AT_FILE_NAME_MAX];
+
+    if (lfs == NULL) {
+        return -1;
+    }
+    
+    snprintf(dirpath, sizeof(dirpath), LFS_MOUNTPOINT"/%s", path);
+    fresult = lfs_stat(lfs, dirpath, &fsinfo);
+    if (fresult < 0) {
+        //reent->_errno = lfs_ret_value_convert(fresult);
+    }
+    st->st_size = fsinfo.size;
+
+    return fresult;
+}
+
 size_t at_fs_lseek(int fd, _off_t offset, int whence)
 {
     int fresult;

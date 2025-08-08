@@ -25,12 +25,21 @@ static void __timer_callback(TimerHandle_t handle)
     }
 }
 
-int virt_net_get_mac(virt_net_t obj, uint8_t mac[6])
+int virt_net_get_sta_mac(virt_net_t obj, uint8_t mac[6])
 {
   assert(obj != NULL);
   assert(mac != NULL);
 
-  memcpy(mac, obj->mac, sizeof(mac));
+  memcpy(mac, obj->mac_sta, sizeof(mac));
+  return 0;
+}
+
+int virt_net_get_ap_mac(virt_net_t obj, uint8_t mac[6])
+{
+  assert(obj != NULL);
+  assert(mac != NULL);
+
+  memcpy(mac, obj->mac_ap, sizeof(mac));
   return 0;
 }
 
@@ -54,9 +63,9 @@ int virt_net_dhcp_start(virt_net_t obj, uint32_t timeout)
 	  return 0;
   }
 
-  netifapi_netif_set_up((struct netif *)&wobj->netif);
-  netifapi_dhcp_release((struct netif *)&wobj->netif);
-  netifapi_dhcp_start((struct netif *)&wobj->netif);
+  netifapi_netif_set_up((struct netif *)&wobj->netif[VIRT_NET_STA]);
+  netifapi_dhcp_release((struct netif *)&wobj->netif[VIRT_NET_STA]);
+  netifapi_dhcp_start((struct netif *)&wobj->netif[VIRT_NET_STA]);
 
   wobj->dhcp_timer = xTimerCreate("dhcp", timeout, pdFALSE, (void *)wobj, __timer_callback);
   if (wobj->dhcp_timer) {
@@ -78,9 +87,9 @@ int virt_net_dhcp_done(virt_net_t obj)
 	return 0;
 }
 
-int virt_net_get_ip(virt_net_t obj, uint32_t *ip, uint32_t *mask, uint32_t *gw)
+int virt_net_get_sta_ip(virt_net_t obj, uint32_t *ip, uint32_t *mask, uint32_t *gw)
 {
-    struct netif *nif = (struct netif *)&obj->netif;
+    struct netif *nif = (struct netif *)&obj->netif[VIRT_NET_STA];
 
     if (!nif) {
         return -1;

@@ -74,7 +74,7 @@ static msp_pcm_t *__capture_init(const char *devname, unsigned int sample_rate /
     msp_pcm_uframes_t val_peroid_size = peroid_size;
     msp_pcm_hw_params_set_period_size_near(pcm, params, &val_peroid_size, 0);
 
-    msp_pcm_uframes_t val_buffer_frames = val_peroid_size * 23; /*buffer保存16个frame*/
+    msp_pcm_uframes_t val_buffer_frames = val_peroid_size * 23; /* The buffer stores 16 frames */
     msp_pcm_hw_params_set_buffer_size_near(pcm, params, &val_buffer_frames);
 
     err = msp_pcm_hw_params(pcm, params);

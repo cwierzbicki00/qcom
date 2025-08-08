@@ -13,7 +13,11 @@ static struct qcc74x_dma_channel_lli_pool_s lli_pool[20];
 /* audio adc config */
 struct qcc74x_auadc_init_config_s auadc_init_cfg = {
     .sampling_rate = AUADC_SAMPLING_RATE_48K,
+#ifdef CONFIG_AUDIO_MIC_PDM_MODE
+    .input_mode = AUADC_INPUT_MODE_PDM_L,
+#else
     .input_mode = AUADC_INPUT_MODE_ADC,
+#endif
     .data_format = AUADC_DATA_FORMAT_16BIT,
     .fifo_threshold = 3,
 };
@@ -86,17 +90,22 @@ void auadc_gpio_init(void)
 
     gpio = qcc74x_device_get_by_name("gpio");
 
+#ifdef CONFIG_AUDIO_MIC_PDM_MODE
+    /* data */
+    qcc74x_gpio_init(gpio, GPIO_PIN_25, GPIO_FUNC_PDM | GPIO_ALTERNATE | GPIO_FLOAT | GPIO_SMT_EN | GPIO_DRV_2);
+    /* clk */
+    qcc74x_gpio_init(gpio, GPIO_PIN_26, GPIO_FUNC_PDM | GPIO_ALTERNATE | GPIO_FLOAT | GPIO_SMT_EN | GPIO_DRV_2);
+
+#else
     /* auadc ch0 */
     //qcc74x_gpio_init(gpio, GPIO_PIN_20, GPIO_ANALOG | GPIO_FLOAT | GPIO_SMT_EN | GPIO_DRV_2);
- 
     /* auadc ch3 */
     //qcc74x_gpio_init(gpio, GPIO_PIN_22, GPIO_ANALOG | GPIO_FLOAT | GPIO_SMT_EN | GPIO_DRV_2);
-
     /* auadc ch4 */
     qcc74x_gpio_init(gpio, GPIO_PIN_27, GPIO_ANALOG | GPIO_FLOAT | GPIO_SMT_EN | GPIO_DRV_2);
-
     /* auadc ch7 */
     qcc74x_gpio_init(gpio, GPIO_PIN_30, GPIO_ANALOG | GPIO_FLOAT | GPIO_SMT_EN | GPIO_DRV_2);
+#endif
 }
 
 int main(void)

@@ -31,6 +31,7 @@ int lp_delete_wakeup_by_io(uint8_t io);
 void app_pm_enter_hbn(int level);
 int app_lp_timer_config(int mode, uint32_t ms);
 void app_pm_exit_pds15(void);
+void app_pm_enter_pds15(void); // Added forward declaration
 
 static void pwr_enable_receive_broadcast_multicast(int flag)
 {
@@ -54,7 +55,7 @@ static int at_pwr_cmd_pwrmode(int argc, const char **argv)
     AT_CMD_PARSE_NUMBER(0, &pwr_mode);
     AT_CMD_PARSE_OPT_NUMBER(1, &level, level_valid);
 
-    if (pwr_mode  == 0) {
+    if (pwr_mode == 0) {
         app_pm_exit_pds15();
     } else if (pwr_mode == 1) {
         app_pm_enter_hbn(level);
@@ -66,9 +67,11 @@ static int at_pwr_cmd_pwrmode(int argc, const char **argv)
             pwr_enable_receive_broadcast_multicast(0);
             app_pm_enter_pds15();
         } else {
+            AT_CMD_PRINTF("[AT_PWR] Error: invalid level for pwr_mode 2\r\n");
             return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
         }
     } else {
+        AT_CMD_PRINTF("[AT_PWR] Error: invalid pwr_mode value %d\r\n", pwr_mode);
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     }
 
@@ -84,6 +87,7 @@ static int at_wakeup_timer_cmd(int argc, const char **argv)
     AT_CMD_PARSE_NUMBER(1, &timeouts_ms);
 
     if (mode < 0 || mode > 2) {
+        AT_CMD_PRINTF("[AT_PWR] Error: invalid mode value %d\r\n", mode);
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     }
 
@@ -97,18 +101,15 @@ static int at_dtim_cmd(int argc, const char **argv)
     int dtim;
 
     AT_CMD_PARSE_NUMBER(0, &dtim);
-
     void set_dtim_config(int dtim);
     set_dtim_config(dtim);
-
     return AT_RESULT_CODE_OK;
 }
 
 static int clear_dtim_cmd(int argc, const char **argv)
 {
-    void clear_dtim_config(void);
-    clear_dtim_config();
-
+    //void clear_dtim_config(void);
+    //clear_dtim_config();
     return AT_RESULT_CODE_OK;
 }
 
@@ -121,7 +122,6 @@ static int at_wkio_cmd(int argc, const char **argv)
     AT_CMD_PARSE_NUMBER(1, &mode);
 
     lp_set_wakeup_by_io(wkio, mode);
-
     return AT_RESULT_CODE_OK;
 }
 
@@ -130,9 +130,7 @@ static int at_dewkio_cmd(int argc, const char **argv)
     int wkio;
 
     AT_CMD_PARSE_NUMBER(0, &wkio);
-
     lp_delete_wakeup_by_io(wkio);
-
     return AT_RESULT_CODE_OK;
 }
 
@@ -142,10 +140,9 @@ static int at_start_keepalive_cmd(int argc, const char **argv)
 
     AT_CMD_PARSE_NUMBER(0, &period);
 
-    printf("at_start_keepalive_cmd period:%ld\r\n", period);
+    AT_CMD_PRINTF("at_start_keepalive_cmd period:%ld\r\n", period);
     int app_create_keepalive_timer(uint32_t periods);
     app_create_keepalive_timer(period);
-
     return AT_RESULT_CODE_OK;
 }
 
@@ -153,7 +150,6 @@ static int at_stop_keepalive_cmd(int argc, const char **argv)
 {
     int app_delete_keepalive_timer(void);
     app_delete_keepalive_timer();
-
     return AT_RESULT_CODE_OK;
 }
 
@@ -165,7 +161,6 @@ static int at_start_arp_send_cmd(int argc, const char **argv)
 
     int app_pm_create_arp_announce_timer(uint32_t seconds);
     app_pm_create_arp_announce_timer(period);
-
     return AT_RESULT_CODE_OK;
 }
 
@@ -173,7 +168,6 @@ static int at_stop_arp_send_cmd(int argc, const char **argv)
 {
     int app_pm_delete_arp_announce_timer(void);
     app_pm_delete_arp_announce_timer();
-
     return AT_RESULT_CODE_OK;
 }
 
@@ -188,16 +182,14 @@ static int at_twt_param_cmd(int argc, const char **argv)
     AT_CMD_PARSE_NUMBER(4, &m);
 
     void app_pm_twt_param_set(int s, int t, int e, int n, int m);
-    //printf("%d %d %d %d %d\r\n", s, t, e, n, m);
     app_pm_twt_param_set(s, t, e, n, m);
-
     return AT_RESULT_CODE_OK;
 }
 
 static int at_twt_sleep_cmd(int argc, const char **argv)
 {
-    void app_pm_twt_enter(void);
-    app_pm_twt_enter();
+    //void app_pm_twt_enter(void);
+    //app_pm_twt_enter();
     return AT_RESULT_CODE_OK;
 }
 
@@ -211,7 +203,7 @@ static int at_twt_teardown_cmd(int argc, const char **argv)
     if (argc > 0) {
         AT_CMD_PARSE_NUMBER(0, &neg_type);
         if (neg_type != 0) {
-            printf("Warning: Only Individual negotiation type(0) supported\r\n");
+            AT_CMD_PRINTF("Warning: Only Individual negotiation type(0) supported\r\n");
             neg_type = 0;
         }
     }
@@ -224,11 +216,11 @@ static int at_twt_teardown_cmd(int argc, const char **argv)
         AT_CMD_PARSE_NUMBER(2, &flow_id);
     }
 
-    printf("TWT Teardown: neg_type=%d, all_twt=%d", neg_type, all_twt);
+    AT_CMD_PRINTF("TWT Teardown: neg_type=%d, all_twt=%d", neg_type, all_twt);
     if (!all_twt) {
-        printf(", flow_id=%d", flow_id);
+        AT_CMD_PRINTF(", flow_id=%d", flow_id);
     }
-    printf("\r\n");
+    AT_CMD_PRINTF("\r\n");
 
     twt_teardown_params_struct_t params;
     memset(&params, 0, sizeof(params));
@@ -240,11 +232,10 @@ static int at_twt_teardown_cmd(int argc, const char **argv)
     ret = wifi_mgmr_sta_twt_teardown(&params);
 
     if (ret == 0) {
-        wifi_mgmr_sta_ps_exit();
-        printf("TWT teardown request sent successfully\r\n");
+        AT_CMD_PRINTF("TWT teardown request sent successfully\r\n");
         return AT_RESULT_CODE_OK;
     } else {
-        printf("TWT teardown request failed, error=%d\r\n", ret);
+        AT_CMD_PRINTF("TWT teardown request failed, error=%d\r\n", ret);
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_EXEC_FAIL);
     }
 }
@@ -259,23 +250,23 @@ static int at_clock_source_set_cmd(int argc, const char **argv)
     int app_set_clock_source(uint8_t source);
     ret = app_set_clock_source(source);
     if (ret) {
-        printf("Set clock source fail.\r\n");
+        AT_CMD_PRINTF("Set clock source fail.\r\n");
     } else {
-        printf("Set clock source success.\r\n");
+        AT_CMD_PRINTF("Set clock source success.\r\n");
     }
-
     return AT_RESULT_CODE_OK;
 }
 
 static int at_clock_source_get_cmd(int argc, const char **argv)
 {
     uint8_t source = 0;
-
     int app_get_clock_source(uint8_t *source);
-    app_get_clock_source(&source);
-
+    int ret = app_get_clock_source(&source);
+    if (ret != 0) {
+        AT_CMD_PRINTF("[AT_PWR] Error: failed to get clock source\r\n");
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_EXEC_FAIL);
+    }
     at_response_string("+GET_CLOCK:%d\r\n", source);
-
     return AT_RESULT_CODE_OK;
 }
 
@@ -328,7 +319,7 @@ static int at_listen_itv_set_cmd(int argc, const char **argv)
 
     int ret = wifi_mgmr_sta_set_listen_itv((uint8_t)listen_itv);
     if (ret != 0) {
-        printf("Failed to set listen interval, error=%d\r\n", ret);
+        AT_CMD_PRINTF("Failed to set listen interval, error=%d\r\n", ret);
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_EXEC_FAIL);
     }
 
@@ -339,10 +330,65 @@ static int at_listen_itv_get_cmd(int argc, const char **argv)
 {
     int listen_itv = wifi_mgmr_sta_get_listen_itv();
 
-    if (listen_itv < 0) {
+    if (!wifi_mgmr_sta_state_get()) {
+        AT_CMD_PRINTF("[AT_PWR] Error: failed to get listen_itv\r\n");
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_EXEC_FAIL);
     }
+
     at_response_string("+LISTEN_ITV:%d\r\n", listen_itv);
+    return AT_RESULT_CODE_OK;
+}
+
+static int at_dtim_get_cmd(int argc, const char **argv)
+{
+    int dtim = wifi_mgmr_get_dtim();
+
+    if (dtim < 0) {
+        AT_CMD_PRINTF("[AT_PWR] Error: failed to get listen_itv\r\n");
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_EXEC_FAIL);
+    }
+
+    at_response_string("+DTIM:%d\r\n", dtim);
+    return AT_RESULT_CODE_OK;
+}
+
+static int at_twt_supported_get_cmd(int argc, const char **argv)
+{
+    int support = wifi_mgmr_twt_support();
+
+    if (support < 0) {
+        AT_CMD_PRINTF("[AT_PWR] Error: failed to get listen_itv\r\n");
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_EXEC_FAIL);
+    }
+
+    at_response_string("+TWT_SUPPORT:%d\r\n", support);
+    return AT_RESULT_CODE_OK;
+}
+
+static int at_pwr_clear_cmd(int argc, const char **argv)
+{
+    int pwr_info_clear(void);
+    pwr_info_clear();
+    return AT_RESULT_CODE_OK;
+}
+
+static int at_pwr_get_cmd(int argc, const char **argv)
+{
+    uint64_t predect_pwr;
+
+    uint64_t pwr_info_get(void);
+    predect_pwr = pwr_info_get();
+    at_response_string("+AVERAGE PWR:%lld\r\n", predect_pwr);
+    return AT_RESULT_CODE_OK;
+}
+
+static int at_lp_interval_get_cmd(int argc, const char **argv)
+{
+    uint8_t lp_interval;
+
+    uint8_t lp_interval_get(void);
+    lp_interval = lp_interval_get();
+    at_response_string("+LP INTERVAL:%ld\r\n", lp_interval);
     return AT_RESULT_CODE_OK;
 }
 
@@ -363,6 +409,12 @@ static const at_cmd_struct at_pwr_cmd[] = {
     {"+TWT_STATUS", NULL, at_twt_status_cmd, NULL, NULL, 0, 0},
     {"+SET_CLOCK", NULL, NULL, at_clock_source_set_cmd, NULL, 1, 1},
     {"+GET_CLOCK", NULL, NULL, NULL, at_clock_source_get_cmd, 0, 0},
+    {"+LISTEN_ITV", NULL, at_listen_itv_get_cmd, at_listen_itv_set_cmd, NULL, 0, 1},
+    {"+GET_AP_DTIM", NULL, at_dtim_get_cmd, NULL, NULL, 0, 1},
+    {"+GET_TWT_SUPPORTED", NULL, at_twt_supported_get_cmd, NULL, NULL, 0, 1},
+    {"+PWR_CLEAR", NULL, NULL, NULL, at_pwr_clear_cmd, 0, 0},
+    {"+PWR_GET", NULL, NULL, NULL, at_pwr_get_cmd, 0, 0},
+    {"+LP_INTERVAL_GET", NULL, NULL, NULL, at_lp_interval_get_cmd, 0, 0},
 };
 
 bool at_pwr_cmd_regist(void)

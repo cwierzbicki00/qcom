@@ -14,7 +14,7 @@
 #define QCC74x_EFLASH_LOADER_CHECK_LEN 2048
 #define QCC74x_EFLASH_MAX_SIZE         2 * 1024 * 1024
 
-// 4bytes、32bit数据大小端转化
+// Convert 4-byte/32-bit data between big-endian and little-endian.
 #define L2B32(Little) (((Little & 0xff) << 24) | (((Little) & 0xff00) << 8) | (((Little) & 0xff0000) >> 8) | ((Little >> 24) & 0xff))
 
 #if QCC74xSP_BOOT2_SUPPORT_EFLASH_LOADER_RAM

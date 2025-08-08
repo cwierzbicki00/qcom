@@ -10,11 +10,11 @@
 #define SMART_AUDIO_DEFAULT_VOLUME 60
 
 typedef enum {
-    SMTAUDIO_ONLINE_MUSIC = MEDIA_MUSIC, /*音乐播放*/
-    SMTAUDIO_LOCAL_PLAY   = MEDIA_SYSTEM, /*通知播放*/
-    SMTAUDIO_BT_A2DP     = 102, /*蓝牙a2dp*/
-    SMTAUDIO_BT_HFP      = 103, /*蓝牙hfp*/
-    SMTAUDIO_PLAY_TYPE_NUM = 4, /*类型总数*/
+    SMTAUDIO_ONLINE_MUSIC = MEDIA_MUSIC, /*Music playback*/
+    SMTAUDIO_LOCAL_PLAY   = MEDIA_SYSTEM, /*Notification playback*/
+    SMTAUDIO_BT_A2DP     = 102, /*Bluetooth A2DP*/
+    SMTAUDIO_BT_HFP      = 103, /*Bluetooth HFP*/
+    SMTAUDIO_PLAY_TYPE_NUM = 4, /*Total number of types*/
     SMTAUDIO_TYPE_ALL     = 255,
 } smtaudio_player_type_t;
 

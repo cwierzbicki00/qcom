@@ -29,23 +29,8 @@ On qcc743 board, using <wifi_sta_connect> command connect your WiFi router
 ```bash
 qxx74x />wifi_sta_connect QCC74x_TEST 12345678
 qxx74x />wifi_http_test www.gov.cn 
-qxx74x />Http client task start ...
-Host:www.gov.cn, Server ip Address : 61.136.232.149:80
-Http client connect server success!
-Press CTRL-C to exit.
-HTTP/1.1 200 OK
-......
-
-```
-
-### http post 
-
-TODO
-
-### gethostbyname(DNSv6, DNSv4)
-```bash
-qcc74x />gethostbyname 6.ipw.cn
-qcc74x />gethostbyname 4.ipw.cn
-qcc74x />gethostbyname -4 test.ipw.cn
-qcc74x />gethostbyname -6 test.ipw.cn
+...
+Http client GET request server success
+...
+Http client POST request server success
 ```

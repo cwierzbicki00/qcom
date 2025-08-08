@@ -82,6 +82,10 @@ static inline void free_ctx(struct at_http_ctx *ctx)
 
 static int httpc_get_recvcnt(struct at_http_ctx *ctx)
 {
+    if (!ctx) {
+        printf("httpc_get_recvcnt: ctx is NULL\r\n");
+        return 0;
+    }
     if (g_https_cfg.recv_mode == AT_HTTPC_RECV_MODE_ACTIVE) {
         return 0;
     }
@@ -91,9 +95,16 @@ static int httpc_get_recvcnt(struct at_http_ctx *ctx)
 
 static int httpc_get_recvsize(int linkid)
 {
+    if (linkid < 0 || linkid >= AT_HTTPC_HANDLE_MAX) {
+        printf("httpc_get_recvsize: invalid linkid %d\r\n", linkid);
+        return 0;
+    }
     int size = 0;
     struct at_http_ctx *ctx = &g_httpc_handle[linkid];
-
+    if (!ctx) {
+        printf("httpc_get_recvsize: ctx is NULL for linkid %d\r\n", linkid);
+        return 0;
+    }
     AT_HTTP_LOCK(ctx->mutex);
     size = ctx->recv_avail;
     if (ctx->lastbuf) {
@@ -105,6 +116,10 @@ static int httpc_get_recvsize(int linkid)
 
 static inline uint8_t httpc_recvbuf_overflow(struct at_http_ctx *ctx)
 {
+    if (!ctx) {
+        printf("httpc_recvbuf_overflow: ctx is NULL\r\n");
+        return 1;
+    }
     if (httpc_get_recvcnt(ctx) >= AT_HTTPC_RECVBUF_CNT_MAX || httpc_get_recvsize(ctx->linkid) >= g_https_cfg.recvbuf_size) {
         return 1;
     }
@@ -113,6 +128,10 @@ static inline uint8_t httpc_recvbuf_overflow(struct at_http_ctx *ctx)
 
 static int httpc_buffer_write(struct at_http_ctx *ctx, struct pbuf *p)
 {
+    if (!ctx || !p) {
+        printf("httpc_buffer_write: ctx or p is NULL\r\n");
+        return -1;
+    }
     int ret = 0;
 
     AT_HTTP_LOCK(ctx->mutex);
@@ -123,8 +142,8 @@ static int httpc_buffer_write(struct at_http_ctx *ctx, struct pbuf *p)
     AT_HTTP_UNLOCK(ctx->mutex);
 
     if (ret != pdTRUE) {
-        /* It will never run to here. */
         at_write("+HTTPCLOST:%d,%d\r\n", ctx->linkid, p->tot_len);
+        printf("httpc_buffer_write: failed to send to queue for linkid %d\r\n", ctx->linkid);
         ret = -1;
     }
 
@@ -133,6 +152,10 @@ static int httpc_buffer_write(struct at_http_ctx *ctx, struct pbuf *p)
 
 static ssize_t httpc_buffer_read(struct at_http_ctx *ctx, void *mem, int len, int flags)
 {
+    if (!ctx || !mem || len <= 0) {
+        printf("httpc_buffer_read: invalid arguments\r\n");
+        return -1;
+    }
     ssize_t recvd = 0;
     ssize_t recv_left = (len <= SSIZE_MAX) ? (ssize_t)len : SSIZE_MAX;
 

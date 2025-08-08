@@ -183,6 +183,10 @@ static void ping_send(struct ping_var *env)
         #if CFG_IPV6
         if(IP_IS_V6(&env->dest)){
             ping6_prepare_echo(p, (u16_t)ping_size, env);
+            if (ip_addr_islinklocal(&env->dest)) {
+                printf("linklocal assign to wl1\r\n");
+                ip6_addr_assign_zone(ip_2_ip6(&env->dest), IP6_UNICAST, netif_find("wl1"));
+            }
         }
         else
         #endif

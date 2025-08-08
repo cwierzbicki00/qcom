@@ -49,14 +49,14 @@ typedef struct {
     int fd;        /* file fd */
 } romfs_file_t;
 
-/* readdir 返回的路径结构体，被包含在 romfs_dir_t 中*/
+/* Structure representing a directory entry returned by readdir, contained within romfs_dir_t */
 typedef struct {
     int d_ino;      /* file number */
     uint8_t d_type; /* type of file */
     char d_name[ROMFS_MAX_NAME_LEN + 1];  /* file name */
 } romfs_dirent_t;
 
-/* opendir 得到的目录结构体 */
+/* Directory structure obtained by opendir */
 typedef struct {
     char *dir_start_addr;
     char *dir_end_addr;

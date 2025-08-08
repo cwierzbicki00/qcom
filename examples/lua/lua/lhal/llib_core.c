@@ -104,7 +104,7 @@ static int device_get(lua_State *L)
         lua_pushnil(L);
     } else {
         lua_pushlightuserdata(L, dev);
-        /*!< TODO 成员获取 */
+        /*!< TODO Member acquisition */
     }
 
     return 1;

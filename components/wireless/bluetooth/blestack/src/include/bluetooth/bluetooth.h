@@ -690,8 +690,47 @@ int bt_br_discovery_start(const struct bt_br_discovery_param *param,
  */
 int bt_br_discovery_stop(void);
 
+/**
+ * @brief Disable Bluetooth
+ *
+ * Disable Bluetooth. Can't be called before bt_enable has completed and shall exit the Connection State/ Advertising State/Scanning State and transition to the Standby State.
+ *
+ * This API will clear all configured identities and keys that are not persistently
+ * stored with @kconfig{CONFIG_BT_SETTINGS}. These can be restored
+ * with settings_load() before reenabling the stack.
+ *
+ * This API does _not_ clear previously registered callbacks
+ * like @ref bt_le_scan_cb_register, @ref bt_conn_cb_register
+ * AND @ref bt_br_discovery_cb_register.
+ * That is, the application shall not re-register them when
+ * the Bluetooth subsystem is re-enabled later.
+ *
+ * Close and release HCI resources. Result is architecture dependent.
+ *
+ * @return Zero on success or (negative) error code otherwise.
+ */
 int bt_disable(void);
-
+/**
+ * @brief Force Disable Bluetooth
+ *
+ * Force Disable Bluetooth. This API will call HCI Reset command and force exit the Connection State/ Advertising State/Scanning State and transition to the Standby State.
+ * This API will clear all configured identities and keys that are not persistently
+ * stored with @kconfig{CONFIG_BT_SETTINGS}. These can be restored
+ * with settings_load() before reenabling the stack.
+ *
+ * This API does _not_ clear previously registered callbacks
+ * like @ref bt_le_scan_cb_register, @ref bt_conn_cb_register
+ * AND @ref bt_br_discovery_cb_register.
+ * That is, the application shall not re-register them when
+ * the Bluetooth subsystem is re-enabled later.
+ *
+ * If call this API at Connection state, it will clear all connection related resource, Disconnection err code: BT_HCI_ERR_UNSPECIFIED.
+ *
+ * Close and release HCI resources. Result is architecture dependent.
+ *
+ * @return Zero on success or (negative) error code otherwise.
+ */
+int bt_force_disable(void);
 
 struct bt_br_oob {
 	/** BR/EDR address. */

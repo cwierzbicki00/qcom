@@ -37,7 +37,7 @@ To flash your project onto the target device, use the following command, where `
 make flash COMX=xxx # xxx is your com port name
 ```
 
-## RCP (Radio Co-Processor)
+## NCP Lwip On Host
 
 ### Host API Introduction (Basics)
 
@@ -79,11 +79,11 @@ Brief: Get  Virtual Network Interface IP Information.
 
 Return: 0 - Success, Non-Zero - Failure
 
-int virt_net_get_ip(virt_net_t obj, uint32_t *ip, uint32_t *mask, uint32_t *gw);
+int virt_net_get_sta_ip(virt_net_t obj, uint32_t *ip, uint32_t *mask, uint32_t *gw);
 ```
 
 ```bash
-Brief: Get Device Current Operation Mode: 0-RCP Mode, 1-NCP Mode
+Brief: Get Device Current Operation Mode: 0-Lwip On Host Mode, 1-NCP Mode
 
 Return: 0 - Success, Non-Zero - Failure
 
@@ -104,7 +104,7 @@ static void virl_net_init_task(void *arg)
 }
 ```
 
-When WiFi Connection Succeeds, Enable DHCP if Currently in RCP Mode:
+When WiFi Connection Succeeds, Enable DHCP if Currently in Lwip On Host Mode:
 
 ```bash
 static int _at_to_console(uint8_t *buf, uint32_t len, void *arg)
@@ -113,7 +113,7 @@ static int _at_to_console(uint8_t *buf, uint32_t len, void *arg)
 
    if (strstr((char *)buf, "+CW:CONNECTED\r\n") != NULL) {
       virt_net_get_netmode(g_virt_eth, &netmode);
-      if (netmode == VIRTNET_NET_MODE_RCP) {
+      if (netmode == VIRTNET_NET_MODE_LWIP_ONHOST) {
          virt_net_dhcp_start(g_virt_eth, 15*1000);
       }
    }
@@ -146,12 +146,12 @@ netif_set_status_callback(&obj->netif, netif_status_callback);
 Enter the build command under the `spiwifi`​ example directory:
 
 ```bash
-make CONFIG_RCP_ENABLE=1 CONFIG_MQTT=0 CONFIG_HTTP=0 CONFIG_NETWORK=0
+make CONFIG_LWIP_ONHOST_ENABLE=1 CONFIG_MQTT=0 CONFIG_HTTP=0 CONFIG_NETWORK=0
 ```
-BLE RCP only compiles with Wi-Fi RCP:
+BLE Lwip On Host only compiles with Wi-Fi Lwip On Host:
 
 ```bash
-make CONFIG_RCP_ENABLE=1 CONFIG_MQTT=0 CONFIG_HTTP=0 CONFIG_NETWORK=0 CONFIG_BLUETOOTH_APP=0 CONFIG_HCI_ENABLE=1
+make CONFIG_LWIP_ONHOST_ENABLE=1 CONFIG_MQTT=0 CONFIG_HTTP=0 CONFIG_NETWORK=0 CONFIG_BLUETOOTH_APP=0 CONFIG_HCI_ENABLE=1
 ```
 
 ### Flashing
@@ -162,9 +162,9 @@ To flash your project onto the target device, use the following command, where `
 make flash COMX=xxx # xxx is your com port name
 ```
 
-### Runing
+### STA mode Runing 
 
-DHCP is enabled by default on the host side in RCP mode, and an IP address is automatically acquired upon WiFi connection command execution.
+DHCP is enabled by default on the host side in Lwip On Host mode, and an IP address is automatically acquired upon WiFi connection command execution.
 
 ```bash
 AT+CWMODE=1
@@ -182,6 +182,32 @@ OK
 IP Address: 192.168.31.157
 Netmask:    255.255.255.0
 Gateway:    192.168.31.1
+```
+
+### AP mode Runing 
+
+The DHCP service is not enabled by default and will only start after manually activating the AP.
+
+```bash
+AT+CWMODE=2
+OK
+```
+
+```bash
+AT+CWSAP="Qcc74x","12345678",6,0,3,0
+OK
+```
+
+Enable the DHCP service. The AP mode IP address is 192.168.2.1.
+
+```bash
+HOSTCMD dhcpd_start 192.168.2.1
+```
+
+Use a smartphone or other STA device to connect to the AP named "QCC74x". After successful connection, the device should obtain an IP address automatically.
+
+```bash
++CW:STA_CONNECTED "xx:xx:xx:xx:xx:xx"
 ```
 
 ## Low Power Mode Configuration and Usage
@@ -441,7 +467,7 @@ Ensure that the PC and qcc74x are connected to the same router.
     iperf -u -c <remote_ip> -i 1 -b 20M -t 10
    ```
 
-### RCP (Radio Co-Processor)
+### NCP Lwip On Host
 
 #### TCP TX
 

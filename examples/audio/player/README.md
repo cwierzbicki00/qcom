@@ -1,4 +1,3 @@
-# Full-featured Player [中文](README_zh.md)
 
 **Note**: As of the last update of this document, the coexistence of WiFi and Bluetooth on qcc743 has not been ported yet. Therefore, playing Bluetooth music while playing WiFi music may lead to unknown exceptions, and vice versa. Please stay tuned for future updates.
 

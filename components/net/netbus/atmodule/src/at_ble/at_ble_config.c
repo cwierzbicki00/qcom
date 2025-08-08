@@ -26,6 +26,7 @@ int at_ble_config_init(void)
 {
     at_ble_config = (ble_config *)pvPortMalloc(sizeof(ble_config));
     if (at_ble_config == NULL) {
+        AT_CMD_PRINTF("Failed to allocate memory for at_ble_config\r\n");
         return -1;
     }
 
@@ -36,12 +37,14 @@ int at_ble_config_init(void)
     if(ef_get_env_blob(AT_CONFIG_KEY_BLE_NAME,&at_ble_config->ble_name, sizeof(at_ble_config->ble_name),value_len))
     {
         if (!at_config_read(AT_CONFIG_KEY_BLE_NAME, &at_ble_config->ble_name, sizeof(at_ble_config->ble_name))) {
+            AT_CMD_PRINTF("BLE name config read failed, using default\r\n");
             strlcpy(at_ble_config->ble_name, "QCC74x-AT", sizeof(at_ble_config->ble_name));
             bt_set_name(at_ble_config->ble_name); 
         }
     }
     else
     {
+        AT_CMD_PRINTF("BLE name config not found, using default\r\n");
         strlcpy(at_ble_config->ble_name, "QCC74x-AT", sizeof(at_ble_config->ble_name));
         bt_set_name(at_ble_config->ble_name); 
     }
@@ -74,6 +77,10 @@ int at_ble_config_init(void)
 
 int at_ble_config_save(const char *key)
 {
+    if (!at_ble_config || !key) {
+        AT_CMD_PRINTF("Invalid arguments to at_ble_config_save\r\n");
+        return -1;
+    }
     if (strcmp(key, AT_CONFIG_KEY_BLE_NAME) == 0)
     {
         return at_config_write(key, &at_ble_config->ble_name, sizeof(at_ble_config->ble_name));
@@ -85,22 +92,18 @@ int at_ble_config_save(const char *key)
 int at_ble_config_default(void)
 {
     ef_del_env(AT_CONFIG_KEY_BLE_NAME);
-    
     if (at_ble_config == NULL) {
+        AT_CMD_PRINTF("at_ble_config is NULL in at_ble_config_default\r\n");
         return -1;
     }
-
     memset(at_ble_config, 0, sizeof(ble_config));
     at_ble_config->work_role = BLE_DISABLE;
-    
     strlcpy(at_ble_config->ble_name, "QCC74x-AT", sizeof(at_ble_config->ble_name));
     bt_set_name(at_ble_config->ble_name); 
-
     at_ble_config->adv_param.adv_int_min = 0xA0;
     at_ble_config->adv_param.adv_int_max = 0xD0;
     at_ble_config->adv_param.adv_type = 0;
     at_ble_config->adv_param.channel_map = 0x07;
-
     at_ble_config->scan_param.scan_type = 1;
     at_ble_config->scan_param.own_addr_type = 0;
     at_ble_config->scan_param.filter_policy = 0;

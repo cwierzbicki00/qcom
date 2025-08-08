@@ -111,4 +111,5 @@ void wifi_mgmr_sta_info_reset();
 void wifi_mgmr_sta_info_upatestatus(uint16_t status_code, uint16_t reason_code);
 void wifi_mgmr_sta_info_save(void *param);
 int wifi_mgmr_sta_connect_params_get();
+int wifi_mgmr_sta_ps_change(void);
 #endif

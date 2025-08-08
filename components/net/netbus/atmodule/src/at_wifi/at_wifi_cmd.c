@@ -74,12 +74,20 @@ static int get_mac_from_string(char *string, uint8_t mac[6])
 
 static int at_query_cmd_wifisp(int argc, const char **argv)
 {
+    if (!at_wifi_config) {
+        AT_WIFI_CMD_PRINTF("[AT_WIFI_CMD] Error: at_wifi_config is NULL\r\n");
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_EXEC_FAIL);
+    }
     at_response_string("+WIFISP:%d\r\n", !at_wifi_config->wlan_disable);
     return AT_RESULT_CODE_OK;
 }
 
 static int at_setup_cmd_wifisp(int argc, const char **argv)
 {
+    if (!at_wifi_config) {
+        AT_WIFI_CMD_PRINTF("[AT_WIFI_CMD] Error: at_wifi_config is NULL\r\n");
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_EXEC_FAIL);
+    }
     int enable = 0;
 
     AT_CMD_PARSE_NUMBER(0, &enable);
@@ -116,12 +124,20 @@ static int get_ip_from_string(char *string, uint32_t *ip)
 
 static int at_query_cmd_cwmode(int argc, const char **argv)
 {
+    if (!at_wifi_config) {
+        AT_WIFI_CMD_PRINTF("[AT_WIFI_CMD] Error: at_wifi_config is NULL\r\n");
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_EXEC_FAIL);
+    }
     at_response_string("+CWMODE:%d\r\n", at_wifi_config->wifi_mode);
     return AT_RESULT_CODE_OK;
 }
 
 static int at_setup_cmd_cwmode(int argc, const char **argv)
 {
+    if (!at_wifi_config) {
+        AT_WIFI_CMD_PRINTF("[AT_WIFI_CMD] Error: at_wifi_config is NULL\r\n");
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_EXEC_FAIL);
+    }
     int mode = 0;
     int auto_connect_valid =0, auto_connect;
 
@@ -154,6 +170,10 @@ static int at_setup_cmd_cwmode(int argc, const char **argv)
 
 static int at_query_cmd_cwstate(int argc, const char **argv)
 {
+    if (!at_wifi_config) {
+        AT_WIFI_CMD_PRINTF("[AT_WIFI_CMD] Error: at_wifi_config is NULL\r\n");
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_EXEC_FAIL);
+    }
     wifi_mgmr_connect_ind_stat_info_t info = {0};
     int state = at_wifi_state_get();
     ip4_addr_t ipaddr = {0};
@@ -188,6 +208,10 @@ static int at_query_cmd_cwstate(int argc, const char **argv)
 
 static int at_query_cmd_cwjap(int argc, const char **argv)
 {
+    if (!at_wifi_config) {
+        AT_WIFI_CMD_PRINTF("[AT_WIFI_CMD] Error: at_wifi_config is NULL\r\n");
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_EXEC_FAIL);
+    }
     int rssi = 0;
     ip4_addr_t ipaddr = {0};
     wifi_mgmr_connect_ind_stat_info_t info = {0};
@@ -210,6 +234,10 @@ static int at_query_cmd_cwjap(int argc, const char **argv)
 
 static int at_setup_cmd_cwjap(int argc, const char **argv)
 {
+    if (!at_wifi_config) {
+        AT_WIFI_CMD_PRINTF("[AT_WIFI_CMD] Error: at_wifi_config is NULL\r\n");
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_EXEC_FAIL);
+    }
     char ssid[33];
     char password[65];
     char bssidString[20];
@@ -231,32 +259,32 @@ static int at_setup_cmd_cwjap(int argc, const char **argv)
     AT_CMD_PARSE_OPT_NUMBER(7, &pmf, pmf_valid);
 
     if (bssid_valid && (get_mac_from_string(bssidString, bssid) != 0)) {
-        printf("err bssid_valid\r\n");
+        AT_WIFI_CMD_PRINTF("err bssid_valid\r\n");
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_OP_ADDR_ERROR);
     }
     if (wep_enable_valid && (wep_enable != 0 && wep_enable != 1)) {
-        printf("err pci_enable_valid\r\n");
+        AT_WIFI_CMD_PRINTF("err pci_enable_valid\r\n");
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     }
     if (listen_interval_valid && (listen_interval < 1 || listen_interval > 100)) {
-        printf("err listen_interval_valid\r\n");
+        AT_WIFI_CMD_PRINTF("err listen_interval_valid\r\n");
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     }
     if (scan_mode_valid && (scan_mode != 0 && scan_mode != 1)) {
-        printf("err scan_mode_valid\r\n");
+        AT_WIFI_CMD_PRINTF("err scan_mode_valid\r\n");
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     }
     if (jap_timeout_valid && (jap_timeout < 3 || jap_timeout > 600)) {
-        printf("err jap_timeout_valid\r\n");
+        AT_WIFI_CMD_PRINTF("err jap_timeout_valid\r\n");
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     }
     if (pmf_valid && (pmf < 0 || pmf > 3)) {
-        printf("err pmf_valid \r\n");
+        AT_WIFI_CMD_PRINTF("err pmf_valid \r\n");
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     }
 
     if ((at_wifi_config->wifi_mode != WIFI_STATION_MODE) && (at_wifi_config->wifi_mode != WIFI_AP_STA_MODE)) {
-        printf("err at_wifi_config\r\n");
+        AT_WIFI_CMD_PRINTF("err at_wifi_config\r\n");
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_OP_ERROR);
     }
 
@@ -408,7 +436,7 @@ static int at_scan_wifi(uint8_t *channels, uint16_t channel_num, uint8_t mac[6],
     if (antenna_hal_is_static_div_enabled()) {
         ant_scan_task_start(&scan_cfg, NULL);
     } else {
-        wifi_mgmr_sta_scan(&scan_cfg);
+        ret = wifi_mgmr_sta_scan(&scan_cfg);
     }
 
     if (!g_scan_tick) {
@@ -687,7 +715,8 @@ static int at_setup_cmd_cwlap(int argc, const char **argv)
         g_scan_filter_mac_flag = 0;
         g_scan_filter_ssid_flag = 0;
         g_scan_filter_channel = 0;
-        return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_EXEC_FAIL);
+        AT_WIFI_CMD_PRINTF("scan fail\r\n");
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_ALLOWED);
     }
 
     //at_scan_dump();
@@ -699,7 +728,8 @@ static int at_setup_cmd_cwlap(int argc, const char **argv)
 static int at_exe_cmd_cwlap(int argc, const char **argv)
 {
     if (at_scan_wifi(NULL, 0, NULL, NULL, 0, 0) != 0) {
-        return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_EXEC_FAIL);
+        AT_WIFI_CMD_PRINTF("scan fail\r\n");
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_ALLOWED);
     }
 
     //at_scan_dump();
@@ -1441,7 +1471,7 @@ static int at_setup_cmd_wps(int argc, const char **argv)
     AT_CMD_PARSE_OPT_NUMBER(1, &auth, auth_valid);
     
     if ((at_wifi_config->wifi_mode != WIFI_STATION_MODE) && (at_wifi_config->wifi_mode != WIFI_AP_STA_MODE)) {
-        printf("err at_wifi_config\r\n");
+        AT_WIFI_CMD_PRINTF("err at_wifi_config\r\n");
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_OP_ERROR);
     }
 
@@ -1641,13 +1671,13 @@ static const at_cmd_struct at_wifi_cmd[] = {
     {"+CIPSTA",       NULL, at_query_cmd_cipsta,      at_setup_cmd_cipsta,       NULL,                    1, 3},
     {"+CWMONITOR",    NULL, NULL,                     at_setup_cmd_cwmonitor,    NULL,                    1, 4},
     {"+WPS",          NULL, NULL,                     at_setup_cmd_wps,          NULL,                    1, 2},
-#if (!CONFIG_RCP_ENABLE)
     {"+CWSAP",        NULL, at_query_cmd_cwsap,       at_setup_cmd_cwsap,        NULL,                    4, 6},
     {"+CWLIF",        NULL, NULL,                     NULL,                      at_exe_cmd_cwlif,        0, 0},
     {"+CWQIF",        NULL, NULL,                     at_setup_cmd_cwqif,        at_exe_cmd_cwqif,        1, 1},
     {"+CWAPPROTO",    NULL, at_query_cmd_cwapproto,   at_setup_cmd_cwapproto,    NULL,                    1, 1},
     {"+CIPAPMAC",     NULL, at_query_cmd_cipapmac,    at_setup_cmd_cipapmac,     NULL,                    1, 1},
     {"+CIPAP",        NULL, at_query_cmd_cipap,       at_setup_cmd_cipap,        NULL,                    1, 3},
+#if (!CONFIG_LWIP_ONHOST_ENABLE)
     {"+CWDHCP",       NULL, at_query_cmd_cwdhcp,      at_setup_cmd_cwdhcp,       NULL,                    2, 2},
     {"+CWDHCPS",      NULL, at_query_cmd_cwdhcps,     at_setup_cmd_cwdhcps,      NULL,                    1, 4},
     {"+CWHOSTNAME",   NULL, at_query_cmd_cwhostname,  at_setup_cmd_cwhostname,   NULL,                    1, 1},
@@ -1659,6 +1689,7 @@ static const at_cmd_struct at_wifi_cmd[] = {
     {"+CWANTENABLE",  NULL, at_query_cmd_cwantenable, at_setup_cmd_cwantenable,  NULL,                    2, 3},
     {"+CWANTNUM",     NULL, at_query_cmd_cwantnum,    NULL,                      NULL,                    0, 0},
     {"+CWANT",        NULL, at_query_cmd_cwant,       at_setup_cmd_cwant,        NULL,                    1, 1},
+
 #endif
 };
 

@@ -18,6 +18,13 @@
 #define WL_API_RMEM_ADDR    0x20010600
 #endif
 
+#if defined(QCC743D)
+#include "qcc743d_glb.h"
+#include "wl_api.h"
+#include "qcc743d_pds.h"
+#define WL_API_RMEM_ADDR    0x20010600
+#endif
+
 #if defined(qcc74x_undef)
 #include "qcc74x_undef_glb.h"
 #include "qcc74x_undef_pds.h"
@@ -160,7 +167,7 @@ __attribute__((weak)) void btblecontroller_enable_ble_clk(uint8_t enable)
 
 __attribute__((weak)) void btblecontroller_rf_restore()
 {
-  #if defined(QCC743)
+  #if defined(QCC743) || defined(QCC743D)
   struct wl_cfg_t *wl_cfg;
 
   wl_cfg = wl_cfg_get((uint8_t *)WL_API_RMEM_ADDR);
@@ -187,8 +194,8 @@ __attribute__((weak)) int btblecontroller_efuse_read_mac(uint8_t mac[6])
     #else
     #if defined(QCC743)
     status = mfg_media_read_macaddr_with_lock(tmp, 1);
-    #elif defined(qcc74x_undef)
-    //qcc743L_todo
+    #elif defined(qcc74x_undef) || defined(QCC743D)
+    //qcc74x_undef_todo, QCC743D_todo
     return 1;
     #endif
     #endif //(CFG_IOT_SDK)
@@ -201,7 +208,7 @@ __attribute__((weak)) int btblecontroller_efuse_read_mac(uint8_t mac[6])
     return status;
 }
 
-#if defined(QCC743)
+#if defined(QCC743) || defined(QCC743D)
 __attribute__((weak)) void btblecontroller_software_btdm_reset()
 {
     GLB_AHB_MCU_Software_Reset(GLB_AHB_MCU_SW_BTDM);
@@ -240,7 +247,7 @@ __attribute__((weak)) int btblecontroller_printf(const char *fmt, ...)
 }
 
 
-#if defined(QCC74x_undefL) || defined(QCC743)
+#if defined(QCC74x_undefL) || defined(QCC743) || defined(QCC743D)
 __attribute__((weak)) void btblecontroller_sys_reset(void)
 {
     __disable_irq();

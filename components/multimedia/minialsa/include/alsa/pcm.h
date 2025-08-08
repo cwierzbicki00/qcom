@@ -18,7 +18,7 @@
 extern "C" {
 #endif
 
-//提供管理数字音频的捕捉和回放
+// Provide management of digital audio capture and playback
 #define PCM_EVT_WRITE (1 << 0)
 #define PCM_EVT_READ (1 << 1)
 #define PCM_EVT_XRUN (1 << 2)/** Stopped: underrun (playback) or overrun (capture) detected */

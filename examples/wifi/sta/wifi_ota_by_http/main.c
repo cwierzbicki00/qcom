@@ -84,7 +84,7 @@ static wifi_conf_t conf = {
 /* config your wifi ssid and password */
 static const uint8_t wifi_sta_connet[] = "wifi_sta_connect 21a 12344321\r";
 /* config your ota server and port */
-static const uint8_t wifi_ota_test[] = "wifi_ota_test 192.168.123.120 3365 /wifi_ota_qcc743.bin.ota\r";
+static const uint8_t wifi_ota_test[] = "wifi_ota_test https://192.168.31.112:5000/build/build_out/wifi_ota_qcc743.bin.ota\r";
 /* reboot command */
 // static const uint8_t send_buf1[] = "reboot\r";
 // clang-format on
@@ -213,6 +213,45 @@ void ota_task(void *param)
 }
 #endif
 
+static void wifi_ota_dump_partition()
+{
+    pt_table_stuff_config pt_table_stuff[2];
+    pt_table_id_type active_id;
+    pt_table_stuff_config *pt_stuff;
+
+    /* Set flash operation function, read via xip */
+    pt_table_set_flash_operation(qcc74x_flash_erase, qcc74x_flash_write, qcc74x_flash_read);
+
+    active_id = pt_table_get_active_partition_need_lock(pt_table_stuff);
+    if (PT_TABLE_ID_INVALID == active_id) {
+        printf("No valid PT\r\n");
+        return;
+    }
+    printf("Active PT:%d,Age %d\r\n", active_id, pt_table_stuff[active_id].pt_table.age);
+
+    pt_stuff = &pt_table_stuff[active_id];
+
+    printf("======= PtTable_Config @%p=======\r\n", pt_stuff);
+    printf("magicCode 0x%08X;", (unsigned int)(pt_stuff->pt_table.magicCode));
+    printf(" version 0x%04X;", pt_stuff->pt_table.version);
+    printf(" entryCnt %u;", pt_stuff->pt_table.entryCnt);
+    printf(" age %lu;", pt_stuff->pt_table.age);
+    printf(" crc32 0x%08X\r\n", (unsigned int)pt_stuff->pt_table.crc32);
+    printf(" idx  type device active_index    name    address[0]   address[1]   length[0]    length[1]   age \r\n");
+    for (uint32_t i = 0; i < pt_stuff->pt_table.entryCnt; i++) {
+        printf("[%02d] ", i);
+        printf("  %02u", (pt_stuff->pt_entries[i].type));
+        printf("     %u", (pt_stuff->pt_entries[i].device));
+        printf("        %u", (pt_stuff->pt_entries[i].active_index));
+        printf("       %8s", (pt_stuff->pt_entries[i].name));
+        printf("   0x%08lx", (pt_stuff->pt_entries[i].start_address[0]));
+        printf("   0x%08lx", (pt_stuff->pt_entries[i].start_address[1]));
+        printf("   0x%08lx", (pt_stuff->pt_entries[i].max_len[0]));
+        printf("   0x%08lx", (pt_stuff->pt_entries[i].max_len[1]));
+        printf("   %lu\r\n", (pt_stuff->pt_entries[i].age));
+    }
+}
+
 int main(void)
 {
     board_init();
@@ -232,6 +271,8 @@ int main(void)
     }
 
     LOG_I("PHY RF init success!\r\n");
+
+    wifi_ota_dump_partition();
 
     tcpip_init(NULL, NULL);
     wifi_start_firmware_task();

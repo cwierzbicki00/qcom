@@ -2077,7 +2077,7 @@
     "elfPath": "",
     "gdbInitFilePath": "",
     "openocdGdbServerFilePath": "",
-    "buildArgs": "CHIP=qcc743 BOARD=qcc743dk CONFIG_RCP_ENABLE=1 CONFIG_MQTT=0 CONFIG_HTTP=0 CONFIG_NETWORK=0",
+    "buildArgs": "CHIP=qcc743 BOARD=qcc743dk CONFIG_LWIP_ONHOST_ENABLE=1 CONFIG_MQTT=0 CONFIG_HTTP=0 CONFIG_NETWORK=0",
     "boardList": [],
     "incPaths": [
       "${demoPath}"

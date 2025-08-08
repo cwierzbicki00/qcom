@@ -582,19 +582,25 @@ bool le_check_valid_conn(void)
     return false;
 }
 
-#if defined(QCC74x_HOST_ASSISTANT)
-void bt_notify_disconnected(void)
+static void conn_destroy(struct bt_conn *conn, void *data)
 {
-    int i;
-
-    for(i= 0; i < ARRAY_SIZE(conns); i++){
-        if(atomic_get(&conns[i].ref)){
-			conns[i].err = BT_HCI_ERR_UNSPECIFIED;
-            notify_disconnected(&conns[i]);
-        }  
-    }
+	if (conn->state != BT_CONN_DISCONNECTED) {
+		bt_conn_set_state(conn, BT_CONN_DISCONNECTED);
+		#if defined(QCC74x_RELEASE_CMD_SEM_IF_CONN_DISC)
+		extern void hci_release_conn_related_cmd(void);
+		hci_release_conn_related_cmd();
+		#endif
+		conn->err = BT_HCI_ERR_UNSPECIFIED;
+		notify_disconnected(conn);
+		if(conn->ref)
+			bt_conn_unref(conn);
+	}
 }
-#endif//#if defined(QCC74x_HOST_ASSISTANT)
+
+void bt_conn_cleanup_all(void)
+{
+	bt_conn_foreach(BT_CONN_TYPE_ALL, conn_destroy, NULL);
+}
 #endif
 
 #if defined(CONFIG_BT_BREDR)

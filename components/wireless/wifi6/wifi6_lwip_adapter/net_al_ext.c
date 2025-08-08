@@ -397,7 +397,6 @@ static int wifi_sta_dhcpc_start(uint8_t fhost_vif_idx)
         PLATFORM_HOOK(prevent_sleep, PSM_EVENT_CONNECT, 0);
         return -1;
     } else {
-        platform_post_event(EV_WIFI, CODE_WIFI_ON_GOT_IP);
         show_ip(fhost_vif_idx);
         PLATFORM_HOOK(prevent_sleep, PSM_EVENT_CONNECT, 0);
         if(wifi_mgmr_sta_connect_params_get() & LOW_RATE_CONNECT) {
@@ -494,8 +493,6 @@ static void qc_callback(struct netif *net_if)
     ip4_addr_copy(saved_ip_addr, *netif_ip4_addr(nif));
     ip4_addr_copy(saved_ip_mask, *netif_ip4_netmask(nif));
     ip4_addr_copy(saved_ip_gw, *netif_ip4_gw(nif));
-#define  EV_WIFI                  0x0002
-#define  CODE_WIFI_ON_GOT_IP      7
     platform_post_event(EV_WIFI, CODE_WIFI_ON_GOT_IP);
 }
 
@@ -542,14 +539,57 @@ static void net_quick_dhcp_stop(net_al_if_t net_if)
 #endif
 
 #ifdef CFG_IPV6
-static void net_al_create_ip6_linklocal_address(void)
+static void net_al_create_ip6_linklocal_address(int ipv6_enable)
 {
-    LOCK_TCPIP_CORE();
-    netif_create_ip6_linklocal_address(fhost_to_net_if(MGMR_VIF_STA), 1);
-    netif_set_ip6_autoconfig_enabled(((struct netif *)fhost_env.vif[MGMR_VIF_STA].net_if), true);
-    UNLOCK_TCPIP_CORE();
+    struct netif *n = fhost_to_net_if(MGMR_VIF_STA);
+
+    if (!n) {
+        printf("Fail to get netif.\r\n");
+
+        return;
+    }
+
+    if (ipv6_enable) {
+        LOCK_TCPIP_CORE();
+#if LWIP_IPV6_MLD
+        netif_set_flags(n, NETIF_FLAG_MLD6);
+#endif
+        netif_create_ip6_linklocal_address(n, 1);
+        netif_set_ip6_autoconfig_enabled(n, true);
+        ipv6_timer_switch(1);
+        UNLOCK_TCPIP_CORE();
+    } else {
+        LOCK_TCPIP_CORE();
+        ipv6_timer_switch(0);
+
+#if LWIP_IPV6_DHCP6
+        dhcp6_disable(n);
+#endif
+        netif_set_ip6_autoconfig_enabled(n, false);
+
+        for (int i = 0; i < LWIP_IPV6_NUM_ADDRESSES; i++) {
+            netif_ip6_addr_set_state(n, i, IP6_ADDR_INVALID);
+        }
+
+#if LWIP_IPV6_MLD
+        netif_clear_flags(n, NETIF_FLAG_MLD6);
+#endif
+        nd6_cleanup_netif(n);
+        UNLOCK_TCPIP_CORE();
+    }
 }
 #endif
+
+int net_al_set_ipv6_enable(int enable)
+{
+#ifdef CFG_IPV6
+    net_al_create_ip6_linklocal_address(enable);
+    return 0;
+#else
+    return -1;
+#endif
+
+}
 
 void net_al_ext_dhcp_connect(void)
 {
@@ -574,7 +614,9 @@ void net_al_ext_dhcp_connect(void)
     }
 
 #ifdef CFG_IPV6
-    net_al_create_ip6_linklocal_address();
+#if !IPV6_TIMER_PRECISE_NEEDED
+    net_al_create_ip6_linklocal_address(1);
+#endif
 #endif
 }
 
@@ -594,4 +636,20 @@ void net_al_ext_dhcp_disconnect(void)
     }
 }
 
+void net_al_ext_netif_status_callback(struct netif *netif)
+{
+    static ip4_addr_t old_addr;
+
+    printf("[lwip] netif status callback\r\n");
+    if (ip4_addr_eq((&old_addr), netif_ip4_addr(netif)) == 0) {
+        if (ip4_addr_isany(netif_ip4_addr(netif))) {
+            platform_post_event(EV_WIFI, CODE_WIFI_ON_LOST_IP);
+        } else if (netif_is_flag_set(netif, NETIF_FLAG_UP)){
+            platform_post_event(EV_WIFI, CODE_WIFI_ON_GOT_IP);
+            wifi_mgmr_sta_ps_change();
+        }
+    }
+
+    ip4_addr_copy(old_addr, *netif_ip4_addr(netif));
+}
 #endif // NET_AL_NO_IP

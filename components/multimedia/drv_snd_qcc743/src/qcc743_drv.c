@@ -622,7 +622,7 @@ void snd_card_qcc743_register(void *config)
             g_audio_gain_config = (snd_qcc743_config_t*)msp_malloc(sizeof(snd_qcc743_config_t));
             *g_audio_gain_config = *((snd_qcc743_config_t*)config);
         } else {
-            /* 再次调用注册,仅仅更新参数 */
+            /* Re-register to update parameters only. */
             *g_audio_gain_config = *((snd_qcc743_config_t*)config);
             return;
         }

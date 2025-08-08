@@ -17,6 +17,8 @@
 //#endif
 //#include <bx_rtc.h>
 
+#include "at_main.h"
+#include "at_core.h"
 #include "qcc74x_adc.h"
 #include "at_config.h"
 #include "at_base_config.h"
@@ -52,6 +54,7 @@ int at_base_config_init(void)
 {
     at_base_config = (base_config *)pvPortMalloc(sizeof(base_config));
     if (at_base_config == NULL) {
+        AT_CMD_PRINTF("Failed to allocate memory for at_base_config\r\n");
         return -1;
     }
 
@@ -82,6 +85,10 @@ int at_base_config_init(void)
 
 int at_base_config_save(const char *key)
 {
+    if (!at_base_config || !key) {
+        AT_CMD_PRINTF("Invalid arguments to at_base_config_save\r\n");
+        return -1;
+    }
     if (strcmp(key, AT_CONFIG_KEY_SYS_MSG) == 0)
         return at_config_write(key, &at_base_config->sysmsg_cfg, sizeof(base_sysmsg_cfg));
     else
@@ -92,6 +99,10 @@ int at_base_config_save(const char *key)
 int at_base_config_default(void)
 {
     ef_del_env(AT_CONFIG_KEY_SYS_MSG);
+    if (at_base_config) {
+        memset(&at_base_config->sysmsg_cfg, 0, sizeof(base_sysmsg_cfg));
+        at_base_config->sysmsg_cfg.syslog = 0;
+    }
     return 0;
 }
 

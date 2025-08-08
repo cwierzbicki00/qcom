@@ -44,9 +44,9 @@ int arch_os_utc_set(uint32_t utc)
 }
 #else
 /*
-	utc机制:
-	基于time机制 和 utc_offset 本地维持一个utc时钟
-	设置utc 时间将用于校准time
+	UTC Mechanism:
+    Maintain a local UTC clock based on the system time and UTC offset.
+    Setting the UTC time will calibrate the local clock.
 
 */
 static uint32_t utc_offset = 0;
@@ -56,24 +56,24 @@ uint32_t arch_os_utc_now(void)
     return utc_offset + arch_os_time_now();
 }
 
-//通过utc标准时间 校准系统，
-//返回系统时间偏移 (正数 表示系统时间快过UTC时间值)
+//Calibrate the system with UTC standard time.
+// Return system time offset (positive value means system time is ahead of UTC time).
 int arch_os_utc_set(uint32_t utc)
 {
     int ret = 0;
     uint32_t time_now = arch_os_time_now();
     struct timespec ts;
 
-    if (utc_offset != 0) { //非第一次读取标准时间
+    if (utc_offset != 0) { // Not the first time reading standard time.
 
-        ret = utc_offset + time_now - utc; //本地时间 和 标准时间 差
+        ret = utc_offset + time_now - utc; // Difference between local time and standard time.
 
-        //暂时不调整斜率，保持简单策略
-        //arch_os_time_tune(utc - utc_offset);	//用标准时间间隔 调整系统时间
+        // Temporarily do not adjust the slope, keep the simple strategy.
+        //arch_os_time_tune(utc - utc_offset);	// Adjust the system time with the standard time interval.
 
-        utc_offset = utc - time_now; //再一次设置标准时间
+        utc_offset = utc - time_now; // Set the standard time again.
     } else
-        utc_offset = utc - time_now; //第一次设置标准时间
+        utc_offset = utc - time_now; // Set the standard time for the first time.
 
     /* set CLOCK_REALTIME */
 

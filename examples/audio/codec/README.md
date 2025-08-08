@@ -1,4 +1,3 @@
-# Codec [中文](README_zh.md)
 
 **Special Note**: As of the latest update to this documentation, support for mic and speaker functionality is available. Loopback is pending further improvement.
 

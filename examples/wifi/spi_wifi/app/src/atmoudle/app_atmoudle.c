@@ -79,7 +79,7 @@ static void atspisync_fakepush_forpop_cmd(int argc, char **argv)
     int hascrlf;
     //spisync_msg_t msg;
 
-    if (argc < 2) {
+    if (argc < 2 || argv == NULL) {
         printf("Usage: at_fake <data_str> [hascrlf]\r\n");
         return;
     }
@@ -111,6 +111,10 @@ static void atspisync_fakepush_forpop_cmd(int argc, char **argv)
     buf_len = cmd_len;
 
     extern struct at_struct *at;
+    if (!at) {
+        printf("[ATMOULE] Error: at_struct is NULL\r\n");
+        goto fakepush_err;
+    }
     at->fakeoutput = 1;
 #if 0
     SPISYNC_MSGINIT(&msg,

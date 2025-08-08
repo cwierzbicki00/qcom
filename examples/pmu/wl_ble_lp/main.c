@@ -33,6 +33,7 @@
 #include "qcc74x_mtd.h"
 #include "easyflash.h"
 #include "clock_manager.h"
+#include "linear_allocator.h"
 
 #define DBG_TAG "MAIN"
 #include "log.h"
@@ -57,6 +58,8 @@
 #define WIFI_STACK_SIZE  (1536)
 #define TASK_PRIORITY_FW (16)
 
+#define PM_MEM_POOL_SIZE    (1460 *2)
+
 /****************************************************************************
  * Private Types
  ****************************************************************************/
@@ -66,62 +69,48 @@
  ****************************************************************************/
 int enable_multicast_broadcas = 0;
 static TaskHandle_t rxl_process_task_hd = NULL;
-
-#define PREALLOCATED_PBUF_COUNT 5
-#define PREALLOCATED_PBUF_SIZE  800
-
-typedef struct {
-    struct pbuf *pbufs[PREALLOCATED_PBUF_COUNT];
-    uint8_t alloc_idx;
-    uint8_t used_idx[PREALLOCATED_PBUF_COUNT];
-} pbuf_pool_cache_t;
-
-pbuf_pool_cache_t pbuf_pool_cache;
+static linear_allocator pm_mem;
+struct pbuf *pm_pbuf;
 
 int pm_sys_init(void)
 {
-    memset(&pbuf_pool_cache, 0, sizeof(pbuf_pool_cache));
-
+    memset(&pm_mem, 0, sizeof(linear_allocator));
     return 0;
 }
 
-int pm_pbuf_pool_alloc(void)
+int pm_mem_pool_alloc(void)                                                                                
+{                                                                                                          
+    pm_pbuf = pbuf_alloc(PBUF_RAW, PM_MEM_POOL_SIZE, PBUF_RAM);                                            
+                                                                                                           
+    if (!pm_pbuf) {                                                                                        
+        printf("!!!! pbuf alloc fail.\r\n");                                                               
+        return -1;                                                                                         
+    }                                                                                                      
+                                                                                                           
+    if (pm_pbuf->len < PM_MEM_POOL_SIZE) {                                                                 
+        printf("WARNING: pbuf actual len %d < expected pool size %d!\n", pm_pbuf->len, PM_MEM_POOL_SIZE);  
+    }                                                                                                      
+                                                                                                           
+    linear_allocator_init(&pm_mem, pm_pbuf->payload, pm_pbuf->len);                                        
+                                                                                                           
+    return 0;                                                                                              
+}                                                                                                          
+
+int pm_mem_pool_free(void)
 {
-    for (int i = 0; i < PREALLOCATED_PBUF_COUNT; i++) {
-        if (pbuf_pool_cache.pbufs[i]) {
-            return -1;
-        }
+    if (pm_pbuf) {
+        pbuf_free(pm_pbuf);
+        pm_pbuf = NULL;
     }
 
-    for (int i = 0; i < PREALLOCATED_PBUF_COUNT; i++) {
-        pbuf_pool_cache.pbufs[i] = pbuf_alloc(PBUF_RAW, PREALLOCATED_PBUF_SIZE, PBUF_RAM);
-
-        if (pbuf_pool_cache.pbufs[i]) {
-        } else {
-            printf("Pm pbuf alloc fail.\r\n");
-        }
-    }
-
-    return 0;
-}
-
-int pm_pbuf_pool_free(void)
-{
-    for (int i = 0; i < PREALLOCATED_PBUF_COUNT; i++) {
-        if (pbuf_pool_cache.pbufs[i]) {
-            pbuf_free(pbuf_pool_cache.pbufs[i]);
-            pbuf_pool_cache.pbufs[i] = NULL;
-        }
-        pbuf_pool_cache.used_idx[i] = 0;
-    }
-    pbuf_pool_cache.alloc_idx = 0;
+    linear_allocator_reset(&pm_mem);
 
     return 0;
 }
 
 uint32_t rxl_pbuf_pool_get(void)
 {
-    uint32_t addr = (uint32_t)&pbuf_pool_cache;
+    uint32_t addr = (uint32_t)&pm_mem;
 
     if ((addr & 0xF0000000) == 0x60000000) {
         addr = (addr & 0x0FFFFFFF) | 0x20000000;
@@ -130,49 +119,50 @@ uint32_t rxl_pbuf_pool_get(void)
     return addr;
 }
 
-int pm_enter_lp_perparation(void)
-{
-	int ret = 0;
-	int dtim = 0;
-	if (enable_multicast_broadcas) {
-    	ret = pm_pbuf_pool_alloc();
-    
-    	if (!ret) {
-        	lpfw_cfg.buf_addr = rxl_pbuf_pool_get();
-    	} else {
-        	lpfw_cfg.buf_addr = NULL;
-    	}
-	} else {
-    	lpfw_cfg.buf_addr = NULL;
-	}
-
-	dtim = wifi_mgmr_sta_get_listen_itv();
-
-	if (dtim < 0) {
-    	lpfw_cfg.dtim_origin = 10;
-	} else {
-    	lpfw_cfg.dtim_origin = dtim;
-	}
-
-	qcc74x_lp_fw_bcn_loss_cfg_dtim_default(lpfw_cfg.dtim_origin);
-
-	if (wifi_mgmr_sta_state_get()) {
-    	wifi_mgmr_sta_ps_enter();
-	}
-
-    return ret;
-}
-
-int pm_exit_lp_perparation(void)
-{
-    pm_pbuf_pool_free();
-	
-	if (wifi_mgmr_sta_state_get()) {
-    	wifi_mgmr_sta_ps_exit();
-	}
-
-    return 0;
-}
+int pm_enter_lp_perparation(void)                                        
+{                                                                        
+    int ret = 0;                                                         
+    int dtim = 0;                                                        
+    if (enable_multicast_broadcas) {                                     
+        ret = pm_mem_pool_alloc();                                       
+                                                                         
+        if (!ret) {                                                      
+            lpfw_cfg.buf_addr = rxl_pbuf_pool_get();                     
+        } else {                                                         
+            lpfw_cfg.buf_addr = NULL;                                    
+        }                                                                
+    } else {                                                             
+        lpfw_cfg.buf_addr = NULL;                                        
+    }                                                                    
+                                                                         
+    dtim = wifi_mgmr_sta_get_listen_itv();                               
+                                                                         
+    if (dtim < 0) {                                                      
+        lpfw_cfg.dtim_origin = 10;                                       
+    } else {                                                             
+        lpfw_cfg.dtim_origin = dtim;                                     
+    }                                                                    
+                                                                         
+    qcc74x_lp_fw_bcn_loss_cfg_dtim_default(lpfw_cfg.dtim_origin);        
+                                                                         
+    if (wifi_mgmr_sta_state_get()) {                                     
+        wifi_mgmr_sta_ps_enter();                                        
+    }                                                                    
+                                                                         
+    return ret;                                                          
+}                                                                        
+                                                                         
+int pm_exit_lp_perparation(void)                                         
+{                                                                        
+    pm_mem_pool_free();                                                  
+    lpfw_cfg.buf_addr = NULL;                                            
+                                                                         
+    if (wifi_mgmr_sta_state_get()) {                                     
+        wifi_mgmr_sta_ps_exit();                                         
+    }                                                                    
+                                                                         
+    return 0;                                                            
+}                                                                        
 
 int pm_enable_tickless(void)
 {
@@ -195,19 +185,15 @@ int pm_disable_tickless(void)
 static void process_multicase_broadcast(void *pvParameters)
 {
     struct pbuf *p;
-    int processed_count = 0;
 
     while (1) {
         ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 
-        while (processed_count < PREALLOCATED_PBUF_COUNT) {
-            p = pbuf_pool_cache.pbufs[processed_count];
-            if (p != NULL && p->payload && pbuf_pool_cache.used_idx[processed_count]) {
-                //printf("[RECV_TASK] Processing pbuf %d, len=%d idx\r\n", processed_count, p->len, processed_count);
-
-                //print_pbuf_contents(p, processed_count);
-
-                bool pbuf_consumed = false;
+        linear_allocator_iter_reset(&pm_mem);
+        p = (struct pbuf *)linear_allocator_next_ptr(&pm_mem);
+        while (p) {
+            if (p != NULL && p->payload) {
+                //print_pbuf_contents(p, 0);
 
                 if (netif_default && netif_default->input) {
                     err_t ret = netif_default->input(p, netif_default);
@@ -215,47 +201,13 @@ static void process_multicase_broadcast(void *pvParameters)
                         printf("[RECV_TASK] Failed to input pbuf to netif\r\n");
                         pbuf_free(p);
                     }
-                    pbuf_consumed = true;
                 } else {
-                    printf("[RECV_TASK] No valid netif, freeing pbuf\r\n");
-                    pbuf_free(p);
-                    pbuf_consumed = true;
-                }
-
-                if (pbuf_consumed) {
-                    pbuf_pool_cache.used_idx[processed_count] = 0;
-                    pbuf_pool_cache.pbufs[processed_count] = NULL;
-
-                    struct pbuf *new_pbuf = pbuf_alloc(PBUF_RAW, PREALLOCATED_PBUF_SIZE, PBUF_RAM);
-                    if (new_pbuf) {
-                        pbuf_pool_cache.pbufs[processed_count] = new_pbuf;
-                    } else {
-                        static int alloc_fail_count = 0;
-                        alloc_fail_count++;
-                        printf("[RECV_TASK] Total pbuf allocation failures: %d\r\n", alloc_fail_count);
-
-                        for (int retry = 0; retry < 3; retry++) {
-                            vTaskDelay(pdMS_TO_TICKS(10));
-                            new_pbuf = pbuf_alloc(PBUF_RAW, PREALLOCATED_PBUF_SIZE, PBUF_RAM);
-                            if (new_pbuf) {
-                                pbuf_pool_cache.pbufs[processed_count] = new_pbuf;
-                                printf("[RECV_TASK] Retry %d: Successfully reallocated pbuf %d\r\n",
-                                       retry + 1, processed_count);
-                                break;
-                            }
-                        }
-
-                        if (!new_pbuf) {
-                            printf("[RECV_TASK] CRITICAL: Cannot maintain pbuf pool integrity for slot %d\r\n", processed_count);
-                            //assert(0);
-                        }
-                    }
                 }
             }
-            processed_count++;
+            p = (struct pbuf *)linear_allocator_next_ptr(&pm_mem);
         }
 
-        processed_count = 0;
+        linear_allocator_reset(&pm_mem);
     }
 
     vTaskDelete(NULL);
@@ -489,6 +441,8 @@ GLB_GPIO_Type pinList[4] = {
 
 static int lp_exit(void *arg)
 {
+    int wakeup_reason;
+
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 
     set_cpu_bclk_80M_and_gate_clk();
@@ -507,9 +461,13 @@ static int lp_exit(void *arg)
     qcc74x_irq_attach(uart_shell->irq_num, uart_shell_isr, NULL);
     qcc74x_irq_enable(uart_shell->irq_num);
 
-    vTaskNotifyGiveFromISR(rxl_process_task_hd, &xHigherPriorityTaskWoken);
-    portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
-
+    wakeup_reason = qcc74x_lp_get_wake_reason();
+    if (wakeup_reason & LPFW_WAKEUP_WIFI_BROADCAST) {
+        vTaskNotifyGiveFromISR(rxl_process_task_hd, &xHigherPriorityTaskWoken);
+        portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+    } else {
+        linear_allocator_reset(&pm_mem);
+    }
 
     //GLB_GPIO_Func_Init(GPIO_FUN_JTAG, pinList, 4);
 
@@ -844,7 +802,7 @@ int main(void)
 #endif
 
     xTaskCreate(app_start_task, (char *)"app_start", 1024, NULL, 15, &app_start_handle);
-    xTaskCreate(process_multicase_broadcast, (char*)"hellow", 256, NULL, 10, &rxl_process_task_hd);
+    xTaskCreate(process_multicase_broadcast, (char*)"hellow", 300, NULL, 10, &rxl_process_task_hd);
     
     vTaskStartScheduler();
 

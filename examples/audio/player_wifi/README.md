@@ -1,4 +1,3 @@
-# Player Wifi Case[中文](README_zh.md)
 
 **Special Note**: Streaming audio is supported. For streaming media configuration, please refer to `multimedia_user.h`. You can tailor the streaming media functionality by modifying `multimedia_user.h`.
 

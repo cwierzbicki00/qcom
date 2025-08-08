@@ -1001,6 +1001,10 @@ struct cfgrwnx_twt_statusget_resp {
     uint8_t status;
     /// Total number of flows
     uint8_t flows;
+    /// ap twt supported
+    uint8_t twt_supported;
+    /// ap dtim
+    uint8_t dtim;
     struct twt_conf_tag conf[NX_TWT_FLOW_NB];
 };
 

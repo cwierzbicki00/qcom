@@ -65,6 +65,7 @@ void qcc74x_tpc_power_table_get(int8_t *power_table);
  */
 void qcc74x_sta_set_keepalive_period(uint8_t time_seconds);
 int qcc74x_wifi_sta_ps_active_ms(uint16_t active_ms);
+int twt_get_flow_num(void);
 
 #ifdef CFG_QCC74x_WIFI_PS_ENABLE
 /**

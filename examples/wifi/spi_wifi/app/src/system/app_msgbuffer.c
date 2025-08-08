@@ -13,7 +13,7 @@
 
 #define MAX_BUFFER_SIZE 1024
 
-// 定义全局变量，用于存储消息缓冲区的句柄
+// Define a global variable to store the handle of the message buffer.
 typedef struct _msgbuffer_desc {
     MessageBufferHandle_t msgbuffer;
     uint8_t cache_buffer[MAX_BUFFER_SIZE];
@@ -21,13 +21,13 @@ typedef struct _msgbuffer_desc {
 
 static msgbuffer_desc_t *s_tcmb = NULL;
 
-// 初始化消息缓冲区
+// Initialize the message buffer.
 void msgbuffer_init()
 {
     if (NULL == s_tcmb) {
         s_tcmb = pvPortMalloc(sizeof(msgbuffer_desc_t));
     }
-    // 创建消息缓冲区，指定缓冲区大小
+    // Create a message buffer and specify the buffer size.
     s_tcmb->msgbuffer = xMessageBufferCreate(MAX_BUFFER_SIZE);
     if (s_tcmb->msgbuffer == NULL) {
         printf("Failed to create message buffer\n");
@@ -36,7 +36,7 @@ void msgbuffer_init()
     }
 }
 
-// 写入数据到消息缓冲区
+// Write data to the message buffer.
 void msgbuffer_write(const char *data, size_t data_len)
 {
     size_t available_space;
@@ -52,9 +52,9 @@ void msgbuffer_write(const char *data, size_t data_len)
     printf("msgbuffer used:%d, free:%d(real can write = free - 4)\r\n",
             MAX_BUFFER_SIZE - available_space, available_space);
 
-    // 检查消息缓冲区是否已初始化
+    // Check if the message buffer has been initialized.
     if (s_tcmb->msgbuffer != NULL) {
-        // 写入数据到消息缓冲区
+        // Write data to the message buffer.
         current_len = xMessageBufferSend(s_tcmb->msgbuffer,
                                         data,
                                         data_len,
@@ -74,7 +74,7 @@ void msgbuffer_write(const char *data, size_t data_len)
             MAX_BUFFER_SIZE - available_space, available_space);
 }
 
-// 从消息缓冲区读取数据
+// Read data from the message buffer.
 void msgbuffer_read()
 {
     uint8_t *buffer;
@@ -87,22 +87,22 @@ void msgbuffer_read()
 
     buffer = s_tcmb->cache_buffer;
 
-    // 检查消息缓冲区是否已初始化
+    // Check if the message buffer has been initialized.
     if (s_tcmb->msgbuffer != NULL) {
-        // 获取消息缓冲区中可用空间大小
+        // Get the available space size in the message buffer.
         available_space = xMessageBufferSpaceAvailable(s_tcmb->msgbuffer);
         printf("msgbuffer used:%d, free:%d(real can write = free - 4)\r\n",
                 MAX_BUFFER_SIZE - available_space, available_space);
 
-        // 创建一个缓冲区用于存储读取到的数据
-        // 从消息缓冲区读取数据
+        // Create a buffer to store the read data.
+        // Read data from the message buffer.
         size_t bytes_read = xMessageBufferReceive(s_tcmb->msgbuffer,
                                     buffer,
                                     available_space,
                                     100);//portMAX_DELAY
         if (bytes_read > 0) {
-            // 将读取到的数据打印出来
-            buffer[bytes_read] = '\0'; // 添加字符串结束符
+            // Print the read data.
+            buffer[bytes_read] = '\0'; // Add a string terminator.
             printf("Data read from message buffer len:%d, buffer: %s\n",
                     bytes_read, buffer);
         } else {
@@ -117,7 +117,7 @@ void msgbuffer_read()
     }
 }
 
-// 清理消息缓冲区
+// Clear the message buffer.
 void msgbuffer_cleanup()
 {
     if (NULL == s_tcmb) {
@@ -129,7 +129,7 @@ void msgbuffer_cleanup()
     printf("Message buffer cleaned up\n");
 }
 
-// 命令行函数，用于解析命令并调用相应的功能函数
+// Command-line function to parse commands and invoke corresponding functions.
 void cmd_msgbuffer(int argc, char **argv)
 {
     if (argc < 2) {

@@ -233,7 +233,7 @@ static struct image_sensor_command_s gc0328_init_list[] = {
     {0x11, 0x11},
     {0x12, 0x10},
     // {0x13, 0x80},
-    {0x13, 0xB0}, //提高显示的亮度.
+    {0x13, 0xB0}, // Increase display brightness.
     {0x15, 0xfc},
     {0x18, 0x03},
     {0x21, 0xc0},
@@ -352,10 +352,10 @@ static struct image_sensor_command_s gc0328_init_list[] = {
     //{0x2f, 0x05},
     //{0x30, 0x00},
     //
-    //{0x31, 0x0f},    //夜间主循环7帧 //高位是4bit，即最大设为0x0f
+    //{0x31, 0x0f},    //Night main loop: 7 frames // High nibble is 4 bits (max value 0x0f)
     //{0x32, 0x00},   //low 8bit
     //
-    //{0x33, 0x30},    //4档曝光
+    //{0x33, 0x30},    //4 exposure levels
 
     //////////// Set Window /////////////
     //{0xfe, 0x00},

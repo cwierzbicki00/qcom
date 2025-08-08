@@ -36,6 +36,7 @@
 #include "stream_buffer.h"
 #include "virt_net_spi.h"
 #include "app_bt_hci.h"
+#include "dhcp_server.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -79,8 +80,10 @@ virt_net_t g_virt_eth;
 
 static int arg_parse(char *in, char *argv[])
 {
-    if (in == NULL || argv == NULL)
+    if (in == NULL || argv == NULL) {
+        printf("[ERROR] arg_parse: NULL input or argv\r\n");
         return 0;
+    }
 
     int argc = 0;
     char *start = NULL;
@@ -112,69 +115,85 @@ static int arg_parse(char *in, char *argv[])
 
 static int do_ips(int argc, char *argv[])
 {
-	char *ip_addr = NULL;
-
-	if (argc <= 1) {
-		printf("Please input ip addr\r\n");
-		return -1;
-	}
-	ip_addr = (char *)argv[1];
-	//at_iperf_tcp_rx_start(g_at_handle, ip_addr, 5001);
-	at_iperf_tcp_rx_fast_start(g_at_handle, ip_addr, 5001);
-	return 0;
+    char *ip_addr = NULL;
+    if (argc <= 1 || argv == NULL) {
+        printf("[ERROR] do_ips: Invalid arguments\r\n");
+        return -1;
+    }
+    ip_addr = (char *)argv[1];
+    if (g_at_handle == NULL) {
+        printf("[ERROR] do_ips: g_at_handle is NULL\r\n");
+        return -1;
+    }
+    //at_iperf_tcp_rx_start(g_at_handle, ip_addr, 5001);
+    at_iperf_tcp_rx_fast_start(g_at_handle, ip_addr, 5001);
+    return 0;
 }
 
 static int do_ipus(int argc, char *argv[])
 {
-	char *ip_addr = NULL;
-
-	if (argc <= 1) {
-		printf("Please input ip addr\r\n");
-		return -1;
-	}
-	ip_addr = argv[1];
-	//at_iperf_udp_rx_start(g_at_handle, ip_addr, 5001);
-	at_iperf_udp_rx_fast_start(g_at_handle, ip_addr, 5001);
-	return 0;
+    char *ip_addr = NULL;
+    if (argc <= 1 || argv == NULL) {
+        printf("[ERROR] do_ipus: Invalid arguments\r\n");
+        return -1;
+    }
+    ip_addr = argv[1];
+    if (g_at_handle == NULL) {
+        printf("[ERROR] do_ipus: g_at_handle is NULL\r\n");
+        return -1;
+    }
+    //at_iperf_udp_rx_start(g_at_handle, ip_addr, 5001);
+    at_iperf_udp_rx_fast_start(g_at_handle, ip_addr, 5001);
+    return 0;
 }
 
 static int do_ipu(int argc, char *argv[])
 {
-	char *ip_addr = NULL;
-
-	if (argc <= 1) {
-		printf("Please input ip addr\r\n");
-		return -1;
-	}
-	ip_addr = argv[1];
-	at_iperf_udp_tx_start(g_at_handle, ip_addr, 5001);
-	return 0;
+    char *ip_addr = NULL;
+    if (argc <= 1 || argv == NULL) {
+        printf("[ERROR] do_ipu: Invalid arguments\r\n");
+        return -1;
+    }
+    ip_addr = argv[1];
+    if (g_at_handle == NULL) {
+        printf("[ERROR] do_ipu: g_at_handle is NULL\r\n");
+        return -1;
+    }
+    at_iperf_udp_tx_start(g_at_handle, ip_addr, 5001);
+    return 0;
 }
 
 static int do_ipc(int argc, char *argv[])
 {
-	char *ip_addr = NULL;
-
-	if (argc <= 1) {
-		printf("Please input ip addr\r\n");
-		return -1;
-	}
-	ip_addr = argv[1];
-	at_iperf_tcp_tx_start(g_at_handle, ip_addr, 5001);
-	return 0;
+    char *ip_addr = NULL;
+    if (argc <= 1 || argv == NULL) {
+        printf("[ERROR] do_ipc: Invalid arguments\r\n");
+        return -1;
+    }
+    ip_addr = argv[1];
+    if (g_at_handle == NULL) {
+        printf("[ERROR] do_ipc: g_at_handle is NULL\r\n");
+        return -1;
+    }
+    at_iperf_tcp_tx_start(g_at_handle, ip_addr, 5001);
+    return 0;
 }
 
 static int do_iperf_udp_client(int argc, char *argv[])
 {
-	char *ip_addr = NULL;
-
-	if (argc <= 1) {
-		printf("Please input ip addr\r\n");
-		return -1;
-	}
-	ip_addr = argv[1];
-	iperf_start(1, 1, ip_addr);
-	return 0;
+    char *ip_addr = NULL;
+    if (argc <= 1 || argv == NULL) {
+        printf("[ERROR] do_iperf_udp_client: Invalid arguments\r\n");
+        return -1;
+    }
+    ip_addr = argv[1];
+    // Defensive: check ip_addr for NULL or empty string
+    if (ip_addr == NULL || ip_addr[0] == '\0') {
+        printf("[ERROR] do_iperf_udp_client: ip_addr is NULL or empty\r\n");
+        return -1;
+    }
+    iperf_start(1, 1, ip_addr);
+    return 0;
 }
 
 static int do_iperf_udp_server(int argc, char *argv[])
@@ -185,15 +204,14 @@ static int do_iperf_udp_server(int argc, char *argv[])
 
 static int do_iperf_tcp_client(int argc, char *argv[])
 {
-	char *ip_addr = NULL;
-
-	if (argc <= 1) {
-		printf("Please input ip addr\r\n");
-		return -1;
-	}
-	ip_addr = argv[1];
-	iperf_start(1, 0, ip_addr);
-	return 0;
+    char *ip_addr = NULL;
+    if (argc <= 1 || argv == NULL) {
+        printf("[ERROR] do_iperf_tcp_client: Invalid arguments\r\n");
+        return -1;
+    }
+    ip_addr = argv[1];
+    iperf_start(1, 0, ip_addr);
+    return 0;
 }
 
 static int do_iperf_tcp_server(int argc, char *argv[])
@@ -225,6 +243,57 @@ static int do_ota_start(int argc, char *argv[])
 static int do_ota_stop(int argc, char *argv[])
 {
 	at_ota_finish(g_at_handle);
+	return 0;
+}
+
+static void _wifi_ap_status_callback(struct netif *netif)
+{
+    uint32_t ipaddr;
+    
+    printf("sta_ip:\"%02x:%02x:%02x:%02x:%02x:%02x\",\"%s\"\r\n",
+            netif->hwaddr[0],
+            netif->hwaddr[1],
+            netif->hwaddr[2],
+            netif->hwaddr[3],
+            netif->hwaddr[4],
+            netif->hwaddr[5],
+            ip4addr_ntoa(&netif->ip_addr));
+}
+
+static int do_dhcpd_start(int argc, char *argv[])
+{
+	int netmode = -1;
+
+	//at_host_printf(g_at_handle, AT_HOST_RESP_EVT_OK, -1, "AT+CWSAP=\"QCC74x\",\"12345678\",6,0,3,0\r\n");
+
+	virt_net_get_netmode(g_virt_eth, &netmode);
+	if (netmode == VIRTNET_NET_MODE_LWIP_ONHOST) {
+
+		/*
+		 * You must wait for AT+CWSAP to return OK before configuring the AP network interface.
+		 */
+		struct netif *ap_netif;
+		char *ipaddr = NULL;
+		ip4_addr_t ip, netmask, gw;
+
+		if (argc >= 2) {
+			ipaddr = argv[1];
+			ip4addr_aton(ipaddr, &ip);
+			ip4addr_aton(ipaddr, &gw);
+		} else {
+			IP4_ADDR(&ip, 192, 168, 0, 1);
+			IP4_ADDR(&gw, 192, 168, 0, 1);
+		}
+
+		IP4_ADDR(&netmask, 255, 255, 255, 0);
+
+		ap_netif = VIRT_NET_NETIF(g_virt_eth, VIRT_NET_AP);
+		netifapi_netif_set_link_up(ap_netif);
+		netifapi_netif_set_addr(ap_netif, &ip, &netmask, &gw);
+		dhcpd_start(ap_netif, 2, 200);
+		vTaskDelay(pdMS_TO_TICKS(100));
+		dhcpd_status_callback_set(ap_netif, _wifi_ap_status_callback);
+	}
 	return 0;
 }
 
@@ -525,6 +594,7 @@ static const struct cmd_entry cmds[] = {
 	{"iperf_u_s", "", do_iperf_udp_server},
 	{"iperf_c", "", do_iperf_tcp_client},
 	{"iperf_s", "", do_iperf_tcp_server},
+	{"dhcpd_start", "", do_dhcpd_start},
 	{"hci_reset", "", do_hci_reset},
 	{"hci_scan", "Enable/Disable BLE Scanning, hci_scan <0 | 1>", do_hci_scan},
 	{"hci_adv_para", "", do_hci_adv_para},
@@ -664,10 +734,11 @@ static int _console_to_at(const char *buf, uint32_t len)
     if (ret < len) {
         printf("%s send fail\r\n", __func__);
     }
+
     return 0;
 }
 
-static int console_cli_run(const char *cmd)
+static int console_cli_run(const char *cmd, int len)
 {
 	int argc;
 	char *argv[CONSOLE_CMD_MAX_ARGS];
@@ -687,7 +758,7 @@ static int console_cli_run(const char *cmd)
 		goto err_out;
 	}
 
-	return _console_to_at(cmd, strlen(cmd));
+	return _console_to_at(cmd, len);
 #else
 	return cli_handle_one(cmd, argc, argv);
 #endif
@@ -725,10 +796,33 @@ static void uart_console_task(void *param)
 			/* new data arrives */
 			in += ret;
 
+          // Defensive: handle backspace and DEL (0x08, 0x7F)
+           while (out < in) {
+               char ch = buf[out];
+               if (ch == '\b' || ch == 0x7F) {
+                   if (out > 0) {
+                       // Remove the character before the backspace
+                       memmove(&buf[out - 1], &buf[out + 1], in - out - 1);
+                       in -= 2; // Remove both the char before and the backspace
+                       out--;
+                       // Echo backspace, space, backspace to erase on terminal
+                       printf("\b \b");
+                   } else {
+                       // If at the start, just remove the backspace itself
+                       memmove(&buf[out], &buf[out + 1], in - out - 1);
+                       in--;
+                   }
+                   // Do not increment out, as buffer has shifted
+                   continue;
+               }
+               out++;
+           }
+           out = 0; // Reset out for normal parsing below
+
             if (strstr(buf, "+++") != NULL) {
                 _console_to_at(buf, 3);
-                out = 3;
-                in -= out;
+                out = 0;
+                in = 0;
             }
 			/* parse received data */
 			while (in > out) {
@@ -754,7 +848,7 @@ static void uart_console_task(void *param)
 						int i;
 						for (i = 0; !buf[i] && i < out; i++);
 
-						console_cli_run(&buf[i]);
+						console_cli_run(&buf[i], out - i);
 
 						/* Resume the input buffer. */
 						buf[out] = saved;
@@ -835,6 +929,7 @@ static void virl_net_init_task(void *arg)
 
     virt_net_spi_t spi_eth = (virt_net_spi_t)g_virt_eth;
     g_at_handle = spi_eth->athandle;
+ 
     osThreadExit();
 }
 

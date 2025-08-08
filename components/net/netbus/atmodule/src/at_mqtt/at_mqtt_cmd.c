@@ -406,6 +406,7 @@ static void publish_callback_1(void** arg, struct mqtt_response_publish *publish
 {
     char *buffer;
     uint32_t len;
+    int offset = 0;
     int linkid = (int)(*arg);
 
     len = published->topic_name_size + published->application_message_size + 32;
@@ -416,15 +417,22 @@ static void publish_callback_1(void** arg, struct mqtt_response_publish *publish
         return;
     }
 
-    snprintf(buffer, len, "+MQTT:SUBRECV:%d,%d,%d,\"%.*s\",%.*s\r\n", 
+    offset = snprintf(buffer, len, "+MQTT:SUBRECV:%d,%d,%d,\"%.*s\",", 
              linkid, 
              (int)published->topic_name_size,  
              (int)published->application_message_size,
-             (int)published->topic_name_size, published->topic_name, 
-             (int)published->application_message_size, published->application_message);
+             (int)published->topic_name_size, published->topic_name); 
+    if (offset <= 0) {
+        printf("MQTT:SUBRECV error\r\n");
+        free(buffer);
+        return;
+    }
+    memcpy(buffer + offset, published->application_message, published->application_message_size);
+    offset += published->application_message_size;
+    memcpy(buffer + offset, "\r\n", 2);
+    offset += 2;
 
-
-    AT_CMD_DATA_SEND(buffer, strlen(buffer));
+    AT_CMD_DATA_SEND(buffer, offset);
 
     free(buffer);
 }
@@ -1073,7 +1081,7 @@ static int at_setup_cmd_mqttpubraw(int argc, const char **argv)
         ret = AT_RESULT_CODE_SEND_FAIL;
     }
  
-    if (mqtt_publish(&g_at_mqtt[linkid].client, (const char *)topic_name, buffer, strlen(buffer), publish_flags) != MQTT_OK) {
+    if (mqtt_publish(&g_at_mqtt[linkid].client, (const char *)topic_name, buffer, length, publish_flags) != MQTT_OK) {
         ret = AT_RESULT_CODE_SEND_FAIL;
     }
 

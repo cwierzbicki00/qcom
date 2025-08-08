@@ -12,18 +12,18 @@ extern "C" {
 #endif
 
 /*************************************************
- * 音频服务
+ * Audio service
  * type:
- *  0: 媒体播放
- *  1: 系统提示音播放
- *      每一个 type 只有一个播放实例，新的播放会替换旧的播放实例，
- *      提示音的播放会先暂停音乐播放，播放完成之后继续音乐播放
+ *  0: Media playback
+ *  1: System prompt sound playback
+ *      There is only one playback instance for each type. A new playback will replace the old one.
+ *      The playback of prompt sounds will first pause music playback and resume music playback after completion.
  *************************************************/
 
 typedef enum {
-    MEDIA_MUSIC  = 0, /*媒体播放*/
-    MEDIA_AV     = MEDIA_MUSIC, /*媒体播放*/
-    MEDIA_SYSTEM = 1, /*系统提示音播放*/
+    MEDIA_MUSIC  = 0,  /* Media playback */
+    MEDIA_AV     = MEDIA_MUSIC,  /* Media playback */
+    MEDIA_SYSTEM = 1,  /* System prompt sound playback */
     MEDIA_ALL    = 255,
 } aui_player_type_t;
 
@@ -75,7 +75,7 @@ typedef struct {
 } aui_val_change_t;
 
 /**
- * 播放器事件用户处理函数
+ * Player event user handler function.
  *
  * @param evt_id
  */

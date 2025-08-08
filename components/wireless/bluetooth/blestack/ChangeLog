@@ -1,4 +1,20 @@
 # Changes
+## 2025-07-22
+1. [blestack] Increase maximum supported GATT services from 2 to 3 (SERVER_MAX_SERVICES).
+
+## 2025-07-17
+1. [blestack] Add GATT API parameter invalid check.
+
+## 2025-07-02
+1. [blestack] support ble stack on qcc743d platform.
+2. [blestack] Optimize ble debug monitor, replace "BT_WARN" by "putchar" to avoid stack overflow.
+
+## 2025-06-16
+1. [blestack]Add bt_force_disable API to force disable host/controller.
+
+## 2025-06-13
+1. [blestack]Rename host assist API.
+
 ## 2025-05-16
 1. [blestack]Enable CONFIG_QCC74x_SDK at default settings(only qcc74x SDK).
 

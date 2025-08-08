@@ -99,6 +99,9 @@ struct spi_xfer_engine {
     struct spi_buffer *txbuf;
     /* Transfer statistics */
     struct spi_stat stat;
+
+    spi_rxd_notify_func_t cb[SPI_MSG_CTRL_TRAFFIC_TYPE_MAX];
+    void *cb_arg[SPI_MSG_CTRL_TRAFFIC_TYPE_MAX];
 };
 
 extern SPI_HandleTypeDef hspi1;
@@ -534,7 +537,11 @@ static int spi_xfer_one(struct spi_xfer_engine *engine, struct spi_buffer *txbuf
 				spi_trace(SPI_TP_NONE, "failed to send to type %d rxq, msg discarded\r\n", msg_type);
 				spi_buffer_free(rxbuf);
 				SPI_STAT_INC(&engine->stat, rx_drop, 1);
-			}
+			} else {
+                if (engine->cb[msg_type]) {
+                    engine->cb[msg_type](engine->cb_arg[msg_type]);
+                }
+            }
 		} else {
 			/* No queue bound for this type, discard message */
 			spi_trace(SPI_TP_NONE, "No queue bound for type %d, msg discarded\r\n", msg_type);
@@ -1134,6 +1141,16 @@ int spi_get_stats(struct spi_stat *stat)
 
 	*stat = xfer_engine.stat;
 	return 0;
+}
+
+int spi_rxd_callback_register(spi_msg_ctrl_t type, spi_rxd_notify_func_t cb, void *arg)
+{
+    if (type > SPI_MSG_CTRL_TRAFFIC_TYPE_MAX) {
+        return -1;
+    }
+    xfer_engine.cb[type] = cb;
+    xfer_engine.cb_arg[type] = arg;
+    return 0;
 }
 
 int spi_on_txn_data_ready(void)

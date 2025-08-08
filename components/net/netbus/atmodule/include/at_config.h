@@ -14,6 +14,9 @@
 extern "C" {
 #endif
 
+#include "at_main.h"
+#include "at_core.h"
+
 int at_config_read(const char *key, void *config, int len);
 
 int at_config_write(const char *key, void *config, int len);

@@ -896,7 +896,7 @@ static struct image_sensor_command_s gc2145_init_list[] = {
     {0x08 , 0x37},
 
     {0xfe , 0x01},//--------------- AEC
-    {0x01 , 0x04},//AEC_x1,*8,下同
+    {0x01 , 0x04},//AEC_x1,*8,Ditto
     {0x02 , 0xc0},//AEC_x2
     {0x03 , 0x04},//AEC_y1
     {0x04 , 0x90},//AEC_y2

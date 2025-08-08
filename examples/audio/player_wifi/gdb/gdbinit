@@ -18,21 +18,21 @@ end
 
 define task_list
 
-    printf "\r\n========== Ready状态 ==========\r\n"
+    printf "\r\n========== Ready State ==========\r\n"
     set $i = 0
     while ($i < 32)
         _task_list pxReadyTasksLists[$i]
         set $i = $i + 1
     end
 
-    printf "\r\n========== Delay状态 ==========\r\n"
+    printf "\r\n========== Delay State ==========\r\n"
     _task_list xDelayedTaskList1
     _task_list xDelayedTaskList2
 
-    printf "\r\n========== PendingReady状态 ==========\r\n"
+    printf "\r\n========== PendingReady State ==========\r\n"
     _task_list xPendingReadyList
 
-    printf "\r\n========== Suspend状态 ==========\r\n"
+    printf "\r\n========== Suspend State ==========\r\n"
     _task_list xSuspendedTaskList
 
 end

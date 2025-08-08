@@ -14,6 +14,7 @@ RM := rm -rf
 -include Middlewares/Third_Party/Wireless_Connectivity/LwIP/src/core/ipv6/subdir.mk
 -include Middlewares/Third_Party/Wireless_Connectivity/LwIP/src/core/ipv4/subdir.mk
 -include Middlewares/Third_Party/Wireless_Connectivity/LwIP/src/core/subdir.mk
+-include Middlewares/Third_Party/Wireless_Connectivity/LwIP/src/apps/lwip_dhcpd/subdir.mk
 -include Middlewares/Third_Party/Wireless_Connectivity/LwIP/src/api/subdir.mk
 -include Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang/subdir.mk
 -include Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM33_NTZ/non_secure/subdir.mk

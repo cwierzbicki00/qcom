@@ -310,19 +310,19 @@ void cmd_tg(int argc, char **argv) {
     char *str = NULL;
     uint32_t i, len = 0;
 
-    // 计算字符串总长度
+    // Calculate the total length of the string
     for (i = 1; i < argc; i++) {
-        len += strlen(argv[i]) + 1; // 加上空格
+        len += strlen(argv[i]) + 1; // Include spaces
     }
 
-    // 分配内存
+    // Allocate memory
     str = rtos_malloc(1 + len * sizeof(char));
     if (!str) {
         fhost_printf("cmd_tg alloc failed\r\n");
         return;
     }
 
-    // 连接字符串
+    // Concatenate strings
     str[0] = '\0';
     for (i = 1; i < argc; i++) {
         strcat(str, argv[i]);

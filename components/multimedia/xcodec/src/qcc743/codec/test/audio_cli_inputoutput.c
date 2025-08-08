@@ -113,7 +113,7 @@ static int _codec_auio_test(uint32_t timeout)
     output_config.mode = CODEC_OUTPUT_SINGLE_ENDED;
     output_config.sound_channel_num = 2;
     csi_codec_output_config(&g_cooutch, &output_config);
-    csi_codec_output_analog_gain(&g_cooutch, 0x0);   ///< 设置声音大小0x2f
+    csi_codec_output_analog_gain(&g_cooutch, 0x0);   ///< Set the sound volume to 0x2f
     csi_codec_output_digital_gain(&g_cooutch, 0xffad); // 0xffad
     //csi_codec_output_buffer_reset(&g_cooutch);
     csi_codec_output_link_dma(&g_cooutch, &g_dmachoutput_handle);

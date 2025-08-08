@@ -3,13 +3,15 @@ ifndef VERBOSE
 MAKEFLAGS += --no-print-directory
 endif
 
+BUILD_DIR?=build
+
 command_flash = $(QCC74x_FLASH_PROGRAM) --interface=uart --baudrate=$(BAUDRATE) \
 	--port=$(COMX) --cpu_id=$(CPU_ID) --config=flash_prog_cfg.ini
 command_efuse = $(QCC74x_FLASH_PROGRAM) --interface=uart --baudrate=$(BAUDRATE) \
-	--port=$(COMX) --efuse=build/build_out/efusedata.bin
+	--port=$(COMX) --efuse=$(BUILD_DIR)/build_out/efusedata.bin
 command_puncover = $(PUNCOVER_PROGRAM) \
-	--elf_file ./build/build_out/*.elf --map_file ./build/build_out/*.map \
-	--build_dir ./build --src_root ${QCC74x_SDK_BASE} --port 5001
+	--elf_file ./$(BUILD_DIR)/build_out/*.elf --map_file ./$(BUILD_DIR)/build_out/*.map \
+	--build_dir ./$(BUILD_DIR) --src_root ${QCC74x_SDK_BASE} --port 5001
 
 ifeq ($(OS),Windows_NT)
 CMAKE = $(QCC74x_SDK_BASE)/tools/cmake/bin/cmake.exe
@@ -55,7 +57,7 @@ CPU_ID ?=
 CONFIG_ROMAPI ?=y
 CONFIG_DEBUG ?=y
 CONFIG_TLSF ?=y
-CONFIG_COREDUMP ?=y
+CONFIG_COREDUMP ?= 1
 CONFIG_ANTI_ROLLBACK ?= n
 CONFIG_APP_ANTI_ROLLBACK_VER ?= 0
 CONFIG_XTAL_POWER_TYPE_ACTIVE ?= n
@@ -80,32 +82,44 @@ cmake_definition+= -DCONFIG_ANTI_ROLLBACK=$(CONFIG_ANTI_ROLLBACK)
 cmake_definition+= -DCONFIG_APP_ANTI_ROLLBACK_VER=$(CONFIG_APP_ANTI_ROLLBACK_VER)
 cmake_definition+= -DCONFIG_XTAL_POWER_TYPE_ACTIVE=$(CONFIG_XTAL_POWER_TYPE_ACTIVE)
 cmake_definition+= -DCONFIG_PROJECT_PARAM="${PROJECT_PARAM}"
+cmake_definition+= -DBUILD_DIR=$(BUILD_DIR)
 
-build:Makefile
-	$(CMAKE) -S . -B build -G $(cmake_generator) $(cmake_definition)
-	$(MAKE) -C build pre_build
-	$(MAKE) -C build -j8
-	$(MAKE) -C build combine
-	$(MAKE) -C build post_build
+$(BUILD_DIR):Makefile cmake_cache
+	$(MAKE) -C $(BUILD_DIR) pre_build
+	$(MAKE) -C $(BUILD_DIR) -j8
+	$(MAKE) -C $(BUILD_DIR) combine
+	$(MAKE) -C $(BUILD_DIR) post_build
+
+cmake_cache:
+	$(CMAKE) -S . -B $(BUILD_DIR) -G $(cmake_generator) $(cmake_definition)
+
+app_deps:
+	@DIR=$(BUILD_DIR) sh -c 'find $${DIR} -mindepth 4 -name CMakeFiles |while read x; do y=$${x##$${DIR}/build_out/}; echo $${y%%CMakeFiles}; done'
 
 ninja:Makefile
-	$(CMAKE) -S . -B build -G Ninja $(cmake_definition)
-	cd build && ninja pre_build && ninja && ninja combine && ninja post_build
+	$(CMAKE) -S . -B $(BUILD_DIR) -G Ninja $(cmake_definition)
+	cd $(BUILD_DIR) && ninja pre_build && ninja && ninja combine && ninja post_build
 
 clean::
-	$(RM) build
+	$(RM) $(BUILD_DIR)
 
 # Pack built outs and clean
 pack_clean::
 	proj_name=`find . -name "*.elf" | xargs basename -s .elf`; \
-	tar czvf $${proj_name}_imgs.tar.gz build/build_out/$${proj_name}.*;
-	$(RM) build
+	tar czvf $${proj_name}_imgs.tar.gz $(BUILD_DIR)/build_out/$${proj_name}.*;
+	$(RM) $(BUILD_DIR)
 
 menuconfig::
 	python $(QCC74x_SDK_BASE)/tools/kconfig/menuconfig.py
 
 flash:
 	$(command_flash)
+
+whole:
+	$(CMAKE) -E copy flash_prog_cfg.ini $(BUILD_DIR)/flash_prog_cfg.ini
+	sed -i 's/\.\/build/\./g' $(BUILD_DIR)/flash_prog_cfg.ini
+	$(CMAKE) -E chdir $(BUILD_DIR) ../$(command_flash) --build
+	$(CMAKE) -E copy ${QCC74x_SDK_BASE}/tools/qcc74x_tools/QConn_Flash/chips/$(CHIP)/img_create/whole_flash_data.bin $(BUILD_DIR)/whole_flash_data.bin
 
 efuse:
 	$(command_efuse)
@@ -114,6 +128,6 @@ puncover:
 	$(command_puncover)
 
 size:
-	$(MAKE) -C build size_report
+	$(MAKE) -C $(BUILD_DIR) size_report
 
-.PHONY:build clean menuconfig ninja flash efuse puncover size
+.PHONY:$(BUILD_DIR) clean menuconfig ninja flash efuse puncover size

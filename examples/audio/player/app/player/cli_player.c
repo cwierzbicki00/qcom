@@ -20,7 +20,7 @@
 #define TAG "player"
 
 /******************************************************
- * 测试音播放
+ * Test tone playback.
  *****************************************************/
 #include "avutil/named_straightfifo.h"
 static volatile int g_task_play_sin_is_run = 0;
@@ -87,9 +87,9 @@ static void play_sin(int second)
         second = 30;
     }
 
-    /*每秒32000 + 36*/
-    wav_head_int[1]  = 32000 * second + 36; /*wav 文件大小 - 8*/
-    wav_head_int[10] = 32000 * second;      /* PCM数据字节数 */
+    /* 32000 per second + 36  */
+    wav_head_int[1]  = 32000 * second + 36; /* WAV file size - 8 */
+    wav_head_int[10] = 32000 * second;      /* Number of PCM data bytes */
 
     fifo = nsfifo_open("fifo://sintest", MSP_FS_CREAT, 16000 / 1000 * 16 / 8 * 10 * 400);
     if (!fifo){
@@ -298,7 +298,7 @@ static int cli_player_proc(int argc, char **argv)
         int gain = atoi(argv[2]);
         printf("set out gain %d", gain);
         board_audio_out_set_gain(0, gain);
-        /* 重新初始化更新增益参数 */
+        /* Re-initialize and update the gain parameters */
         board_audio_init();
 #endif
 #if defined(CONFIG_BT_BREDR) && (CONFIG_BT_BREDR == 1)

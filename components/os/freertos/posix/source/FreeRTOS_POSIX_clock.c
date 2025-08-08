@@ -38,6 +38,8 @@
 #include "FreeRTOS_POSIX/time.h"
 #include "FreeRTOS_POSIX/utils.h"
 
+static uint64_t g_time_offset_ms = 0;
+
 /* Declaration of snprintf. The header stdio.h is not included because it
  * includes conflicting symbols on some platforms. */
 extern int snprintf( char * s,
@@ -97,9 +99,6 @@ int clock_gettime( clockid_t clock_id,
      * behavior of signed integer overflow is undefined. */
     uint64_t ullTickCount = 0ULL;
 
-    /* Silence warnings about unused parameters. */
-    ( void ) clock_id;
-
     /* Get the current tick count and overflow count. vTaskSetTimeOutState()
      * is used to get these values because they are both static in tasks.c. */
     vTaskSetTimeOutState( &xCurrentTime );
@@ -110,6 +109,15 @@ int clock_gettime( clockid_t clock_id,
 
     /* Add the current tick count. */
     ullTickCount += xCurrentTime.xTimeOnEntering;
+
+    if (clock_id == CLOCK_MONOTONIC) {
+
+    } else if (clock_id == CLOCK_REALTIME) {
+        ullTickCount = ullTickCount + (g_time_offset_ms * configTICK_RATE_HZ / 1000);
+    } else {
+        errno = EINVAL;
+        return -1;
+    }
 
     /* Convert ullTickCount to timespec. */
     UTILS_NanosecondsToTimespec( ( int64_t ) ullTickCount * NANOSECONDS_PER_TICK, tp );
@@ -129,7 +137,6 @@ int clock_nanosleep( clockid_t clock_id,
     struct timespec xCurrentTime = { 0 };
 
     /* Silence warnings about unused parameters. */
-    ( void ) clock_id;
     ( void ) rmtp;
     ( void ) flags; /* This is only ignored if INCLUDE_vTaskDelayUntil is 0. */
 
@@ -140,7 +147,7 @@ int clock_nanosleep( clockid_t clock_id,
     }
 
     /* Get current time */
-    if( ( iStatus == 0 ) && ( clock_gettime( CLOCK_REALTIME, &xCurrentTime ) != 0 ) )
+    if( ( iStatus == 0 ) && ( clock_gettime( clock_id, &xCurrentTime ) != 0 ) )
     {
         iStatus = EINVAL;
     }
@@ -151,7 +158,7 @@ int clock_nanosleep( clockid_t clock_id,
         if( ( flags & TIMER_ABSTIME ) == TIMER_ABSTIME )
         {
             /* Get current time */
-            if( clock_gettime( CLOCK_REALTIME, &xCurrentTime ) != 0 )
+            if( clock_gettime( clock_id, &xCurrentTime ) != 0 )
             {
                 iStatus = EINVAL;
             }
@@ -196,15 +203,25 @@ int clock_nanosleep( clockid_t clock_id,
 int clock_settime( clockid_t clock_id,
                    const struct timespec * tp )
 {
-    /* Silence warnings about unused parameters. */
-    ( void ) clock_id;
-    ( void ) tp;
+    uint64_t time_ms = 0;
+    TimeOut_t xCurrentTime = { 0 };
+    uint64_t ullTickCount = 0ULL;
 
-    /* This function is currently unsupported. It will always return -1 and
-     * set errno to EPERM. */
-    errno = EPERM;
+    /* only CLOCK_REALTIME can be set */
+    if ((clock_id != CLOCK_REALTIME) || (tp == NULL) || (tp->tv_nsec < 0) || (tp->tv_nsec >= 1000000000UL)) {
+        errno = EINVAL;
+        return -1;
+    }
+    time_ms = (tp->tv_sec * 1000) + (tp->tv_nsec / 1000000);
 
-    return -1;
+    vTaskSetTimeOutState( &xCurrentTime );
+
+    ullTickCount = ( uint64_t ) ( xCurrentTime.xOverflowCount ) << ( sizeof( TickType_t ) * 8 );
+
+    ullTickCount += xCurrentTime.xTimeOnEntering;
+
+    g_time_offset_ms = time_ms - (ullTickCount * portTICK_PERIOD_MS);
+    return 0;
 }
 
 /*-----------------------------------------------------------*/

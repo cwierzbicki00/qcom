@@ -491,7 +491,7 @@ static void ble_notification_all_cb(struct bt_conn *conn, u16_t handle,const voi
         return;
     }
     memset(rdata,0,(32 + length));
-    data_len = sprintf(rdata, "+BLE:NOTIDATA:%d,%d,",conn_data->idx,length);
+    data_len = sprintf(rdata, "+BLE:NOTIDATA:%d,%d,%d,",conn_data->idx,handle,length);
     memcpy(rdata + data_len, data, length);
     data_len += length;
     memcpy(rdata + data_len, "\r\n", 2);
@@ -1730,11 +1730,15 @@ struct ble_discover_data
     struct ble_disc_char disc_char[BLE_GATTC_CHAR_MAX_NUM];
 };
 
-static struct ble_discover_data* g_ble_disc_srv =NULL;
+struct ble_client_disc
+{
+   struct ble_discover_data disc_srv[BLE_GATTC_SRV_MAX_NUM];
+};
+static struct ble_client_disc* g_ble_disc_srv =NULL;
 
 static void ble_disc_srv_clean(void)
 {
-    memset(g_ble_disc_srv, 0, sizeof(struct ble_discover_data)*BLE_GATTC_SRV_MAX_NUM);
+    memset(g_ble_disc_srv, 0, sizeof(struct ble_client_disc)*MAX_BLE_CONN);
     if(g_ble_disc_srv != NULL)
         vPortFree(g_ble_disc_srv);
     g_ble_disc_srv = NULL;
@@ -1745,65 +1749,67 @@ static int ble_disc_srv_set(int idx,char *uuid, uint16_t start_handle, uint16_t 
     int i;
 
     for (i = 0; i < BLE_GATTC_SRV_MAX_NUM; i++) {
-        if (g_ble_disc_srv[i].valid == 0) {
-            g_ble_disc_srv[i].valid = 1;
-            g_ble_disc_srv[i].conn_idx = idx;
-            strcpy(g_ble_disc_srv[i].uuid, uuid);
-            g_ble_disc_srv[i].start_handle = start_handle;
-            g_ble_disc_srv[i].end_handle = end_handle;
-            g_ble_disc_srv[i].type = type;
+        if (g_ble_disc_srv[idx].disc_srv[i].valid == 0) {
+            g_ble_disc_srv[idx].disc_srv[i].valid = 1;
+            g_ble_disc_srv[idx].disc_srv[i].conn_idx = idx;
+            strcpy(g_ble_disc_srv[idx].disc_srv[i].uuid, uuid);
+            g_ble_disc_srv[idx].disc_srv[i].start_handle = start_handle;
+            g_ble_disc_srv[idx].disc_srv[i].end_handle = end_handle;
+            g_ble_disc_srv[idx].disc_srv[i].type = type;
             return 1;
         }
     }
 
     return 0;
 }
-static int ble_disc_srv_handle_check(uint16_t handle)
+static int ble_disc_srv_handle_check(uint16_t handle,int idx)
 {
     int i;
     for (i = 0; i < BLE_GATTC_SRV_MAX_NUM; i++) {
-        if (g_ble_disc_srv[i].valid == 1 && g_ble_disc_srv[i].start_handle <= handle && g_ble_disc_srv[i].end_handle >= handle) {
+        if (g_ble_disc_srv[idx].disc_srv[i].valid == 1 && g_ble_disc_srv[idx].disc_srv[i].start_handle <= handle && g_ble_disc_srv[idx].disc_srv[i].end_handle >= handle) {
             return 1;
         }
     }
     return 0;
 }
-static void ble_disc_srv_clean_char(int srv_idx)
+static void ble_disc_srv_clean_char(int srv_idx,int idx)
 {
     int index = srv_idx - 1;
  
     if (index < 0 || index >= BLE_GATTC_SRV_MAX_NUM)
         return NULL;
-
-    memset(&g_ble_disc_srv[index].disc_char, 0, sizeof(g_ble_disc_srv[index].disc_char));
+    for(int i = 0; i < BLE_GATTC_CHAR_MAX_NUM; i++)
+    {
+        memset(&g_ble_disc_srv[idx].disc_srv[index].disc_char[i], 0, sizeof(g_ble_disc_srv[idx].disc_srv[index].disc_char[i]));
+    }
+   
 }
 
-static struct ble_discover_data *ble_disc_srv_get_char(int srv_idx)
+static struct ble_discover_data *ble_disc_srv_get_char(int srv_idx,int idx)
 {
     int index = srv_idx - 1;
 
     if (index < 0 || index >= BLE_GATTC_SRV_MAX_NUM)
         return NULL;
 
-    if (g_ble_disc_srv[index].valid == 0)
+    if (g_ble_disc_srv[idx].disc_srv[index].valid == 0)
         return NULL;
-
-    return &g_ble_disc_srv[index];
+    return &g_ble_disc_srv[idx].disc_srv[index];
 }
 
-static int ble_disc_srv_set_char(int srv_idx, char *uuid, uint16_t handle, uint16_t value_handle, uint32_t props)
+static int ble_disc_srv_set_char(int idx,int srv_idx, char *uuid, uint16_t handle, uint16_t value_handle, uint32_t props)
 {
     int index = srv_idx - 1;
     int i;
 
-    if (g_ble_disc_srv[index].valid) {
+    if (g_ble_disc_srv[idx].disc_srv[index].valid) {
         for (i = 0; i < BLE_GATTC_CHAR_MAX_NUM; i++) {
-            if (g_ble_disc_srv[index].disc_char[i].valid == 0) {
-                g_ble_disc_srv[index].disc_char[i].valid = 1;
-                strcpy(g_ble_disc_srv[index].disc_char[i].uuid, uuid);
-                g_ble_disc_srv[index].disc_char[i].char_handle = handle;
-                g_ble_disc_srv[index].disc_char[i].char_value_handle = value_handle;
-                g_ble_disc_srv[index].disc_char[i].char_props = props;
+            if (g_ble_disc_srv[idx].disc_srv[index].disc_char[i].valid == 0) {
+                g_ble_disc_srv[idx].disc_srv[index].disc_char[i].valid = 1;
+                strcpy(g_ble_disc_srv[idx].disc_srv[index].disc_char[i].uuid, uuid);
+                g_ble_disc_srv[idx].disc_srv[index].disc_char[i].char_handle = handle;
+                g_ble_disc_srv[idx].disc_srv[index].disc_char[i].char_value_handle = value_handle;
+                g_ble_disc_srv[idx].disc_srv[index].disc_char[i].char_props = props;
                 return 1;
             }
         }
@@ -1849,9 +1855,11 @@ static u8_t ble_discover_func(struct bt_conn *conn, const struct bt_gatt_attr *a
                 bt_uuid_to_str(gatt_chrc->uuid, str, sizeof(str));
                 AT_BLE_PRINTF("Characteristic %s found: attr->handle %x  chrc->handle %x \r\n", str, attr->handle,gatt_chrc->value_handle);
                 props = print_chrc_props(gatt_chrc->properties);
-
-                if (!ble_disc_srv_set_char(g_ble_discover_service_index, str, attr->handle, gatt_chrc->value_handle, props))
-                    AT_BLE_PRINTF("Service num exceeds %d\r\n", BLE_GATTC_CHAR_MAX_NUM);
+                if(at_ble_get_idx_by_conn(conn)>=0)
+                {
+                    if (!ble_disc_srv_set_char(at_ble_get_idx_by_conn(conn),g_ble_discover_service_index, str, attr->handle, gatt_chrc->value_handle, props))
+                        AT_BLE_PRINTF("Service num exceeds %d\r\n", BLE_GATTC_CHAR_MAX_NUM);
+                }
                 break;
             case BT_GATT_DISCOVER_INCLUDE:
                 gatt_include = attr->user_data;
@@ -1878,13 +1886,8 @@ int at_ble_gattc_service_discover(int idx, int timeout)
     conn_data = ble_conn_data_get_by_idx(idx);
     if (conn_data == NULL || conn_data->state != BLE_CONN_STATE_CONNECTED)
         return 0;
-    for(int i = 0;i<BLE_GATTC_SRV_MAX_NUM;i++)
-    {
-        if(g_ble_disc_srv[i].conn_idx == idx)
-        {
-            memset(&g_ble_disc_srv[i], 0, sizeof(struct ble_discover_data));
-        }    
-    }
+
+    memset(&g_ble_disc_srv[idx], 0, sizeof(struct ble_client_disc));
     g_ble_discover_finish = 0;
     g_ble_discover_type = 1; //discover primary services
 
@@ -1932,8 +1935,8 @@ int at_ble_gattc_service_discover(int idx, int timeout)
     }
 
     for (i = 0; i < BLE_GATTC_SRV_MAX_NUM; i++) {
-        if (g_ble_disc_srv[i].valid && g_ble_disc_srv[i].conn_idx == idx) {
-            at_response_string("+BLE:SRV:%d,%d,%s,%d,%d,%d\r\n", idx, i + 1, g_ble_disc_srv[i].uuid, g_ble_disc_srv[i].type,g_ble_disc_srv[i].start_handle,g_ble_disc_srv[i].end_handle);
+        if (g_ble_disc_srv[idx].disc_srv[i].valid) {
+            at_response_string("+BLE:SRV:%d,%d,%s,%d,%d,%d\r\n", idx, i + 1, g_ble_disc_srv[idx].disc_srv[i].uuid, g_ble_disc_srv[idx].disc_srv[i].type,g_ble_disc_srv[idx].disc_srv[i].start_handle,g_ble_disc_srv[idx].disc_srv[i].end_handle);
         }
     }
 
@@ -1951,13 +1954,13 @@ int at_ble_gattc_service_char_discover(int idx, int srv_idx, int timeout)
     if (conn_data == NULL || conn_data->state != BLE_CONN_STATE_CONNECTED)
         return 0;
 
-    discover_data = ble_disc_srv_get_char(srv_idx);
+    discover_data = ble_disc_srv_get_char(srv_idx,idx);
     if (discover_data == NULL)
         return 0;
    
     g_ble_discover_finish = 0;
     g_ble_discover_service_index = srv_idx;
-    ble_disc_srv_clean_char(srv_idx);
+    ble_disc_srv_clean_char(srv_idx,idx);
 
     g_ble_discover_params.func = ble_discover_func;
     g_ble_discover_params.start_handle = discover_data->start_handle;
@@ -2011,7 +2014,7 @@ int at_ble_subscribe(int idx, int ccc_handle, int value_handle,int value)
     conn_data = ble_conn_data_get_by_idx(idx);
     if (conn_data == NULL || conn_data->state != BLE_CONN_STATE_CONNECTED)
         return 0;
-    if(!ble_disc_srv_handle_check(value_handle)||!ble_disc_srv_handle_check(ccc_handle))
+    if(!ble_disc_srv_handle_check(value_handle,idx)||!ble_disc_srv_handle_check(ccc_handle,idx))
     {
         AT_BLE_PRINTF("Unsubscribe failed (err: Invalid handle)\r\n");
         return 0;
@@ -2053,7 +2056,7 @@ int at_ble_unsubscribe(int idx, int value_handle)
     conn_data = ble_conn_data_get_by_idx(idx);
     if (conn_data == NULL || conn_data->state != BLE_CONN_STATE_CONNECTED)
         return 0;
-    if(!ble_disc_srv_handle_check(value_handle))
+    if(!ble_disc_srv_handle_check(value_handle,idx))
     {
         AT_BLE_PRINTF("Unsubscribe failed (err: Invalid handle)\r\n");
         return 0;
@@ -2099,7 +2102,7 @@ int at_ble_gattc_service_write(int idx, int srv_idx, int char_idx, void * buffer
     if (conn_data == NULL || conn_data->state != BLE_CONN_STATE_CONNECTED)
         return 0;
 
-    discover_data = ble_disc_srv_get_char(srv_idx);
+    discover_data = ble_disc_srv_get_char(srv_idx,idx);
     if (discover_data == NULL)
         return 0;
 
@@ -2188,7 +2191,7 @@ static u8_t ble_read_func(struct bt_conn *conn, u8_t err, struct bt_gatt_read_pa
         return BT_GATT_ITER_STOP;
     }
 
-    return BT_GATT_ITER_CONTINUE;
+    return BT_GATT_ITER_STOP;
 }
 
 int at_ble_gattc_service_read(int idx, int srv_idx, int char_idx, int timeout)
@@ -2203,7 +2206,7 @@ int at_ble_gattc_service_read(int idx, int srv_idx, int char_idx, int timeout)
     if (conn_data == NULL || conn_data->state != BLE_CONN_STATE_CONNECTED)
         return 0;
 
-    discover_data = ble_disc_srv_get_char(srv_idx);
+    discover_data = ble_disc_srv_get_char(srv_idx,idx);
     if (discover_data == NULL)
         return 0;
 
@@ -2419,13 +2422,14 @@ int at_ble_init(int role)
                 if(g_ble_role==BLE_SERVER)
                 {
                     ble_gatts_srv_clean();
+                    at_ble_gatts_service_register(0);
 
                 }
                 if(g_ble_role == BLE_CLIENT)
                 {
                     ble_disc_srv_clean();
                 }
-                if(bt_disable())
+                if(bt_force_disable())
                 {
                     return -1;
                 }
@@ -2447,9 +2451,9 @@ int at_ble_init(int role)
     if(g_ble_role == BLE_CLIENT)
     {
         if(g_ble_disc_srv == NULL)
-            g_ble_disc_srv = pvPortMalloc(sizeof(struct ble_discover_data)*BLE_GATTC_SRV_MAX_NUM);
+            g_ble_disc_srv = pvPortMalloc(sizeof(struct ble_client_disc)*MAX_BLE_CONN);
         
-        memset(g_ble_disc_srv, 0, sizeof(struct ble_discover_data)*BLE_GATTC_SRV_MAX_NUM);
+        memset(g_ble_disc_srv, 0, sizeof(struct ble_client_disc)*MAX_BLE_CONN);
         bt_gatt_register_notification_callback(ble_notification_all_cb);
     }
     if(g_ble_role == BLE_SERVER)

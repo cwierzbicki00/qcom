@@ -18,21 +18,11 @@ int main(void)
     qcc74x_mtd_info_t info;
     qcc74x_mtd_handle_t handle;
     int ret;
+    uint32_t offset;
+    size_t size;
 
     board_init();
-
-    qcc74x_mtd_init();
-    ret = qcc74x_mtd_open("core", &handle, QCC74x_MTD_OPEN_FLAG_BUSADDR);
-    if (ret < 0) {
-        puts("No valid coredump partition found\r\n");
-    }
-    memset(&info, 0, sizeof(info));
-    qcc74x_mtd_info(handle, &info);
-    printf("Found Valid coredump partition, XIP Addr %08x, flash addr %08x, size %d\r\n",
-           info.xip_addr,
-           info.offset,
-           info.size);
-    core_partition_init(info.offset, info.size);
+    core_partition_init();
 
     uart0 = qcc74x_device_get_by_name("uart0");
     shell_init_with_task(uart0);

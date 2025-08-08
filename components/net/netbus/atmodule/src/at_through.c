@@ -27,6 +27,9 @@ static int g_through_report_tag = 0;
 
 int at_through_input(uint8_t *data, int32_t len)
 {
+    if (!data || len <= 0) {
+        return -1;
+    }
 #ifdef CONFIG_NETWORK
     int linkid = 0;
 

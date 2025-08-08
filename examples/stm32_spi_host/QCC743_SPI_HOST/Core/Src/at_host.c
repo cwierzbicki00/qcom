@@ -115,10 +115,15 @@ static int _at_read(at_host_handle_t handle, uint8_t *buf, uint32_t len)
 
 static void __at_rx_task(void *arg)
 {
-	int ret;
-	at_host_handle_t handle = (at_host_handle_t)arg;
-	static char evt_head[RECV_BUF_BYTES];
-	struct _fount_list found_list[10];
+    int ret;
+    at_host_handle_t handle = (at_host_handle_t)arg;
+    if (!handle) {
+        printf("Error: NULL handle in __at_rx_task.\n");
+        vTaskDelete(NULL);
+        return;
+    }
+    static char evt_head[RECV_BUF_BYTES];
+    struct _fount_list found_list[10];
 
 	printf("at rx start\r\n");
 
@@ -144,35 +149,48 @@ static void __at_rx_task(void *arg)
 
 static int at_resp_ok(at_host_handle_t at, const char *cmd, int len)
 {
-	osEventFlagsSet(at->evt, AT_HOST_RESP_EVT_OK);
+    if (!at || !at->evt) {
+        printf("Error: NULL at or evt in at_resp_ok.\n");
+        return -1;
+    }
+    osEventFlagsSet(at->evt, AT_HOST_RESP_EVT_OK);
 	//printf("at_resp_ok\r\n");
 	return 0;
 }
 
 static int at_resp_wait_data(at_host_handle_t at, const char *cmd, int len)
 {
-	osEventFlagsSet(at->evt, AT_HOST_RESP_EVT_WAIT_DATA|AT_HOST_RESP_EVT_OK);
+    if (!at || !at->evt) {
+        printf("Error: NULL at or evt in at_resp_wait_data.\n");
+        return -1;
+    }
+    osEventFlagsSet(at->evt, AT_HOST_RESP_EVT_WAIT_DATA|AT_HOST_RESP_EVT_OK);
 	//printf("at_resp_wait_data\r\n");
 	return 0;
 }
 
 static int at_resp_send_ok(at_host_handle_t at, const char *cmd, int len)
 {
-	osEventFlagsSet(at->evt, AT_HOST_RESP_EVT_SEND_OK);
+    if (!at || !at->evt) {
+        printf("Error: NULL at or evt in at_resp_send_ok.\n");
+        return -1;
+    }
+    osEventFlagsSet(at->evt, AT_HOST_RESP_EVT_SEND_OK);
 	return 0;
 }
 
 static int at_resp_recv_btyes(at_host_handle_t at, const char *cmd, int len)
 {
-	int data_len = 0;
-
-    sscanf(cmd, "Recv %d bytes\r\n", &data_len);
-
-    if (data_len > 0) {
-    	osEventFlagsSet(at->evt, AT_HOST_RESP_EVT_RECV_BTYES);
+    int data_len = 0;
+    if (!at || !at->evt) {
+        printf("Error: NULL at or evt in at_resp_recv_btyes.\n");
+        return -1;
     }
-
-	return 0;
+    sscanf(cmd, "Recv %d bytes\r\n", &data_len);
+    if (data_len > 0) {
+        osEventFlagsSet(at->evt, AT_HOST_RESP_EVT_RECV_BTYES);
+    }
+    return 0;
 }
 
 

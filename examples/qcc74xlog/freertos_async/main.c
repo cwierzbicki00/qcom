@@ -5,25 +5,25 @@
 #include "qcc74xlog.h"
 #include "example_log.h"
 
-/*!< 定义INLINE tag标签, 默认禁用输出 */
+/*!< Define the INLINE tag, output is disabled by default */
 QCC74xLOG_DEFINE_TAG(INLINE, "inline func", false);
 
-/*!< 定义MAIN tag标签, 默认使能输出 */
+/*!< Define the MAIN tag, output is enabled by default */
 QCC74xLOG_DEFINE_TAG(MAIN, "main", true);
 
-/*!< 设置此文件使用的tag标签 */
+/*!< Set the tag to be used in this file */
 #undef QCC74xLOG_TAG
 #define QCC74xLOG_TAG QCC74xLOG_GET_TAG(MAIN)
 
-/*!< qcc74xlog 多线程异步例程 */
-/*!< qcc74xlog multithread async example */
-/*!< 多线程建议在未开始RTOS调度之前配置为同步模式, 开始RTOS调度后再切换为异步模式
-    此时不管RTOS能否正常工作, LOG工作都不会异常导致无LOG输出 */
+/*!< qcc74xlog multithreaded asynchronous example */
+/*!< It is recommended to configure the synchronous mode before RTOS scheduling starts.
+    After RTOS scheduling begins, switch to the asynchronous mode.
+    This ensures that LOG output remains normal regardless of RTOS stability. */
 
 struct qcc74x_device_s *uart0 = NULL;
 static struct qcc74x_device_s *rtc = NULL;
 
-/*!< 当前的UTC时间戳 2022-12-16 17:52 */
+/*!< Current UTC timestamp: 2022-12-16 17:52 */
 uint32_t timestamp_base = 1671184300;
 
 /** @defgroup   example_qcc74xlog_port port
@@ -56,12 +56,12 @@ static uint32_t example_pool[EXAMPLE_LOG_POOL_SIZE / 4];
 qcc74xlog_direct_stream_t example_uart_stream;
 
 /*****************************************************************************
-* @brief        流输出
-* 
-* @param[in]    ptr         输出信息的指针
-* @param[in]    size        输出信息的大小（byte）
-* 
-* @retval uint16_t          
+* @brief        Stream output
+*
+* @param[in]    ptr         Pointer to the output information
+* @param[in]    size        Size of the output information (bytes)
+*
+* @retval uint16_t
 *****************************************************************************/
 uint16_t example_uart_stream_output(void *ptr, uint16_t size)
 {
@@ -72,7 +72,7 @@ uint16_t example_uart_stream_output(void *ptr, uint16_t size)
 }
 
 /*****************************************************************************
-* @brief        进入多线程调度前初始化
+* @brief        Initialize before entering multithreaded scheduling
 * 
 * 
 *****************************************************************************/
@@ -81,27 +81,27 @@ void example_log_init_before_enter(void)
     void *record = (void *)&example_recorder;
     void *direct = (void *)&example_uart_stream;
 
-    /*!< 创建一个记录器, 配置内存池, 内存池大小, 模式为同步 */
+    /*!< Create a recorder, configure the memory pool, memory pool size, and set the mode to synchronous */
     /*!< create recorder */
     if (0 != qcc74xlog_create(record, example_pool, EXAMPLE_LOG_POOL_SIZE, QCC74xLOG_MODE_SYNC)) {
         printf("qcc74xlog_create faild\r\n");
     }
 
-    /*!< 创建输出器, 类型为流输出器, 使能颜色输出, 互斥锁设为NULL */
+    /*!< Create a stream direct of type stream outputter, enable color output, and set the mutex to NULL */
     /*!< create stream direct */
     qcc74xlog_direct_create(direct, QCC74xLOG_DIRECT_TYPE_STREAM, QCC74xLOG_DIRECT_COLOR_ENABLE, NULL, NULL);
-    /*!< 配置流输出的输出函数 */
+    /*!< Configure the output function for stream output */
     qcc74xlog_direct_init_stream((void *)direct, example_uart_stream_output);
 
-    /*!< 添加输出器到记录器 */
+    /*!< Add the direct to the recorder */
     /*!< connect direct and recorder */
     qcc74xlog_append(record, direct);
 
-    /*!< 恢复输出器到工作模式 */
+    /*!< Restore the direct to the working mode */
     /*!< resume direct */
     qcc74xlog_direct_resume(direct);
 
-    /*!< 恢复记录器到工作模式 */
+    /*!< Restore the logger to the working mode */
     /*!< resume record */
     qcc74xlog_resume(record);
 }

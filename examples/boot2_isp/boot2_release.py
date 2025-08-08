@@ -18,14 +18,14 @@ release_list = [
 
 def zipDir(dirpath,outFullName):
     """
-    压缩指定文件夹
-    :param dirpath: 目标文件夹路径
-    :param outFullName: 压缩文件保存路径+xxxx.zip
-    :return: 无
+    Compress the specified folder
+    :param dirpath: Path of the target folder
+    :param outFullName: Save path of the compressed file + xxxx.zip
+    :return: None
     """
     zip = zipfile.ZipFile(outFullName,"w",zipfile.ZIP_DEFLATED)
     for path,dirnames,filenames in os.walk(dirpath):
-        # 去掉目标跟路径，只对目标文件夹下边的文件及文件夹进行压缩
+        # Remove the target and its path, and only compress the files and folders under the target folder.
         fpath = path.replace(dirpath,'')
 
         for filename in filenames:
@@ -34,7 +34,7 @@ def zipDir(dirpath,outFullName):
 
 def recreate_release_dir(dir):
     if os.path.exists(dir):
-        shutil.rmtree(dir)#删除再建立
+        shutil.rmtree(dir)#Delete and then rebuild.
         os.makedirs(dir)
     else:
         os.makedirs(dir)

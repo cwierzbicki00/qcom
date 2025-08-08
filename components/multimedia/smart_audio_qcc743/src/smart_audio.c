@@ -84,7 +84,7 @@ static void smtaudio_delay_list_clear(void)
     }
 }
 
-/* resume/delay list插入时 清空对方 list */
+/* When inserting into the resume/delay list, clear the other list */
 static void smtaudio_delay_list_insert(smtaudio_delay_list_node_t *smt_node)
 {
     smtaudio_delay_list_node_t *tmp_node = NULL;
@@ -132,10 +132,10 @@ static void smtaudio_resume_list_insert(smtaudio_resume_list_node_t *smt_node)
 {
     smtaudio_resume_list_node_t *tmp_node = NULL;
 
-    /* 清空 delay list */
+    /* Clear delay list */
     smtaudio_delay_list_clear();
 
-    /* 同一播放源只允许 有一个case在resume list中 */
+    /* Only one case from the same playback source is allowed in the resume list */
     msp_dlist_for_each_entry(&smtaudio_resume_list_head, tmp_node, smtaudio_resume_list_node_t, node) {
         if (tmp_node->id == smt_node->id) {
             smtaudio_resume_list_rm(tmp_node);
@@ -198,7 +198,7 @@ smtaudio_ops_node_t *get_default_audio_ops(void)
     return get_smtaudio_ctrl_ops_by_id(DEFAULT_PLAY_TYPE);
 }
 
-/* 判断当前 是否允许 播放 resume/delay list 中的 音源 */
+/* Determine whether the audio sources in the resume/delay list are allowed to play currently */
 static int smtaudio_resume_state(int reason, int type)
 {
     if (reason == SMTAUDIO_LOCAL_PLAY) {
@@ -272,13 +272,13 @@ static void smtaudio_change_state(smtaudio_state_t new_state, smtaudio_player_ty
                     node->valid = 1;
                     smtaudio_resume_list_insert(node);
                 } else {
-                    //同一优先级打断 不resume
+                    // Audio interruption at the same priority level does not trigger resume operation
                     first_playing_audio_ops->pause();
                 }
             }
             switch_state(smtaudio_ctx.cur_state, new_sub_state);
         } else {
-            /* 播放源切换后, pause stop 无效*/
+            /* After the playback source is switched, pause and stop operations are invalid */
             if (smtaudio_get_play_type() == type) {
                 switch_state(smtaudio_ctx.cur_state, new_sub_state);
             }
@@ -286,7 +286,7 @@ static void smtaudio_change_state(smtaudio_state_t new_state, smtaudio_player_ty
     }
 }
 
-/* 所有播放源产生事件(start、pause、stop)时, 需要调用的回调函数 */
+/* Callback function to be called when any playback source generates an event (start, pause, stop) */
 static void smtaudio_event_callback(int type, smtaudio_player_evtid_t evt_id)
 {
     int            ret;
@@ -442,7 +442,7 @@ int8_t smtaudio_vol_up(int16_t vol)
         SMTAUDIO_UNLOCK();
         return 0;
     }
-    //判断resume list是否存在播放对象
+    // Determine if there is any playback object in the resume list
     if(!msp_dlist_empty(&smtaudio_resume_list_head)) {
         node_adjust = msp_dlist_entry(smtaudio_resume_list_head.next, smtaudio_resume_list_node_t, node);
         if((node_adjust->interrupt_reason != INTERRUPT_REASON_BY_USER) && (node_adjust->valid == 1)){
@@ -455,7 +455,7 @@ int8_t smtaudio_vol_up(int16_t vol)
             }
         }
     }
-    /*如果没有 audio 播放 则调整 默认音量*/
+    /* If no audio is playing, adjust the default volume */
     node_adjust_ops = get_default_audio_ops();
     if (node_adjust_ops) {
         node_adjust_ops->vol_up(vol);
@@ -484,7 +484,7 @@ int8_t smtaudio_vol_down(int16_t vol)
         SMTAUDIO_UNLOCK();
         return 0;
     }
-    //判断resume list是否存在播放对象
+    //Check if there are any playable objects in the resume list.
     if(!msp_dlist_empty(&smtaudio_resume_list_head)) {
         node_adjust = msp_dlist_entry(smtaudio_resume_list_head.next, smtaudio_resume_list_node_t, node);
          if((node_adjust->interrupt_reason != INTERRUPT_REASON_BY_USER) && (node_adjust->valid == 1)){
@@ -497,7 +497,7 @@ int8_t smtaudio_vol_down(int16_t vol)
             }
         }
     }
-    /*如果没有 audio 播放 则调整 默认音量*/
+    /*Adjust the default volume if no audio is currently playing.*/
     node_adjust_ops = get_default_audio_ops();
     if (node_adjust_ops) {
         node_adjust_ops->vol_down(vol);
@@ -526,7 +526,7 @@ int8_t smtaudio_vol_set(int16_t set_vol)
         SMTAUDIO_UNLOCK();
         return 0;
     }
-    //判断resume list是否存在播放对象
+    //Check if there are any playable objects in the resume list.
     if(!msp_dlist_empty(&smtaudio_resume_list_head)) {
         node_adjust = msp_dlist_entry(smtaudio_resume_list_head.next, smtaudio_resume_list_node_t, node);
          if((node_adjust->interrupt_reason != INTERRUPT_REASON_BY_USER) && (node_adjust->valid == 1)){
@@ -539,7 +539,7 @@ int8_t smtaudio_vol_set(int16_t set_vol)
             }
         }
     }
-    /*如果没有 audio 播放 则调整 默认音量*/
+    /*Adjust the default volume if no audio is currently playing.*/
     node_adjust_ops = get_default_audio_ops();
     if (node_adjust_ops) {
         node_adjust_ops->vol_set(set_vol);

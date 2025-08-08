@@ -98,14 +98,14 @@ static uint16_t uart_proc_recv_next_sn = 0;
 #define UART_DATA 0x01
 #define UART_ACK 0x02
 
-#pragma pack(push, 1)  // 设置结构体对齐为1字节
+#pragma pack(push, 1)
 typedef struct _UARTCMD_HEAD {
     uint8_t start[UART_START_SIZE];
     uint16_t sn;
     uint16_t type_and_len;
     uint16_t crc16;
 } UARTCMD_HEAD;
-#pragma pack(pop)  // 恢复默认对齐
+#pragma pack(pop)
 
 static int uart_send(uint8_t *data, uint32_t len) {
   //taskENTER_CRITICAL();
@@ -425,7 +425,7 @@ static void UART_RTO_Callback(int irq, void *arg) {
   }
 #endif
 
-    /* 更新HCI保活时间 */
+    /* update keepalive time */
     hci_wake_tick = xTaskGetTickCountFromISR();
     qcc74x_pm_event_bit_set(PSM_EVENT_BLE_HCI);
 
@@ -784,7 +784,7 @@ int hci_uart_is_busy(void) {
   }
 #endif
 
-  // 等待2 x UART_ACK_TIMEOUT_MS
+  // check keepalive time
   if ((xTaskGetTickCountFromISR() - hci_wake_tick) < pdMS_TO_TICKS(2*UART_ACK_TIMEOUT_MS)) {
     return 4;
   } else {
@@ -796,7 +796,7 @@ int hci_uart_is_busy(void) {
 
 void hci_uart_init_after_lp(int wakeup_by_hci) {
   if (wakeup_by_hci) {
-    /* 当qcc74x_undef HCI 唤醒之后，设置保活时间 */
+    /* wakeup by hci, update keepalive time */
     hci_wake_tick = xTaskGetTickCountFromISR();
     qcc74x_pm_event_bit_set(PSM_EVENT_BLE_HCI);
   } else {

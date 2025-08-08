@@ -15,7 +15,9 @@ extern __attribute__((weak)) uint8_t elf_build_id[BUILD_ID_LEN];
 void coredump_print(uintptr_t addr, uintptr_t lma_addr, size_t len, const char *desc);
 void coredump_run();
 
-void core_partition_init(uint32_t flash_addr, size_t flash_size);
+void core_partition_init(void);
+uint32_t core_partition_addr(void);
+size_t core_partition_size(void);
 int coredump_xip_flash_write(uint32_t lma, uint8_t *lma_xip, size_t len);
 void core_bin_start_hook(uint32_t *lma, size_t len, struct dump_section *dump_sections);
 void core_bin_sections_hook(uint32_t *lma, uint8_t *lma_xip, size_t len);

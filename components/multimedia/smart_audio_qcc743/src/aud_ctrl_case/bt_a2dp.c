@@ -491,7 +491,7 @@ int msp_app_bt_a2dp_disconnect(void)
     int ret;
 
     ret = bt_prf_a2dp_sink_disconnect((bt_dev_addr_t *)cur_bt_addr);
-    memset((void *)cur_bt_addr, 0, BT_BD_ADDR_LEN); // 清除连接的MAC地址
+    memset((void *)cur_bt_addr, 0, BT_BD_ADDR_LEN); // Clear the connected MAC address
     return ret;
 }
 
@@ -529,11 +529,11 @@ static int bt_audio_state_app = BT_PRF_AVRCP_PLAYBACK_STOPPED;
 void bt_audio_state_check(void)
 {
     if((ctrl_bt_a2dp.status == SMTAUDIO_STATE_PLAYING) && ((bt_audio_state_app == BT_PRF_AVRCP_PLAYBACK_STOPPED) || (bt_audio_state_app == BT_PRF_AVRCP_PLAYBACK_PAUSED))) {
-        //设备端处于播放状态, app处于非播放状态
+        //The device is in the playing state, while the app is in the non-playing state.
         ctrl_bt_a2dp.status = SMTAUDIO_STATE_STOP;
         LOGD(TAG, "change a2dp status: %d", ctrl_bt_a2dp.status);
     } else if((bt_audio_state_app == BT_PRF_AVRCP_PLAYBACK_PLAYING) && ((ctrl_bt_a2dp.status == SMTAUDIO_STATE_STOP) || (ctrl_bt_a2dp.status == SMTAUDIO_STATE_PAUSE))) {
-        //设备端处于非播放状态, app处于播放状态
+        //The device is in a non-playing state, and the app is in a playing state.
         ctrl_bt_a2dp.status = SMTAUDIO_STATE_PLAYING;
         LOGD(TAG, "change a2dp status: %d", ctrl_bt_a2dp.status);
     }
@@ -742,7 +742,7 @@ static int bt_a2dp_resume(void)
 
 static int bt_a2dp_vol_set(int vol)
 {
-    /*同时设置本地音音量*/
+    /*Set the local audio volume simultaneously.*/
     smtaudio_ops_node_t *audio_default_ops;
 
     extern smtaudio_ops_node_t *get_default_audio_ops(void);
@@ -757,10 +757,10 @@ static int bt_a2dp_vol_set(int vol)
 static int bt_a2dp_vol_up(int vol)
 {
     int ret;
-    /*调整 bt music 音量*/
+    /*Adjust the bt music volume.*/
     ret = msp_app_bt_avrcp_send_passthrouth_cmd(MSP_APP_BT_AVRCP_CMD_VOL_UP);
 
-    /*同时提高本地音音量*/
+    /*Adjust bt music volume and simultaneously increase local audio volume.*/
     smtaudio_ops_node_t *audio_default_ops;
 
     extern smtaudio_ops_node_t *get_default_audio_ops(void);
@@ -775,10 +775,10 @@ static int bt_a2dp_vol_up(int vol)
 static int bt_a2dp_vol_down(int vol)
 {
     int ret;
-    /*调整 bt music 音量*/
+    /*Adjust the bt music volume.*/
     ret = msp_app_bt_avrcp_send_passthrouth_cmd(MSP_APP_BT_AVRCP_CMD_VOL_DOWN);
 
-    /*同时提高本地音音量*/
+    /*Adjust bt music volume and simultaneously increase local audio volume.*/
     smtaudio_ops_node_t *audio_default_ops;
 
     extern smtaudio_ops_node_t *get_default_audio_ops(void);

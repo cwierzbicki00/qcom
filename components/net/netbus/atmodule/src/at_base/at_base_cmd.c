@@ -54,15 +54,16 @@
 static int at_exe_cmd_rst(int argc, const char **argv)
 {
     int i;
-
+    if (!at) {
+        AT_CMD_PRINTF("[AT] at struct not initialized in at_exe_cmd_rst\r\n");
+        return AT_RESULT_CODE_ERROR;
+    }
     at_response_string(AT_CMD_MSG_OK);
-
     /* stop all service */
     for (i = 0; i < AT_CMD_MAX_FUNC; i++) {
         if (at->function_ops[i].stop_func)
             at->function_ops[i].stop_func();
     }
-
     vTaskDelay(pdMS_TO_TICKS(100));
     qcc74x_sys_reset_por();
     return AT_RESULT_CODE_OK;
@@ -75,6 +76,8 @@ static int at_exe_cmd_gmr(int argc, const char **argv)
     char *version = NULL;
     uint32_t core_version;
     char core_compile_time[32];
+    char *strver = NULL;
+    char *strtmp = NULL;
 
     size_t outbuf_len = 1024;
     outbuf = (char *)pvPortMalloc(outbuf_len);
@@ -89,7 +92,15 @@ static int at_exe_cmd_gmr(int argc, const char **argv)
     snprintf(outbuf, outbuf_len, "AT version:%d.%d.%d.%d(%s)\r\n", AT_CMD_GET_VERSION(core_version), core_compile_time);
 
     while ((version = qcc74x_sys_version(&ctx))) {
+        strver = NULL;
+        if (strstr(version, "SW image:")) {
+            strver = strdup(version);
+            strtmp = strstr(strver, "_"CONFIG_CHIP_CPUNAME);
+            strlcpy(strtmp, strtmp + strlen("_"CONFIG_CHIP_CPUNAME), strlen(strver) - (uint32_t)(strtmp - strver));
+            version = strver;
+        }
         snprintf(outbuf+strlen(outbuf), outbuf_len-strlen(outbuf), "%s\r\n", version);
+        free(strver);
     }
     AT_CMD_RESPONSE(outbuf);
     vPortFree(outbuf);
@@ -357,11 +368,38 @@ static int at_query_temp(int argc, const char **argv)
         average_filter += qcc74x_adc_tsen_get_temp(adc);
     }
     average_filter = average_filter / AVERAGE_COUNT;
-    printf("temp = %f\r\n", average_filter);
+    AT_CMD_PRINTF("temp = %f\r\n", average_filter);
 
     at_response_string("+TEMP:%f\r\n", average_filter);
 
     return AT_RESULT_CODE_OK;
+}
+
+static int str_to_hex(const char* hex_buffer, int nbytes, char* bin_buffer)
+{
+    for (int i = 0; i < nbytes; i++) {
+        char hex_pair[3] = {hex_buffer[i*2], hex_buffer[i*2 + 1], '\0'};
+        char *end = NULL;
+        unsigned long byte = strtoul(hex_pair, &end, 16);
+        if (end != hex_pair + 2 || byte > 0xFF) {
+            return -1;
+        }
+        bin_buffer[i] = (char)byte;
+    }
+    return 0;
+}
+
+static int hex_to_str(const char* bin_buffer, int nbytes, char* hex_out, int hex_out_size)
+{
+    int pos = 0;
+    for (int i = 0; i < nbytes; i++) {
+        int written = snprintf(hex_out + pos, hex_out_size - pos, "%02X", (unsigned char)bin_buffer[i]);
+        if (written < 0 || written >= hex_out_size - pos) {
+            return -1;
+        }
+        pos += written;
+    }
+    return 0;
 }
 
 static int at_setup_efuse_write(int argc, const char **argv)
@@ -397,8 +435,58 @@ static int at_setup_efuse_write(int argc, const char **argv)
 
     efuse_dev = qcc74x_device_get_by_name("ef_ctrl");
 
-    printf("efuse write 0x%x %d \r\n", address, word);
+    AT_CMD_PRINTF("efuse write 0x%x %d \r\n", address, word);
     qcc74x_ef_ctrl_write_direct(efuse_dev, address, (uint32_t *)buffer, word, 0);
+    vPortFree(buffer);
+
+    return AT_RESULT_CODE_SEND_OK;
+}
+
+static int at_setup_efuse_write_hex(int argc, const char **argv)
+{
+    int nbytes = 0, word = 0;
+    char addr[12] = {0};
+    char *endptr;
+    uint32_t address = 0;
+    int recv_num = 0;
+    struct qcc74x_device_s *efuse_dev;
+    int hex_len = 0;
+
+    AT_CMD_PARSE_NUMBER(0, &nbytes);
+    AT_CMD_PARSE_STRING(1, addr, sizeof(addr));
+    address = strtoul(addr, &endptr, 16);
+
+    if (nbytes <= 0 || nbytes > 8192) {
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
+    }
+
+    word = ((nbytes + 3) & ~3) >> 2;
+    hex_len = nbytes * 2;
+
+    int buffer_size = (hex_len + 1 > word * 4) ? hex_len + 1 : word * 4;
+    char *buffer = (char *)pvPortMalloc(buffer_size);
+    if (!buffer) {
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_NO_MEMORY);
+    }
+    memset(buffer, 0, buffer_size);
+
+    at_response_result(AT_RESULT_CODE_OK);
+
+    while (recv_num < hex_len) {
+        recv_num += AT_CMD_DATA_RECV(buffer + recv_num, hex_len - recv_num);
+    }
+    at_response_string("Recv %d bytes\r\n", recv_num/2);
+
+    if (str_to_hex(buffer, nbytes, buffer) != 0) {
+        vPortFree(buffer);
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
+    }
+
+    efuse_dev = qcc74x_device_get_by_name("ef_ctrl");
+
+    AT_CMD_PRINTF("efuse write hex 0x%x %d \r\n", address, word);
+    qcc74x_ef_ctrl_write_direct(efuse_dev, address, (uint32_t *)buffer, word, 0);
+
     vPortFree(buffer);
 
     return AT_RESULT_CODE_SEND_OK;
@@ -432,7 +520,7 @@ static int at_setup_efuse_read(int argc, const char **argv)
 
     efuse_dev = qcc74x_device_get_by_name("ef_ctrl");
 
-    printf("efuse read 0x%x %d \r\n", address, word);
+    AT_CMD_PRINTF("efuse read 0x%x %d \r\n", address, word);
     qcc74x_ef_ctrl_read_direct(efuse_dev, address, (uint32_t *)buffer, word, reload_valid ? reload : 0);
     
     at_write("+EFUSE-R:%d,", nbytes);
@@ -448,6 +536,61 @@ static int at_setup_efuse_read(int argc, const char **argv)
     } else {
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_LENGTH_MISMATCH);
     }
+}
+
+static int at_setup_efuse_read_hex(int argc, const char **argv)
+{
+    int nbytes = 0, word = 0;
+    char addr[12] = {0};
+    char *endptr;
+    uint32_t address = 0;
+    int reload = 0, reload_valid = 0;
+    struct qcc74x_device_s *efuse_dev;
+
+    AT_CMD_PARSE_NUMBER(0, &nbytes);
+    AT_CMD_PARSE_STRING(1, addr, sizeof(addr));
+    AT_CMD_PARSE_OPT_NUMBER(2, &reload, reload_valid);
+    address = strtoul(addr, &endptr, 16);
+
+    if (nbytes <= 0 || nbytes > 8192) {
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
+    }
+
+    int hex_out_size = nbytes * 2 + 1;
+
+    word = ((nbytes + 3) & ~3) >> 2;
+    char *bin_buffer = (char *)pvPortMalloc(word * 4);
+    if (!bin_buffer) {
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_NO_MEMORY);
+    }
+    memset(bin_buffer, 0, word * 4);
+
+    efuse_dev = qcc74x_device_get_by_name("ef_ctrl");
+
+    AT_CMD_PRINTF("efuse read hex 0x%x %d \r\n", address, word);
+    qcc74x_ef_ctrl_read_direct(efuse_dev, address, (uint32_t *)bin_buffer, word, reload_valid ? reload : 0);
+
+    char *hex_out = (char *)pvPortMalloc(hex_out_size);
+    if (!hex_out) {
+        vPortFree(bin_buffer);
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_NO_MEMORY);
+    }
+    memset(hex_out, 0, hex_out_size);
+
+    if (hex_to_str(bin_buffer, nbytes, hex_out, hex_out_size) != 0) {
+        vPortFree(bin_buffer);
+        vPortFree(hex_out);
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_COMMON_ERROR);
+    }
+
+    at_write("+EFUSE-R-HEX:%d,", nbytes);
+    at_write(hex_out, strlen(hex_out));
+    at_write("\r\n", 2);
+
+    vPortFree(bin_buffer);
+    vPortFree(hex_out);
+
+    return AT_RESULT_CODE_OK;
 }
 
 static int at_setup_efuse_write_cfm(int argc, const char **argv)
@@ -488,12 +631,62 @@ static int at_setup_flash_write(int argc, const char **argv)
 
     while(recv_num < nbytes) {
         recv_num += AT_CMD_DATA_RECV(buffer + recv_num, nbytes - recv_num);
-        printf("xxxx recv_num:%d nbytes:%d\r\n", recv_num, nbytes);
+        AT_CMD_PRINTF("xxxx recv_num:%d nbytes:%d\r\n", recv_num, nbytes);
     }
     at_response_string("Recv %d bytes\r\n", recv_num);
 
-    printf("flash write 0x%x %d \r\n", address, nbytes);
+    AT_CMD_PRINTF("flash write 0x%x %d \r\n", address, nbytes);
     ret = qcc74x_flash_write(address, buffer, nbytes);
+    vPortFree(buffer);
+
+    if (ret) {
+        return AT_RESULT_CODE_SEND_FAIL;
+    }
+    return AT_RESULT_CODE_SEND_OK;
+}
+
+static int at_setup_flash_write_hex(int argc, const char **argv)
+{
+    int nbytes = 0;
+    char addr[12] = {0};
+    char *endptr;
+    uint32_t address = 0;
+    int recv_num = 0;
+    int ret = 0;
+    int hex_len = 0;
+
+    AT_CMD_PARSE_NUMBER(0, &nbytes);
+    AT_CMD_PARSE_STRING(1, addr, sizeof(addr));
+    address = strtoul(addr, &endptr, 16);
+
+    if (nbytes <= 0 || nbytes > 8192) {
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
+    }
+
+    hex_len = nbytes * 2;
+    int buffer_size = hex_len + 1;
+    char *buffer = (char *)pvPortMalloc(buffer_size);
+    if (!buffer) {
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_NO_MEMORY);
+    }
+    memset(buffer, 0, buffer_size);
+
+    at_response_result(AT_RESULT_CODE_OK);
+
+    while (recv_num < hex_len) {
+        recv_num += AT_CMD_DATA_RECV(buffer + recv_num, hex_len - recv_num);
+        AT_CMD_PRINTF("xxxx recv_num:%d hex_len:%d\r\n", recv_num, hex_len);
+    }
+    at_response_string("Recv %d bytes\r\n", recv_num/2);
+
+    if (str_to_hex(buffer, nbytes, buffer) != 0) {
+        vPortFree(buffer);
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
+    }
+
+    AT_CMD_PRINTF("flash write hex 0x%x %d \r\n", address, nbytes);
+    ret = qcc74x_flash_write(address, buffer, nbytes);
+
     vPortFree(buffer);
 
     if (ret) {
@@ -525,7 +718,7 @@ static int at_setup_flash_read(int argc, const char **argv)
     }
     memset(buffer, 0, nbytes);
 
-    printf("flash read 0x%x %d \r\n", address, nbytes);
+    AT_CMD_PRINTF("flash read 0x%x %d \r\n", address, nbytes);
     ret = qcc74x_flash_read(address, buffer, nbytes);
 
     if (ret) {
@@ -547,6 +740,61 @@ static int at_setup_flash_read(int argc, const char **argv)
     }
 }
 
+static int at_setup_flash_read_hex(int argc, const char **argv)
+{
+    int nbytes = 0;
+    char addr[12] = {0};
+    char *endptr;
+    uint32_t address = 0;
+    int ret = 0;
+
+    AT_CMD_PARSE_NUMBER(0, &nbytes);
+    AT_CMD_PARSE_STRING(1, addr, sizeof(addr));
+    address = strtoul(addr, &endptr, 16);
+
+    if (nbytes <= 0 || nbytes > 8192) {
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
+    }
+
+    int hex_out_size = nbytes * 2 + 1;
+
+    char *bin_buffer = (char *)pvPortMalloc(nbytes);
+    if (!bin_buffer) {
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_NO_MEMORY);
+    }
+    memset(bin_buffer, 0, nbytes);
+
+    AT_CMD_PRINTF("flash read hex 0x%x %d \r\n", address, nbytes);
+    ret = qcc74x_flash_read(address, bin_buffer, nbytes);
+
+    if (ret) {
+        vPortFree(bin_buffer);
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_NO_MEMORY);
+    }
+
+    char *hex_out = (char *)pvPortMalloc(hex_out_size);
+    if (!hex_out) {
+        vPortFree(bin_buffer);
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_NO_MEMORY);
+    }
+    memset(hex_out, 0, hex_out_size);
+
+    if (hex_to_str(bin_buffer, nbytes, hex_out, hex_out_size) != 0) {
+        vPortFree(bin_buffer);
+        vPortFree(hex_out);
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_COMMON_ERROR);
+    }
+
+    at_write("+FLASH-R-HEX:%d,", nbytes);
+    at_write(hex_out, strlen(hex_out));
+    at_write("\r\n", 2);
+
+    vPortFree(bin_buffer);
+    vPortFree(hex_out);
+
+    return AT_RESULT_CODE_OK;
+}
+
 static int at_setup_flash_erase(int argc, const char **argv)
 {
     int nbytes = 0;
@@ -559,7 +807,7 @@ static int at_setup_flash_erase(int argc, const char **argv)
     AT_CMD_PARSE_STRING(1, addr, sizeof(addr));
     address = strtoul(addr, &endptr, 16);
 
-    printf("flash erase 0x%x %d \r\n", address, nbytes);
+    AT_CMD_PRINTF("flash erase 0x%x %d \r\n", address, nbytes);
     ret = qcc74x_flash_erase(address, nbytes);
 
     if (ret) {
@@ -739,7 +987,7 @@ static int ota_trans_process(int id, void *arg)
     }
     g_ota_recv_total += (buffer->len - head_offset);
 
-    printf("OTA-%d, l:%d, boff:%08X-%d, t:%d/%d, H:%02X:%02X:%02X:%02X\r\n",
+    AT_CMD_PRINTF("OTA-%d, l:%d, boff:%08X-%d, t:%d/%d, H:%02X:%02X:%02X:%02X\r\n",
             g_ota_recv_cnt, buffer->len,
             g_ota_recv_total+512, g_ota_recv_total+512,
             g_ota_recv_total, g_ota_handle->file_size,
@@ -756,7 +1004,7 @@ _fail:
 
 static int ota_finish_process(int id, void *arg)
 {
-    printf("ota_recv_total:%d \r\n", g_ota_recv_total);
+    AT_CMD_PRINTF("ota_recv_total:%d \r\n", g_ota_recv_total);
     g_ota_recv_total = 0;
 
     if (at_ota_finish(g_ota_handle, 1, 0) != 0) {
@@ -813,7 +1061,7 @@ static int at_setup_ota_send(int argc, const char **argv)
     }
 
     if (g_ota_handle == NULL && len < sizeof(at_ota_header_t)) {
-        printf("OTA head size is not enough\r\n");
+        AT_CMD_PRINTF("OTA head size is not enough\r\n");
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     }
 
@@ -1064,7 +1312,7 @@ static void part_number_dump(void)
 
     otp_get_part_number(buffer, sizeof(buffer));
 
-    printf("Part number:%s\r\n", buffer);
+    AT_CMD_PRINTF("Part number:%s\r\n", buffer);
 }
 
 static int at_query_pn(int argc, const char **argv)
@@ -1154,7 +1402,7 @@ static int at_query_vbat(int argc, const char **argv)
 
     at_response_string("+VBAT:%d\r\n",vbat_mv);
 
-    //printf("vBat = %d mV conver_time:%lld us\r\n", (uint32_t)(vbat_mv), time_us);
+    //AT_CMD_PRINTF("vBat = %d mV conver_time:%lld us\r\n", (uint32_t)(vbat_mv), time_us);
 
     return AT_RESULT_CODE_OK;
 }
@@ -1211,6 +1459,10 @@ static const at_cmd_struct at_base_cmd[] = {
     {"+MFG", NULL, NULL, NULL, at_setup_mfg, 0, 0},
     {"+VBAT", NULL, at_query_vbat, NULL, NULL, 0, 0},
     {"+MINIDUMP", NULL, NULL, NULL, at_minidump, 0, 0},
+    {"+FLASH-W-HEX", NULL, NULL, at_setup_flash_write_hex, NULL, 2, 2},
+    {"+EFUSE-W-HEX", NULL, NULL, at_setup_efuse_write_hex, NULL, 2, 3},
+    {"+EFUSE-R-HEX", NULL, NULL, at_setup_efuse_read_hex, NULL, 2, 3},
+    {"+FLASH-R-HEX", NULL, NULL, at_setup_flash_read_hex, NULL, 2, 2},
 };
 
 bool at_base_cmd_regist(void)

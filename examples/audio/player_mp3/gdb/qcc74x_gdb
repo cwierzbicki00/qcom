@@ -1,7 +1,7 @@
 #!/bin/bash
 
 cd ..
-# 获取当前文件夹的名字
+# Get the name of the current folder.
 current_folder=$(basename "$PWD")
 
 riscv64-unknown-elf-gdb ./build/build_out/${current_folder}_qcc743.elf -x ./gdb/gdbinit

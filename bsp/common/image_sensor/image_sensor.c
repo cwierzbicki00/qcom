@@ -6,10 +6,11 @@
 #include "gc2145.h"
 #include "ov2685.h"
 #include "sc101iot.h"
+#include "ov2640.h"
 #include "qcc74x_i2c.h"
 
 static struct image_sensor_config_s *sensor_list[] = {
-    NULL, &bf2013_config, &gc0308_config, &gc0328_config, &gc2053_config, &gc2145_config, &ov2685_config, &sc101iot_config
+    NULL, &bf2013_config, &gc0308_config, &gc0328_config, &gc2053_config, &gc2145_config, &ov2685_config, &sc101iot_config, &ov2640_config,
 };
 
 void image_sensor_read(struct qcc74x_device_s *i2c, uint32_t sensor_index, struct image_sensor_command_s *read_list, uint32_t list_len)

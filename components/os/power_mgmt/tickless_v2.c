@@ -17,6 +17,7 @@
 #include "export/rwnx.h"
 
 #include "board_rf.h"
+#include "tickless.h"
 
 //#define TICKLESS_DEBUG 0
 
@@ -157,11 +158,20 @@ void tickless_debug_who_wake_me(const char *name, TickType_t ticks) {
 int tickless_enter(void)
 {
     enable_tickless = 1;
+
+    return 0;
 }
 
 int tickless_exit(void)
 {
     enable_tickless = 0;
+
+    return 0;
+}
+
+int *tickless_handke_get(void)
+{
+    return &enable_tickless;
 }
 
 void set_wifi_ps_wakeup_configuration(int dtim_wakeup)
@@ -392,7 +402,7 @@ void vApplicationSleep(TickType_t xExpectedIdleTime) {
   /* Enable DTIM when WiFi connected*/
   connected = !!(wifi_mgmr_sta_get_bssid(lpfw_cfg.bssid) == 0);
 
-  if (connected && lpfw_cfg.dtim_origin) {
+  if (connected && wifi_mgmr_sta_twt_flow_get() == 0) {
     lpfw_cfg.tim_wakeup_en = 1;
   } else {
     lpfw_cfg.tim_wakeup_en = 0;
@@ -407,7 +417,7 @@ void vApplicationSleep(TickType_t xExpectedIdleTime) {
       if (status) {
         recovery_ble();
       }
-
+      portENABLE_INTERRUPTS();
       ___WFI();
       return;
     }

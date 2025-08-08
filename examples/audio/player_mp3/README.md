@@ -1,4 +1,3 @@
-# Player A2DP [中文](README_zh.md)
 
 **Note**: This example provides the most streamlined support for local MP3 audio playback. If you need to add other configurations for streaming media, you can refer to multimedia_user.h. You can complete the trimming of streaming media functions by modifying multimedia_user.h.
 

@@ -41,66 +41,66 @@
 #include "qcc743_glb.h"
 #include "clock_manager.h"
 #include "tickless.h"
+#include "linear_allocator.h"
 
+#define PM_MEM_POOL_SIZE    (1460 *2)
 static TaskHandle_t rxl_process_task_hd = NULL;
 int enable_multicast_broadcas = 0;
 extern qcc74x_lp_fw_cfg_t lpfw_cfg;
-
-#define PREALLOCATED_PBUF_COUNT 5
-#define PREALLOCATED_PBUF_SIZE  1600
-
-typedef struct {
-    struct pbuf *pbufs[PREALLOCATED_PBUF_COUNT];
-    uint8_t alloc_idx;
-    uint8_t used_idx[PREALLOCATED_PBUF_COUNT];
-} pbuf_pool_cache_t;
-
-pbuf_pool_cache_t pbuf_pool_cache;
+static linear_allocator pm_mem;
+struct pbuf *pm_pbuf;
 
 int pm_sys_init(void)
 {
-    memset(&pbuf_pool_cache, 0, sizeof(pbuf_pool_cache));
+    memset(&pm_mem, 0, sizeof(linear_allocator));
+
+    wifi_mgmr_sta_ps_status_register(tickless_handke_get());
 
     return 0;
 }
 
-int pm_pbuf_pool_alloc(void)
+int pm_mem_pool_alloc(void)
 {
-    for (int i = 0; i < PREALLOCATED_PBUF_COUNT; i++) {
-        if (pbuf_pool_cache.pbufs[i]) {
-            return -1;
-        }
+    if (pm_pbuf) {
+        return 0;
     }
 
-    for (int i = 0; i < PREALLOCATED_PBUF_COUNT; i++) {
-        pbuf_pool_cache.pbufs[i] = pbuf_alloc(PBUF_RAW, PREALLOCATED_PBUF_SIZE, PBUF_RAM);
+    pm_pbuf = pbuf_alloc(PBUF_RAW, PM_MEM_POOL_SIZE, PBUF_RAM);
 
-        if (pbuf_pool_cache.pbufs[i]) {
-        } else {
-            printf("Pm pbuf alloc fail.\r\n");
-        }
+    if (!pm_pbuf) {
+        printf("!!!! pbuf alloc fail.\r\n");
+        return -1;
     }
+
+    if (pm_pbuf->len < PM_MEM_POOL_SIZE) {
+        printf("WARNING: pbuf actual len %d < expected pool size %d!\n", pm_pbuf->len, PM_MEM_POOL_SIZE);
+    }
+
+    if (!pm_pbuf->payload) {
+        printf("[PM] Error: pbuf payload is NULL!\r\n");
+        return -1;
+    }
+
+    linear_allocator_init(&pm_mem, pm_pbuf->payload, pm_pbuf->len);
 
     return 0;
 }
 
-int pm_pbuf_pool_free(void)
+int pm_mem_pool_free(void)
 {
-    for (int i = 0; i < PREALLOCATED_PBUF_COUNT; i++) {
-        if (pbuf_pool_cache.pbufs[i]) {
-            pbuf_free(pbuf_pool_cache.pbufs[i]);
-            pbuf_pool_cache.pbufs[i] = NULL;
-        }
-        pbuf_pool_cache.used_idx[i] = 0;
+    if (pm_pbuf) {
+        pbuf_free(pm_pbuf);
+        pm_pbuf = NULL;
     }
-    pbuf_pool_cache.alloc_idx = 0;
+
+    linear_allocator_reset(&pm_mem);
 
     return 0;
 }
 
 uint32_t rxl_pbuf_pool_get(void)
 {
-    uint32_t addr = (uint32_t)&pbuf_pool_cache;
+    uint32_t addr = (uint32_t)&pm_mem;
 
     if ((addr & 0xF0000000) == 0x60000000) {
         addr = (addr & 0x0FFFFFFF) | 0x20000000;
@@ -177,6 +177,7 @@ static void set_cpu_bclk_80M_and_gate_clk(void)
 static int lp_exit(void *arg)
 {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+    int wakeup_reason;
 
     nxspi_ps_exit(NULL);
 
@@ -196,8 +197,13 @@ static int lp_exit(void *arg)
     qcc74x_irq_attach(uart_shell->irq_num, uart_shell_isr, NULL);
     qcc74x_irq_enable(uart_shell->irq_num);
 
-    vTaskNotifyGiveFromISR(rxl_process_task_hd, &xHigherPriorityTaskWoken);
-    portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+    wakeup_reason = qcc74x_lp_get_wake_reason();
+    if (wakeup_reason & LPFW_WAKEUP_WIFI_BROADCAST) {
+        vTaskNotifyGiveFromISR(rxl_process_task_hd, &xHigherPriorityTaskWoken);
+        portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+    } else {
+        linear_allocator_reset(&pm_mem);
+    }
 
     //GLB_GPIO_Func_Init(GPIO_FUN_JTAG, pinList, 4);
 
@@ -267,7 +273,14 @@ void set_dtim_config(int dtim)
 
 void clear_dtim_config(void)
 {
-	pm_exit_lp_perparation();
+    // Use default config
+    lpfw_cfg.dtim_origin = 10;
+    wifi_mgmr_sta_set_listen_itv(lpfw_cfg.dtim_origin);
+}
+
+uint8_t lp_interval_get(void)
+{
+    return lpfw_cfg.dtim_num;
 }
 
 static void cmd_twt(int argc, char **argv)
@@ -283,7 +296,7 @@ int pm_enter_lp_perparation(void)
     int ret = 0;
     int dtim = 0;
     if (enable_multicast_broadcas) {
-        ret = pm_pbuf_pool_alloc();
+        ret = pm_mem_pool_alloc();
 
         if (!ret) {
             lpfw_cfg.buf_addr = rxl_pbuf_pool_get();
@@ -296,11 +309,7 @@ int pm_enter_lp_perparation(void)
 
     dtim = wifi_mgmr_sta_get_listen_itv();
 
-    if (dtim < 0) {
-        lpfw_cfg.dtim_origin = 10;
-    } else {
-        lpfw_cfg.dtim_origin = dtim;
-    }
+    lpfw_cfg.dtim_origin = dtim;
 
     qcc74x_lp_fw_bcn_loss_cfg_dtim_default(lpfw_cfg.dtim_origin);
 
@@ -313,7 +322,7 @@ int pm_enter_lp_perparation(void)
 
 int pm_exit_lp_perparation(void)
 {
-    pm_pbuf_pool_free();
+    pm_mem_pool_free();
     lpfw_cfg.buf_addr = NULL;
 
     if (wifi_mgmr_sta_state_get()) {
@@ -564,13 +573,8 @@ static void lp_io_wakeup_callback(uint64_t wake_up_io_bits)
 static qcc74x_lp_io_cfg_t lp_wake_io_cfg;
 int lp_set_wakeup_by_io(uint8_t io, uint8_t mode)
 {
-    if (io != 16 && io != 28) {
-        printf("only support gpio 16, 28\r\n");
-        return -1;
-    }
-    
-    if (mode > 1) {
-        printf("not support mode:%d\r\n", mode);
+    if ((io != 16 && io != 28) || (mode > 1)) {
+        printf("[PM] Error: only support gpio 16, 28 and mode 0/1\r\n");
         return -1;
     } 
 
@@ -603,8 +607,8 @@ int lp_set_wakeup_by_io(uint8_t io, uint8_t mode)
 
 int lp_delete_wakeup_by_io(uint8_t io)
 {
-    if (io <28 || io > 29) {
-        printf("only support gpio 28, 29 now.\r\n");
+    if (io < 28 || io > 29) {
+        printf("[PM] Error: only support gpio 28, 29 now.\r\n");
         return -1;
     }
 
@@ -667,14 +671,25 @@ static void arp_send(TimerHandle_t xTimer) {
 int app_pm_create_arp_announce_timer(uint32_t seconds)
 {   
     if (xArpTimer) {
+        printf("[PM] Error: ARP timer already exists\r\n");
         return -1;
     }
-
+    if (seconds == 0) {
+        printf("[PM] Error: ARP timer interval must be > 0\r\n");
+        return -1;
+    }
     app_arp_send();
-
     xArpTimer = xTimerCreate("traffic probe",  pdMS_TO_TICKS(seconds * 1000), pdTRUE, (void*)0, arp_send);
-    xTimerStart(xArpTimer, 0);
-
+    if (!xArpTimer) {
+        printf("[PM] Error: Failed to create ARP timer\r\n");
+        return -1;
+    }
+    if (xTimerStart(xArpTimer, 0) != pdPASS) {
+        printf("[PM] Error: Failed to start ARP timer\r\n");
+        xTimerDelete(xArpTimer, portMAX_DELAY);
+        xArpTimer = NULL;
+        return -1;
+    }
     return 0;
 }
 
@@ -890,70 +905,114 @@ int app_delete_keepalive_timer(void)
     return 0;
 }
 
+#if 0
+static void print_pbuf_contents(struct pbuf *p, int pbuf_index)
+{
+    if (!p || !p->payload) {
+        printf("[RECV_TASK] pbuf %d is NULL or has no payload\r\n", pbuf_index);
+        return;
+    }
+
+    printf("[RECV_TASK] ========== PBUF %d CONTENTS ==========\r\n", pbuf_index);
+    printf("[RECV_TASK] pbuf->len: %d, pbuf->tot_len: %d\r\n", p->len, p->tot_len);
+    printf("[RECV_TASK] pbuf->type: %d, pbuf->flags: 0x%02x\r\n", p->type_internal, p->flags);
+    printf("[RECV_TASK] pbuf->payload: %p\r\n", p->payload);
+
+    uint8_t *data = (uint8_t *)p->payload;
+    uint16_t len = p->len;
+
+    if (len >= 14) {
+        printf("[RECV_TASK] Ethernet Header Analysis:\r\n");
+        printf("  Dest MAC: %02x:%02x:%02x:%02x:%02x:%02x\r\n",
+               data[0], data[1], data[2], data[3], data[4], data[5]);
+        printf("  Src MAC:  %02x:%02x:%02x:%02x:%02x:%02x\r\n",
+               data[6], data[7], data[8], data[9], data[10], data[11]);
+
+        uint16_t ethertype = (data[12] << 8) | data[13];
+        printf("  EtherType: 0x%04x ", ethertype);
+
+        switch (ethertype) {
+            case 0x0800:
+                printf("(IPv4)\r\n");
+                break;
+            case 0x0806:
+                printf("(ARP)\r\n");
+                break;
+            case 0x86DD:
+                printf("(IPv6)\r\n");
+                break;
+            default:
+                printf("(Unknown)\r\n");
+                break;
+        }
+
+        if (ethertype == 0x0800 && len >= 34) {
+            printf("[RECV_TASK] IPv4 Header Analysis:\r\n");
+            uint8_t *ip_header = &data[14];
+            uint8_t version = (ip_header[0] >> 4) & 0x0F;
+            uint8_t ihl = ip_header[0] & 0x0F;
+            uint8_t protocol = ip_header[9];
+
+            printf("  Version: %d, IHL: %d\r\n", version, ihl);
+            printf("  Protocol: %d ", protocol);
+
+            switch (protocol) {
+                case 1:
+                    printf("(ICMP)\r\n");
+                    break;
+                case 6:
+                    printf("(TCP)\r\n");
+                    break;
+                case 17:
+                    printf("(UDP)\r\n");
+                    break;
+                default:
+                    printf("(Other)\r\n");
+                    break;
+            }
+
+            printf("  Src IP: %d.%d.%d.%d\r\n",
+                   ip_header[12], ip_header[13], ip_header[14], ip_header[15]);
+            printf("  Dst IP: %d.%d.%d.%d\r\n",
+                   ip_header[16], ip_header[17], ip_header[18], ip_header[19]);
+        }
+    }
+
+    printf("[RECV_TASK] ====================================\r\n");
+}
+#endif
+
 static void process_multicase_broadcast(void *pvParameters)
 {
     struct pbuf *p;
-    int processed_count = 0;
 
     while (1) {
         ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 
-        while (processed_count < PREALLOCATED_PBUF_COUNT) {
-            p = pbuf_pool_cache.pbufs[processed_count];
-            if (p != NULL && p->payload && pbuf_pool_cache.used_idx[processed_count]) {
-                //printf("[RECV_TASK] Processing pbuf %d, len=%d idx\r\n", processed_count, p->len, processed_count);
-
-                //print_pbuf_contents(p, processed_count);
-
-                bool pbuf_consumed = false;
-
+        linear_allocator_iter_reset(&pm_mem);
+        p = (struct pbuf *)linear_allocator_next_ptr(&pm_mem);
+        while (p) {
+            if (p != NULL && p->payload) {
+                //print_pbuf_contents(p, 0);
+                
+                #if CONFIG_LWIP_ONHOST_ENABLE
+                extern int dual_stack_input(struct pbuf *p, bool is_sta);
+                dual_stack_input(p, 1);
+                #else
                 if (netif_default && netif_default->input) {
                     err_t ret = netif_default->input(p, netif_default);
                     if (ret != ERR_OK) {
                         printf("[RECV_TASK] Failed to input pbuf to netif\r\n");
                         pbuf_free(p);
                     }
-                    pbuf_consumed = true;
                 } else {
-                    printf("[RECV_TASK] No valid netif, freeing pbuf\r\n");
-                    pbuf_free(p);
-                    pbuf_consumed = true;
                 }
-
-                if (pbuf_consumed) {
-                    pbuf_pool_cache.used_idx[processed_count] = 0;
-                    pbuf_pool_cache.pbufs[processed_count] = NULL;
-
-                    struct pbuf *new_pbuf = pbuf_alloc(PBUF_RAW, PREALLOCATED_PBUF_SIZE, PBUF_RAM);
-                    if (new_pbuf) {
-                        pbuf_pool_cache.pbufs[processed_count] = new_pbuf;
-                    } else {
-                        static int alloc_fail_count = 0;
-                        alloc_fail_count++;
-                        printf("[RECV_TASK] Total pbuf allocation failures: %d\r\n", alloc_fail_count);
-
-                        for (int retry = 0; retry < 3; retry++) {
-                            vTaskDelay(pdMS_TO_TICKS(10));
-                            new_pbuf = pbuf_alloc(PBUF_RAW, PREALLOCATED_PBUF_SIZE, PBUF_RAM);
-                            if (new_pbuf) {
-                                pbuf_pool_cache.pbufs[processed_count] = new_pbuf;
-                                printf("[RECV_TASK] Retry %d: Successfully reallocated pbuf %d\r\n",
-                                       retry + 1, processed_count);
-                                break;
-                            }
-                        }
-
-                        if (!new_pbuf) {
-                            printf("[RECV_TASK] CRITICAL: Cannot maintain pbuf pool integrity for slot %d\r\n", processed_count);
-                            assert(0);
-                        }
-                    }
-                }
+                #endif
             }
-            processed_count++;
+            p = (struct pbuf *)linear_allocator_next_ptr(&pm_mem);
         }
 
-        processed_count = 0;
+        linear_allocator_reset(&pm_mem);
     }
 
     vTaskDelete(NULL);
@@ -968,6 +1027,37 @@ void app_pm_exit_pds15(void)
 int qcc74x_pm_app_check(void)
 {
     return nxspi_ps_get();
+}
+
+int pwr_info_clear(void)
+{
+    qcc74x_lp_info_clear();
+
+    return 0;
+}
+
+#define SLEEP_PDS_US        80
+#define ACTIVE_LPFW_US      38000
+#define ACTIVE_APP_US       57000
+
+uint64_t pwr_info_get(void)
+{
+    qcc74x_lp_info_t lp_info;
+    qcc74x_lp_info_get(&lp_info);
+
+    printf("\r\nVirtual time: %llu us\r\n", qcc74x_lp_get_virtual_us());
+    printf("Power info dump:\r\n");
+    printf("LPFW try recv bcn: %d, loss %d\r\n", lp_info.lpfw_recv_cnt, lp_info.lpfw_loss_cnt);
+    printf("Total time %lldms\r\n", lp_info.time_total_us / 1000);
+    printf("PDS sleep: %lldms\r\n", lp_info.sleep_pds_us / 1000);
+    printf("LPFW active: %lldms\r\n", lp_info.active_lpfw_us / 1000);
+    printf("APP active: %lldms\r\n", lp_info.active_app_us / 1000);
+
+    uint64_t current = (lp_info.sleep_pds_us * SLEEP_PDS_US + lp_info.active_lpfw_us * ACTIVE_LPFW_US + lp_info.active_app_us * ACTIVE_APP_US) / lp_info.time_total_us;
+
+    printf("Predict current: %llduA\r\n", current);
+
+    return current;
 }
 
 int app_pm_init(void)
@@ -994,7 +1084,7 @@ int app_pm_init(void)
     app_atmoudle_init();
 
     printf("[OS] Starting process_multicase_broadcast task...\r\n");
-    xTaskCreate(process_multicase_broadcast, (char*)"hellow", 256, NULL, 10, &rxl_process_task_hd);
+    xTaskCreate(process_multicase_broadcast, (char*)"hellow", 384, NULL, 10, &rxl_process_task_hd);
 
     return 0;
 }

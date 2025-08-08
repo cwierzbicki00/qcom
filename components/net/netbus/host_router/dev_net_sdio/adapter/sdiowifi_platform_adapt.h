@@ -65,7 +65,6 @@ int sdiowifi_streambuf_spaces_available(sdiowifi_streambuf_handle_t handle);
 #else
 #include <qcc74x_boot2.h>
 #include <qcc74x_mtd.h>
-#include <qcc74x_ota.h>
 
 #define iot_sha256_context sha256_context
 #define HALPartition_Entry_Config qcc74x_partition_config_t

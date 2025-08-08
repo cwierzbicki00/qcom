@@ -6,25 +6,24 @@
 #include "board.h"
 #include "qcc74xlog.h"
 
-/*!< 添加QCC74xLOG 标签可以使用标签过滤功能 */
-/*!< 不添加则标签仍然能显示, 但标签过滤无效 */
+/*!< Adding a QCC74xLOG tag enables tag filtering functionality */
+/*!< Without a tag, the log will still display but tag filtering will not work */
 
-/*!< 定义一个 QCC74xLOG 标签 */
+/*!< Define a QCC74xLOG tag */
 QCC74xLOG_DEFINE_TAG(MAIN, DBG_TAG, true);
 
-/*!< 取消之前的QCC74xLOG 标签 */
+/*!< Undefine the previous QCC74xLOG tag */
 #undef QCC74xLOG_TAG
 
-/*!< 将QCC74xLOG 标签定义为新的标签 */
+/*!< Redefine the QCC74xLOG tag with a new value */
 #define QCC74xLOG_TAG QCC74xLOG_GET_TAG(MAIN)
 
-/*!< qcc74xlog 裸机同步例程 */
 /*!< qcc74xlog barebone sync example */
 
 struct qcc74x_device_s *uart0 = NULL;
 static struct qcc74x_device_s *rtc = NULL;
 
-/*!< 当前的UTC时间戳 2022-12-16 17:52 */
+/*!< Current UTC timestamp: 2022-12-16 17:52 */
 uint32_t timestamp_base = 1671184300;
 
 /** @defgroup   example_qcc74xlog_port port
@@ -68,27 +67,27 @@ void example_log_init(void)
     void *record = (void *)&example_recorder;
     void *direct = (void *)&example_uart_stream;
 
-    /*!< 创建一个记录器, 配置内存池, 内存池大小, 模式为同步 */
+    /*!< Create a recorder, configure the memory pool with specified size and set mode to synchronous */
     /*!< create recorder */
     if (0 != qcc74xlog_create(record, example_pool, EXAMPLE_LOG_POOL_SIZE, QCC74xLOG_MODE_SYNC)) {
         printf("qcc74xlog_create faild\r\n");
     }
 
-    /*!< 创建输出器, 类型为流输出器, 使能颜色输出, 互斥锁设为NULL */
+    /*!< Create a stream direct, enable color output, and set mutex to NULL */
     /*!< create stream direct */
     qcc74xlog_direct_create(direct, QCC74xLOG_DIRECT_TYPE_STREAM, QCC74xLOG_DIRECT_COLOR_ENABLE, NULL, NULL);
-    /*!< 配置流输出的输出函数 */
+    /*!< Configure the output function for stream output */
     qcc74xlog_direct_init_stream((void *)direct, example_uart_stream_output);
 
-    /*!< 添加输出器到记录器 */
+    /*!< Add the direct to the recorder */
     /*!< connect direct and recorder */
     qcc74xlog_append(record, direct);
 
-    /*!< 恢复输出器到工作模式 */
+    /*!< Restore the direct to working mode */
     /*!< resume direct */
     qcc74xlog_direct_resume(direct);
 
-    /*!< 恢复记录器到工作模式 */
+    /*!< Restore the logger to operational mode */
     /*!< resume record */
     qcc74xlog_resume(record);
 }

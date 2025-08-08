@@ -36,6 +36,10 @@ if (CONFIG_SPI_3PIN_MODE_ENABLE)
     sdk_add_compile_definitions(-DCONFIG_SPI_3PIN_MODE_ENABLE=1)
 endif()
 
+if (CONFIG_AT_DEBUG_ENABLE)
+    sdk_add_compile_definitions(-DCONFIG_AT_DEBUG_ENABLE=1)
+endif()
+
 sdk_add_compile_definitions(-DMQTT_USE_CUSTOM_SOCKET_HANDLE=1)
 
 if (CONFIG_IPV6)
@@ -47,9 +51,10 @@ sdk_add_include_directories(./app/include)
 
 sdk_set_main_file(main.c)
 
-if (CONFIG_RCP_ENABLE)
-sdk_add_compile_definitions(-DLWIP_HEAP_SIZE=\(1*1024\))
-sdk_add_compile_definitions(-DCONFIG_RCP_ENABLE=$(CONFIG_RCP_ENABLE))
+if (CONFIG_LWIP_ONHOST_ENABLE)
+sdk_add_compile_definitions(-DLWIP_HEAP_SIZE=\(4*1024\))
+sdk_add_compile_definitions(-DCONFIG_LWIP_ONHOST_ENABLE=$(CONFIG_LWIP_ONHOST_ENABLE))
+sdk_add_compile_definitions(-DCONFIG_LWIP_ONHOST_IMAGE_VER="_lwip_onhost")
 endif()
 
 project(spi_wifi)
