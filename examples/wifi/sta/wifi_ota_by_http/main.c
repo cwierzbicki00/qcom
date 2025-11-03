@@ -75,9 +75,6 @@ static TaskHandle_t wifi_fw_task;
 struct qcc74x_device_s *wdg;
 static TaskHandle_t ota_task_handle;
 #endif
-static wifi_conf_t conf = {
-    .country_code = "US",
-};
 
 #if AUTO_CONNECT_WIFI
 // clang-format off
@@ -134,7 +131,7 @@ void wifi_event_handler(uint32_t code)
     switch (code) {
         case CODE_WIFI_ON_INIT_DONE: {
             LOG_I("[APP] [EVT] %s, CODE_WIFI_ON_INIT_DONE\r\n", __func__);
-            wifi_mgmr_init(&conf);
+            wifi_mgmr_init();
         } break;
         case CODE_WIFI_ON_MGMR_DONE: {
             LOG_I("[APP] [EVT] %s, CODE_WIFI_ON_MGMR_DONE\r\n", __func__);

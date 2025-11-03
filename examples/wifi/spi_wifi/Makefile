@@ -1,5 +1,5 @@
-SDK_DEMO_PATH ?= .
-QCC74x_SDK_BASE ?= $(SDK_DEMO_PATH)/../../../
+SDK_DEMO_PATH ?= $(abspath .)
+QCC74x_SDK_BASE ?= ./../../../
 
 export QCC74x_SDK_BASE
 
@@ -19,6 +19,9 @@ cmake_definition+=-DCONFIG_USE_LPAPP=$(CONFIG_USE_LPAPP)
 CONFIG_BLUETOOTH_APP ?= 1
 cmake_definition+=-DCONFIG_BLUETOOTH_APP=$(CONFIG_BLUETOOTH_APP)
 
+CONFIG_BLE_HOST_CHECK ?= 1
+cmake_definition+=-DCONFIG_BLE_HOST_CHECK=$(CONFIG_BLE_HOST_CHECK)
+
 CONFIG_HCI_ENABLE ?= 0
 ifeq ($(CONFIG_HCI_ENABLE), 1)
     cmake_definition+=-DCONFIG_HCI_ENABLE=$(CONFIG_HCI_ENABLE)
@@ -37,6 +40,16 @@ CONFIG_IPV6 ?= 1
 endif
 
 cmake_definition+=-DCONFIG_IPV6=$(CONFIG_IPV6)
+
+CONFIG_OT_RCP_ENABLE ?= 0
+ifeq ($(CONFIG_OT_RCP_ENABLE), 1)
+    cmake_definition+=-DOT_NCP=0 -DOT_CLI=0 -DOT_SERIAL=NXSPI
+    cmake_definition+=-DOPENTHREAD_PROJECT_CORE_CONFIG_FILE=\"openthread-core-proj-config.h\"
+    cmake_definition+=-DOPENTHREAD_CORE_CONFIG_PLATFORM_CHECK_FILE=\"openthread-core-platform-config-check.h\"
+    ifneq ($(CONFIG_USE_LPAPP), 0)
+        $(error "Thread DOES NOT run with low power feature.")
+    endif
+endif
 
 CONFIG_MQTT ?= 1
 cmake_definition+=-DCONFIG_MQTT=$(CONFIG_MQTT)

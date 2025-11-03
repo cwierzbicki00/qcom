@@ -6,10 +6,10 @@
 
 #define EAMC_BUF_HEAD_SIZE (64)
 
-#define EMAC_TX_BUFF_SIZE  (14 + 4 + 1500 + 4)
+#define EMAC_TX_BUFF_SIZE  (14 + 1500 + 4)
 #define EMAC_TX_BUFF_CNT   (6)
 
-#define EMAC_RX_BUFF_SIZE  (14 + 4 + 1500 + 4)
+#define EMAC_RX_BUFF_SIZE  (14 + 1500 + 4)
 #define EMAC_RX_BUFF_CNT   (10)
 
 typedef void (*eth_emac_event_cb_t)(uint32_t irq_event);

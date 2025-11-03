@@ -114,12 +114,20 @@ static int payload_cb(int sock, struct http_request *req, void *user_data)
 	return pos;
 }
 
+static int log_output(void *ptr, size_t size)
+{
+	size_t i;
+    for (i = 0; i < size; i++) {
+        putchar(((char *)ptr)[i]);
+    }
+    return i;
+}
+
 static void response_cb(struct http_response *rsp,
 			enum http_final_call final_data,
 			void *user_data)
 {
-    rsp->recv_buf[rsp->data_len] = 0;
-    printf(rsp->recv_buf);
+	log_output(rsp->recv_buf, rsp->data_len);
 	if (final_data == HTTP_DATA_MORE) {
 		//printf("Partial data received (%zd bytes)\r\n", rsp->data_len);
 	} else if (final_data == HTTP_DATA_FINAL) {

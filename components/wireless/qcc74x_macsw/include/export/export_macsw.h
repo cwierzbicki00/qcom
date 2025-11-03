@@ -130,7 +130,12 @@ bool mfp_is_robust_frame(uint16_t frame_cntl, uint8_t action);
 #define LLC_LLC_LEN                  3
 #define LLC_SNAP_LEN                 5
 #define LLC_802_2_HDR_LEN            (LLC_LLC_LEN + LLC_SNAP_LEN)
+#ifdef CFG_ADHOC_ENABLE
+#define WLAN_802_11_MTU                   2304
+#define RX_MAX_AMSDU_SUBFRAME_LEN (WLAN_802_11_MTU + LLC_ETHER_HDR_LEN + LLC_802_2_HDR_LEN)
+#else
 #define RX_MAX_AMSDU_SUBFRAME_LEN (LLC_ETHER_MTU + LLC_ETHER_HDR_LEN + LLC_802_2_HDR_LEN)
+#endif
 #define TX_PBD_CNT            5
 #define BCN_MAX_CSA_CPT 2
 #define SCAN_SSID_MAX   2

@@ -35,11 +35,7 @@ typedef void *        rtos_semaphore;
 /// RTOS mutex
 typedef void *        rtos_mutex;
 
-#ifdef CFG_QCC74x_WIFI_PS_ENABLE
-typedef TimerHandle_t rtos_timer_t;
-
-typedef void (*rtos_timer_callback_t)(void *);
-#endif
+typedef void (*rtos_pendfunc_callback_t)(void *, uint32_t);
 
 #define g_tskIDLE_PRIORITY 0
 #define RTOS_TASK_PRIORITY(prio)  (g_tskIDLE_PRIORITY + (prio))

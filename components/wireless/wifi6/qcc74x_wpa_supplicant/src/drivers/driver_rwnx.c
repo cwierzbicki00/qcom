@@ -2077,7 +2077,7 @@ static int wpa_rwnx_driver_deinit_ap(void *priv)
 	wpa_rwnx_msg_hdr_init(drv, &cmd.hdr, CFGRWNX_SET_VIF_TYPE_CMD, sizeof(cmd));
 	wpa_rwnx_msg_hdr_init(drv, &resp.hdr, CFGRWNX_SET_VIF_TYPE_RESP, sizeof(resp));
 	cmd.fhost_vif_idx = drv->fhost_vif_idx;
-	cmd.type = drv->vif_init_type;
+	cmd.type = VIF_UNKNOWN;
 	cmd.p2p = false;
 
 	if (fhost_cntrl_cfgrwnx_cmd_send(&cmd.hdr, &resp.hdr) || (resp.status != CFGRWNX_SUCCESS))

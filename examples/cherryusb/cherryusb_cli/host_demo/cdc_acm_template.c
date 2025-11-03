@@ -58,7 +58,8 @@ static void usbh_cdc_acm_thread(CONFIG_USB_OSAL_THREAD_SET_ARGV)
     static bool run_flag = false;
     if (run_flag == true) {
         USB_LOG_ERR("USBH ACM test already running\r\n");
-        goto exit_del;
+        usb_osal_thread_delete(NULL);
+        return;
     }
     run_flag = true;
 
@@ -137,7 +138,7 @@ exit_del:
     usb_osal_sem_delete(usbh_cdc_acm_sem);
     usbh_cdc_acm_sem = NULL;
     run_flag = false;
-    USB_LOG_RAW("USBH ACM speed test end\r\n");
+    USB_LOG_WRN("USBH ACM speed test end\r\n");
     usb_osal_thread_delete(NULL);
 }
 

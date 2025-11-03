@@ -67,4 +67,5 @@
 #endif
     struct_func_alloc_def(me_get_edca_req);
     struct_func_alloc_def(me_get_edca_cfm);
+    struct_func_alloc_def(me_get_stats_cfm);
     struct_func_alloc_def(me_get_remaining_tx_cfm);

@@ -1,6 +1,7 @@
 #ifndef __WIFI_MGMR_EXT_H_
 #define __WIFI_MGMR_EXT_H_
 #include "export/mac/mac_types.h"
+#include "export/qcc74x_fw_api.h"
 
 #define MAX_FIXED_CHANNELS_LIMIT (14)
 #define MAX_AP_SCAN     50
@@ -37,22 +38,7 @@
 #define  CODE_WIFI_ON_EXIT_PS           24
 #define  CODE_WIFI_ON_GOT_IP6           25
 #define  CODE_WIFI_ON_LOST_IP           26
-
-#define WIFI_EVENT_BEACON_IND_AUTH_OPEN            0
-#define WIFI_EVENT_BEACON_IND_AUTH_WEP             1
-#define WIFI_EVENT_BEACON_IND_AUTH_WPA_PSK         2
-#define WIFI_EVENT_BEACON_IND_AUTH_WPA2_PSK        3
-#define WIFI_EVENT_BEACON_IND_AUTH_WPA_WPA2_PSK    4
-#define WIFI_EVENT_BEACON_IND_AUTH_WPA_ENT         5
-#define WIFI_EVENT_BEACON_IND_AUTH_WPA3_SAE        6
-#define WIFI_EVENT_BEACON_IND_AUTH_WPA2_PSK_WPA3_SAE 7
-#define WIFI_EVENT_BEACON_IND_AUTH_UNKNOWN      0xff
-
-#define WIFI_EVENT_BEACON_IND_CIPHER_NONE           0
-#define WIFI_EVENT_BEACON_IND_CIPHER_WEP            1
-#define WIFI_EVENT_BEACON_IND_CIPHER_AES            2
-#define WIFI_EVENT_BEACON_IND_CIPHER_TKIP           3
-#define WIFI_EVENT_BEACON_IND_CIPHER_TKIP_AES       4
+#define  CODE_WIFI_ON_LOST_IP6          27
 
 /// Interface types
 typedef enum
@@ -66,7 +52,8 @@ typedef enum
 typedef enum
 {
     ACCEPT_ACL,
-    DENY_ACL
+    DENY_ACL,
+    MAX_ACL_TYPE
 } ap_acl_type;
 
 typedef enum
@@ -74,7 +61,8 @@ typedef enum
     ADD_ACL,
     DELETE_ACL,
     SHOW_ACL,
-    CLEAR_ACL
+    CLEAR_ACL,
+    MAX_ACL_ACTION
 } ap_action_type;
 
 typedef enum
@@ -336,11 +324,6 @@ typedef struct wifi_mgmr_connect_ind_stat_info {
     /// bss mode
     uint8_t bss_mode;
 } wifi_mgmr_connect_ind_stat_info_t;
-
-typedef struct wifi_conf {
-    char country_code[3];
-    int channel_nums;
-} wifi_conf_t;
 
 typedef struct wifi_sta_basic_info {
     uint8_t sta_idx;
@@ -758,6 +741,48 @@ void show_auth_cipher(struct mac_scan_result *result);
 int wifi_mgmr_mac_set(uint8_t mac[6]);
 
 /**
+ * wifi_mgmr_sta_set_mac
+ * Set mac addr for sta mode
+ * param:
+ *  param1 : Array of mac address
+ * return:
+ *  0 : Success
+ *  -1 : Failed
+ *  Others is Failed
+ *
+ * Attention:
+ *  This interface will override the modification of the MAC address in STA mode done by wifi_mgmr_mac_set().
+ *
+ * Attention:
+ *  This interface should be called before the initialization of the Wi-Fi module(wifi_start_firmware_task()).
+ *
+ * Attention:
+ *  The AP and STA MAC addresses can only differ by one bit.
+ * */
+int wifi_mgmr_sta_set_mac(uint8_t mac[6]);
+
+/**
+ * wifi_mgmr_ap_set_mac
+ * Set mac addr for ap mode
+ * param:
+ *  param1 : Array of mac address
+ * return:
+ *  0 : Success
+ *  -1 : Failed
+ *  Others is Failed
+ *
+ * Attention:
+ *  This interface will override the modification of the MAC address in AP mode done by wifi_mgmr_mac_set().
+ *
+ * Attention:
+ *  This interface should be called before the initialization of the Wi-Fi module(wifi_start_firmware_task()).
+ *
+ * Attention:
+ *  The AP and STA MAC addresses can only differ by one bit.
+ * */
+int wifi_mgmr_ap_set_mac(uint8_t mac[6]);
+
+/**
  * wifi_mgmr_sta_mac_get
  * Get sta mac
  * param:
@@ -932,7 +957,7 @@ int wifi_mgmr_sta_twt_teardown(twt_teardown_params_struct_t *twt_teardown_params
  *  @return 0 on success, non-zero error code on failure:
  *          - Other implementation-specific error codes
  */
-int wifi_mgmr_sta_twt_statusget(struct twt_conf_tag *conf, uint8_t *twt_num);
+int wifi_mgmr_sta_twt_statusget(struct twt_status_info *conf, uint8_t *twt_num);
 
 /**
  *  @brief Get the current ap twt ability.
@@ -1123,6 +1148,10 @@ int wifi_mgmr_ap_sta_delete(uint8_t sta_idx);
  */
 int wifi_mgmr_raw_80211_send(const wifi_mgmr_raw_send_params_t *config);
 
+
+int wifi_mgmr_get_stats(struct ieee80211_stats *stats, uint8_t num_stats);
+
+int wifi_mgmr_clear_stats(void);
 #ifdef CFG_QCC74x_WIFI_PS_ENABLE
 /**
  * wifi_mgmr_null_data_send
@@ -1176,6 +1205,12 @@ int wifi_mgmr_rf_pwr_check(void);
 
 /**
  * wifi_mgmr_rate_config
+ * param: fixed_rate_cfg
+ * 11ax: MCS9-893, MCS8-881, MCS7-869, MCS6-857, MCS5-845, MCS4-833, MCS3-821, MCS2-809, MCS1-797, MCS0-785;
+ * 11n: MCS7-44, MCS6-40, MCS5-36, MCS4-32, MCS3-28, MCS2-24, MCS1-20, MCS0-16;
+ * 11g: 54M-15, 48M-14, 36M-13, 24M-12, 18M-11, 12M-10, 9M-9, 6M-8;
+ * 11b: 11M-7, 5.5M-5, 2M-3, 1M-1
+ *
  * return:
  *  0 : Success
  *  -1 : Failed
@@ -1230,17 +1265,6 @@ int wifi_mgmr_sta_ap_retry_limit_set(uint8_t retry_limit);
 uint32_t wifi_mgmr_sta_ap_retry_limit_get(void);
 
 /**
- * wifi_mgmr_adhoc_start
- * Enable Ad-hoc mode
- */
-int wifi_mgmr_adhoc_start(const wifi_mgmr_adhoc_start_params_t *config);
-/**
- * wifi_mgmr_adhoc_stop
- * Disable Ad-hoc mode
- */
-int wifi_mgmr_adhoc_stop();
-
-/**
  * wifi_mgmr_set_tx_queue_params
  * Set CWmin, CWmax, and AIFS for each Tx Queue
  */
@@ -1278,6 +1302,22 @@ int wifi_mgmr_get_mode(uint8_t ap_or_sta);
 /**
  * wifi_mgmr_adhoc_set_rate
  * Set tx rate
+ * 1 Mbps: 7’d0
+ * 2 Mbps: 7’d1
+ * 5.5 Mbps: 7’d2
+ * 11 Mbps: 7’d3
+ * 6 Mbps: 7’d4
+ * 9 Mbps: 7’d5
+ * 12 Mbps: 7’d6
+ * 18 Mbps: 7’d7
+ * 24 Mbps: 7’d8
+ * 36 Mbps: 7’d9
+ * 48 Mbps: 7’d10
+ * 54 Mbps: 7’d11
+ * HT rates: 7’dMCS Index
+ * VHT rates: {3’dnSS, 4’dMCS index}
+ * HE rates: {3’dnSS, 4’dMCS index
+ * Note that nSS is the number of spatial stream minus 1
  */
 int8_t wifi_mgmr_adhoc_set_rate(uint8_t rate);
 /**
@@ -1300,6 +1340,12 @@ uint8_t wifi_mgmr_adhoc_get_rts_thrshold();
 /**
  * wifi_mgmr_adoc_set_tx_power
  * Set Tx power
+ * 8’h80 : -128 dBm
+ * 8’hFF : -1 dBm
+ * 8’h00 : 0 dBm
+ * 8’h01 : 1 dBm
+ * 8’h3F : 127dBm
+ *
  */
 int8_t wifi_mgmr_adhoc_set_tx_power(int8_t tx_power);
 

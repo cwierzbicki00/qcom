@@ -548,6 +548,7 @@ static void net_iperf_tcp_err(void *arg, err_t err)
     struct fhost_iperf_stream *stream = (struct fhost_iperf_stream *) arg;
 
     fhost_print(stream->iperf_handle, "Abort TCP (error %d)\n", err);
+    stream->active = false;
     net_iperf_tcp_close(stream);
 }
 

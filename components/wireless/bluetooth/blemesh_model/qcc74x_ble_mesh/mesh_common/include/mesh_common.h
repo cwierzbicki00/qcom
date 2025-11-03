@@ -35,6 +35,10 @@
 #include "bt_log.h"
 #include "__assert.h"
 
+#if defined(CONFIG_TLSF)
+#include <mem.h>
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -61,16 +65,28 @@ extern "C" {
 #define bt_mesh_malloc(size)    heap_caps_malloc_prefer(size, 2, MALLOC_CAP_DEFAULT|MALLOC_CAP_SPIRAM, MALLOC_CAP_DEFAULT|MALLOC_CAP_INTERNAL)
 #define bt_mesh_calloc(size)    heap_caps_calloc_prefer(1, size, 2, MALLOC_CAP_DEFAULT|MALLOC_CAP_SPIRAM, MALLOC_CAP_DEFAULT|MALLOC_CAP_INTERNAL)
 #else
+#if defined(CONFIG_TLSF)
+#define bt_mesh_malloc(size)    kmalloc((size),MM_KERNEL)
+#else
 #define bt_mesh_malloc(size)    pvPortMalloc((size)) //malloc((size))
+#endif
 #if defined(CFG_IOT_SDK) || defined(QCC74x_MCU_SDK)
 extern void* pvPortCalloc(size_t numElements, size_t sizeOfElement);
 #define bt_mesh_calloc(size)    pvPortCalloc(1, (size)) //calloc(1, (size))
 #else /* CFG_IOT_SDK CFG_IOT_SDK */
+#if defined(CONFIG_TLSF)
+#define bt_mesh_calloc(size)    kcalloc(1, (size)) //calloc(1, (size))
+#else
 extern void *calloc(size_t size, size_t len);
 #define bt_mesh_calloc(size)    calloc(1, (size)) //calloc(1, (size))
+#endif /* CONFIG_TLSF */
 #endif /* CFG_IOT_SDK CFG_IOT_SDK */
 #endif /* CONFIG_BLE_MESH_ALLOC_FROM_PSRAM_FIRST */
+#if defined(CONFIG_TLSF)
+#define bt_mesh_free(p)         kfree((p))
+#else
 #define bt_mesh_free(p)         vPortFree((p))
+#endif /* CONFIG_TLSF */
 
 /**
  * @brief This function allocates memory to store outgoing message.

@@ -10,11 +10,13 @@
 #ifndef AT_BLE_CONFIG_H
 #define AT_BLE_CONFIG_H
 
+#include "bluetooth.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define BLE_CONN_MAX_NUM 2
+#define BLE_CONN_MAX_NUM CONFIG_BT_MAX_CONN
 
 #define BLE_SRV_MAX_NUM 3
 #define BLE_CHAR_MAX_NUM 5
@@ -41,6 +43,7 @@ typedef enum {
     BLE_DISABLE = 0,
     BLE_CLIENT,
     BLE_SERVER,
+    BLE_DUALMODE,
 } ble_work_role;
 
 typedef struct {

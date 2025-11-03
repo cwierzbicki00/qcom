@@ -19,6 +19,7 @@
 
 #include "at_main.h"
 #include "at_core.h"
+#include "at_pal.h"
 #include "at_port.h"
 #include "at_base_cmd.h"
 #include "at_base_config.h"
@@ -49,7 +50,7 @@ uint64_t at_current_ms_get()
     return current_ms;
 }
 
-void at_response_result(int result_code)
+void at_response_result(uint32_t result_code)
 {
     int sub_code = 0;
 
@@ -102,8 +103,8 @@ void at_response_string(const char *format , ...)
     char outbuf[256];
     int outstr_len = 0;
 
-    if (!at) {
-        AT_CMD_PRINTF("ERROR: atcmd has not been initialized\r\n");
+    if (!at || !format) {
+        AT_CMD_PRINTF("ERROR: atcmd has not been initialized or format is NULL\r\n");
         return;
     }
 
@@ -153,6 +154,9 @@ at_work_mode at_get_work_mode(void)
 }
 
 #if AT_WORK_QUEUE
+/* Static task stack and control block for at_workq_task */
+#define AT_WORKQ_TASK_STACK_SIZE 384
+
 int at_workq_send(int id, struct at_workq *q, int timeout)
 {
 
@@ -263,14 +267,17 @@ static void at_main_task(void *pvParameters)
 int at_module_init(void)
 {
     int ret = -1;
-    int bufLen = (AT_THROUGH_MAX_LEN > AT_CMD_MAX_LEN) ? AT_THROUGH_MAX_LEN : AT_CMD_MAX_LEN;
  
+    static __attribute__((section(".wifi_ram."))) uint8_t at_through_buffer[(AT_THROUGH_MAX_LEN > AT_CMD_MAX_LEN) ? AT_THROUGH_MAX_LEN : AT_CMD_MAX_LEN];
+    static __attribute__((section(".wifi_ram."))) StackType_t at_workq_task_stack[AT_WORKQ_TASK_STACK_SIZE];
+    static StaticTask_t at_workq_task_tcb;
+
     if (at) {
         AT_CMD_PRINTF( "ERROR: atcmd has been initialized\r\n");
         return -1;
     }
 
-    at = (struct at_struct *)pvPortMalloc(sizeof(struct at_struct) + bufLen);
+    at = (struct at_struct *)at_malloc(sizeof(struct at_struct));
     if (at == NULL) {
         return -1;
     }
@@ -286,7 +293,7 @@ int at_module_init(void)
     at->device_ops.deinit_device = at_port_deinit;
     at->device_ops.read_data = at_port_read_data;
     at->device_ops.write_data = at_port_write_data;
-    at->inbuf = (char *)((char *)at + sizeof(struct at_struct));
+    at->inbuf = (char *)at_through_buffer;
 
     ret = at->device_ops.init_device();
     if (ret < 0) {
@@ -334,9 +341,12 @@ int at_module_init(void)
     }
 
 #if AT_WORK_QUEUE
-    ret = xTaskCreate(at_workq_task, (char*)"at_workq", 512, NULL, 15, NULL);
-    if (ret != pdPASS) {
-        AT_CMD_PRINTF("ERROR: create net_main_task failed, ret = %d\r\n", ret);
+    TaskHandle_t at_workq_task_handle = NULL;
+    at_workq_task_handle = xTaskCreateStatic(at_workq_task, (char*)"at_workq", 
+                                            AT_WORKQ_TASK_STACK_SIZE, NULL, 15, 
+                                            at_workq_task_stack, &at_workq_task_tcb);
+    if (at_workq_task_handle == NULL) {
+        AT_CMD_PRINTF("ERROR: create at_workq_task failed\r\n");
         return -1;
     }
 #endif
@@ -345,7 +355,7 @@ int at_module_init(void)
 
 INIT_ERROR:
     if (at) {
-        vPortFree(at);
+        at_free(at);
         at = NULL;
     }
     return -1;
@@ -364,7 +374,7 @@ int at_module_deinit(void)
     vTaskDelay(1000);
 
     at->device_ops.deinit_device();
-    vPortFree(at);
+    at_free(at);
     at = NULL;
     return 0;
 }

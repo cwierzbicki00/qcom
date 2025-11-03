@@ -12,10 +12,12 @@
 #endif /* CONFIG_SHELL */
 #include "qcc74x_port.h"
 #include "ble_cli_cmds.h"
+#if !defined (CONFIG_BT_HOST_HCI_TL)
 #if defined(QCC74x_undef) || defined(QCC74x_undef)
 #include "ble_lib_api.h"
 #else
 #include "btble_lib_api.h"
+#endif
 #endif
 #include "l2cap_internal.h"
 #if defined(CONFIG_BLE_MULTI_ADV)
@@ -729,11 +731,13 @@ BLE_CLI(enable)
     if (atomic_test_bit(bt_dev.flags, BT_DEV_ENABLE)) {
         return;
     }
+    #if !defined (CONFIG_BT_HOST_HCI_TL)
     // Initialize BLE controller
     #if defined(QCC74x_undef) || defined(QCC74x_undef)
     ble_controller_init(configMAX_PRIORITIES - 1);
     #else
     btble_controller_init(configMAX_PRIORITIES - 1);
+    #endif
     #endif
     // Initialize BLE Host stack
     hci_driver_init();

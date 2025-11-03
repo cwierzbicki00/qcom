@@ -218,7 +218,7 @@ static int cli_player_proc(int argc, char **argv)
         int type = SMTAUDIO_TYPE_ALL;
         if (argc == 3) {
             type = atoi(argv[2]);
-            type = ((type < SMTAUDIO_ONLINE_MUSIC) || (type > SMTAUDIO_BT_A2DP))
+            type = ((type < SMTAUDIO_ONLINE_MUSIC))
                        ? SMTAUDIO_TYPE_ALL
                        : type;
         }
@@ -288,17 +288,6 @@ static int cli_player_proc(int argc, char **argv)
         /* Re-initialize and update the gain parameters */
         board_audio_init();
 #endif
-#if defined(CONFIG_BT_BREDR) && (CONFIG_BT_BREDR == 1)
-    } else if (strcmp(argv[1], "a2dp") == 0) {
-        if (argc == 3) {
-            int cmd = atoi(argv[2]);
-            if (cmd == 0) {
-                app_bt_adv_enable(0);
-            } else {
-                app_bt_adv_enable(1);
-            }
-        }
-#endif
     } else if (strcmp(argv[1], "loop_play") == 0) {
         char *   url;
 
@@ -343,7 +332,6 @@ static void cmd_player_func(char *wbuf, int wbuf_len, int argc, char **argv)
 #if defined(CONFIG_STREAMER_FIFO) && CONFIG_STREAMER_FIFO
         printf("\tsmta sin 3\n");
 #endif
-        printf("\tsmta a2dp 1|0\n");
         printf("\tsmta state_get\n");
     }
 }

@@ -10,6 +10,10 @@ target_sources(app PRIVATE
               )
 endif()
 
+target_sources(app PRIVATE
+    wl_ble_lp_app.c
+              )
+
 sdk_add_include_directories(.)
 
 sdk_set_main_file(main.c)

@@ -1070,6 +1070,8 @@ SHELL_CMD_EXPORT_ALIAS(wifi_mgmr_ap_start_cmd, wifi_ap_start, start AP mode);
 SHELL_CMD_EXPORT_ALIAS(wifi_mgmr_ap_stop_cmd, wifi_ap_stop, stop AP mode);
 SHELL_CMD_EXPORT_ALIAS(cmd_wifi_ap_mac_get, wifi_ap_mac_get, get wifi ap mac);
 SHELL_CMD_EXPORT_ALIAS(cmd_wifi_ap_conf_max_sta, wifi_ap_conf_max_sta, config AP mac sta);
+SHELL_CMD_EXPORT_ALIAS(wifi_country_code_get_cmd, wifi_country_code_get, Get current country code);
+SHELL_CMD_EXPORT_ALIAS(wifi_country_code_set_cmd, wifi_country_code_set, Set country code (e.g. CN, US, JP));
 #if NX_TG
 SHELL_CMD_EXPORT_ALIAS(cmd_tg, tg, wifi tg);
 #endif
@@ -1087,7 +1089,7 @@ SHELL_CMD_EXPORT_ALIAS(cmd_iperf, iperf, iperf test throughput);
 SHELL_CMD_EXPORT_ALIAS(cmd_wifi_raw_send, wifi_raw_send, wifi raw send test);
 #endif
 SHELL_CMD_EXPORT_ALIAS(cmd_wifi_wps_pbc, wps_pbc, Start wps pbc for sta);
-SHELL_CMD_EXPORT_ALIAS(cmd_wifi_get_stats, wifi_stats, Get stats for wifi);
+SHELL_CMD_EXPORT_ALIAS(cmd_wifi_stats, wifi_stats, Get/Clear stats for wifi);
 SHELL_CMD_EXPORT_ALIAS(cmd_rc, rc, Print the Rate Control Table);
 SHELL_CMD_EXPORT_ALIAS(cmd_rate, rate, set g_fw_rate);
 SHELL_CMD_EXPORT_ALIAS(cmd_non_pref_chan, non_pref_chan, set non_pref_chan);

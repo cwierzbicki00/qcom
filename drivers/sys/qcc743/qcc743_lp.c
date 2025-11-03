@@ -35,13 +35,13 @@
         lp_hook_##x(__VA_ARGS__); \
     }
 
-#define WL_API_RMEM_ADDR      0x20010600
-#define LP_FW_PRE_JUMP_ADDR   0x20010000
+#define WL_API_RMEM_ADDR       0x20010600
+#define LP_FW_PRE_JUMP_ADDR    0x20010000
 #define QCC743_UART_TX         21
 #define QCC743_UART_RX         22
 #define QCC743_UART_ID         0
 #define QCC743_UART_FREQ       40000000
-#define UART_BAUDRATE         (2000000)
+#define UART_BAUDRATE          (2000000)
 
 #define QCC743_ACOMP_VREF_1V65 33
 
@@ -561,6 +561,39 @@ int qcc74x_lp_beacon_interval_update(uint16_t beacon_interval_tu)
     iot2lp_para->beacon_interval_tu = beacon_interval_tu;
 
     /* TODO: Other actions may be required, such as resetting the state */
+
+    return 0;
+}
+
+int qcc74x_lp_beacon_tim_update(uint8_t *tim, uint8_t mode)
+{
+    uint8_t tim_id = tim[0];
+    uint8_t tim_len = tim[1];
+    uint8_t dtim_count = tim[2];
+    uint8_t dtim_period = tim[3];
+
+    if (tim_id != 5 || tim_len < 4) {
+        QCC74x_LP_LOG("tim elem error, id:%d,len:%d\r\n", tim_id, tim_len);
+        return -1;
+    }
+
+    if (dtim_count >= dtim_period) {
+        QCC74x_LP_LOG("dtim count %d >= period %d\r\n", dtim_count, dtim_period);
+        return -1;
+    }
+
+    if (mode == BEACON_STAMP_LPFW) {
+        if ((iot2lp_para->beacon_dtim_period != dtim_period) && iot2lp_para->beacon_dtim_period) {
+            return -1; /* not allow change dtim period */
+        }
+    } else {
+        iot2lp_para->beacon_dtim_period = dtim_period;
+    }
+
+    iot2lp_para->last_beacon_dtim_count = dtim_count;
+
+    QCC74x_LP_LOG("[LP] beacon tim update: id:%d, len:%d, dtim_count:%d, dtim_period:%d\r\n",
+                  tim_id, tim_len, dtim_count, dtim_period);
 
     return 0;
 }
@@ -1209,11 +1242,12 @@ int ATTR_TCM_SECTION qcc74x_lp_fw_enter(qcc74x_lp_fw_cfg_t *qcc74x_lp_fw_cfg)
     // uintptr_t dst_addr = LP_FW_START_ADDR;
     // uint32_t lpfw_size = *((uint32_t *)__lpfw_start - 7);
 
-    uint32_t dtim_num, bcn_loss_level;
+    uint32_t dtim_num, bcn_past_num;
+    uint32_t bcn_loss_level;
     lp_fw_bcn_loss_level_t *bcn_loss_cfg = NULL;
 
     uint64_t rtc_cnt, rtc_now_us, last_beacon_rtc_us;
-    uint32_t dtim_period_us, pds_sleep_us, beacon_interval_us, total_error;
+    uint32_t pds_sleep_us, beacon_interval_us, total_error;
     int32_t rtc32k_error_us;
     uint64_t rtc_sleep_us, rtc_wakeup_cmp_cnt;
 
@@ -1267,6 +1301,7 @@ int ATTR_TCM_SECTION qcc74x_lp_fw_enter(qcc74x_lp_fw_cfg_t *qcc74x_lp_fw_cfg)
         rtc_sleep_us = ((uint64_t)24 * 60 * 60 * 1000 * 1000);
     }
 
+    iot2lp_para->bcmc_dtim_mode = qcc74x_lp_fw_cfg->bcmc_dtim_mode;
     /* tim interval */
     if (qcc74x_lp_fw_cfg->dtim_num != 0) {
         iot2lp_para->dtim_num = qcc74x_lp_fw_cfg->dtim_num;
@@ -1290,12 +1325,11 @@ int ATTR_TCM_SECTION qcc74x_lp_fw_enter(qcc74x_lp_fw_cfg_t *qcc74x_lp_fw_cfg)
         dtim_num = bcn_loss_cfg->dtim_num;
     }
 
-    dtim_period_us = dtim_num * beacon_interval_us;
-
     /* last beacon timestamp */
     last_beacon_rtc_us = iot2lp_para->last_beacon_stamp_rtc_us;
-    /* beacon delay */
     last_beacon_rtc_us -= iot2lp_para->last_beacon_delay_us;
+
+    qcc74x_l1c_dcache_clean_all();
 
     /* Gets the current rtc time */
     HBN_Get_RTC_Timer_Val((uint32_t *)&rtc_cnt, (uint32_t *)&rtc_cnt + 1);
@@ -1303,31 +1337,39 @@ int ATTR_TCM_SECTION qcc74x_lp_fw_enter(qcc74x_lp_fw_cfg_t *qcc74x_lp_fw_cfg)
 
     /* calculate pds and rtc sleep time */
     if (iot2lp_para->last_beacon_stamp_rtc_valid) {
-        /* Time to the next beacon */
-        if (last_beacon_rtc_us + dtim_period_us > rtc_now_us) {
-            /* Before the expected time */
-            pds_sleep_us = last_beacon_rtc_us + dtim_period_us - rtc_now_us;
+        /* beacon num form (last bcn -> now) */
+        bcn_past_num = (rtc_now_us - last_beacon_rtc_us + PROTECT_BF_MS * 1000) / beacon_interval_us;
 
-            /* rc32k error value */
-            rtc32k_error_us = (int32_t)((int64_t)dtim_period_us * iot2lp_para->rtc32k_error_ppm / (1000 * 1000));
+        if (iot2lp_para->bcmc_dtim_mode) {
+            dtim_num = dtim_num * iot2lp_para->beacon_dtim_period;
 
+            dtim_num = dtim_num - (bcn_past_num % dtim_num);
+
+            uint8_t next_dtim_count = (iot2lp_para->last_beacon_dtim_count + bcn_past_num + dtim_num) % iot2lp_para->beacon_dtim_period;
+            if (next_dtim_count) {
+                if (dtim_num + next_dtim_count > iot2lp_para->beacon_dtim_period) {
+                    dtim_num = dtim_num + next_dtim_count - iot2lp_para->beacon_dtim_period;
+                } else {
+                    dtim_num = dtim_num + next_dtim_count;
+                }
+            }
         } else {
-            /* After the expected time */
-            pds_sleep_us = beacon_interval_us - ((rtc_now_us - last_beacon_rtc_us) % beacon_interval_us);
-
-            /* rc32k error value */
-            rtc32k_error_us = (int32_t)((int64_t)(pds_sleep_us + rtc_now_us - last_beacon_rtc_us) * iot2lp_para->rtc32k_error_ppm / (1000 * 1000));
+            dtim_num = dtim_num - (bcn_past_num % dtim_num);
         }
 
-        if (pds_sleep_us <= PROTECT_AF_MS * 1000) {
-            /* Time is too short, delay to a beacon */
-            pds_sleep_us += beacon_interval_us;
+        /* last bcn -> next bcn */
+        pds_sleep_us = (dtim_num + bcn_past_num) * beacon_interval_us;
 
-            /* rc32k error value */
-            rtc32k_error_us += (int32_t)((int64_t)beacon_interval_us * iot2lp_para->rtc32k_error_ppm / (1000 * 1000));
-        }
+        /* rc32k error compensation (last bcn -> next bcn) */
+        rtc32k_error_us = (int32_t)((int64_t)pds_sleep_us * iot2lp_para->rtc32k_error_ppm / (1000 * 1000));
 
-        /* error compensation */
+        /* now -> next bcn */
+        pds_sleep_us = pds_sleep_us - (uint32_t)(rtc_now_us - last_beacon_rtc_us);
+
+        // printf("dtim_num:%d, bcn_past_num:%d, pds_sleep_us:%d\r\n", dtim_num, bcn_past_num, pds_sleep_us);
+        // qcc74x_mtimer_delay_us(200);
+
+        /* rc32k error */
         if (rtc32k_error_us > 0 || pds_sleep_us > (-rtc32k_error_us)) {
             pds_sleep_us += rtc32k_error_us;
         } else {
@@ -1359,7 +1401,7 @@ int ATTR_TCM_SECTION qcc74x_lp_fw_enter(qcc74x_lp_fw_cfg_t *qcc74x_lp_fw_cfg)
 
     } else {
         /* It shouldn't be here */
-        pds_sleep_us = dtim_period_us / 2;
+        pds_sleep_us = dtim_num * beacon_interval_us / 2;
     }
 
 #if 0
@@ -1504,7 +1546,7 @@ int ATTR_TCM_SECTION qcc74x_lp_fw_enter(qcc74x_lp_fw_cfg_t *qcc74x_lp_fw_cfg)
 
     qcc74x_lp_vtime_before_sleep();
 
-    L1C_DCache_Clean_All();
+    qcc74x_l1c_dcache_clean_all();
 
     qcc74x_lp_debug_record_time(iot2lp_para, "lp_fw_save_cpu_para");
 
@@ -1755,7 +1797,8 @@ int qcc74x_lp_hbn_enter(qcc74x_lp_hbn_fw_cfg_t *qcc74x_lp_hbn_fw_cfg)
 int qcc74x_lp_fw_enter_check_allow(void)
 {
     uint64_t last_beacon_rtc_us, rtc_now_us, rtc_cnt;
-    uint32_t dtim_period_us, beacon_interval_us;
+    uint32_t beacon_interval_us;
+    uint32_t dtim_num, bcn_past_num, now_dtim_count = 0;
 
     if (iot2lp_para->last_beacon_stamp_rtc_valid == 0) {
         /* It shouldn't be here */
@@ -1765,6 +1808,18 @@ int qcc74x_lp_fw_enter_check_allow(void)
     /* beacon interval us, TU * 1024 */
     beacon_interval_us = iot2lp_para->beacon_interval_tu * 1024;
 
+    /* get period of dtim */
+    if (iot2lp_para->continuous_loss_cnt == 0) {
+        dtim_num = iot2lp_para->dtim_num;
+    } else {
+        uint32_t bcn_loss_level;
+        lp_fw_bcn_loss_level_t *bcn_loss_cfg = NULL;
+
+        bcn_loss_level = iot2lp_para->bcn_loss_level;
+        bcn_loss_cfg = &(iot2lp_para->bcn_loss_cfg_table[bcn_loss_level]);
+        dtim_num = bcn_loss_cfg->dtim_num;
+    }
+
     /* Time stamp of the last beacon */
     last_beacon_rtc_us = iot2lp_para->last_beacon_stamp_rtc_us;
     last_beacon_rtc_us -= iot2lp_para->last_beacon_delay_us;
@@ -1773,39 +1828,40 @@ int qcc74x_lp_fw_enter_check_allow(void)
     HBN_Get_RTC_Timer_Val((uint32_t *)&rtc_cnt, (uint32_t *)&rtc_cnt + 1);
     rtc_now_us = QCC74x_PDS_CNT_TO_US(rtc_cnt);
 
-    /* get period of dtim */
-    if (iot2lp_para->continuous_loss_cnt) {
-        uint32_t bcn_loss_level = iot2lp_para->bcn_loss_level;
-        lp_fw_bcn_loss_level_t *bcn_loss_cfg = &(iot2lp_para->bcn_loss_cfg_table[bcn_loss_level]);
-        dtim_period_us = bcn_loss_cfg->dtim_num * beacon_interval_us;
-    } else {
-        dtim_period_us = iot2lp_para->dtim_num * beacon_interval_us;
+    /* beacon num form (last bcn -> now) */
+    bcn_past_num = (rtc_now_us - last_beacon_rtc_us + beacon_interval_us / 2) / beacon_interval_us;
+
+    if (bcn_past_num == 0) {
+        return 1;
     }
 
-    /* next beacon */
-    if (last_beacon_rtc_us + dtim_period_us >= rtc_now_us) {
-        /* */
-        if ((last_beacon_rtc_us + dtim_period_us - rtc_now_us) < PROTECT_BF_MS * 1000) {
-            /* beacon will be received soon */
-            QCC74x_LP_LOG("---- Not allowed sleep BF1 ----");
-            return 0;
-        }
-    } else {
-        /* Get the nearest beacon */
-        int32_t next_time = ((rtc_now_us - last_beacon_rtc_us) % beacon_interval_us);
+    if (iot2lp_para->bcmc_dtim_mode) {
+        dtim_num = dtim_num * iot2lp_para->beacon_dtim_period;
+        now_dtim_count = (iot2lp_para->last_beacon_dtim_count + bcn_past_num) % iot2lp_para->beacon_dtim_period;
 
-        if (next_time < beacon_interval_us / 2) {
-            if (next_time < PROTECT_AF_MS * 1000) {
-                QCC74x_LP_LOG("---- Not allowed sleep AF ----");
-                return 0;
-            }
-        } else {
-            next_time = beacon_interval_us - next_time;
-            if (next_time < PROTECT_BF_MS * 1000) {
-                QCC74x_LP_LOG("---- Not allowed sleep BF2 ----");
-                return 0;
-            }
+        if (now_dtim_count != 0) {
+            return 1;
         }
+
+        if ((bcn_past_num + (iot2lp_para->beacon_dtim_period - iot2lp_para->last_beacon_dtim_count) % iot2lp_para->beacon_dtim_period) % dtim_num != 0) {
+            return 1;
+        }
+
+    } else {
+        if (bcn_past_num % dtim_num != 0) {
+            return 1;
+        }
+    }
+
+    /* now bcn */
+    uint64_t now_beacon_rtc_us = last_beacon_rtc_us + bcn_past_num * beacon_interval_us;
+
+    if (rtc_now_us < now_beacon_rtc_us && now_beacon_rtc_us - rtc_now_us < (PROTECT_BF_MS + 3) * 1000) {
+        QCC74x_LP_LOG("-Not allowed sleep BF: now_dtim_cnt:%d, past_num:%d \r\n", now_dtim_count, bcn_past_num);
+        return 0;
+    } else if (rtc_now_us - now_beacon_rtc_us < (PROTECT_AF_MS) * 1000) {
+        QCC74x_LP_LOG("-Not allowed sleep AF: now_dtim_cnt:%d, past_num:%d \r\n", now_dtim_count, bcn_past_num);
+        return 0;
     }
 
     return 1;
@@ -2360,7 +2416,7 @@ uint32_t qcc74x_lp_set_acomp(uint8_t chan, uint8_t pin, uint8_t pos_edge_en, uin
         .mux_en = ENABLE,                                      /*!< ACOMP mux enable */
         .pos_chan_sel = AON_ACOMP_CHAN_ADC0,                   /*!< ACOMP negtive channel select */
         .neg_chan_sel = AON_ACOMP_CHAN_VIO_X_SCALING_FACTOR_1, /*!< ACOMP positive channel select */
-        .vio_sel = QCC743_ACOMP_VREF_1V65,                      /*!< ACOMP vref select */
+        .vio_sel = QCC743_ACOMP_VREF_1V65,                     /*!< ACOMP vref select */
         .scaling_factor =
             AON_ACOMP_SCALING_FACTOR_1,          /*!< ACOMP level select factor */
         .bias_prog = AON_ACOMP_BIAS_POWER_MODE1, /*!< ACOMP bias current control */
@@ -2593,10 +2649,10 @@ static void qcc74x_bootrom_media_boot_set_encrypt(void)
         QCC74x_WR_WORD(regionRegBase + SF_CTRL_SF_AES_IV_W3_OFFSET, iot2lp_para->sec_cfg->r0_aes_iv[3]);
 
         qcc74x_sf_ctrl_aes_set_region(0, iot2lp_para->sec_cfg->r0_aes_en,
-                                    iot2lp_para->sec_cfg->r0_aes_hw_key_en,
-                                    iot2lp_para->sec_cfg->r0_aes_start,
-                                    iot2lp_para->sec_cfg->r0_aes_end,
-                                    iot2lp_para->sec_cfg->r0_aes_lock);
+                                      iot2lp_para->sec_cfg->r0_aes_hw_key_en,
+                                      iot2lp_para->sec_cfg->r0_aes_start,
+                                      iot2lp_para->sec_cfg->r0_aes_end,
+                                      iot2lp_para->sec_cfg->r0_aes_lock);
     }
 
     // AES_Region1
@@ -2614,10 +2670,10 @@ static void qcc74x_bootrom_media_boot_set_encrypt(void)
         QCC74x_WR_WORD(regionRegBase + SF_CTRL_SF_AES_IV_W3_OFFSET, iot2lp_para->sec_cfg->r1_aes_iv[3]);
 
         qcc74x_sf_ctrl_aes_set_region(1, iot2lp_para->sec_cfg->r1_aes_en,
-                                    iot2lp_para->sec_cfg->r1_aes_hw_key_en,
-                                    iot2lp_para->sec_cfg->r1_aes_start,
-                                    iot2lp_para->sec_cfg->r1_aes_end,
-                                    iot2lp_para->sec_cfg->r1_aes_lock);
+                                      iot2lp_para->sec_cfg->r1_aes_hw_key_en,
+                                      iot2lp_para->sec_cfg->r1_aes_start,
+                                      iot2lp_para->sec_cfg->r1_aes_end,
+                                      iot2lp_para->sec_cfg->r1_aes_lock);
     }
 
     // AES_Region2
@@ -2635,10 +2691,10 @@ static void qcc74x_bootrom_media_boot_set_encrypt(void)
         QCC74x_WR_WORD(regionRegBase + SF_CTRL_SF_AES_IV_W3_OFFSET, iot2lp_para->sec_cfg->r2_aes_iv[3]);
 
         qcc74x_sf_ctrl_aes_set_region(2, iot2lp_para->sec_cfg->r2_aes_en,
-                                    iot2lp_para->sec_cfg->r2_aes_hw_key_en,
-                                    iot2lp_para->sec_cfg->r2_aes_start,
-                                    iot2lp_para->sec_cfg->r2_aes_end,
-                                    iot2lp_para->sec_cfg->r2_aes_lock);
+                                      iot2lp_para->sec_cfg->r2_aes_hw_key_en,
+                                      iot2lp_para->sec_cfg->r2_aes_start,
+                                      iot2lp_para->sec_cfg->r2_aes_end,
+                                      iot2lp_para->sec_cfg->r2_aes_lock);
     }
 
     qcc74x_sf_ctrl_aes_enable_be();

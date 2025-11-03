@@ -68,6 +68,11 @@ if(CONFIG_CHERRYUSB_HOST)
         target_sources(app PRIVATE ./host_demo/cdc_acm_template.c)
     endif()
 
+    if(CONFIG_CHERRYUSB_HOST_CDC_ECM)
+        sdk_add_compile_definitions(-D CONFIG_CHERRYUSB_HOST_CDC_ECM)
+        target_sources(app PRIVATE ./host_demo/cdc_ecm_lwip_template.c)
+    endif()
+
     if(CONFIG_CHERRYUSB_HOST_HID)
         sdk_add_compile_definitions(-D CONFIG_CHERRYUSB_HOST_HID)
         target_sources(app PRIVATE ./host_demo/hid_template.c)

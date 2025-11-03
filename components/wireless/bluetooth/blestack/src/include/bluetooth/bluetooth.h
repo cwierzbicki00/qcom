@@ -885,7 +885,14 @@ struct bt_bond_info {
 	bt_addr_le_t addr;
 };
 
-/** Iterate through all existing bonds.
+/** Information about a bond with a bredr remote device. */
+struct bt_br_bond_info {
+    const bt_addr_t *addr;   // 
+    const u8_t *link_key;    // Link Key
+    size_t link_key_size;    // Link Key size
+};
+
+/** Iterate through all existing LE bonds.
   *
   * @param id         Local identity (mostly just BT_ID_DEFAULT).
   * @param func       Function to call for each bond.
@@ -893,6 +900,18 @@ struct bt_bond_info {
   */
 void bt_foreach_bond(u8_t id, void (*func)(const struct bt_bond_info *info, void *user_data),
 		     void *user_data);
+
+#if defined(CONFIG_BT_BREDR)
+/** Iterate through all existing BR/EDR bonds.
+  *
+  * @param id         Local identity (mostly just BT_ID_DEFAULT).
+  * @param func       Function to call for each bond.
+  * @param user_data  Data to pass to the callback function.
+  */
+void bt_br_foreach_bond(void (*func)(const struct bt_br_bond_info *info, 
+                                     void *user_data),
+                        void *user_data);
+#endif
 
 /**
   * write local name.

@@ -1978,18 +1978,23 @@ static struct bt_conn_auth_cb auth_cb_display = {
 	.pairing_complete = auth_pairing_complete,
 };
 
-static void bt_foreach_bond_info_cb(const struct bt_bond_info *info, void *user_data)
+void print_br_bond_info(const struct bt_br_bond_info *info, void *user_data)
 {
-    /**************bond info dump *************/
-    char addr[BT_ADDR_LE_STR_LEN];
-    struct bt_keys *keys=NULL;
-    if(user_data)
-        (*(u8_t *)user_data)++;
-
-    bt_addr_le_to_str(&info->addr, addr, sizeof(addr));
-    keys = bt_keys_find(BT_KEYS_ALL, 0, &info->addr);
-    printf("BTADDR:%s LTK:%s\r\n",addr,bt_hex(keys->ltk.val,16));
+    char addr_str[BT_ADDR_STR_LEN];
+    char key_str[33];
+    
+    bt_addr_to_str(info->addr, addr_str, sizeof(addr_str));
+    
+    for (size_t i = 0; i < info->link_key_size; i++) {
+        sprintf(&key_str[i*2], "%02X", info->link_key[i]);
+    }
+    key_str[32] = '\0';
+    
+    printf("BR/EDR Bonded Device:\n");
+    printf("  Address: %s\n", addr_str);
+    printf("  Link Key: %s\n", key_str);
 }
+
 
 BT_CLI(auth)
 {
@@ -2066,7 +2071,7 @@ BT_CLI(auth_passkey)
 
 BT_CLI(get_bond_list)
 {
-    bt_foreach_bond(0, bt_foreach_bond_info_cb, NULL);
+    bt_br_foreach_bond(print_br_bond_info, NULL);
 }
 
 int bredr_cli_register(void)

@@ -4020,7 +4020,11 @@ int bt_gatt_subscribe(struct bt_conn *conn,
 	if (conn->state != BT_CONN_CONNECTED) {
 		return -ENOTCONN;
 	}
-
+	#if defined(QCC74x_HOST_PARAMETER_CHECK)
+	if(!(params->value & (BT_GATT_CCC_NOTIFY | BT_GATT_CCC_INDICATE))) {
+		return -EINVAL;
+	}
+	#endif
 	if(atomic_test_bit(params->flags, BT_GATT_SUBSCRIBE_FLAG_WRITE_PENDING)){
 		return -EALREADY;
 	}

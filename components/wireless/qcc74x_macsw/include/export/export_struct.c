@@ -69,6 +69,9 @@ struct_func_get_def(rxu_mgt_ind, uint16_t, length)
 {
     return ((struct sm_connect_ind *)param)->chan.prim20_freq;
 }
+
+struct_func_get_def(scanu_country_code_ind, char*, country_code)
+
 struct_func_get_def(sm_connect_ind, uint8_t, ap_idx)
     struct_func_get_def(sm_connect_ind, uint8_t, ch_idx)
     struct_func_get_def(sm_connect_ind, uint32_t*, assoc_ie_buf)
@@ -448,6 +451,11 @@ void mm_start_req_set_tx_timeout(void *pa, uint16_t array[], int len)
     struct_func_get_def(me_get_edca_cfm, uint32_t, ac_param)
     struct_func_len(me_get_edca_cfm)
 
+    struct_func_get_def(me_get_stats_cfm, struct ieee80211_stats, sta_stats)
+    struct_func_get_def(me_get_stats_cfm, struct ieee80211_stats, ap_stats)
+    struct_func_get_def(me_get_stats_cfm, struct ieee80211_stats, adhoc_stats)
+    struct_func_len(me_get_stats_cfm)
+
     struct_func_get_def(me_get_remaining_tx_cfm, uint8_t, tx0_cnt)
     struct_func_get_def(me_get_remaining_tx_cfm, uint8_t, tx1_cnt)
     struct_func_get_def(me_get_remaining_tx_cfm, uint8_t, tx2_cnt)
@@ -497,10 +505,10 @@ void twt_setup_req_set_conf_wake_int_mantissa(void *pa, uint16_t val) {
     struct_func_get_def(twt_statusget_cfm, uint8_t, twt_supported);
     struct_func_get_def(twt_statusget_cfm, uint8_t, dtim);
 void twt_statusget_cfm_get_conf(void *pa,  struct twt_statusget_cfm *cfm, uint8_t flow_conf_max) {
-    struct twt_conf_tag *p = (struct twt_conf_tag *)pa;
-    struct twt_conf_tag conf[NX_TWT_FLOW_NB];
+    struct twt_status_info *p = (struct twt_status_info *)pa;
+    struct twt_status_info conf[NX_TWT_FLOW_NB];
     uint8_t max = (NX_TWT_FLOW_NB > flow_conf_max ? NX_TWT_FLOW_NB : flow_conf_max);
-    memcpy(p, (struct twt_conf_tag *)(cfm->conf), sizeof(struct twt_conf_tag)*max); 
+    memcpy(p, (struct twt_status_info *)(cfm->conf), sizeof(struct twt_status_info)*max); 
 };
     struct_func_len(twt_statusget_cfm)
 #endif

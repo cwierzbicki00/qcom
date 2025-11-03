@@ -1,4 +1,23 @@
 # Changes
+# Changes
+## 2025-09-26
+1.using tlsf api as memory port api.
+
+## 2025-09-03
+1. [blestack] blestack support HCI TL via UART.
+
+## 2025-08-08
+1. [blestack] Add bt_br_foreach_bond API to get BREDR Link key.
+
+## 2025-08-05
+1. [blestack] Refactor dynamic GATT callbacks to include connection context and fix parameter handling.
+
+## 2025-07-31
+1. [blestack] Add parameter validation and error handling.
+
+## 2025-07-23
+1. [blestack] DIS profile: add missing return after model setting initialization.
+
 ## 2025-07-22
 1. [blestack] Increase maximum supported GATT services from 2 to 3 (SERVER_MAX_SERVICES).
 
@@ -6,7 +25,7 @@
 1. [blestack] Add GATT API parameter invalid check.
 
 ## 2025-07-02
-1. [blestack] support ble stack on qcc743d platform.
+1. [blestack] support ble stack on qcc75x platform.
 2. [blestack] Optimize ble debug monitor, replace "BT_WARN" by "putchar" to avoid stack overflow.
 
 ## 2025-06-16

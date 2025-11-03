@@ -97,7 +97,6 @@ def main():
     env = os.environ.copy()
     env["QCC74X_SDK_ROOT"] = sdk_root
     env["QCC74X_SDK_TOOLCHAIN"] = os.path.join(sdk_root, "toolchain/linux_x86_64/bin")
-    env["PW_PROJECT_ROOT"] = chip_dir  # Set PW_PROJECT_ROOT to connectedhomeip directory
 
     # Ensure scripts are executable
     ensure_executable("scripts/activate.sh")

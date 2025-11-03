@@ -41,6 +41,7 @@ if (CONFIG_AT_DEBUG_ENABLE)
 endif()
 
 sdk_add_compile_definitions(-DMQTT_USE_CUSTOM_SOCKET_HANDLE=1)
+sdk_add_compile_definitions(-DSHELL_THREAD_STACK_SIZE=512)
 
 if (CONFIG_IPV6)
     sdk_add_compile_definitions(-DCONFIG_IPV6=1)
@@ -55,6 +56,12 @@ if (CONFIG_LWIP_ONHOST_ENABLE)
 sdk_add_compile_definitions(-DLWIP_HEAP_SIZE=\(4*1024\))
 sdk_add_compile_definitions(-DCONFIG_LWIP_ONHOST_ENABLE=$(CONFIG_LWIP_ONHOST_ENABLE))
 sdk_add_compile_definitions(-DCONFIG_LWIP_ONHOST_IMAGE_VER="_lwip_onhost")
+endif()
+
+if (DEFINED OT_NCP AND NOT OT_NCP)
+    sdk_add_compile_definitions(-DNXSPI_OPENTHREAD_RADIO=1)
+else()
+    sdk_add_compile_definitions(-DNXSPI_OPENTHREAD_RADIO=0)
 endif()
 
 project(spi_wifi)

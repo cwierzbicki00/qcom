@@ -1,12 +1,10 @@
+#include "qcc74x_core.h"
 #include "qcc74x_mtimer.h"
+#include "qcc74x_name.h"
 #include "board.h"
 
 #include "usbh_core.h"
 #include "shell.h"
-
-#ifdef QCC743
-#include "qcc743_memorymap.h"
-#endif
 
 #ifdef CONFIG_CHERRYUSB_DEVICE
 extern volatile bool usbd_run_flag;
@@ -15,6 +13,8 @@ volatile bool usbh_run_flag = false;
 
 int shell_usbh_start(int argc, char **argv)
 {
+    struct qcc74x_device_s *usb_dev;
+
     if (usbh_run_flag == true) {
         USB_LOG_WRN("usb host already running\r\n");
         USB_LOG_WRN("please stop it first (cmd: usbh_stop)\r\n");
@@ -29,10 +29,16 @@ int shell_usbh_start(int argc, char **argv)
     }
 #endif
 
+    usb_dev = qcc74x_device_get_by_name(QCC74x_NAME_USB_V2);
+    if (!usb_dev) {
+        USB_LOG_ERR("usb device not found\r\n");
+        return -1;
+    }
+
     usbh_run_flag = true;
 
     USB_LOG_INFO("usb host start!\r\n");
-    usbh_initialize(0, USB_BASE);
+    usbh_initialize(0, usb_dev->reg_base);
 
     return 0;
 }

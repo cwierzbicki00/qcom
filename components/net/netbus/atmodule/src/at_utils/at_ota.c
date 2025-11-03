@@ -4,6 +4,7 @@
 #include <partition.h>
 #include <qcc74x_flash.h>
 #include "at_ota.h"
+#include "at_pal.h"
 
 #define OTA_PARTITION_NAME_TYPE_FW    "FW"
 #define OTA_UPGRADE_RETRY 1
@@ -92,6 +93,10 @@ static int _check_ota_header(at_ota_header_t *ota_header, uint32_t *ota_len, int
     char str[33]; //assume max segment size
     int i;
 
+    if (!ota_header || !ota_len || !use_xz) {
+        return -1;
+    }
+
     memcpy(str, ota_header->u.s.header, sizeof(ota_header->u.s.header));
     str[sizeof(ota_header->u.s.header)] = '\0';
     printf("[OTA] [HEADER] ota header is %s\r\n", str);
@@ -142,9 +147,9 @@ at_ota_handle_t at_ota_start(at_ota_header_t *ota_header)
         printf("[OTA] Error: ota_header is NULL\r\n");
         return NULL;
     }
-    at_ota_handle_t ota_handle = pvPortMalloc(sizeof(struct at_ota_handle));
+    at_ota_handle_t ota_handle = at_malloc(sizeof(struct at_ota_handle));
     if (!ota_handle) {
-        printf("[OTA] Error: pvPortMalloc failed\r\n");
+        printf("[OTA] Error: at_malloc failed\r\n");
         return NULL;
     }
     memset(ota_handle, 0, sizeof(struct at_ota_handle));
@@ -179,7 +184,12 @@ at_ota_handle_t at_ota_start(at_ota_header_t *ota_header)
         goto _fail;
     }
     ota_handle->sector_erased_size = ((ota_handle->part_size + (OTA_ERASE_BLOCK_SIZE - 1))/OTA_ERASE_BLOCK_SIZE + 31)/32;
-    ota_handle->sector_erased = pvPortMalloc(4 * ota_handle->sector_erased_size);
+    ota_handle->sector_erased = at_malloc(4 * ota_handle->sector_erased_size);
+    if (!ota_handle->sector_erased) {
+        printf("[OTA] Error: failed to allocate\r\n");
+        at_free(ota_handle);
+        return NULL;
+    }
     memset(ota_handle->sector_erased, 0, 4 * ota_handle->sector_erased_size);
 
     printf("[OTA] [TEST] activeIndex is %u, use OTA address=%08x part_size=%08x\r\n", ota_handle->pt_fw_entry.active_index, (unsigned int)ota_handle->ota_addr, ota_handle->part_size);
@@ -192,7 +202,7 @@ at_ota_handle_t at_ota_start(at_ota_header_t *ota_header)
 #endif
     return ota_handle;
 _fail:
-    vPortFree(ota_handle);
+    at_free(ota_handle);
     return NULL;
 }
 
@@ -275,8 +285,10 @@ int at_ota_abort(at_ota_handle_t handle)
         return -1;
     }
     utils_sha256_free(&handle->ctx_sha256);
-    vPortFree(handle->sector_erased);
-    vPortFree(handle);
+    if (handle->sector_erased) {
+        at_free(handle->sector_erased);
+    }
+    at_free(handle);
     return 0;
 }
 

@@ -1,5 +1,5 @@
-SDK_DEMO_PATH ?= .
-QCC74x_SDK_BASE ?= $(SDK_DEMO_PATH)/../..
+SDK_DEMO_PATH ?= $(abspath .)
+QCC74x_SDK_BASE ?= ./../..
 
 export QCC74x_SDK_BASE
 

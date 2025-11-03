@@ -43,7 +43,7 @@ extern int32_t (*shared_pds_default_level_config)(uint32_t*, uint32_t);
 
 #define BEACON_DATA_RATE          (iot2lp_para->beacon_leg_rate)
 
-#define LPFW_WIFI_RX_BUFF         (iot2lp_para->wifi_rx_buff)
+#define LPFW_WIFI_RX_BUFF         ((uintptr_t)iot2lp_para->wifi_rx_buff)
 
 #define PDS_WAKEUP_MINI_LIMIT_US  (1220)
 #define PDS_WAKEUP_MINI_LIMIT_CNT (40)
@@ -195,6 +195,10 @@ typedef struct {
     /* beacon  */
     int32_t tpre;
 
+    uint8_t bcmc_dtim_mode;
+    uint8_t last_beacon_dtim_count; /* last beacon dtim count */
+    uint8_t beacon_dtim_period; /* beacon dtim period */
+
     int32_t last_sleep_error_us;
     uint32_t last_beacon_stamp_rtc_valid;
     uint64_t last_beacon_stamp_rtc_us;    /*  */
@@ -296,6 +300,7 @@ typedef struct {
     uint8_t channel;
     uint8_t bssid[6];
     uint8_t mac[6];
+    uint8_t bcmc_dtim_mode;
     uint8_t dtim_num;
     uint8_t dtim_origin;
     uint32_t mtimer_timeout_mini_us;

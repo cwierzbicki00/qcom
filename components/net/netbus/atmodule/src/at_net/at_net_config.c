@@ -18,6 +18,7 @@
 #include "at_config.h"
 #include "at_net_main.h"
 #include "at_net_config.h"
+#include "at_pal.h"
 
 net_config *at_net_config = NULL;
 
@@ -25,7 +26,7 @@ int at_net_config_init(void)
 {
     int i;
 
-    at_net_config = (net_config *)pvPortMalloc(sizeof(net_config));
+    at_net_config = (net_config *)at_malloc(sizeof(net_config));
     if (at_net_config == NULL) {
         AT_CMD_PRINTF("Failed to allocate memory for at_net_config\r\n");
         return -1;

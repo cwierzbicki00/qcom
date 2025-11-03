@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+#include "mem.h"
 
 #define FAR
 #define CODE
@@ -31,11 +32,11 @@ int lib_checkbase(int base, FAR const char **pptr);
 // #  define CONFIG_HAVE_DOUBLE 1
 // #  define CONFIG_HAVE_LONG_DOUBLE 1
 
-#define lib_malloc(s)      malloc(s)
-#define lib_zalloc(s)      zalloc(s)
+#define lib_malloc(s)      kmalloc(s, MM_KERNEL)
+#define lib_zalloc(s)      kmalloc(s. MM_KERNEL|MM_ZERO)
 #define lib_realloc(p, s)  realloc(p, s)
 #define lib_memalign(p, s) memalign(p, s)
-#define lib_free(p)        free(p)
+#define lib_free(p)        kfree(p)
 
 #include "nuttx_limits.h"
 

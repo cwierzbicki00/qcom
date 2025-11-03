@@ -1,3 +1,2 @@
 sdk_add_subdirectory_ifdef(CONFIG_MQTT mqtt)
-sdk_add_subdirectory_ifdef(CONFIG_RTSP rtsp)
 sdk_add_subdirectory_ifdef(CONFIG_HTTP http)

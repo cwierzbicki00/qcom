@@ -2,6 +2,7 @@
 #include "board.h"
 
 #include "usbd_core.h"
+#include "usbd_hid.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
@@ -156,7 +157,9 @@ SHELL_CMD_EXPORT_ALIAS(shell_usbd_cdc_rndis_test, usbd_cdc_rndis_test, usbd cdc_
 #ifdef CONFIG_CHERRYUSB_DEVICE_HID
 
 extern void hid_keyboard_init(uint8_t busid, uintptr_t reg_base);
-extern void hid_keyboard_test(uint8_t busid);
+extern void hid_keyboard_test(uint8_t busid, uint8_t key_val);
+static volatile bool hid_keyboard_pause_flag;
+static volatile uint8_t hid_keyboard_key_val;
 
 static void usbd_hid_keyboard_task(void *param)
 {
@@ -166,7 +169,18 @@ static void usbd_hid_keyboard_task(void *param)
     LOG_I("hid_keyboard_init done\r\n");
 
     while (1) {
-        hid_keyboard_test(0);
+        if (hid_keyboard_pause_flag == true) {
+            if (hid_keyboard_key_val != HID_KBD_USAGE_NONE) {
+                hid_keyboard_test(0, HID_KBD_USAGE_NONE);
+                hid_keyboard_key_val = HID_KBD_USAGE_NONE;
+            }
+        } else {
+            hid_keyboard_key_val += 1;
+            if (hid_keyboard_key_val > HID_KBD_USAGE_ENTER) {
+                hid_keyboard_key_val = HID_KBD_USAGE_A;
+            }
+            hid_keyboard_test(0, hid_keyboard_key_val);
+        }
         vTaskDelay(100);
     }
 }
@@ -178,11 +192,33 @@ static void usbd_hid_keyboard_stop(void)
 
 int shell_usbd_hid_keyboard_test(int argc, char **argv)
 {
+    hid_keyboard_pause_flag = false;
+    hid_keyboard_key_val = HID_KBD_USAGE_ERRUNDEF;
     usbd_test_run(usbd_hid_keyboard_task, "usbd_hid_keyboard", usbd_hid_keyboard_stop);
 
     return 0;
 }
 SHELL_CMD_EXPORT_ALIAS(shell_usbd_hid_keyboard_test, usbd_hid_keyboard_test, usbd hid_keyboard test.);
+
+int shell_usbd_hid_keyboard_pause(int argc, char **argv)
+{
+    if (usbd_run_flag == false || shell_usbd_stop_cb != usbd_hid_keyboard_stop) {
+        LOG_W("usbd HID not running\r\n");
+        return 0;
+    }
+
+    hid_keyboard_key_val = HID_KBD_USAGE_ERRUNDEF;
+
+    if (hid_keyboard_pause_flag == false) {
+        hid_keyboard_pause_flag = true;
+        LOG_I("hid keyboard pause\r\n");
+    } else {
+        hid_keyboard_pause_flag = false;
+        LOG_I("hid keyboard renew\r\n");
+    }
+    return 0;
+}
+SHELL_CMD_EXPORT_ALIAS(shell_usbd_hid_keyboard_pause, usbd_hid_keyboard_pause, usbd hid_keyboard pause / renew.);
 #endif /* CONFIG_CHERRYUSB_DEVICE_HID */
 
 /***********************************************************************************/
@@ -258,6 +294,8 @@ static void usbd_uvc_mjpeg_task(void *param)
 
     while (1) {
         uvc_mjpeg_test_polling(0);
+
+        vTaskDelay(20);
     }
 }
 

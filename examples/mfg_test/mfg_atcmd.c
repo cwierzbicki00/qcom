@@ -6,6 +6,8 @@
 #include "mfg_otp.h"
 #include "qcc743_pm.h"
 #include "qcc74x_gpio.h"
+#include "rfparam_adapter.h"
+#include "wireless_config.h"
 
 #define GPIO_LOOPBACK_TEST  (0)
 #define QC_PN_LEN           (24)
@@ -395,6 +397,63 @@ static int at_query_cmd_mac(int argc, const char **argv)
     return QC_AT_CMD_RESPONSE(result, field_value);
 }
 
+static int at_query_cmd_cc(int argc, const char **argv)
+{
+    int result = 0;
+    int is_null = 1;
+    uint32_t field_value = 0;
+    uint8_t high_char,low_char;
+    uint16_t country_code;
+
+    struct wl_cfg_t *rfparam = NULL;
+    rfparam = rfparam_cfg_get();
+    country_code = rfparam->param.country_code;
+    if (country_code > 0) {
+        is_null = 0;
+        high_char = country_code >> 8;
+        low_char = country_code & 0xff;
+    }
+    
+    if (is_null) {
+        mfg_atcmd_print("Null Country Code\n");
+        return QC_AT_CMD_RESPONSE(result, field_value);
+    }
+
+    if ((high_char >= 65) && (low_char >= 65) && (high_char <= 90) && (low_char <= 90)) {
+        mfg_atcmd_print("Country Code = %c%c \r\n", low_char, high_char);
+    } else if ((high_char >= 48) && (low_char >= 48) && (high_char <= 57) && (low_char <= 57)) {
+        mfg_atcmd_print("Country Code = %c%c \r\n", low_char, high_char);
+    } else {
+        mfg_atcmd_print("Country Code = %d \r\n", country_code);
+    }
+    
+    mfg_atcmd_print("\n");
+    return QC_AT_CMD_RESPONSE(result, field_value);
+}
+
+static int at_setup_cmd_cc(int argc, const char **argv)
+{
+    int result = 0;
+    struct wl_cfg_t *rfparam = NULL;
+    uint32_t field_value = 0;
+    char country_code_input[4] = {0};
+    uint16_t country_code;
+
+    if (argc != 1) {
+        AT_CMD_DEBUG_INFO("AT+CWCOUNTRY: wrong arg number\n");
+        return QC_AT_CMD_RESPONSE(AT_RESULT_CODE_ERROR, 0);
+    }
+    
+    AT_CMD_PARSE_STRING(0, country_code_input, sizeof(country_code_input));
+    mfg_atcmd_print("Save Country Code = %c%c\n",country_code_input[0],country_code_input[1]);
+    rfparam = rfparam_cfg_get();
+    country_code = (uint8_t)country_code_input[0] | ((uint8_t)country_code_input[1] << 8);
+    rfparam->param.country_code = country_code;
+    wireless_config_update_country(&country_code_input);
+
+    return QC_AT_CMD_RESPONSE(result, field_value);
+}
+
 const at_cmd_struct mfg_at_cmd[] = {
     {"+GET",        NULL, NULL, at_setup_cmd_get,         NULL, 1, 1},
     // {"+TSTWRITE",   NULL, NULL, at_setup_cmd_tstwrite,    NULL, 2, 2},
@@ -404,7 +463,8 @@ const at_cmd_struct mfg_at_cmd[] = {
     {"+TSTSTDBY",   NULL, NULL, at_setup_cmd_tststdby,    NULL, 0, 2},
     {"+GPIO",       NULL, NULL, at_setup_cmd_gpio,        NULL, 1, 2},
     {"+PN",         NULL, at_query_cmd_pn, at_setup_cmd_pn, NULL, 1, 1},
-    {"+MAC",        NULL, at_query_cmd_mac, NULL, NULL, 0, 0}
+    {"+MAC",        NULL, at_query_cmd_mac, NULL, NULL, 0, 0},
+    {"+CWCOUNTRY",  NULL, at_query_cmd_cc, at_setup_cmd_cc, NULL, 1, 1},
 };
 
 const int mfg_at_cmd_num = sizeof(mfg_at_cmd)/sizeof(mfg_at_cmd[0]);

@@ -541,6 +541,109 @@ dhcp_timer_fine_needed(void) {
 #endif
 }
 
+#if DHCP_TIMER_PRECISE_NEEDED
+#ifndef DHCP_COARSE_TMR_UNIT_MS
+#define DHCP_COARSE_TMR_UNIT_MS   (60U * 1000U)
+#endif
+
+static u32_t dhcp_coarse_last_ms = 0;
+extern void dhcp_timer_coarse_reschedule(u32_t delay_ms);
+
+void dhcp_timer_coarse_reschedule(u32_t delay_ms)
+{
+  sys_untimeout(dhcp_coarse_tmr, NULL);
+  sys_timeout(delay_ms, dhcp_coarse_tmr, NULL);
+}
+
+void dhcp_coarse_tmr(void)
+{
+    struct netif *netif;
+    u32_t now_ms = sys_now();
+    u32_t elapsed_ms, elapsed_min;
+
+    if (dhcp_coarse_last_ms == 0) {
+        elapsed_ms = 0;
+        elapsed_min = 0;
+    } else {
+        elapsed_ms = now_ms - dhcp_coarse_last_ms;
+        elapsed_min = elapsed_ms / DHCP_COARSE_TMR_UNIT_MS;
+    }
+    dhcp_coarse_last_ms = now_ms;
+
+    int running_netif_cnt = 0;
+    u32_t min_due_min = (u32_t)-1;
+
+    NETIF_FOREACH(netif) {
+        struct dhcp *dhcp = netif_dhcp_data(netif);
+        if ((dhcp == NULL) || (dhcp->state == DHCP_STATE_OFF)) {
+            continue;
+        }
+        running_netif_cnt++;
+
+        if (dhcp->t0_timeout != 0 && elapsed_min > 0) {
+            u32_t old_used = dhcp->lease_used;
+            u32_t new_used = old_used + elapsed_min;
+            if (old_used < dhcp->t0_timeout && new_used >= dhcp->t0_timeout) {
+                dhcp_release_and_stop(netif);
+                dhcp_start(netif);
+                continue;
+            } else {
+                dhcp->lease_used = new_used;
+            }
+        }
+
+        if (dhcp->t2_rebind_time != 0) {
+            if (elapsed_min >= dhcp->t2_rebind_time) {
+                dhcp->t2_rebind_time = 0;
+                dhcp_t2_timeout(netif);
+                continue;
+            } else {
+                dhcp->t2_rebind_time -= elapsed_min;
+            }
+        }
+
+        if (dhcp->t1_renew_time != 0) {
+            if (elapsed_min >= dhcp->t1_renew_time) {
+                dhcp->t1_renew_time = 0;
+                dhcp_t1_timeout(netif);
+                continue;
+            } else {
+                dhcp->t1_renew_time -= elapsed_min;
+            }
+        }
+    }
+
+    if (running_netif_cnt > 0) {
+        NETIF_FOREACH(netif) {
+            struct dhcp *dhcp = netif_dhcp_data(netif);
+            if ((dhcp == NULL) || (dhcp->state == DHCP_STATE_OFF)) {
+                continue;
+            }
+
+            if (dhcp->t0_timeout && dhcp->lease_used < dhcp->t0_timeout) {
+                u32_t rem = dhcp->t0_timeout - dhcp->lease_used;
+                if (rem < min_due_min) {
+                    min_due_min = rem;
+                }
+            }
+            if (dhcp->t1_renew_time != 0 && dhcp->t1_renew_time < min_due_min) {
+                min_due_min = dhcp->t1_renew_time;
+            }
+            if (dhcp->t2_rebind_time != 0 && dhcp->t2_rebind_time < min_due_min) {
+                min_due_min = dhcp->t2_rebind_time;
+            }
+        }
+    }
+
+    if (running_netif_cnt <= 0 || min_due_min == (u32_t)-1) {
+        dhcp_timer_coarse_remove();
+    } else {
+        u32_t delay_ms = (min_due_min == 0) ? 1U : (min_due_min * DHCP_COARSE_TMR_UNIT_MS);
+        dhcp_timer_coarse_reschedule(delay_ms);
+    }
+}
+
+#else
 /**
  * The DHCP timer that checks for lease renewal/rebind timeouts.
  * Must be called once a minute (see @ref DHCP_COARSE_TIMER_SECS).
@@ -581,6 +684,8 @@ if (running_netif_cnt <= 0) {
     dhcp_timer_coarse_remove();
   }
 }
+
+#endif
 
 /**
  * DHCP transaction timeout handling (this function must be called every 500ms,
@@ -1206,6 +1311,7 @@ dhcp_bind(struct netif *netif)
 
   LWIP_DEBUGF(DHCP_DEBUG | LWIP_DBG_STATE, ("dhcp_bind(): IP: 0x%08"X32_F" SN: 0x%08"X32_F" GW: 0x%08"X32_F"\n",
               ip4_addr_get_u32(&dhcp->offered_ip_addr), ip4_addr_get_u32(&sn_mask), ip4_addr_get_u32(&gw_addr)));
+#if !DHCP_TIMER_PRECISE_NEEDED
   /* netif is now bound to DHCP leased address - set this before assigning the address
      to ensure the callback can use dhcp_supplied_address() */
   dhcp_set_state(dhcp, DHCP_STATE_BOUND);
@@ -1214,6 +1320,22 @@ dhcp_bind(struct netif *netif)
   /* interface is used by routing now that an address is set */
 
   dhcp_timer_coarse_needed();
+#else
+  if (netif_is_link_up(netif)) {
+      /* netif is now bound to DHCP leased address - set this before assigning the address
+         to ensure the callback can use dhcp_supplied_address() */
+      dhcp_set_state(dhcp, DHCP_STATE_BOUND);
+
+      netif_set_addr(netif, &dhcp->offered_ip_addr, &sn_mask, &gw_addr);
+      /* interface is used by routing now that an address is set */
+      // Add dhcp_timer_coarse_needed to fix the timer runs when WiFi have not connected
+      // dhcp_timer_coarse_needed();
+      sys_untimeout((sys_timeout_handler)dhcp_coarse_tmr, NULL);
+      sys_timeout(DHCP_COARSE_TIMER_MSECS, (sys_timeout_handler)dhcp_coarse_tmr, NULL);
+    } else {
+        dhcp_set_state(dhcp, DHCP_STATE_INIT);
+    }
+#endif
 }
 
 /**

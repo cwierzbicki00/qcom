@@ -16,7 +16,7 @@
 #define UART_RTS_PIN               30
 #endif
 
-#if defined(QCC743D)
+#if defined(QCC75X)
 #define UART_NAME                  "uart1"
 #define UART_BAUDRATE              2000000
 #define UART_TXD_PIN               27
@@ -245,7 +245,7 @@ void btble_dma_uart_write(uint8_t *data, uint32_t len)
 
     while(qcc74x_dma_channel_isbusy(dma_tx));
 
-#if defined(QCC743) || defined(QCC743D)
+#if defined(QCC743) || defined(QCC75X)
     qcc74x_l1c_dcache_clean_all();
 #endif
 

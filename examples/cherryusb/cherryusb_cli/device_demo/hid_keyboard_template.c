@@ -24,7 +24,7 @@ static const uint8_t device_descriptor[] = {
 };
 
 static const uint8_t config_descriptor[] = {
-    USB_CONFIG_DESCRIPTOR_INIT(USB_HID_CONFIG_DESC_SIZ, 0x01, 0x01, USB_CONFIG_BUS_POWERED, USBD_MAX_POWER),
+    USB_CONFIG_DESCRIPTOR_INIT(USB_HID_CONFIG_DESC_SIZ, 0x01, 0x01, USB_CONFIG_REMOTE_WAKEUP | USB_CONFIG_BUS_POWERED, USBD_MAX_POWER),
 
     /************** Descriptor of Joystick Mouse interface ****************/
     /* 09 */
@@ -273,11 +273,10 @@ static const uint8_t hid_keyboard_report_desc[HID_KEYBOARD_REPORT_DESC_SIZE] = {
     0xc0        // END_COLLECTION
 };
 
-#define HID_STATE_IDLE 0
-#define HID_STATE_BUSY 1
-
 /*!< hid state ! Data can be sent only when state is idle  */
-static volatile uint8_t hid_state = HID_STATE_IDLE;
+static volatile bool hid_ready_flag = false;
+static volatile bool hid_busy_flag = false;
+static volatile bool hid_suspend_flag = false;
 
 static void usbd_event_handler(uint8_t busid, uint8_t event)
 {
@@ -289,16 +288,24 @@ static void usbd_event_handler(uint8_t busid, uint8_t event)
         case USBD_EVENT_DISCONNECTED:
             break;
         case USBD_EVENT_RESUME:
+            USB_LOG_INFO("HID USBD_EVENT_RESUME\r\n");
+            hid_suspend_flag = false;
             break;
         case USBD_EVENT_SUSPEND:
+            USB_LOG_INFO("HID USBD_EVENT_SUSPEND\r\n");
+            hid_suspend_flag = true;
             break;
         case USBD_EVENT_CONFIGURED:
-            USB_LOG_INFO("HID KeyBoard configured done\r\n");
-            hid_state = HID_STATE_IDLE;
+            USB_LOG_INFO("HID EVENT_CONFIGURED done\r\n");
+            hid_ready_flag = true;
+            hid_busy_flag = false;
+            hid_suspend_flag = false;
             break;
         case USBD_EVENT_SET_REMOTE_WAKEUP:
+            USB_LOG_INFO("HID USBD_EVENT_SET_REMOTE_WAKEUP\r\n");
             break;
         case USBD_EVENT_CLR_REMOTE_WAKEUP:
+            USB_LOG_INFO("HID USBD_EVENT_CLR_REMOTE_WAKEUP\r\n");
             break;
 
         default:
@@ -308,7 +315,7 @@ static void usbd_event_handler(uint8_t busid, uint8_t event)
 
 void usbd_hid_int_callback(uint8_t busid, uint8_t ep, uint32_t nbytes)
 {
-    hid_state = HID_STATE_IDLE;
+    hid_busy_flag = false;
 }
 
 static struct usbd_endpoint hid_in_ep = {
@@ -328,22 +335,36 @@ void hid_keyboard_init(uint8_t busid, uintptr_t reg_base)
     usbd_add_interface(busid, usbd_hid_init_intf(busid, &intf0, hid_keyboard_report_desc, HID_KEYBOARD_REPORT_DESC_SIZE));
     usbd_add_endpoint(busid, &hid_in_ep);
 
+    hid_ready_flag = false;
+
     usbd_initialize(busid, reg_base, usbd_event_handler);
 }
 
 static USB_NOCACHE_RAM_SECTION USB_MEM_ALIGNX uint8_t write_buffer[64];
 
-void hid_keyboard_test(uint8_t busid)
+void hid_keyboard_test(uint8_t busid, uint8_t key_val)
 {
-    const uint8_t sendbuffer[8] = { 0x00, 0x00, HID_KBD_USAGE_A, 0x00, 0x00, 0x00, 0x00, 0x00 };
+    if (hid_ready_flag == false) {
+        return;
+    }
+
+    if (hid_busy_flag == true) {
+        return;
+    }
+
+    if (hid_suspend_flag == true) {
+        USB_LOG_INFO("send remote wakeup\r\n");
+        usbd_send_remote_wakeup(busid);
+        return;
+    }
+
+    const uint8_t sendbuffer[8] = { 0x00, 0x00, key_val, 0x00, 0x00, 0x00, 0x00, 0x00 };
 
     if (usb_device_is_configured(busid) == false) {
         return;
     }
 
     memcpy(write_buffer, sendbuffer, 8);
-    hid_state = HID_STATE_BUSY;
+    hid_busy_flag = true;
     usbd_ep_start_write(busid, HID_INT_EP, write_buffer, 8);
-    while (hid_state == HID_STATE_BUSY) {
-    }
 }

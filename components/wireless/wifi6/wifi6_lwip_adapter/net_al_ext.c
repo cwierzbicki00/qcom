@@ -651,5 +651,21 @@ void net_al_ext_netif_status_callback(struct netif *netif)
     }
 
     ip4_addr_copy(old_addr, *netif_ip4_addr(netif));
+
+#ifdef CFG_IPV6
+    static uint8_t old_state[LWIP_IPV6_NUM_ADDRESSES];
+    uint8_t state;
+    for (uint8_t i = 0; i < LWIP_IPV6_NUM_ADDRESSES; i++) {
+        state = netif_ip6_addr_state(netif, i);
+        if (ip6_addr_isglobal(netif_ip6_addr(netif, i))) {
+            if (state & IP6_ADDR_VALID && !(old_state[i] & IP6_ADDR_VALID)) {
+                platform_post_event(EV_WIFI, CODE_WIFI_ON_GOT_IP6);
+            } else if (old_state[i] & IP6_ADDR_VALID && !(state & IP6_ADDR_VALID)){
+                platform_post_event(EV_WIFI, CODE_WIFI_ON_LOST_IP6);
+            }
+        }
+        old_state[i] = netif_ip6_addr_state(netif, i);
+    }
+#endif
 }
 #endif // NET_AL_NO_IP

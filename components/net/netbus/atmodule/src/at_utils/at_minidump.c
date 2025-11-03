@@ -4,6 +4,7 @@
 #include <partition.h>
 #include <qcc74x_flash.h>
 #include "utils_hex.h"
+#include "at_pal.h"
 
 static uint32_t core_addr;
 static size_t core_size;
@@ -12,15 +13,20 @@ static size_t core_size;
 
 int at_minidump()
 {
-    uint8_t *buf = (uint8_t *)malloc(BUF_SIZE);
-    uint8_t *hex_buf = (uint8_t *)malloc(BUF_SIZE * 2 + 1);
+    if (core_size == 0) {
+        printf("[MINIDUMP] Error: core_size is 0\r\n");
+        return -1;
+    }
+    
+    uint8_t *buf = (uint8_t *)at_malloc(BUF_SIZE);
+    uint8_t *hex_buf = (uint8_t *)at_malloc(BUF_SIZE * 2 + 1);
     int ret;
     int remain_size = core_size;
 
     if (!buf || !hex_buf) {
         printf("[MINIDUMP] Error: memory allocation failed\r\n");
-        free(buf);
-        free(hex_buf);
+        if (buf) at_free(buf);
+        if (hex_buf) at_free(hex_buf);
         return -1;
     }
 
@@ -36,13 +42,15 @@ int at_minidump()
             at_write_data("\r\n", 2);
         } else {
             printf("[MINIDUMP] Error: flash read failed at offset 0x%08x\r\n", core_addr + core_size - remain_size);
-            break;
+            at_free(buf);
+            at_free(hex_buf);
+            return -1;
         }
     }
     at_write_data("\r\n", 2);
 
-    free(buf);
-    free(hex_buf);
+    at_free(buf);
+    at_free(hex_buf);
 
     return 0;
 }

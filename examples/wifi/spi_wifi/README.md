@@ -183,7 +183,6 @@ IP Address: 192.168.31.157
 Netmask:    255.255.255.0
 Gateway:    192.168.31.1
 ```
-
 ### AP mode Runing 
 
 The DHCP service is not enabled by default and will only start after manually activating the AP.
@@ -209,6 +208,89 @@ Use a smartphone or other STA device to connect to the AP named "QCC74x". After 
 ```bash
 +CW:STA_CONNECTED "xx:xx:xx:xx:xx:xx"
 ```
+
+## Thread RCP
+
+### Compile
+
+Thread RCP only compiles with Wi-Fi RCP and lower power feature disabled.
+> Note, currently none of coexistence supported with Wi-Fi and BLE.
+
+```
+make CONFIG_LWIP_ONHOST_ENABLE=1 CONFIG_USE_LPAPP=0 CONFIG_OT_RCP_ENABLE=1
+```
+
+### Flashing
+
+To flash your project onto the target device, use the following command, where `xxx` is your serial port name:
+
+```bash
+make flash COMX=xxx # xxx is your com port name
+```
+
+### Runing
+
+Host commands listed below demonstrate Thread RCP works over SPI protocol.
+
+- reset command, `HOSTCMD ot_reset`
+
+  ```shell
+  executing command ot_reset
+  spawn 0
+  reset, and reason: power on
+  ```
+
+- get version, `HOSTCMD ot_rcp_ver`
+
+  ```
+  executing command ot_rcp_ver
+  spawn 0
+  rcp version: OpenThread/7e32165be; NONE; May 26 2025 13:45:24
+  ```
+
+- send one packet with length 127, `HOSTCMD ot_txpkt 127`
+
+  ```shell
+  executing command ot_txpkt
+  spawn 0
+  phy is enabled
+  sent: 2a acked
+  phy is disabled
+  ```
+
+- continuous send packets with 2 seconds period,`HOSTCMD ot_sends 2`
+
+  ```
+  executing command ot_sends
+  spawn 0
+  phy is enabled
+  sent: 62 acked
+  sent: 63 acked
+  ...
+  sent: 28 acked
+  sent: 29 acked
+  packet tx test done, tx 200 packets, acked 199 packets
+  phy is disabled
+  ```
+
+- receive packets with 5 seconds period,`HOSTCMD ot_recv 5`
+
+  ```
+  executing command ot_recv
+  spawn 0
+  phy is enabled
+  phy channel: 15
+  long address: 1234567812345678
+  short addr: abab
+  pan id: abcd
+  raw stream is enabled
+  received 127 bytes, seq 98. rx 1 packets in total 1 packets within 0 seconds
+  received 127 bytes, seq 99. rx 2 packets in total 2 packets within 0 seconds
+  ...
+  received 127 bytes, seq 41. rx 199 packets in total 200 packets within 1 seconds
+  raw stream is disabled
+  phy is disabled
+  ```
 
 ## Low Power Mode Configuration and Usage
 

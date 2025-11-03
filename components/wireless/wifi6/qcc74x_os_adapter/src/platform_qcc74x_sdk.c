@@ -7,7 +7,7 @@
 
 #include "FreeRTOS.h"
 #include "timers.h"
-
+#include "mem.h"
 #include <qcc74x_efuse.h>
 #include <qcc74x_sec_trng.h>
 #include <qcc743_mfg_media.h>
@@ -17,11 +17,12 @@
 #include "qcc743_clock.h"
 #include "export/mac/mac_frame.h"
 
-extern int lpfw_recal_rc32k(uint64_t beacon_timestamp_now_us, uint64_t rtc_timestamp_now_us, uint32_t mode);
+extern int lpfw_recal_rc32k(uint64_t beacon_timestamp_now_us, uint64_t rtc_timestamp_now_us, uint32_t mode, int clock_ready_check);
 extern int32_t lpfw_calculate_beacon_delay(uint64_t beacon_timestamp_us, uint64_t rtc_timestamp_us, uint32_t mode);
 // extern int32_t lpfw_beacon_delay_sliding_win_update(int32_t beacon_delay_us, uint64_t beacon_timestamp_us);
 
 extern int qcc74x_lp_beacon_interval_update(uint16_t beacon_interval_tu);
+extern int qcc74x_lp_beacon_tim_update(uint8_t *tim, uint8_t mode);
 #endif
 
 /* User defined wifi event handler */
@@ -69,7 +70,7 @@ void *rtos_malloc(uint32_t size)
 {
     void *ptr;
 
-    ptr = malloc(size);
+    ptr = kmalloc(size, MM_KERNEL);
     if (NULL == ptr) {
         while (1) {
             /*dead loop now*/
@@ -80,7 +81,7 @@ void *rtos_malloc(uint32_t size)
 
 void *rtos_calloc(uint32_t nb_elt, uint32_t size)
 {
-    void *res = malloc(nb_elt * size);
+    void *res = kmalloc(nb_elt * size, MM_KERNEL);
     if (res)
         memset(res, 0, nb_elt * size);
 
@@ -89,17 +90,17 @@ void *rtos_calloc(uint32_t nb_elt, uint32_t size)
 
 void rtos_free(void *ptr)
 {
-    free(ptr);
+    kfree(ptr);
 }
 
 void *platform_malloc(uint32_t size)
 {
-    return malloc(size);
+    return kmalloc(size, MM_KERNEL);
 }
 
 void platform_free(void *mem_ptr)
 {
-    free(mem_ptr);
+    kfree(mem_ptr);
 }
 
 /* async event handler */
@@ -242,7 +243,7 @@ void platform_hook_beacon(uint32_t rhd, uint32_t tim, bcn_param_t *param)
 #endif
 
     /* rc32k recal */
-    lpfw_recal_rc32k(beacon_stamp_us, rtc_stamp_us, BEACON_STAMP_APP);
+    lpfw_recal_rc32k(beacon_stamp_us, rtc_stamp_us, BEACON_STAMP_APP, 1);
 
     /* calculate_beacon_delay, and update rtc timestamp */
     beacon_delay_us = lpfw_calculate_beacon_delay(beacon_stamp_us, rtc_stamp_us, BEACON_STAMP_APP);
@@ -251,6 +252,8 @@ void platform_hook_beacon(uint32_t rhd, uint32_t tim, bcn_param_t *param)
 
     /* update beacon intercal */
     qcc74x_lp_beacon_interval_update(bcn->bcnint);
+    /* update beacon tim */
+    qcc74x_lp_beacon_tim_update((uint8_t *)tim, BEACON_STAMP_APP);
 
     // printf("rssi:%d\r\n",param->beacon_rssi);
 

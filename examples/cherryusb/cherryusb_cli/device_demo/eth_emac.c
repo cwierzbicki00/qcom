@@ -55,7 +55,12 @@ static eth_phy_init_cfg_t phy_cfg = {
 /* emac cfg */
 static struct qcc74x_emac_config_s emac_cfg = {
     .mac_addr = { 0x18, 0xB9, 0x05, 0x12, 0x34, 0x56 },
+    .clk_internal_mode = false,
+#if defined(QCC74x_undef) || defined(QCC74x_undef)
+    .md_clk_div = 79,
+#else
     .md_clk_div = 39,
+#endif
     .min_frame_len = (14 + 46 + 4),
     .max_frame_len = (14 + 4 + 1500 + 4),
 };
@@ -175,14 +180,35 @@ int eth_emac_init(void)
         qcc74x_emac_feature_control(emac0, EMAC_CMD_SET_MAC_RX_CLK_INVERT, true);
     }
 
+    LOG_I("TX_BUF_CNT:%d, RX_BUF_CNT:%d\r\n", EMAC_TX_BUFF_CNT, EMAC_RX_BUFF_CNT);
+
     /* tx pool queue init */
     if (emac_tx_pool_queue == NULL) {
         emac_tx_pool_queue = xQueueCreate(EMAC_TX_BUFF_CNT, sizeof(struct qcc74x_emac_trans_desc_s));
     }
+    for (int i = 0; i < EMAC_TX_BUFF_CNT; i++) {
+        struct qcc74x_emac_trans_desc_s tx_desc = {
+            .buff_addr = &emac_tx_buff[i][EAMC_BUF_HEAD_SIZE],
+        };
+        xQueueSend(emac_tx_pool_queue, &tx_desc, portMAX_DELAY);
+    }
+
     /* rx process queue init */
     if (emac_rx_process_queue == NULL) {
         emac_rx_process_queue = xQueueCreate(EMAC_RX_BUFF_CNT, sizeof(struct qcc74x_emac_trans_desc_s));
     }
+
+    for (int i = 0; i < EMAC_RX_BUFF_CNT; i++) {
+        struct qcc74x_emac_trans_desc_s rx_desc = {
+            .buff_addr = &emac_rx_buff[i][EAMC_BUF_HEAD_SIZE],
+        };
+        qcc74x_emac_queue_rx_push(emac0, &rx_desc);
+        emac_debug_info.rx_push_cnt += 1;
+    }
+
+    /* enable tx and rx */
+    qcc74x_emac_feature_control(emac0, EMAC_CMD_SET_TX_EN, true);
+    qcc74x_emac_feature_control(emac0, EMAC_CMD_SET_RX_EN, true);
 
     g_link_sta = 0;
 
@@ -229,6 +255,29 @@ void eth_emac_restart(void)
 
     memset((void *)&emac_debug_info, 0, sizeof(struct emac_debug_info_s));
     g_link_sta = 0;
+
+    /* tx queue reinit */
+    xQueueReset(emac_tx_pool_queue);
+    for (int i = 0; i < EMAC_TX_BUFF_CNT; i++) {
+        struct qcc74x_emac_trans_desc_s tx_desc = {
+            .buff_addr = &emac_tx_buff[i][EAMC_BUF_HEAD_SIZE],
+        };
+        xQueueSend(emac_tx_pool_queue, &tx_desc, portMAX_DELAY);
+    }
+
+    /* rx queue reinit */
+    xQueueReset(emac_rx_process_queue);
+    for (int i = 0; i < EMAC_RX_BUFF_CNT; i++) {
+        struct qcc74x_emac_trans_desc_s rx_desc = {
+            .buff_addr = &emac_rx_buff[i][EAMC_BUF_HEAD_SIZE],
+        };
+        qcc74x_emac_queue_rx_push(emac0, &rx_desc);
+        emac_debug_info.rx_push_cnt += 1;
+    }
+
+    /* enable tx and rx */
+    qcc74x_emac_feature_control(emac0, EMAC_CMD_SET_TX_EN, true);
+    qcc74x_emac_feature_control(emac0, EMAC_CMD_SET_RX_EN, true);
 }
 
 bool eth_link_state_update(void)
@@ -241,24 +290,6 @@ bool eth_link_state_update(void)
     /* link up check */
     if (sta == EPHY_LINK_STA_UP && g_link_sta != EPHY_LINK_STA_UP) {
         LOG_W("Eth Emac LinkUp !!!\r\n");
-        /* tx queue reinit */
-        xQueueReset(emac_tx_pool_queue);
-        for (int i = 0; i < EMAC_TX_BUFF_CNT; i++) {
-            struct qcc74x_emac_trans_desc_s tx_desc = {
-                .buff_addr = &emac_tx_buff[i][EAMC_BUF_HEAD_SIZE],
-            };
-            xQueueSend(emac_tx_pool_queue, &tx_desc, portMAX_DELAY);
-        }
-        /* rx queue reinit */
-        xQueueReset(emac_rx_process_queue);
-        for (int i = 0; i < EMAC_RX_BUFF_CNT; i++) {
-            struct qcc74x_emac_trans_desc_s rx_desc = {
-                .buff_addr = &emac_rx_buff[i][EAMC_BUF_HEAD_SIZE],
-            };
-            qcc74x_emac_queue_rx_push(emac0, &rx_desc);
-            emac_debug_info.rx_push_cnt += 1;
-        }
-        LOG_I("TX_BUF_CNT:%d, RX_BUF_CNT:%d\r\n", uxQueueMessagesWaiting(emac_rx_process_queue), EMAC_RX_BUFF_CNT);
 
 #if (defined(EMAC_SPEED_10M_SUPPORT) && EMAC_SPEED_10M_SUPPORT)
         /* 10M/100M speed mode */
@@ -274,9 +305,6 @@ bool eth_link_state_update(void)
         } else {
             qcc74x_emac_feature_control(emac0, EMAC_CMD_SET_FULL_DUPLEX, false);
         }
-        /* enable tx and rx */
-        qcc74x_emac_feature_control(emac0, EMAC_CMD_SET_TX_EN, true);
-        qcc74x_emac_feature_control(emac0, EMAC_CMD_SET_RX_EN, true);
 
         if (speed == EPHY_SPEED_MODE_10M_HALF_DUPLEX) {
             LOG_I("eth_phy speed: 10M_HALF_DUPLEX\r\n");
@@ -300,12 +328,6 @@ bool eth_link_state_update(void)
             LOG_W("Eth Emac Speed Mode Has Changed !!!\r\n");
         }
         LOG_W("Eth Emac LinkDown !!!\r\n");
-
-        /* disable tx and rx, and clean tx/rx bd */
-        qcc74x_emac_feature_control(emac0, EMAC_CMD_SET_TX_EN, false);
-        qcc74x_emac_feature_control(emac0, EMAC_CMD_SET_RX_EN, false);
-        qcc74x_emac_bd_ctrl_clean(emac0);
-        qcc74x_mtimer_delay_us(200);
 
         speed_mode = speed;
         g_link_sta = 0;
@@ -382,9 +404,9 @@ void eth_eamc_info_dump(void)
 
     LOG_RI("\r\n");
     LOG_I("TX: success cnt:%d, error cnt:%d, total size:%lldByte\r\n", emac_debug_info.tx_success_cnt, emac_debug_info.tx_error_cnt, emac_debug_info.tx_total_size);
-    LOG_I("    push_cnt:%d, tx_db waiting:%d, tx_bd_ptr:%d\r\n", emac_debug_info.tx_push_cnt, (EMAC_TX_BD_BUM_MAX - tx_db_avail), qcc74x_emac_feature_control(emac0, EMAC_CMD_GET_TX_BD_PTR, 0));
+    LOG_I("    push_cnt:%d, tx_db waiting:%d, tx_bd_ptr:%d\r\n", emac_debug_info.tx_push_cnt, (EMAC_TX_BD_NUM_MAX - tx_db_avail), qcc74x_emac_feature_control(emac0, EMAC_CMD_GET_TX_BD_PTR, 0));
 
     LOG_I("RX: success cnt:%d, error cnt:%d, total size:%lldByte\r\n", emac_debug_info.rx_success_cnt, emac_debug_info.rx_error_cnt, emac_debug_info.rx_total_size);
-    LOG_I("    push_cnt:%d, rx_db waiting:%d, rx_bd_ptr:%d, busy cnt:%d\r\n", emac_debug_info.rx_push_cnt, (EMAC_RX_BD_BUM_MAX - rx_db_avail), qcc74x_emac_feature_control(emac0, EMAC_CMD_GET_RX_BD_PTR, 0), emac_debug_info.rx_busy_cnt);
+    LOG_I("    push_cnt:%d, rx_db waiting:%d, rx_bd_ptr:%d, busy cnt:%d\r\n", emac_debug_info.rx_push_cnt, (EMAC_TX_BD_NUM_MAX - rx_db_avail), qcc74x_emac_feature_control(emac0, EMAC_CMD_GET_RX_BD_PTR, 0), emac_debug_info.rx_busy_cnt);
     LOG_RI("\r\n");
 }

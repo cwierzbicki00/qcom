@@ -37,6 +37,9 @@
 #include "virt_net_spi.h"
 #include "app_bt_hci.h"
 #include "dhcp_server.h"
+#include "app_otcli.h"
+#include "app_ble_at.h"
+#include <errno.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -249,7 +252,7 @@ static int do_ota_stop(int argc, char *argv[])
 static void _wifi_ap_status_callback(struct netif *netif)
 {
     uint32_t ipaddr;
-    
+
     printf("sta_ip:\"%02x:%02x:%02x:%02x:%02x:%02x\",\"%s\"\r\n",
             netif->hwaddr[0],
             netif->hwaddr[1],
@@ -551,7 +554,7 @@ int do_hci_adv(int argc, char *argv[])
 		cmd_spi_setup_hci_adv(1);
 	else
 		cmd_spi_setup_hci_adv(0);
-	return 0;	
+	return 0;
 }
 
 int do_hci_rd_local_version(int argc, char *argv[])
@@ -564,6 +567,116 @@ int do_hci_rd_bt_addr(int argc, char *argv[])
 {
 	cmd_spi_hci_rd_bt_addr();
 	return 0;
+}
+
+static int ot_reset(int argc, char *argv[])
+{
+	if (argc == 2) {
+		app_otcli_platform_reset(atoi(argv[1]));
+	}
+	else {
+		app_otcli_platform_reset(1);
+	}
+
+	return 0;
+}
+
+static int ot_rcp_verion(int argc, char *argv[])
+{
+	if (argc == 2) {
+		app_otcli_rcp_version(atoi(argv[1]));
+	}
+	else {
+		app_otcli_rcp_version(1);
+	}
+
+	return 0;
+}
+
+static int ot_recv(int argc, char *argv[])
+{
+	if (argc == 2) {
+		app_otcli_recv(atoi(argv[1]));
+	}
+
+	return 0;
+}
+
+static int ot_txpkt(int argc, char *argv[])
+{
+	if (argc == 2) {
+		app_otcli_send(atoi(argv[1]));
+	}
+
+	return 0;
+}
+
+static int ot_sends(int argc, char *argv[])
+{
+	if (argc == 2) {
+		app_otcli_sends(atoi(argv[1]));
+	}
+
+	return 0;
+}
+
+static int do_ble_master(int argc, char *argv[])
+{
+    int ret = 0;
+    uint32_t retry_count = 1;
+    const char *target_addr = NULL;
+
+    printf("[INFO] Starting BLE Master process...\n");
+
+    if (!g_at_handle) {
+        printf("[ERROR] AT module not initialized\r\n");
+        return -EINVAL;
+    }
+
+    if (argc < 2) {
+        printf("[ERROR] Missing argument. Usage: e.g. ble_master 18:b9:05:de:85:7d \r\n");
+        return -EINVAL;
+    }
+    if (argc >= 3) {
+        retry_count = atoi(argv[2]);
+    }
+
+    target_addr = argv[1];
+
+    ret = at_ble_master_high_frequency_bursts(g_at_handle, target_addr, retry_count);
+    if (ret < 0) {
+        printf("[ERROR] BLE Master process failed: %d\n", ret);
+        return ret;
+    }
+
+    printf("[INFO] BLE Master process completed successfully\n");
+    return 0;
+}
+
+static int do_ble_slave(int argc, char *argv[])
+{
+    int ret = 0;
+    uint32_t retry_count = 1;
+
+    printf("[INFO] Starting BLE Peripheral process...\n");
+
+    if (!g_at_handle) {
+        printf("[ERROR] AT module not initialized\r\n");
+        return -EINVAL;
+    }
+
+    if (argc >= 2) {
+        retry_count = atoi(argv[1]);
+    }
+
+    ret = at_ble_slave_high_frequency_bursts(g_at_handle, retry_count);
+    if (ret < 0) {
+        printf("[ERROR] BLE Slave process failed: %d\n", ret);
+        return ret;
+    }
+
+    printf("[INFO] BLE Slave process completed successfully\n");
+    return 0;
 }
 
 struct cmd_entry {
@@ -603,6 +716,13 @@ static const struct cmd_entry cmds[] = {
 	{"hci_connect_update", "", do_hci_connec_update},
 	{"hci_rd_local_version", "", do_hci_rd_local_version},
 	{"hci_rd_bt_addr", "", do_hci_rd_bt_addr},
+	{"ot_reset", "platform reset on Thread RCP", ot_reset},
+	{"ot_rcp_ver", "get rcp version on Thread RCP", ot_rcp_verion},
+	{"ot_recv", "recv start with timeout in seconds", ot_recv},
+	{"ot_txpkt", "send one packet with packet length specified", ot_txpkt},
+	{"ot_sends", "send multiple packets within duration", ot_sends},
+	{"ble_master", "ble master test <mac_addr> [retry count] e.g. ble_master 18:b9:05:de:85:7d 10 &", do_ble_master},
+	{"ble_slave", "ble slave (Advertiser/Peripheral) [retry count] e.g. ble_slave 10 &", do_ble_slave},
 };
 
 static int do_help(int argc, char *argv[])
@@ -796,28 +916,29 @@ static void uart_console_task(void *param)
 			/* new data arrives */
 			in += ret;
 
-          // Defensive: handle backspace and DEL (0x08, 0x7F)
-           while (out < in) {
-               char ch = buf[out];
-               if (ch == '\b' || ch == 0x7F) {
-                   if (out > 0) {
-                       // Remove the character before the backspace
-                       memmove(&buf[out - 1], &buf[out + 1], in - out - 1);
-                       in -= 2; // Remove both the char before and the backspace
-                       out--;
-                       // Echo backspace, space, backspace to erase on terminal
-                       printf("\b \b");
-                   } else {
-                       // If at the start, just remove the backspace itself
-                       memmove(&buf[out], &buf[out + 1], in - out - 1);
-                       in--;
-                   }
-                   // Do not increment out, as buffer has shifted
-                   continue;
-               }
-               out++;
-           }
-           out = 0; // Reset out for normal parsing below
+
+          // Defensive: handle backspace and DEL (0x08, 0x7F)
+           while (out < in) {
+               char ch = buf[out];
+               if (ch == '\b' || ch == 0x7F) {
+                   if (out > 0) {
+                       // Remove the character before the backspace
+                       memmove(&buf[out - 1], &buf[out + 1], in - out - 1);
+                       in -= 2; // Remove both the char before and the backspace
+                       out--;
+                       // Echo backspace, space, backspace to erase on terminal
+                       printf("\b \b");
+                   } else {
+                       // If at the start, just remove the backspace itself
+                       memmove(&buf[out], &buf[out + 1], in - out - 1);
+                       in--;
+                   }
+                   // Do not increment out, as buffer has shifted
+                   continue;
+               }
+               out++;
+           }
+           out = 0; // Reset out for normal parsing below
 
             if (strstr(buf, "+++") != NULL) {
                 _console_to_at(buf, 3);
@@ -929,7 +1050,7 @@ static void virl_net_init_task(void *arg)
 
     virt_net_spi_t spi_eth = (virt_net_spi_t)g_virt_eth;
     g_at_handle = spi_eth->athandle;
- 
+
     osThreadExit();
 }
 
@@ -999,6 +1120,8 @@ void MX_FREERTOS_Init(void) {
   osThreadNew(virl_net_init_task, NULL, &virl_net_tsk_attr);
 
   app_hci_init();
+
+  app_otcli_init();
   /* USER CODE END RTOS_THREADS */
 
   /* USER CODE BEGIN RTOS_EVENTS */

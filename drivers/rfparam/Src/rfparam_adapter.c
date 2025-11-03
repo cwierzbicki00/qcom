@@ -648,7 +648,10 @@ int8_t rfparam_load(struct wl_param_t *param)
         // param->country_code = (int8_t)(tmp_buf[0] | (tmp_buf[1] << 8));
         // rfparam_printf("country_code = %d \r\n", (int)param->country_code);
 
-        if ((tmp_buf[0] >= 65) && (tmp_buf[1] >= 65) && (tmp_buf[0] <= 90) && (tmp_buf[0] <= 90)) {
+        if ((tmp_buf[0] >= 65) && (tmp_buf[1] >= 65) && (tmp_buf[0] <= 90) && (tmp_buf[1] <= 90)) {
+            param->country_code = (tmp_buf[0] | (tmp_buf[1] << 8));
+            rfparam_printf("country_code = %c%c \r\n", tmp_buf[0], tmp_buf[1]);
+        } else if ((tmp_buf[0] >= 48) && (tmp_buf[1] >= 48) && (tmp_buf[0] <= 57) && (tmp_buf[1] <= 57)) {
             param->country_code = (tmp_buf[0] | (tmp_buf[1] << 8));
             rfparam_printf("country_code = %c%c \r\n", tmp_buf[0], tmp_buf[1]);
         } else {

@@ -15,7 +15,7 @@ extern "C" {
 
 #define VERSION_OT_SRC_MAJOR 1
 #define VERSION_OT_SRC_MINOR 6
-#define VERSION_OT_SRC_PATCH 17
+#define VERSION_OT_SRC_PATCH 20
 
 // #define VERSION_OT_SRC_EXTRA_INFO "customer-1"
 
@@ -413,6 +413,16 @@ void otrAppProcess(ot_system_event_t sevent);
  *
 *******************************************************************************/
 #define OT_APP_NOTIFY(ebit)                 otrNotifyEvent(ebit & OT_SYSTEM_EVENT_APP)
+
+/****************************************************************************//**
+ * @brief  An interface for nxspi to notify rxd ready.
+ *
+ * @return None
+ *
+*******************************************************************************/
+#if NXSPI_OPENTHREAD_RADIO
+void ot_nxspi_notify_rxd(void);
+#endif
 
 #if defined (QCC74x_undef) || defined (QCC74x_undefL)
 void ot_uartSetFd(int fd);

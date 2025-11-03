@@ -22,10 +22,6 @@
 
 ESP_EVENT_DEFINE_BASE(WIFI_EVENTS);
 
-static wifi_conf_t conf = {
-    .country_code = "US",
-};
-
 static esp_event_loop_handle_t wifi_loop_handler = NULL;
 
 static void wifi_dispatch_event(wifi_event_id_t event_id)
@@ -38,7 +34,7 @@ void wifi_event_handler(uint32_t code)
     switch (code) {
         case CODE_WIFI_ON_INIT_DONE: {
             LOG_I("[APP] [EVT] %s, CODE_WIFI_ON_INIT_DONE\r\n", __func__);
-            wifi_mgmr_init(&conf);
+            wifi_mgmr_init();
         } break;
         case CODE_WIFI_ON_MGMR_DONE: {
             LOG_I("[APP] [EVT] %s, CODE_WIFI_ON_MGMR_DONE\r\n", __func__);

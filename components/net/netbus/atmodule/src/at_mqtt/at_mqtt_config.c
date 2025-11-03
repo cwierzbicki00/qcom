@@ -17,12 +17,13 @@
 //#endif
 #include "at_config.h"
 #include "at_mqtt_config.h"
+#include "at_pal.h"
 
 mqtt_config *at_mqtt_config = NULL;
 
 int at_mqtt_config_init(void)
 {
-    at_mqtt_config = (mqtt_config *)pvPortMalloc(sizeof(mqtt_config));
+    at_mqtt_config = (mqtt_config *)at_malloc(sizeof(mqtt_config));
     if (at_mqtt_config == NULL) {
         printf("Failed to allocate memory for at_mqtt_config\r\n");
         return -1;

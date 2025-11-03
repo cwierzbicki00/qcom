@@ -29,8 +29,8 @@ char test_data[512] =
     Somebody I can kiss\r\n\
     I want something just like this\r\n\r\n";
 
-USB_NOCACHE_RAM_SECTION BYTE RW_Buffer[USBH_FATFS_TEST_BUF_SIZE] = { 0 };
-USB_NOCACHE_RAM_SECTION BYTE Check_Buffer[sizeof(RW_Buffer)] = { 0 };
+ __ALIGNED(32) BYTE RW_Buffer[USBH_FATFS_TEST_BUF_SIZE] = { 0 };
+ __ALIGNED(32) BYTE Check_Buffer[sizeof(RW_Buffer)] = { 0 };
 
 void fatfs_write_read_test()
 {

@@ -67,10 +67,6 @@ static struct qcc74x_device_s *uart0;
 
 static TaskHandle_t wifi_fw_task;
 
-static wifi_conf_t conf = {
-    .country_code = "US",
-};
-
 extern void shell_init_with_task(struct qcc74x_device_s *shell);
 
 /****************************************************************************
@@ -106,7 +102,7 @@ void wifi_event_handler(uint32_t code)
     switch (code) {
         case CODE_WIFI_ON_INIT_DONE: {
             LOG_I("[APP] [EVT] %s, CODE_WIFI_ON_INIT_DONE\r\n", __func__);
-            wifi_mgmr_init(&conf);
+            wifi_mgmr_init();
         } break;
         case CODE_WIFI_ON_MGMR_DONE: {
             LOG_I("[APP] [EVT] %s, CODE_WIFI_ON_MGMR_DONE\r\n", __func__);
@@ -123,6 +119,15 @@ void wifi_event_handler(uint32_t code)
         case CODE_WIFI_ON_GOT_IP: {
             LOG_I("[APP] [EVT] %s, CODE_WIFI_ON_GOT_IP\r\n", __func__);
             LOG_I("[SYS] Memory left is %d Bytes\r\n", kfree_size());
+        } break;
+        case CODE_WIFI_ON_LOST_IP: {
+            LOG_I("[APP] [EVT] %s, CODE_WIFI_ON_LOST_IP\r\n", __func__);
+        } break;
+        case CODE_WIFI_ON_GOT_IP6: {
+            LOG_I("[APP] [EVT] %s, CODE_WIFI_ON_GOT_IP6\r\n", __func__);
+        } break;
+        case CODE_WIFI_ON_LOST_IP6: {
+            LOG_I("[APP] [EVT] %s, CODE_WIFI_ON_LOST_IP6\r\n", __func__);
         } break;
         case CODE_WIFI_ON_DISCONNECT: {
             LOG_I("[APP] [EVT] %s, CODE_WIFI_ON_DISCONNECT\r\n", __func__);

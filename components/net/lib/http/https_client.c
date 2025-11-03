@@ -247,6 +247,10 @@ int https_client_request(const struct https_client_request *request, uint32_t ti
 	memset(&req, 0, sizeof(req));
 
     ret = http_client_set_url(&client, request->url);
+    if (ret < 0) {
+        LOG_ERR("Failed to set URL: %d\r\n", ret);
+        goto __end;
+    }
 
     client.socket = connect_https(&client,
     		                      request->ca_pem, request->ca_len,

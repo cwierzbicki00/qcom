@@ -23,21 +23,22 @@ int USB_disk_initialize(void)
 
 int USB_disk_read(BYTE *buff, LBA_t sector, UINT count)
 {
-    qcc74x_l1c_dcache_clean_invalidate_range((uint8_t *)buff, 1);
-    qcc74x_l1c_dcache_clean_invalidate_range((uint8_t *)buff + active_msc_class->blocksize * count - 1, 1);
+    qcc74x_l1c_dcache_clean_range((uint8_t *)buff, 1);
+    qcc74x_l1c_dcache_clean_range((uint8_t *)buff + active_msc_class->blocksize * count - 1, 1);
+    qcc74x_l1c_dcache_invalidate_range((uint8_t *)buff, active_msc_class->blocksize * count);
 
     if (usbh_msc_scsi_read10(active_msc_class, sector, buff, count) < 0) {
         return RES_ERROR;
     }
 
-    qcc74x_l1c_dcache_clean_invalidate_range((uint8_t *)buff, active_msc_class->blocksize * count);
+    qcc74x_l1c_dcache_invalidate_range((uint8_t *)buff, active_msc_class->blocksize * count);
 
     return RES_OK;
 }
 
 int USB_disk_write(const BYTE *buff, LBA_t sector, UINT count)
 {
-    qcc74x_l1c_dcache_clean_invalidate_range((uint8_t *)buff, active_msc_class->blocksize * count);
+    qcc74x_l1c_dcache_clean_range((uint8_t *)buff, active_msc_class->blocksize * count);
 
     if (usbh_msc_scsi_write10(active_msc_class, sector, buff, count) < 0) {
         return RES_ERROR;

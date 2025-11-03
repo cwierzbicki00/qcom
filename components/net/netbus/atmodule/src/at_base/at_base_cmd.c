@@ -80,7 +80,7 @@ static int at_exe_cmd_gmr(int argc, const char **argv)
     char *strtmp = NULL;
 
     size_t outbuf_len = 1024;
-    outbuf = (char *)pvPortMalloc(outbuf_len);
+    outbuf = (char *)at_malloc(outbuf_len);
     if (!outbuf)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_NO_MEMORY);
 
@@ -95,15 +95,19 @@ static int at_exe_cmd_gmr(int argc, const char **argv)
         strver = NULL;
         if (strstr(version, "SW image:")) {
             strver = strdup(version);
-            strtmp = strstr(strver, "_"CONFIG_CHIP_CPUNAME);
-            strlcpy(strtmp, strtmp + strlen("_"CONFIG_CHIP_CPUNAME), strlen(strver) - (uint32_t)(strtmp - strver));
-            version = strver;
+            if (strver) {
+                strtmp = strstr(strver, "_"CONFIG_CHIP_CPUNAME);
+                if (strtmp) {
+                    strlcpy(strtmp, strtmp + strlen("_"CONFIG_CHIP_CPUNAME), strlen(strver) - (uint32_t)(strtmp - strver));
+                    version = strver;
+                }
+            }
         }
         snprintf(outbuf+strlen(outbuf), outbuf_len-strlen(outbuf), "%s\r\n", version);
-        free(strver);
+        at_free(strver);
     }
     AT_CMD_RESPONSE(outbuf);
-    vPortFree(outbuf);
+    at_free(outbuf);
 
     return AT_RESULT_CODE_OK;
 }
@@ -420,7 +424,7 @@ static int at_setup_efuse_write(int argc, const char **argv)
     }
 
     word = ((nbytes + 3) & ~3) >> 2;
-    char *buffer = (char *)pvPortMalloc(word * 4);
+    char *buffer = (char *)at_malloc(word * 4);
     if (!buffer) {
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_NO_MEMORY);
     }
@@ -437,7 +441,7 @@ static int at_setup_efuse_write(int argc, const char **argv)
 
     AT_CMD_PRINTF("efuse write 0x%x %d \r\n", address, word);
     qcc74x_ef_ctrl_write_direct(efuse_dev, address, (uint32_t *)buffer, word, 0);
-    vPortFree(buffer);
+    at_free(buffer);
 
     return AT_RESULT_CODE_SEND_OK;
 }
@@ -464,7 +468,7 @@ static int at_setup_efuse_write_hex(int argc, const char **argv)
     hex_len = nbytes * 2;
 
     int buffer_size = (hex_len + 1 > word * 4) ? hex_len + 1 : word * 4;
-    char *buffer = (char *)pvPortMalloc(buffer_size);
+    char *buffer = (char *)at_malloc(buffer_size);
     if (!buffer) {
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_NO_MEMORY);
     }
@@ -478,7 +482,7 @@ static int at_setup_efuse_write_hex(int argc, const char **argv)
     at_response_string("Recv %d bytes\r\n", recv_num/2);
 
     if (str_to_hex(buffer, nbytes, buffer) != 0) {
-        vPortFree(buffer);
+        at_free(buffer);
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     }
 
@@ -487,7 +491,7 @@ static int at_setup_efuse_write_hex(int argc, const char **argv)
     AT_CMD_PRINTF("efuse write hex 0x%x %d \r\n", address, word);
     qcc74x_ef_ctrl_write_direct(efuse_dev, address, (uint32_t *)buffer, word, 0);
 
-    vPortFree(buffer);
+    at_free(buffer);
 
     return AT_RESULT_CODE_SEND_OK;
 }
@@ -512,7 +516,7 @@ static int at_setup_efuse_read(int argc, const char **argv)
     }
     
     word = ((nbytes + 3) & ~3) >> 2;
-    char *buffer = (char *)pvPortMalloc(word * 4 + 2);
+    char *buffer = (char *)at_malloc(word * 4 + 2);
     if (!buffer) {
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_NO_MEMORY);
     }
@@ -529,7 +533,7 @@ static int at_setup_efuse_read(int argc, const char **argv)
     nbytes += 2;
     send_num = AT_CMD_DATA_SEND(buffer, nbytes);
 
-    vPortFree(buffer);
+    at_free(buffer);
 
     if (send_num == nbytes) {
         return AT_RESULT_CODE_OK;
@@ -559,7 +563,7 @@ static int at_setup_efuse_read_hex(int argc, const char **argv)
     int hex_out_size = nbytes * 2 + 1;
 
     word = ((nbytes + 3) & ~3) >> 2;
-    char *bin_buffer = (char *)pvPortMalloc(word * 4);
+    char *bin_buffer = (char *)at_malloc(word * 4);
     if (!bin_buffer) {
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_NO_MEMORY);
     }
@@ -570,16 +574,16 @@ static int at_setup_efuse_read_hex(int argc, const char **argv)
     AT_CMD_PRINTF("efuse read hex 0x%x %d \r\n", address, word);
     qcc74x_ef_ctrl_read_direct(efuse_dev, address, (uint32_t *)bin_buffer, word, reload_valid ? reload : 0);
 
-    char *hex_out = (char *)pvPortMalloc(hex_out_size);
+    char *hex_out = (char *)at_malloc(hex_out_size);
     if (!hex_out) {
-        vPortFree(bin_buffer);
+        at_free(bin_buffer);
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_NO_MEMORY);
     }
     memset(hex_out, 0, hex_out_size);
 
     if (hex_to_str(bin_buffer, nbytes, hex_out, hex_out_size) != 0) {
-        vPortFree(bin_buffer);
-        vPortFree(hex_out);
+        at_free(bin_buffer);
+        at_free(hex_out);
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_COMMON_ERROR);
     }
 
@@ -587,8 +591,8 @@ static int at_setup_efuse_read_hex(int argc, const char **argv)
     at_write(hex_out, strlen(hex_out));
     at_write("\r\n", 2);
 
-    vPortFree(bin_buffer);
-    vPortFree(hex_out);
+    at_free(bin_buffer);
+    at_free(hex_out);
 
     return AT_RESULT_CODE_OK;
 }
@@ -621,7 +625,7 @@ static int at_setup_flash_write(int argc, const char **argv)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     }
 
-    char *buffer = (char *)pvPortMalloc(nbytes);
+    char *buffer = (char *)at_malloc(nbytes);
     if (!buffer) {
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_NO_MEMORY);
     }
@@ -637,7 +641,7 @@ static int at_setup_flash_write(int argc, const char **argv)
 
     AT_CMD_PRINTF("flash write 0x%x %d \r\n", address, nbytes);
     ret = qcc74x_flash_write(address, buffer, nbytes);
-    vPortFree(buffer);
+    at_free(buffer);
 
     if (ret) {
         return AT_RESULT_CODE_SEND_FAIL;
@@ -665,7 +669,7 @@ static int at_setup_flash_write_hex(int argc, const char **argv)
 
     hex_len = nbytes * 2;
     int buffer_size = hex_len + 1;
-    char *buffer = (char *)pvPortMalloc(buffer_size);
+    char *buffer = (char *)at_malloc(buffer_size);
     if (!buffer) {
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_NO_MEMORY);
     }
@@ -680,14 +684,14 @@ static int at_setup_flash_write_hex(int argc, const char **argv)
     at_response_string("Recv %d bytes\r\n", recv_num/2);
 
     if (str_to_hex(buffer, nbytes, buffer) != 0) {
-        vPortFree(buffer);
+        at_free(buffer);
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     }
 
     AT_CMD_PRINTF("flash write hex 0x%x %d \r\n", address, nbytes);
     ret = qcc74x_flash_write(address, buffer, nbytes);
 
-    vPortFree(buffer);
+    at_free(buffer);
 
     if (ret) {
         return AT_RESULT_CODE_SEND_FAIL;
@@ -712,7 +716,7 @@ static int at_setup_flash_read(int argc, const char **argv)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     }
 
-    char *buffer = (char *)pvPortMalloc(nbytes + 2);
+    char *buffer = (char *)at_malloc(nbytes + 2);
     if (!buffer) {
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_NO_MEMORY);
     }
@@ -722,7 +726,7 @@ static int at_setup_flash_read(int argc, const char **argv)
     ret = qcc74x_flash_read(address, buffer, nbytes);
 
     if (ret) {
-        vPortFree(buffer);
+        at_free(buffer);
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_NO_MEMORY);
     }
     at_write("+FLASH-R:%d,", nbytes);
@@ -731,7 +735,7 @@ static int at_setup_flash_read(int argc, const char **argv)
     nbytes += 2;
     send_num = AT_CMD_DATA_SEND(buffer, nbytes);
 
-    vPortFree(buffer);
+    at_free(buffer);
 
     if (send_num == nbytes) {
         return AT_RESULT_CODE_OK;
@@ -758,7 +762,7 @@ static int at_setup_flash_read_hex(int argc, const char **argv)
 
     int hex_out_size = nbytes * 2 + 1;
 
-    char *bin_buffer = (char *)pvPortMalloc(nbytes);
+    char *bin_buffer = (char *)at_malloc(nbytes);
     if (!bin_buffer) {
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_NO_MEMORY);
     }
@@ -768,20 +772,20 @@ static int at_setup_flash_read_hex(int argc, const char **argv)
     ret = qcc74x_flash_read(address, bin_buffer, nbytes);
 
     if (ret) {
-        vPortFree(bin_buffer);
+        at_free(bin_buffer);
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_NO_MEMORY);
     }
 
-    char *hex_out = (char *)pvPortMalloc(hex_out_size);
+    char *hex_out = (char *)at_malloc(hex_out_size);
     if (!hex_out) {
-        vPortFree(bin_buffer);
+        at_free(bin_buffer);
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_NO_MEMORY);
     }
     memset(hex_out, 0, hex_out_size);
 
     if (hex_to_str(bin_buffer, nbytes, hex_out, hex_out_size) != 0) {
-        vPortFree(bin_buffer);
-        vPortFree(hex_out);
+        at_free(bin_buffer);
+        at_free(hex_out);
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_COMMON_ERROR);
     }
 
@@ -789,8 +793,8 @@ static int at_setup_flash_read_hex(int argc, const char **argv)
     at_write(hex_out, strlen(hex_out));
     at_write("\r\n", 2);
 
-    vPortFree(bin_buffer);
-    vPortFree(hex_out);
+    at_free(bin_buffer);
+    at_free(hex_out);
 
     return AT_RESULT_CODE_OK;
 }
@@ -943,8 +947,10 @@ static at_ota_handle_t g_ota_handle = NULL;
 static int g_ota_recv_total = 0;
 static int g_ota_recv_cnt   = 0;
 static int g_ota_start = 0;
+static StaticSemaphore_t ota_sem_buffer;
 
 struct ota_buf {
+    SemaphoreHandle_t ota_sem;
     uint32_t len;
     uint8_t buf[0];
 };
@@ -992,13 +998,14 @@ static int ota_trans_process(int id, void *arg)
             g_ota_recv_total+512, g_ota_recv_total+512,
             g_ota_recv_total, g_ota_handle->file_size,
             buffer[0], buffer[1], buffer[2], buffer[3]);
-    vPortFree(buffer);
+
+    xSemaphoreGive(buffer->ota_sem);
     return 0;
 
 _fail:
-    vPortFree(buffer);
     g_ota_handle = NULL;
     g_ota_recv_total = 0;
+    xSemaphoreGive(buffer->ota_sem);
     return 0;
 }
 
@@ -1065,11 +1072,13 @@ static int at_setup_ota_send(int argc, const char **argv)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     }
 
-    buffer = pvPortMalloc(sizeof(struct ota_buf) + len);
+    buffer = at_malloc(sizeof(struct ota_buf) + len);
     if (!buffer) {
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_NO_MEMORY);
     }
     memset(buffer, 0, sizeof(struct ota_buf) + len);
+    
+    buffer->ota_sem = xSemaphoreCreateBinaryStatic(&ota_sem_buffer);
 
     at_response_string("%s%s", AT_CMD_MSG_OK, AT_CMD_MSG_WAIT_DATA);
 
@@ -1084,6 +1093,10 @@ static int at_setup_ota_send(int argc, const char **argv)
         .arg = buffer,
     };
     at_workq_send(AT_EVENT_OTA, &wq, portMAX_DELAY);
+
+    xSemaphoreTake(buffer->ota_sem, portMAX_DELAY);
+    vSemaphoreDelete(buffer->ota_sem);
+    at_free(buffer);
 
     if (len == recv_size) {
         ret = AT_RESULT_CODE_SEND_OK;
@@ -1148,7 +1161,7 @@ static int at_setup_fs(int argc, const char **argv)
                 return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
             }
 
-            buffer = calloc(len, 1);
+            buffer = at_calloc(len, 1);
             if (!buffer) {
                 return AT_RESULT_WITH_SUB_CODE(AT_SUB_NO_MEMORY);
             }
@@ -1162,10 +1175,10 @@ static int at_setup_fs(int argc, const char **argv)
             at_response_string("Recv %d bytes\r\n", recv_size);
 
             if (at_write_file(filename, offset, buffer, len) != len) {
-                free(buffer);
+                at_free(buffer);
                 return AT_RESULT_WITH_SUB_CODE(AT_SUB_IO_ERROR);
             }
-            free(buffer);
+            at_free(buffer);
 
             if (len == recv_size) {
                 ret = AT_RESULT_CODE_SEND_OK;
@@ -1178,27 +1191,27 @@ static int at_setup_fs(int argc, const char **argv)
                 return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
             }
 
-            buffer = calloc(len + 1, 1);
+            buffer = at_calloc(len + 1, 1);
             if (!buffer) {
                 return AT_RESULT_WITH_SUB_CODE(AT_SUB_NO_MEMORY);
             }
 
-            buf = malloc(len + 32);
+            buf = at_malloc(len + 32);
             if (!buf) {
-                free(buffer);
+                at_free(buffer);
                 return AT_RESULT_WITH_SUB_CODE(AT_SUB_NO_MEMORY);
             }
 
             ret = at_read_file(filename, offset, buffer, len); 
             if (ret < 0) {
-                free(buf);
-                free(buffer);
+                at_free(buf);
+                at_free(buffer);
                 return AT_RESULT_WITH_SUB_CODE(AT_SUB_IO_ERROR);
             }
             ret = snprintf(buf, len + 32, "+FS:READ,%d,%s\r\n", ret, buffer);
             AT_CMD_DATA_SEND(buf, ret);
-            free(buffer);
-            free(buf);
+            at_free(buffer);
+            at_free(buf);
             ret = AT_RESULT_CODE_OK;
         break;
         case AT_FS_QUERY_SIZE:

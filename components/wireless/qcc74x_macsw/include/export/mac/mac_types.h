@@ -279,6 +279,7 @@ struct mac_scan_result
     uint16_t pairwise_cipher;
     /// RSSI of the scanned BSS (in dBm)
     int8_t rssi;
+    uint8_t proto;
     /// Multi-BSSID index (0 if this is the reference (i.e. transmitted) BSSID)
     uint8_t multi_bssid_index;
     /// Maximum BSSID indicator
@@ -530,6 +531,22 @@ struct twt_conf_tag
     uint16_t wake_int_mantissa;
 };
 
+///TWT Flow configuration
+struct twt_status_info
+{
+    /// Flow Type (0: Announced, 1: Unannounced)
+    uint8_t flow_type;
+    /// Wake interval Exponent
+    uint8_t wake_int_exp;
+    /// Unit of measurement of TWT Minimum Wake Duration (0:256us, 1:tu)
+    bool wake_dur_unit;
+    /// Nominal Minimum TWT Wake Duration
+    uint8_t min_twt_wake_dur;
+    /// TWT Wake Interval Mantissa
+    uint16_t wake_int_mantissa;
+    uint8_t flow_id;
+};
+
 /// FTM results
 struct mac_ftm_results
 {
@@ -543,6 +560,21 @@ struct mac_ftm_results
         /// Round Trip Time (in ps)
         uint32_t rtt;
     } meas[FTM_RSP_MAX];
+};
+
+struct ieee80211_stats {
+    /* Number of Rx Data frames - received successfully */
+    uint32_t rx_data;
+    /* Number of Rx Mgmt frames - received successfully */
+    uint32_t rx_mgmt;
+    /* Number of Tx Data frames - transmitted successfully */
+    uint32_t tx_data;
+    /* Number of Tx Data frames - dropped due to retry limit  */
+    uint32_t tx_data_dropped;
+    /* Number of Tx Mgmt frames - transmitted successfully */
+    uint32_t tx_mgmt;
+    /* Number of Tx Mgmt frames - dropped due to retry limit  */
+    uint32_t tx_mgmt_dropped;
 };
 
 typedef struct tx_pwr_table {

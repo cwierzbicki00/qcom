@@ -1,0 +1,4 @@
+mainmenu "SDK Configuration"
+
+source "$QCC74x_SDK_BASE/Kconfig"
+

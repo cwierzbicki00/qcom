@@ -40,16 +40,15 @@
 #include "at_wifi_config.h"
 #include "at_wifi_main.h"
 #include "at_net_main.h"
-
+#ifdef CONFIG_NETWORK
+#include "at_net_config.h"
+#endif
 #define DBG_TAG "MAIN"
 #include "log.h"
 
 #define AT_WIFI_SUPPORT_STORE_CHANNEL
 
-#define WIFI_STACK_SIZE  (1536)
-#define TASK_PRIORITY_FW (16)
-
-#define AT_WIFI_TASK_STACK_SIZE 1024
+#define AT_WIFI_TASK_STACK_SIZE 512
 #define AT_WIFI_TASK_PRIORITY 15
 #define AT_WIFI_MAX_STA_NUM 10
 
@@ -190,6 +189,16 @@ static void wifiopt_sta_disconnect(int force)
 
 void wifiopt_sta_connect(void)
 {
+
+#if CONFIG_NETWORK
+    ip_addr_t ip_zero;
+    ip_addr_set_zero(&ip_zero);
+
+
+    dns_setserver(0, &ip_zero);
+    dns_setserver(1, &ip_zero);
+    dns_setserver(2, &ip_zero);
+#endif
     if (!at_wifi_config) {
         printf("[WIFI_MAIN] Error: at_wifi_config is NULL\r\n");
         return;
@@ -273,6 +282,11 @@ void wifiopt_sta_connect(void)
         wifi_mgmr_sta_ip_set(ip, mask, gateway, 0);
     }
 
+#ifdef CONFIG_NETWORK
+    if (at_net_config->ipv6_enable) {
+        wifi_sta_ipv6_enable(1);
+    } 
+#endif
     at_wifi_hostname_set(hostname);
     at_wifi_config->connecting_state = 1;
 
@@ -367,7 +381,7 @@ static void wifi_sta_enable_reconnect(int enable)
     if ((at_wifi_config->reconn_cfg.interval_second > 0) && (at_wifi_config->reconn_cfg.repeat_count > 0)) {
         g_wifi_reconnect_disable = 0;
         if (!task) {
-            xTaskCreate(reconnect_event, (char*)"reconnect", 512, &task, 15, &task);
+            xTaskCreate(reconnect_event, (char*)"reconnect", 256, &task, 15, &task);
         }
     }
 }
@@ -486,6 +500,11 @@ static int wifi_ap_get_sta_info_index(uint8_t mac[6])
 static void wifi_ap_update_sta_ip(uint8_t mac[6], uint32_t ip)
 {
     int index = wifi_ap_get_sta_info_index(mac);
+    
+    if (index < 0 || index >= AT_WIFI_MAX_STA_NUM) {
+        printf("[WIFI_MAIN] Error: invalid index %d\r\n", index);
+        return;
+    }
 
     g_wifi_ap_sta_info[index].valid_time = at_current_ms_get();
     memcpy(g_wifi_ap_sta_info[index].mac, mac, 6);
@@ -497,7 +516,7 @@ static int wifi_ap_update_sta_index()
     int idx = -1;
     struct wifi_sta_basic_info sta_info = {0};
 
-    for(int i = 0; i < NX_REMOTE_STA_MAX; i++) {
+    for(int i = 0; i < CFG_STA_MAX && i < AT_WIFI_MAX_STA_NUM; i++) {
         wifi_mgmr_ap_sta_info_get(&sta_info, i);
         if(!sta_info.is_used || (sta_info.sta_idx == 0xef)) {
             continue;
@@ -518,7 +537,7 @@ static void wifi_ap_delete_sta_info(uint8_t mac[6])
 {
     struct wifi_sta_basic_info sta_info = {0};
 
-    for(int i = 0; i < NX_REMOTE_STA_MAX; i++) {
+    for(int i = 0; i < CFG_STA_MAX && i < AT_WIFI_MAX_STA_NUM; i++) {
         wifi_mgmr_ap_sta_info_get(&sta_info, i);
         if(!sta_info.is_used || (sta_info.sta_idx == 0xef)) {
             if (g_wifi_ap_sta_info[i].valid_time) {
@@ -560,7 +579,7 @@ static int reason_code_get(int code)
     return code;
 }
 
-static void at_wifi_event_cb(uint32_t code, void *private_data)
+static void at_wifi_event_cb(void *private_data, uint32_t code)
 {
     switch (code) {
         case CODE_WIFI_ON_INIT_DONE: {
@@ -709,36 +728,23 @@ static void at_wifi_event_cb(uint32_t code, void *private_data)
     }
 }
 
-static QueueHandle_t event_queue;
-static void wifi_event_task_entry(void *arg)
-{
-    uint32_t code = 0;
-    while (1) {
-        if (xQueueReceive(event_queue, &code, portMAX_DELAY)) {
-            at_wifi_event_cb(code, NULL);
-        }
-    }
-}
-
 static void wifi_event_start(uint32_t code)
 {
-    if (!xQueueSend(event_queue, &code, 0)) {
-        printf("wifi event send fail %d\r\n", code);
-    }
+    BaseType_t xReturn;
+
+    xReturn = xTimerPendFunctionCall(at_wifi_event_cb, NULL, code, 0);
+    configASSERT(xReturn == pdPASS);
 }
 
-static wifi_conf_t conf = {
-    .country_code = "00",
-};
 void wifi_event_handler(uint32_t code)
 {
     switch (code) {
         case CODE_WIFI_ON_INIT_DONE: {
             LOG_I("[APP] [EVT] %s, CODE_WIFI_ON_INIT_DONE\r\n", __func__);
-    
+
             char *country_code_string[WIFI_COUNTRY_CODE_MAX] = AT_WIFI_COUNTRY_CODE;
-            strlcpy(conf.country_code, country_code_string[at_wifi_config->wifi_country.country_code], sizeof(conf.country_code));
-            wifi_mgmr_init(&conf);
+            strlcpy(wifiMgmr.country_code, country_code_string[at_wifi_config->wifi_country.country_code], sizeof(wifiMgmr.country_code));
+            wifi_mgmr_init();
 
             if (at_wifi_config->sta_proto.byte) {
                 at_wifi_mode_set(0, at_wifi_config->sta_proto);
@@ -780,6 +786,14 @@ void wifi_event_handler(uint32_t code)
         } break;
         case CODE_WIFI_ON_DISCONNECT: {
             LOG_I("[APP] [EVT] %s, CODE_WIFI_ON_DISCONNECT\r\n", __func__);
+            wifi_event_start(code);
+        } break;
+        case CODE_WIFI_ON_GOT_IP6: {
+            LOG_I("[APP] [EVT] %s, CODE_WIFI_ON_GOT_IP6\r\n", __func__);
+            wifi_event_start(code);
+        } break;
+        case CODE_WIFI_ON_LOST_IP6: {
+            LOG_I("[APP] [EVT] %s, CODE_WIFI_ON_LOST_IP6\r\n", __func__);
             wifi_event_start(code);
         } break;
         case CODE_WIFI_ON_AP_STARTED: {
@@ -1035,13 +1049,16 @@ int at_wifi_start(void)
     aos_register_event_filter(EV_WIFI, at_wifi_event_cb, NULL);
 
     memset(&g_wifi_ap_sta_info, 0, sizeof(g_wifi_ap_sta_info));
-#endif
+
     event_queue = xQueueCreate(4, sizeof(uint32_t));
-    xTaskCreate(wifi_event_task_entry, (char *)"wifi_event", 512, NULL, 15, NULL);
+    xTaskCreateStatic(wifi_event_task_entry, (char *)"wifi_event", 
+                                             WIFI_EVENT_TASK_STACK_SIZE, NULL, 15, 
+                                             wifi_event_task_stack, &wifi_event_task_tcb);
+#endif
     vTaskDelay(100);
  
     /* Start Wifi_FW */
-    xTaskCreate(wifi_main, (char *)"fw", WIFI_STACK_SIZE, NULL, TASK_PRIORITY_FW, &wifi_fw_task);
+    xTaskCreate(wifi_main, (char *)"fw", AT_WIFI_TASK_STACK_SIZE, NULL, AT_WIFI_TASK_PRIORITY, &wifi_fw_task);
  
     return 0;
 }
@@ -1056,7 +1073,18 @@ int at_wifi_stop(void)
 
 int at_wifi_hostname_set(char *hostname)
 {
+    if (!hostname) {
+        printf("[WIFI_MAIN] Error: hostname is NULL\r\n");
+        return -1;
+    }
+    
     struct netif *netif = (struct netif *)net_if_find_from_name("wl1");
+    if (!netif) {
+        printf("[WIFI_MAIN] Error: netif not found\r\n");
+        return -1;
+    }
+    
     netif_set_hostname(netif, hostname);
+    return 0;
 }
 

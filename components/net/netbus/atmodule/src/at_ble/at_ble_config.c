@@ -19,12 +19,13 @@
 #include "at_config.h"
 #include "at_ble_config.h"
 #include "bluetooth.h"
+#include "at_pal.h"
 
 ble_config *at_ble_config = NULL;
 
 int at_ble_config_init(void)
 {
-    at_ble_config = (ble_config *)pvPortMalloc(sizeof(ble_config));
+    at_ble_config = (ble_config *)at_malloc(sizeof(ble_config));
     if (at_ble_config == NULL) {
         AT_CMD_PRINTF("Failed to allocate memory for at_ble_config\r\n");
         return -1;
@@ -34,13 +35,10 @@ int at_ble_config_init(void)
     at_ble_config->work_role = BLE_DISABLE;
     size_t value_len = 0;
     
-    if(ef_get_env_blob(AT_CONFIG_KEY_BLE_NAME,&at_ble_config->ble_name, sizeof(at_ble_config->ble_name),value_len))
-    {
-        if (!at_config_read(AT_CONFIG_KEY_BLE_NAME, &at_ble_config->ble_name, sizeof(at_ble_config->ble_name))) {
-            AT_CMD_PRINTF("BLE name config read failed, using default\r\n");
-            strlcpy(at_ble_config->ble_name, "QCC74x-AT", sizeof(at_ble_config->ble_name));
-            bt_set_name(at_ble_config->ble_name); 
-        }
+    if (!at_config_read(AT_CONFIG_KEY_BLE_NAME, &at_ble_config->ble_name, sizeof(at_ble_config->ble_name))) {
+        AT_CMD_PRINTF("BLE name config read failed, using default\r\n");
+        strlcpy(at_ble_config->ble_name, "QCC74x-AT", sizeof(at_ble_config->ble_name));
+        bt_set_name(at_ble_config->ble_name); 
     }
     else
     {

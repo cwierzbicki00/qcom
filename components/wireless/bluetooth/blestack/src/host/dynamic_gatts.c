@@ -49,7 +49,7 @@ static struct net_buf *server_buf;
 static struct bt_gatt_attr *db_attr = NULL;
 static uint8_t ccc_value;
 
-static dynamic_gatt_wr_callbck_func_t read_callback=NULL;
+static dynamic_gatt_rd_callbck_func_t read_callback=NULL;
 
 static dynamic_gatt_wr_callbck_func_t write_callback=NULL;
 
@@ -304,9 +304,9 @@ static ssize_t read_value(struct bt_conn *conn, const struct bt_gatt_attr *attr,
 {
 	if(read_callback)
 	{
-		int  rd_len =0;
+		uint16_t  rd_len =0;
 		uint8_t read_data[251]={0};
-		read_callback(attr,read_data,&rd_len);
+		read_callback(conn,attr,read_data,&rd_len);
 		return bt_gatt_attr_read(conn, attr, buf, len, offset, read_data,
 				 rd_len);
 
@@ -329,7 +329,7 @@ static ssize_t write_value(struct bt_conn *conn,
 
 	if(write_callback!=NULL)
 	{
-		write_callback(attr,buf,len);
+		write_callback(conn,attr,buf,len);
 	}
 
 	return len;

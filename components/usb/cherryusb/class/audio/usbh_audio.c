@@ -283,7 +283,7 @@ int usbh_audio_set_volume(struct usbh_audio *audio_class, const char *name, uint
         volume_max_db = (audio_class->as_msg_table[intf - audio_class->ctrl_intf - 1].volume_max - 0x10000) / 256;
     }
 
-    USB_LOG_INFO("Get ch:%d dB range: %d dB ~ %d dB\r\n", volume_min_db, volume_max_db);
+    USB_LOG_INFO("Get ch:%u dB range: %ddB ~ %ddB\r\n", ch, volume_min_db, volume_max_db);
 
     if (volume_db >= 0) {
         volume_hex = volume_db * 256;
@@ -594,6 +594,7 @@ static int usbh_audio_ctrl_disconnect(struct usbh_hubport *hport, uint8_t intf)
         }
 
         if (hport->config.intf[intf].devname[0] != '\0') {
+            usb_osal_thread_schedule_other();
             USB_LOG_INFO("Unregister Audio Class:%s\r\n", hport->config.intf[intf].devname);
             usbh_audio_stop(audio_class);
         }

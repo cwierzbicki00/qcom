@@ -239,7 +239,6 @@ static const uint8_t cdc_ecm_descriptor[] = {
 
 static TaskHandle_t usbd_ecm_emac_handle = NULL;
 static volatile bool usb_ecm_ready_flag = false;
-static volatile bool eth_emac_link_check_flag = false;
 
 static void usbd_ecm_emac_event_trig(void)
 {
@@ -390,11 +389,7 @@ polling_continue:
             }
             eth_emac_rx_data_free(&trans_desc);
             usbd_ecm_in_status = ECM_IN_STA_WAIT_EMAC_RX;
-            if (eth_emac_link_check_flag == true) {
-                break;
-            } else {
-                goto polling_continue;
-            }
+            goto polling_continue;
 
         default:
             LOG_E("usbd_ecm_in_status error: %d\r\n", usbd_ecm_in_status);
@@ -446,9 +441,6 @@ polling_continue:
             break;
 
         case ECM_OUT_STA_WAIT_EMAC_TX:
-            if (eth_emac_link_check_flag == true) {
-                break;
-            }
             if (eth_emac_tx_buff_get(&trans_desc, 0) < 0) {
                 break;
             }
@@ -471,12 +463,7 @@ polling_continue:
             trans_desc.data_len = usbd_ecm_out_done_len;
             eth_emac_tx_buff_push(&trans_desc);
             usbd_ecm_out_status = ECM_OUT_STA_WAIT_EMAC_TX;
-            if (eth_emac_link_check_flag == true) {
-                break;
-            } else {
-                goto polling_continue;
-            }
-            break;
+            goto polling_continue;
 
         default:
             LOG_E("usbd_ecm_out_status error: %d\r\n", usbd_ecm_out_status);
@@ -512,7 +499,7 @@ static void usbd_ecm_emac_task(void *param)
                 break;
 
             case ECM_EMAC_STA_START:
-                LOG_I("usbd rndis machine start/restart \r\n");
+                LOG_I("usbd ecm machine start/restart \r\n");
                 /* emac start/restart */
                 eth_emac_restart();
                 /* Reset: ECM_IN <-> EMAC_RX Sub-state machine */
@@ -552,14 +539,15 @@ static void usbd_ecm_emac_task(void *param)
                         eth_link_sta = true;
                         uint32_t speed_table[2] = { (100 * 1000 * 1000), (100 * 1000 * 1000) }; /* upstrem, downstrem */
                         usbd_cdc_ecm_set_connect(true, speed_table);
+                        LOG_I("ECM EMAC connect\r\n");
                     }
-                    eth_emac_link_check_flag = false;
                     usbd_ecm_emac_sta = ECM_EMAC_STA_DATA_POLLING;
                 } else {
                     /* linkdown */
                     if (eth_link_sta == true) {
                         eth_link_sta = false;
                         usbd_cdc_ecm_set_connect(false, NULL);
+                        LOG_I("ECM EMAC disconnect\r\n");
                     }
                     usbd_ecm_emac_event_wait(pdMS_TO_TICKS(100));
                 }
@@ -582,12 +570,8 @@ static void usbd_ecm_emac_task(void *param)
 
                 /* emac link check */
                 if (time_ms - status_time_ms > 100) {
-                    eth_emac_link_check_flag = true;
-                    /* wait usb in/out busy */
-                    if ((usbd_ecm_in_status != ECM_IN_STA_WAIT_USBD_IN) && (usbd_ecm_out_status != ECM_OUT_STA_WAIT_USBD_OUT)) {
-                        status_time_ms = time_ms;
-                        usbd_ecm_emac_sta = ECM_EMAC_STA_WAIT_EPHY_LINKUP;
-                    }
+                    status_time_ms = time_ms;
+                    usbd_ecm_emac_sta = ECM_EMAC_STA_WAIT_EPHY_LINKUP;
                 }
 
                 /* info dump */

@@ -61,7 +61,11 @@ uint32_t dbg_vsnprintf_offset(char *buffer, uint32_t size, uint32_t offset, cons
 /// Number of RX buffers
 #if NX_AMPDU_RX
 #ifndef FHOST_RX_BUF_CNT
+#ifndef CFG_ADHOC_ENABLE
 #define FHOST_RX_BUF_CNT            (NX_MAX_BA_RX * NX_AMPDU_RX_BUF_SIZE + 2)
+#else
+#define FHOST_RX_BUF_CNT            (NX_AMPDU_RX_BUF_SIZE + 2)
+#endif
 #endif
 #else
 #define FHOST_RX_BUF_CNT             4

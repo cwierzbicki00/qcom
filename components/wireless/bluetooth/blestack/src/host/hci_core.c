@@ -45,14 +45,18 @@
 #include "settings.h"
 #if defined(QCC74x_BLE)
 #if defined(CONFIG_BT_HOST_HCI_TL)
+#if defined(CONFIG_BT_HOST_HCI)
 #include "qcc74x_hci_tl.h"
+#else
+#include "qcc74x_hci_tl.h"
+#endif
 #else
 #include "qcc74x_hci_wrapper.h"
 #endif
 #if defined(QCC74x_undef) || defined(QCC74x_undef)
 #include "ble_lib_api.h"
 #else
-#include "btble_lib_api.h"
+//#include "btble_lib_api.h"
 #endif
 #include "work_q.h"
 #endif
@@ -478,6 +482,15 @@ int bt_hci_cmd_send_sync(u16_t opcode, struct net_buf *buf,
 	    switch (cmd(buf)->status) {
 		case BT_HCI_ERR_CONN_LIMIT_EXCEEDED:
 			err = -ECONNREFUSED;
+			break;
+		case BT_HCI_ERR_INVALID_PARAM:
+			err = -EINVAL;
+			break;
+		case BT_HCI_ERR_CMD_DISALLOWED:
+			err = -EACCES;
+			break;
+		case BT_HCI_ERR_UNSUPP_LL_PARAM_VAL:
+			err = -EINVAL;
 			break;
 	    #if defined(QCC74x_BLE)
 	    case 0xff:
@@ -1337,7 +1350,7 @@ int bt_le_set_data_len(struct bt_conn *conn, u16_t tx_octets, u16_t tx_time)
 	cp->tx_octets = sys_cpu_to_le16(tx_octets);
 	cp->tx_time = sys_cpu_to_le16(tx_time);
 
-	return bt_hci_cmd_send(BT_HCI_OP_LE_SET_DATA_LEN, buf);
+	return bt_hci_cmd_send_sync(BT_HCI_OP_LE_SET_DATA_LEN, buf, NULL);
 }
 
 int bt_le_read_chan_map(struct bt_conn *conn, struct bt_hci_rp_le_read_chan_map *rsp_buf)
@@ -1392,7 +1405,7 @@ int hci_le_set_phy(struct bt_conn *conn, uint8_t all_phys,
 	cp->rx_phys = pref_rx_phy;
 	cp->phy_opts = phy_opts;
 
-	return bt_hci_cmd_send(BT_HCI_OP_LE_SET_PHY, buf);
+	return bt_hci_cmd_send_sync(BT_HCI_OP_LE_SET_PHY, buf, NULL);
 }
 
 int hci_le_set_default_phy(u8_t default_phy)
@@ -1409,9 +1422,7 @@ int hci_le_set_default_phy(u8_t default_phy)
 	cp->all_phys = 0U;
 	cp->tx_phys = default_phy;
 	cp->rx_phys = default_phy;
-	bt_hci_cmd_send(BT_HCI_OP_LE_SET_DEFAULT_PHY, buf);
-
-	return 0;
+	return bt_hci_cmd_send_sync(BT_HCI_OP_LE_SET_DEFAULT_PHY, buf, NULL);
 }
 
 
@@ -6181,11 +6192,13 @@ int bt_disable_action(void)
     qcc74x_onchiphci_interface_deinit();
 #endif
     //delete task
+#if !defined (CONFIG_BT_HOST_HCI_TL)
     #if defined(QCC74x_undef) || defined(QCC74x_undef)
     ble_controller_deinit();
     #else
     btble_controller_deinit();
     #endif
+#endif
     k_thread_delete(&tx_thread_data);
     k_thread_delete(&work_q_thread);
     k_thread_delete(&recv_thread_data);

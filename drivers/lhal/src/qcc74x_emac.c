@@ -306,14 +306,14 @@ int qcc74x_emac_queue_tx_push(struct qcc74x_device_s *dev, struct qcc74x_emac_tr
     uintptr_t flag = qcc74x_irq_save();
 
     /* check tx_bd_tail */
-    if (emac_ctrl.emac_tx_bd_tail - emac_ctrl.emac_tx_bd_head >= EMAC_TX_BD_BUM_MAX) {
+    if (emac_ctrl.emac_tx_bd_tail - emac_ctrl.emac_tx_bd_head >= EMAC_TX_BD_NUM_MAX) {
         /* the ring queue is full */
         /* unlock */
         qcc74x_irq_restore(flag);
         return -1;
     }
 
-    bd_index = emac_ctrl.emac_tx_bd_tail & EMAC_TX_BD_BUM_MASK;
+    bd_index = emac_ctrl.emac_tx_bd_tail & EMAC_TX_BD_NUM_MASK;
     /* update tx_bd_tail */
     emac_ctrl.emac_tx_bd_tail += 1;
 
@@ -334,7 +334,7 @@ int qcc74x_emac_queue_tx_push(struct qcc74x_device_s *dev, struct qcc74x_emac_tr
         regval |= EMAC_BD_TX_IRQ_MASK;
     }
     /* DB end */
-    if (bd_index == EMAC_TX_BD_BUM_MASK) {
+    if (bd_index == EMAC_TX_BD_NUM_MASK) {
         regval |= EMAC_BD_TX_WR_MASK;
     }
     /* db ready */
@@ -366,14 +366,14 @@ int qcc74x_emac_queue_rx_push(struct qcc74x_device_s *dev, struct qcc74x_emac_tr
     uintptr_t flag = qcc74x_irq_save();
 
     /* check rx_bd_tail */
-    if (emac_ctrl.emac_rx_bd_tail - emac_ctrl.emac_rx_bd_head >= EMAC_RX_BD_BUM_MAX) {
+    if (emac_ctrl.emac_rx_bd_tail - emac_ctrl.emac_rx_bd_head >= EMAC_RX_BD_NUM_MAX) {
         /* the ring queue is full */
         /* unlock */
         qcc74x_irq_restore(flag);
         return -1;
     }
 
-    bd_index = emac_ctrl.emac_rx_bd_tail & EMAC_RX_BD_BUM_MASK;
+    bd_index = emac_ctrl.emac_rx_bd_tail & EMAC_RX_BD_NUM_MASK;
     /* update rx_bd_tail */
     emac_ctrl.emac_rx_bd_tail += 1;
 
@@ -382,7 +382,7 @@ int qcc74x_emac_queue_rx_push(struct qcc74x_device_s *dev, struct qcc74x_emac_tr
         regval |= EMAC_BD_RX_IRQ_MASK;
     }
     /* DB end */
-    if (bd_index == EMAC_RX_BD_BUM_MASK) {
+    if (bd_index == EMAC_RX_BD_NUM_MASK) {
         regval |= EMAC_BD_RX_WR_MASK;
     }
     /* db ready */
@@ -588,11 +588,11 @@ int qcc74x_emac_feature_control(struct qcc74x_device_s *dev, int cmd, size_t arg
 #endif
 
         case EMAC_CMD_GET_TX_DB_AVAILABLE:
-            ret = EMAC_TX_BD_BUM_MAX - (emac_ctrl.emac_tx_bd_tail - emac_ctrl.emac_tx_bd_head);
+            ret = EMAC_TX_BD_NUM_MAX - (emac_ctrl.emac_tx_bd_tail - emac_ctrl.emac_tx_bd_head);
             break;
 
         case EMAC_CMD_GET_RX_DB_AVAILABLE:
-            ret = EMAC_RX_BD_BUM_MAX - (emac_ctrl.emac_rx_bd_tail - emac_ctrl.emac_rx_bd_head);
+            ret = EMAC_RX_BD_NUM_MAX - (emac_ctrl.emac_rx_bd_tail - emac_ctrl.emac_rx_bd_head);
             break;
 
         case EMAC_CMD_GET_TX_BD_PTR:
@@ -633,7 +633,7 @@ static void qcc74x_emac_isr_cb_rx(struct qcc74x_device_s *dev)
 
     for (uint32_t i = 0; i < rx_bd_num; i++) {
         /* get hw bd */
-        uint32_t rx_bd_index = emac_ctrl.emac_rx_bd_head & EMAC_RX_BD_BUM_MASK;
+        uint32_t rx_bd_index = emac_ctrl.emac_rx_bd_head & EMAC_RX_BD_NUM_MASK;
         struct qcc74x_emac_hw_buff_desc_s rx_bd = *(struct qcc74x_emac_hw_buff_desc_s *)(reg_base + EMAC_DMA_DESC_OFFSET + (rx_bd_index + 64) * sizeof(struct qcc74x_emac_hw_buff_desc_s));
         /* check bd status */
         if (rx_bd.attribute & EMAC_BD_RX_E_MASK) {
@@ -688,7 +688,7 @@ static void qcc74x_emac_isr_cb_tx(struct qcc74x_device_s *dev)
 
     for (uint32_t i = 0; i < tx_bd_num; i++) {
         /* get hw bd */
-        uint32_t tx_bd_index = emac_ctrl.emac_tx_bd_head & EMAC_TX_BD_BUM_MASK;
+        uint32_t tx_bd_index = emac_ctrl.emac_tx_bd_head & EMAC_TX_BD_NUM_MASK;
         struct qcc74x_emac_hw_buff_desc_s tx_bd = *(struct qcc74x_emac_hw_buff_desc_s *)(reg_base + EMAC_DMA_DESC_OFFSET + tx_bd_index * sizeof(struct qcc74x_emac_hw_buff_desc_s));
         /* check bd status */
         if (tx_bd.attribute & EMAC_BD_TX_RD_MASK) {

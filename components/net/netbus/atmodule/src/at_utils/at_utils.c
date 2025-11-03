@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <FreeRTOS.h>
 #include <at_utils.h>
+#include "at_pal.h"
 
 #define UTILS_MEMP_ALLOCED_NODE_PATTERN 0XA5
 #define MEM_ALIGN(addr, align) (((addr) + (align) -1) & ~((align)-1))
@@ -25,7 +26,7 @@ int utils_memp_init(utils_memp_pool_t **pool, uint16_t node_size, uint16_t pool_
     size = MEM_ALIGN(size, align_req);
     size += padded_node_size * pool_cap;
 
-    npool = pvPortMalloc(size);
+    npool = at_malloc(size);
 
     if (!npool) {
         return -1;
@@ -58,7 +59,7 @@ int utils_memp_deinit(utils_memp_pool_t *pool)
     if (!pool) {
         return -1;
     }
-    vPortFree(pool);
+    at_free(pool);
 
     return 0;
 }

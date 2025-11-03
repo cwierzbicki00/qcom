@@ -7,6 +7,8 @@
 C_SRCS += \
 ../Core/Src/app_atmodule.c \
 ../Core/Src/app_bt_hci.c \
+../Core/Src/app_otcli.c \
+../Core/Src/app_ble_at.c \
 ../Core/Src/app_freertos.c \
 ../Core/Src/at_host.c \
 ../Core/Src/main.c \
@@ -23,6 +25,8 @@ C_SRCS += \
 OBJS += \
 ./Core/Src/app_atmodule.o \
 ./Core/Src/app_bt_hci.o \
+./Core/Src/app_otcli.o \
+./Core/Src/app_ble_at.o \
 ./Core/Src/app_freertos.o \
 ./Core/Src/at_host.o \
 ./Core/Src/main.o \

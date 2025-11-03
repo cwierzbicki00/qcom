@@ -28,7 +28,7 @@ On qcc743 board, using <wifi_sta_connect> command connect your WiFi router
 
 ```bash
 qxx74x />wifi_sta_connect QCC74x_TEST 12345678
-qxx74x />wifi_http_test www.gov.cn 
+qxx74x />wifi_http_test http://www.qualcomm.com
 ...
 Http client GET request server success
 ...

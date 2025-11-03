@@ -56,13 +56,13 @@
 
 #define IP_REASS_MAX_PBUFS            (2 * CONFIG_MAC_RXQ_DEPTH - 2)
 
-#define MEMP_NUM_NETBUF               26
+#define MEMP_NUM_NETBUF               25
 #define MEMP_NUM_ALTCP_PCB            2
-#define MEMP_NUM_UDP_PCB              6
+#define MEMP_NUM_UDP_PCB              (5+3)
 #define MEMP_NUM_TCP_PCB              5
 #define MEMP_NUM_RAW_PCB              2
 #define MEMP_NUM_TCP_PCB_LISTEN       1
-#define MEMP_NUM_NETCONN              (MEMP_NUM_TCP_PCB + MEMP_NUM_TCP_PCB_LISTEN)
+#define MEMP_NUM_NETCONN              (MEMP_NUM_TCP_PCB + MEMP_NUM_TCP_PCB_LISTEN + 2)
 #define MEMP_NUM_REASSDATA            LWIP_MIN((IP_REASS_MAX_PBUFS), 5)
 #define MEMP_NUM_ND6_QUEUE            3
 #define MEMP_NUM_FRAG_PBUF            5
@@ -85,14 +85,14 @@
 #define TCP_SNDLOWAT                  LWIP_MIN(LWIP_MAX(((TCP_SND_BUF) / 4), (2 * TCP_MSS) + 1), (TCP_SND_BUF)-1)
 
 #if CONFIG_IPV6
-#define MEM_MIN_TCP                   (1200 + MEMP_NUM_PBUF * (100 + PBUF_LINK_ENCAPSULATION_HLEN))
+#define MEM_MIN_TCP                   (1100 + MEMP_NUM_PBUF * (100 + PBUF_LINK_ENCAPSULATION_HLEN))
 #else
 #define MEM_MIN_TCP                   (2300 + MEMP_NUM_PBUF * (100 + PBUF_LINK_ENCAPSULATION_HLEN))
 #endif
 #define MEM_MIN                       MEM_MIN_TCP
 #define MEM_ALIGNMENT                 4
 
-#define MEMP_NUM_SYS_TIMEOUT          (LWIP_NUM_SYS_TIMEOUT_INTERNAL + 8 + 3)
+#define MEMP_NUM_SYS_TIMEOUT          (LWIP_NUM_SYS_TIMEOUT_INTERNAL + 8)
 
 #ifdef LWIP_HEAP_SIZE
 #define MEM_SIZE LWIP_HEAP_SIZE
@@ -133,6 +133,7 @@
 #define IP4_FRAG_TIMER_PRECISE_NEEDED   1
 #define DNS_TIMER_PRECISE_NEEDED        1
 #define IPV6_TIMER_PRECISE_NEEDED       1
+#define DHCP_TIMER_PRECISE_NEEDED       1
 
 #define LWIP_IGMP                       0
 #else

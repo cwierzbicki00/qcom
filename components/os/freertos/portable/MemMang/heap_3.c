@@ -47,7 +47,7 @@
 
 #include "FreeRTOS.h"
 #include "task.h"
-
+#include "mem.h"
 #undef MPU_WRAPPERS_INCLUDED_FROM_API_FILE
 
 #if ( configSUPPORT_DYNAMIC_ALLOCATION == 0 )
@@ -62,7 +62,7 @@ void * pvPortMalloc( size_t xWantedSize )
 
     vTaskSuspendAll();
     {
-        pvReturn = malloc( xWantedSize );
+        pvReturn = kmalloc( xWantedSize, MM_KERNEL );
         traceMALLOC( pvReturn, xWantedSize );
     }
     ( void ) xTaskResumeAll();
@@ -86,7 +86,7 @@ void vPortFree( void * pv )
     {
         vTaskSuspendAll();
         {
-            free( pv );
+            kfree( pv );
             traceFREE( pv, 0 );
         }
         ( void ) xTaskResumeAll();

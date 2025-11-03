@@ -47,7 +47,7 @@ int at_net_client_is_connected(int id);
 
 int at_net_client_set_remote(int id, ip_addr_t *ipaddr, uint16_t port);
 
-int at_net_client_get_info(int id, char *type, ip_addr_t *remote_ip, uint16_t *remote_port, uint16_t *local_port, uint8_t *tetype);
+int at_net_client_get_info(int id, char *type, uint16_t len, ip_addr_t *remote_ip, uint16_t *remote_port, uint16_t *local_port, uint8_t *tetype);
 
 int at_net_client_get_recvsize(int id);
 
@@ -100,6 +100,8 @@ int at_string_host_to_ip(char *host, ip_addr_t *ip);
 int at_net_dns_load(void);
 
 int at_lwip_heap_free_size(void);
+
+int at_net_poll_start(int interval_ms);
 
 #ifdef __cplusplus
 }

@@ -1,20 +1,27 @@
-include(${CMAKE_CURRENT_SOURCE_DIR}/ble_common.cmake)
-
-
-if((${CHIP} STREQUAL "qcc74x_undef"))
-add_subdirectory(blecontroller)
-else()
-add_subdirectory(btblecontroller)
-endif()
-
-if(NOT CONFIG_BLE_HOST_DISABLE)
-    add_subdirectory(blestack)
-	if (CONFIG_BT_MESH)
-        add_subdirectory(blemesh)
-        sdk_add_subdirectory_ifdef(CONFIG_BT_MESH_MODEL blemesh_model)
+if(CONFIG_GEN_ROM)
+    if((${CHIP} STREQUAL "qcc74x_undef"))
+        add_subdirectory(rom_btblecontroller_qcc74x_undef_A0)
     endif()
-	sdk_add_subdirectory_ifdef(CONFIG_BT_BREDR btprofile)
+else()
+    include(${CMAKE_CURRENT_SOURCE_DIR}/ble_common.cmake)
+
+    if(NOT CONFIG_BT_CONTROLLER_DISABLE)
+        if((${CHIP} STREQUAL "qcc74x_undef") OR (${CHIP} STREQUAL "qcc74x_undef"))
+            add_subdirectory(blecontroller)
+        else()
+            add_subdirectory(btblecontroller)
+        endif()
+    endif()
+
+    if(NOT CONFIG_BLE_HOST_DISABLE)
+        add_subdirectory(blestack)
+        if (CONFIG_BT_MESH)
+            add_subdirectory(blemesh)
+            sdk_add_subdirectory_ifdef(CONFIG_BT_MESH_MODEL blemesh_model)
+        endif()
+        sdk_add_subdirectory_ifdef(CONFIG_BT_BREDR btprofile)
         sdk_add_subdirectory_ifdef(CONFIG_AUTO_PTS bleptstest)
+    endif()
 endif()
 
 # disable undef warning

@@ -52,12 +52,20 @@
  * Functions
  ****************************************************************************/
 
+static inline void update_historical_min_free(struct mem_heap_s *heap) 
+{
+    if (heap->min_free_bytes > heap->free_bytes) {
+        heap->min_free_bytes = heap->free_bytes;
+    }
+}
+
 void qcc74x_mem_init(struct mem_heap_s *heap, void *heapstart, size_t heapsize)
 {
     heap->heapstart = heapstart + tlsf_size();
     heap->heapsize = heapsize - tlsf_size();
     heap->priv = tlsf_create_with_pool(heapstart, heapsize);
     heap->free_bytes = heap->heapsize;
+    heap->min_free_bytes = heap->heapsize;
 }
 
 void *qcc74x_malloc(struct mem_heap_s *heap, size_t nbytes)
@@ -77,6 +85,7 @@ void *qcc74x_malloc(struct mem_heap_s *heap, size_t nbytes)
     if (ret) {
         heap->free_bytes -= tlsf_block_size(ret);
         heap->free_bytes -= tlsf_alloc_overhead();
+        update_historical_min_free(heap);
     }
 
 #ifdef CONFIG_MM_SUSPEND_ALL_LOCKER
@@ -103,6 +112,7 @@ void qcc74x_free(struct mem_heap_s *heap, void *ptr)
     if (ptr) {
         heap->free_bytes += tlsf_block_size(ptr);
         heap->free_bytes += tlsf_alloc_overhead();
+        update_historical_min_free(heap);
     }
 
     tlsf_free(heap->priv, ptr);
@@ -134,6 +144,7 @@ void *qcc74x_realloc(struct mem_heap_s *heap, void *ptr, size_t nbytes)
     if (ret) {
         heap->free_bytes += previous_block_size;
         heap->free_bytes -= tlsf_block_size(ptr);
+        update_historical_min_free(heap);
     }
 
 #ifdef CONFIG_MM_SUSPEND_ALL_LOCKER
@@ -166,6 +177,7 @@ void *qcc74x_calloc(struct mem_heap_s *heap, size_t count, size_t size)
             if (ptr) {
                 heap->free_bytes -= tlsf_block_size(ptr);
                 heap->free_bytes -= tlsf_alloc_overhead();
+                update_historical_min_free(heap);
             }
 
             if (ptr) {
@@ -201,6 +213,7 @@ void *qcc74x_malloc_align(struct mem_heap_s *heap, size_t align, size_t size)
     if (ret) {
         heap->free_bytes -= tlsf_block_size(ret);
         heap->free_bytes -= tlsf_alloc_overhead();
+        update_historical_min_free(heap);
     }
 
 #ifdef CONFIG_MM_SUSPEND_ALL_LOCKER

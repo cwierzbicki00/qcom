@@ -11,25 +11,25 @@
 // #define CONFIG_USB_PINGPONG_ENABLE
 // #define CONFIG_USB_TRIPLE_ENABLE
 
-#if defined(QCC743)
-#define QCC74x_USB_BASE         ((uint32_t)0x20072000)
-#define QCC74x_PDS_BASE         ((uint32_t)0x2000E000)
-#define QCC74x_USB_IRQ_NUM      37
+#if defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undef)
+#define QCC74x_USB_BASE           ((uint32_t)0x20072000)
+#define QCC74x_PDS_BASE           ((uint32_t)0x2000E000)
+#define QCC74x_USB_IRQ_NUM        37
 #define PDS_USB_CTL_OFFSET      (0x500) /* usb_ctl */
 #define PDS_USB_PHY_CTRL_OFFSET (0x504) /* usb_phy_ctrl */
 #elif defined(QCC74x_undef)
-#define QCC74x_USB_BASE          ((uint32_t)0x20072000)
-#define QCC74x_PDS_BASE          ((uint32_t)0x2000E000)
-#define QCC74x_USB_IRQ_NUM       37
+#define QCC74x_USB_BASE            ((uint32_t)0x20072000)
+#define QCC74x_PDS_BASE            ((uint32_t)0x2000E000)
+#define QCC74x_USB_IRQ_NUM         37
 #define PDS_USB_CTL_OFFSET       (0x500) /* usb_ctl */
 #define PDS_USB_PHY0_CTRL_OFFSET (0x504) /* usb_phy0_ctrl */
 #define PDS_USB_PHY1_CTRL_OFFSET (0x508) /* usb_phy1_ctrl */
 #define PDS_USB_PHY2_CTRL_OFFSET (0x50C) /* usb_phy2_ctrl */
 #define PDS_USB_PHY3_CTRL_OFFSET (0x510) /* usb_phy3_ctrl */
 #elif defined(QCC74x_undef)
-#define QCC74x_USB_BASE          ((uint32_t)0x20087000)
-#define QCC74x_PDS_BASE          ((uint32_t)0x2008E000)
-#define QCC74x_USB_IRQ_NUM       19
+#define QCC74x_USB_BASE            ((uint32_t)0x20087000)
+#define QCC74x_PDS_BASE            ((uint32_t)0x2008E000)
+#define QCC74x_USB_IRQ_NUM         19
 #define PDS_USB_CTL_OFFSET       (0x500) /* usb_ctl */
 #define PDS_USB_PHY0_CTRL_OFFSET (0x504) /* usb_phy0_ctrl */
 #define PDS_USB_PHY1_CTRL_OFFSET (0x508) /* usb_phy1_ctrl */
@@ -37,7 +37,7 @@
 #define PDS_USB_PHY3_CTRL_OFFSET (0x510) /* usb_phy3_ctrl */
 #endif
 
-#if defined(QCC743)
+#if defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undef)
 /* 0x500 : usb_ctl */
 #define PDS_REG_USB_SW_RST_N         (1 << 0U)
 #define PDS_REG_USB_EXT_SUSP_N       (1 << 1U)
@@ -76,6 +76,8 @@
 /* 0x508 : usb_phy1_ctrl */
 #define PDS_REG_USB_PHY_SUSPENDM0_USE_REG (1 << 0U)
 #define PDS_REG_USB_PHY_SIDDQ             (1 << 28U)
+/* 0x50C : usb_phy2_ctrl */
+#define PDS_REG_USB_PHY_VBUS_VLD_EXT_SEL0 (1 << 18U)
 /* 0x510 : usb_phy3_ctrl */
 #define PDS_REG_USB_PHY_POR               (1 << 31U)
 #endif
@@ -94,7 +96,7 @@ static void qcc74x_usb_phy_init(void)
 {
     uint32_t regval;
 
-#if defined(QCC743)
+#if defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undef)
     /* USB_PHY_CTRL[3:2] reg_usb_phy_xtlsel=0                             */
     /* 2000e504 = 0x40; #100; USB_PHY_CTRL[6] reg_pu_usb20_psw=1 (VCC33A) */
     /* 2000e504 = 0x41; #500; USB_PHY_CTRL[0] reg_usb_phy_ponrst=1        */
@@ -138,9 +140,9 @@ static void qcc74x_usb_phy_init(void)
     putreg32(regval, QCC74x_PDS_BASE + PDS_USB_CTL_OFFSET);
 
     qcc74x_mtimer_delay_ms(2);
-#endif
 
-#if defined(QCC74x_undef) || defined(QCC74x_undef)
+#elif defined(QCC74x_undef) || defined(QCC74x_undef)
+
     regval = getreg32(QCC74x_PDS_BASE + PDS_USB_CTL_OFFSET);
     regval |= PDS_REG_PU_USB20_PSW;
     putreg32(regval, QCC74x_PDS_BASE + PDS_USB_CTL_OFFSET);
@@ -167,13 +169,6 @@ static void qcc74x_usb_phy_init(void)
 
     qcc74x_mtimer_delay_us(50);
 
-    qcc74x_mtimer_delay_us(50);
-
-    /* reset usb macro */
-    regval = getreg32(QCC74x_PDS_BASE + PDS_USB_PHY2_CTRL_OFFSET);
-    regval |= (1 << 18);
-    putreg32(regval, QCC74x_PDS_BASE + PDS_USB_PHY2_CTRL_OFFSET);
-
     /* reset usb macro */
     regval = getreg32(QCC74x_PDS_BASE + PDS_USB_PHY3_CTRL_OFFSET);
     regval |= PDS_REG_USB_PHY_POR;
@@ -186,6 +181,11 @@ static void qcc74x_usb_phy_init(void)
     putreg32(regval, QCC74x_PDS_BASE + PDS_USB_PHY3_CTRL_OFFSET);
 
     qcc74x_mtimer_delay_us(50);
+
+    /* External VBUS Valid Select */
+    regval = getreg32(QCC74x_PDS_BASE + PDS_USB_PHY2_CTRL_OFFSET);
+    regval |= PDS_REG_USB_PHY_VBUS_VLD_EXT_SEL0;
+    putreg32(regval, QCC74x_PDS_BASE + PDS_USB_PHY2_CTRL_OFFSET);
 
     /* SW force mode to assert VBUS valid signal */
     regval = getreg32(QCC74x_PDS_BASE + PDS_USB_CTL_OFFSET);
@@ -213,12 +213,10 @@ void usb_hc_low_level_init(uint8_t busid)
     qcc74x_irq_attach(QCC74x_USB_IRQ_NUM, USBH_IRQ, NULL);
     qcc74x_irq_enable(QCC74x_USB_IRQ_NUM);
 
-#if defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undef)
     /* enable device-A for host */
     regval = getreg32(QCC74x_PDS_BASE + PDS_USB_CTL_OFFSET);
     regval &= ~PDS_REG_USB_IDDIG;
     putreg32(regval, QCC74x_PDS_BASE + PDS_USB_CTL_OFFSET);
-#endif
 
     regval = getreg32(QCC74x_USB_BASE + USB_OTG_CSR_OFFSET);
     regval |= USB_A_BUS_DROP_HOV;
@@ -279,7 +277,7 @@ uint8_t usbh_get_port_speed(const uint8_t port)
 #define USB_VDMA_DIR_FIFO2MEM 0
 #define USB_VDMA_DIR_MEM2FIFO 1
 
-#if defined(QCC743)
+#if defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undef)
 #define USB_MAX_EP_WITH_EP0     5
 #define USB_MAX_EP_EXCLUDE_EP0  4
 #define USB_NUM_BIDIR_ENDPOINTS 5
@@ -702,12 +700,10 @@ int usb_dc_init(uint8_t busid)
     qcc74x_irq_enable(QCC74x_USB_IRQ_NUM);
 #endif
 
-#if defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undef)
     /* disable device-A for host */
     regval = getreg32(QCC74x_PDS_BASE + PDS_USB_CTL_OFFSET);
     regval |= PDS_REG_USB_IDDIG;
     putreg32(regval, QCC74x_PDS_BASE + PDS_USB_CTL_OFFSET);
-#endif
 
     /* disable global irq */
     regval = getreg32(QCC74x_USB_BASE + USB_DEV_CTL_OFFSET);
@@ -721,6 +717,14 @@ int usb_dc_init(uint8_t busid)
     regval = getreg32(QCC74x_USB_BASE + USB_DEV_CTL_OFFSET);
     regval &= ~USB_CAP_RMWAKUP;
     regval |= USB_CHIP_EN_HOV;
+    putreg32(regval, QCC74x_USB_BASE + USB_DEV_CTL_OFFSET);
+
+    regval = getreg32(QCC74x_USB_BASE + USB_DEV_CTL_OFFSET);
+#ifdef CONFIG_USB_HS
+    regval &= ~USB_FORCE_FS;
+#else
+    regval |= USB_FORCE_FS;
+#endif
     putreg32(regval, QCC74x_USB_BASE + USB_DEV_CTL_OFFSET);
 
     regval = getreg32(QCC74x_USB_BASE + USB_DEV_CTL_OFFSET);
@@ -842,7 +846,6 @@ int usb_dc_init(uint8_t busid)
 
 int usb_dc_deinit(uint8_t busid)
 {
-#if defined(QCC743)
     uint32_t regval;
 
     /* disable global irq */
@@ -854,6 +857,7 @@ int usb_dc_deinit(uint8_t busid)
     regval |= USB_UNPLUG;
     putreg32(regval, QCC74x_USB_BASE + USB_PHY_TST_OFFSET);
 
+#if defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undef)
     regval = getreg32(QCC74x_PDS_BASE + PDS_USB_PHY_CTRL_OFFSET);
     regval &= ~PDS_REG_USB_PHY_XTLSEL_MASK;
     putreg32(regval, QCC74x_PDS_BASE + PDS_USB_PHY_CTRL_OFFSET);
@@ -894,7 +898,15 @@ int usbd_set_remote_wakeup(uint8_t busid)
     regval |= USB_CAP_RMWAKUP;
     putreg32(regval, QCC74x_USB_BASE + USB_DEV_CTL_OFFSET);
 
+    regval = getreg32(QCC74x_PDS_BASE + PDS_USB_CTL_OFFSET);
+    regval |= PDS_REG_USB_WAKEUP;
+    putreg32(regval, QCC74x_PDS_BASE + PDS_USB_CTL_OFFSET);
+
     qcc74x_mtimer_delay_ms(10);
+
+    regval = getreg32(QCC74x_PDS_BASE + PDS_USB_CTL_OFFSET);
+    regval &= ~PDS_REG_USB_WAKEUP;
+    putreg32(regval, QCC74x_PDS_BASE + PDS_USB_CTL_OFFSET);
 
     regval = getreg32(QCC74x_USB_BASE + USB_DEV_CTL_OFFSET);
     regval &= ~USB_CAP_RMWAKUP;
@@ -928,7 +940,7 @@ int usbd_ep_open(uint8_t busid, const struct usb_endpoint_descriptor *ep)
 
     uint8_t ep_idx = USB_EP_GET_IDX(ep_addr);
 
-#if defined(QCC743)
+#if defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undef)
     if ((ep_idx > 4) && (ep_idx < 9)) {
         return 0;
     }

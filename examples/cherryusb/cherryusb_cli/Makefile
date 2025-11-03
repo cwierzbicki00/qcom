@@ -1,13 +1,14 @@
-SDK_DEMO_PATH ?= .
-QCC74x_SDK_BASE ?= $(SDK_DEMO_PATH)/../../..
+SDK_DEMO_PATH ?= $(abspath .)
+QCC74x_SDK_BASE ?= ./../../..
 
 export QCC74x_SDK_BASE
 
 CHIP ?= qcc743
-BOARD ?= qcc743dk
+BOARD ?= qcc744dk
 CROSS_COMPILE ?= riscv64-unknown-elf-
 
 # add custom cmake definition
 #cmake_definition+=-Dxxx=sss
 
+-include $(SDK_DEMO_PATH)/.config
 include $(QCC74x_SDK_BASE)/project.build

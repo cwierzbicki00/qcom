@@ -12,7 +12,7 @@ OR
 
 ADV = 500MS: Enter the command "ble\_start\_adv 0 0 0x0320 0x0320" in the command line.
 
-3.Enter the command "tickless " in the command line.
+3.Enter the command "pm_enter_lp " in the command line.
 
 ### BLE CONNECTION:
 
@@ -22,7 +22,7 @@ ADV = 500MS: Enter the command "ble\_start\_adv 0 0 0x0320 0x0320" in the comman
 
 3.Use Phone or other device connect IUT.
 
-4. When connection established enter the command "tickless " in the command line.
+4. When connection established enter the command "pm_enter_lp " in the command line.
 
 ### BLE Benchmark：
 
@@ -50,13 +50,45 @@ make CONFIG_BLE_ENABLE=0
 
 1.Reset board
 
+2.Set dtim.
+
+DTIM = 1
+```bash
+wifi_lp_set_dtim 1
+```
+
+DTIM = 3
+```bash
+wifi_lp_set_dtim 3
+```
+
+DTIM = 10
+```bash
+wifi_lp_set_dtim 10
+```
+
 2.Connect wifi, and got ip.
 
-DTIM = 1: Enter the command "tickless 1" in the command line.
+3.Enter lowpower
 
-DTIM = 3: Enter the command "tickless 3" in the command line.
+```bash
+pm_enter_lp <rx_bcast>
+```
 
-DTIM = 10: Enter the command "tickless 10" in the command line.
+Parameter:
+
+rx_bcast = 0 — Disable receiving broadcast/multicast while in low power.
+STA will not wake at DTIM for broadcast/multicast delivery; expect lower power.
+
+rx_bcast = 1 — Enable receiving broadcast/multicast while in low power.
+STA wakes at DTIM to receive buffered broadcast/multicast; expect higher power.
+
+# Enter low power, ignore broadcast in LP
+pm_enter_lp 0
+
+# Enter low power, receive broadcast in LP
+pm_enter_lp 1
+
 
 ### WiFi Benchmark：
 

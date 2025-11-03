@@ -37,6 +37,7 @@
 #include "usbh_core.h"
 #endif
 
+#include "wireless_config.h"
 static uint8_t mfg_m154_en = 0;
 struct qcc74x_device_s *adc;
 
@@ -2691,6 +2692,7 @@ static int32_t mfg_cmd_le_test(uint8_t *data, uint16_t len)
 
     int8_t power;
     uint8_t ble_channel;
+    int8_t power_ble_auto;
     uint8_t x,y;
 
     /* if do ble test, wifi controller need to re-init  */
@@ -2745,9 +2747,8 @@ static int32_t mfg_cmd_le_test(uint8_t *data, uint16_t len)
 
             return 0;
         }
-
+        struct wl_cfg_t * rfparam_cfg = rfparam_cfg_get();
         if(data[10] == '-' && data[11] == '1'){
-            struct wl_cfg_t * rfparam_cfg = rfparam_cfg_get();
             power = rfparam_cfg->param.pwrtarget.pwr_ble;
         }else{
             char2hex(data[10], &x);
@@ -2756,6 +2757,12 @@ static int32_t mfg_cmd_le_test(uint8_t *data, uint16_t len)
         }
 
         g_mfg_tx_para.ble_sending_power = power;
+        // Update BT Power Backoff
+        power_ble_auto = rfparam_cfg->param.pwrtarget.pwr_ble;
+        rfparam_cfg->param.pwrtarget.pwr_ble = power;
+        wireless_config_update_country(&rfparam_cfg->param.country_code);
+        rfparam_cfg->param.pwrtarget.pwr_ble = power_ble_auto;
+
         memset((char *)phy_cli_cmd,0,sizeof(phy_cli_cmd));
         snprintf((char*)phy_cli_cmd[0],sizeof(phy_cli_cmd[0]),"%s","bz_set_target_power");
         snprintf((char*)phy_cli_cmd[1],sizeof(phy_cli_cmd[1]),"power=%d",power);
@@ -3718,6 +3725,10 @@ static int32_t mfg_cmd_btble_hci_test(uint8_t *data, uint16_t len)
         rx_v1_param.rx_channel = data[3];
         hci_le_rx_test_v1_cmd_handler(&rx_v1_param, opcode, true);
     } else if (opcode == LE_TX_TEST_CMD_OPCODE) {
+        struct wl_cfg_t * rfparam_cfg = rfparam_cfg_get();
+        int8_t power = rfparam_cfg->param.pwrtarget.pwr_ble;
+        int8_t pwr_ble_auto;
+        pwr_ble_auto = power;
         tx_param.tx_channel = data[3];
         tx_param.test_data_len = data[4];
         tx_param.pkt_payl = data[5];
@@ -3727,6 +3738,10 @@ static int32_t mfg_cmd_btble_hci_test(uint8_t *data, uint16_t len)
         tx_param.switching_pattern_len = data[9];
         memcpy(&tx_param.antenna_id, &data[10], tx_param.switching_pattern_len);
         tx_param.tx_pwr_lvl = data[10 + tx_param.switching_pattern_len];
+        // Update BT Power Backoff
+        rfparam_cfg->param.pwrtarget.pwr_ble = tx_param.tx_pwr_lvl;
+        wireless_config_update_country(&rfparam_cfg->param.country_code);
+        rfparam_cfg->param.pwrtarget.pwr_ble = pwr_ble_auto;
         hci_le_tx_test_v4_cmd_handler(&tx_param, opcode, true);
     } else if (opcode == LE_TX_TEST_CMD_V3_OPCODE){
         struct wl_cfg_t * rfparam_cfg = rfparam_cfg_get();

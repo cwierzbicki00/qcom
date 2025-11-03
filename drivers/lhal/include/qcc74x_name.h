@@ -95,5 +95,6 @@
 #define QCC74x_NAME_AUADC       "auadc"
 #define QCC74x_NAME_AUDAC       "audac"
 #define QCC74x_NAME_DBI         "dbi"
+#define QCC74x_NAME_USB_V2      "usb_v2"
 
 #endif

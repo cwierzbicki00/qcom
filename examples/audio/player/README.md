@@ -48,33 +48,16 @@ qxx74x />smta play http://iot-du-home-test.bj.bcebos.com/test/bp_32k_mono_32kbps
 qxx74x />smta stop
 ```
 
-### 3. Play Bluetooth Music
-
-##### 3.1 Enable Bluetooth Broadcast
-
-```
-qxx74x />smta a2dp 1
-```
-
-##### 3.2 Connect and Play Music from a Mobile Device
-Open Bluetooth on your mobile device, search for and connect to a device named something like qcc74xMSP[XX:XX:XX], and you can play music via Bluetooth.
-
-##### 3.3 Turn Off Bluetooth Broadcast
-
-```
-qxx74x />smta a2dp 0
-```
-
-### 4. Network Recording
+### 3. Network Recording
 
 tydb network recording is a tool for transferring audio data over a local network based on WebSocket. The development board sends locally recorded data over the network to a PC in the local network, where you can view the audio data. The tydb tool is located in the examples/audio/player/tools/tydb directory. Ensure that your board is connected to the network and in the same local network as your PC, with mutual pingability.
-##### 4.1 Server Side
+##### 3.1 Server Side
 
 ```
 tydb.exe record web 0.0.0.0:8090 ./
 ```
 
-##### 4.2 Device Side
+##### 3.2 Device Side
 
 To initiate audio recording transmission from the device side, `<dest_ip>` represents the IP address of the target PC:
 

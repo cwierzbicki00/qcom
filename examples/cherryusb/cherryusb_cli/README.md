@@ -15,7 +15,7 @@ This example demonstrates ​​USB device and host mode functionalities​​ o
 - QCC743/QCC744
 
 ```
-make CHIP=qcc743 BOARD=qcc74x_undefk
+make CHIP=qcc743 BOARD=qcc74xdk
 ```
 
 
@@ -51,25 +51,12 @@ make flash CHIP=chip_name COMX=xxx # xxx is your com name
 **Advice:** Try sending `help` followed by the Enter key in the serial command line to learn about the available commands.
 
 
-### Testing & Debugging Commands
-Below are some commonly used commands for testing and debugging:
 
-|      Commands        |   Function Description   |
-|:---------------------|:-------------------------|
-|`free` | The size of the idle addresses for SRAM and PSRAM  |
-|`memtrace` | Read and write memory  |
-|`help` | Bout the available commands | 
-|`ps` | The status of processes in the current system  |
-|`mfg` | Conduct comprehensive testing of hardware functionality before leaving the factory  |
-|`sysver ` | System Version  |
-|`usbd_stop` | Stop the USB devices from operating in the USB slave mode  |
-|`lsusb` | List USB devices  |
-|`usbh_stop` | Stop the USB devices from operating in the USB host mode  |
-|`usbh_start` | Start the USB devices from operating in the USB host mode  |
 
-### Example Commands
+## Device Function
 
-#### **1. Command:** `usbd_cdc_acm_test`  
+### 1. CDC-ACM
+**Command:** `usbd_cdc_acm_test`
 **Function Description:** Initialize a USB device that supports CDC-ACM protocols  
 **Hardware:** Windows/Linux PC, Two Type-C to Type-A data cables  
 
@@ -98,20 +85,19 @@ Windows Device Manager Virtual Serial Port Display:
 Linux Terminal Virtual Serial Port Display:
 ```
 $ sudo dmesg -w
-[664826.119339] usb 1-3: new high-speed USB device number 10 using xhci_hcd
-[664826.514987] usb 1-3: New USB device found, idVendor=ffff, idProduct=ffff, bcdDevice= 1.00
-[664826.514991] usb 1-3: New USB device strings: Mfr=1, Product=2, SerialNumber=3
-[664826.514992] usb 1-3: Product: CherryUSB_CDC_ECM_DEMO
-[664826.514993] usb 1-3: Manufacturer: CherryUSB
-[664826.514994] usb 1-3: SerialNumber: 2022123456
-[664826.558607] cdc_ether 1-3:1.0 eth0: register 'cdc_ether' at usb-0000:00:14.0-3, CDC Ethernet Device, 18:b9:05:12:34:56
-[664826.558639] usbcore: registered new interface driver cdc_ether
-[664826.565021] cdc_ether 1-3:1.0 enx18b905123456: renamed from eth0
-[665041.124265] usb 1-3: USB disconnect, device number 10
-[665041.124390] cdc_ether 1-3:1.0 enx18b905123456: unregister 'cdc_ether' usb-0000:00:14.0-3, CDC Ethernet Device
+[ 2354.648190]usb 3-5:new high-speed USB device number 5 using xhci hcd
+[ 2354.797016] usb 3-5: New USB device found, idVendor=ffff, idProduct=ffff, bcdDevice= 1.00
+[ 2354.797024] usb 3-5: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+[ 2354.797027] usb 3-5: Product: CherryUSB_CDC_DEMO
+[ 2354.797029] usb 3-5: Manufacturer: CherryUSB
+[ 2354.797031] usb 3-5: SerialNumber: 2022123456
+[ 2354.816798] cdc_acm 3-5:1.0: ttyACM0: USB ACM device
+[ 2354.816822] usbcore: registered new interface driver cdc_acm
+[ 2354.816825] cdc_acm: USB Abstract Control Model driver for USB modems and ISDN adapters
 ```
 
-#### **2. Command:** `usbd_cdc_ecm_test`  
+### 2.CDC_ECM
+**Command:** `usbd_cdc_ecm_test`  
 **Function Description:** Initialize a USB device that emulates an Ethernet interface  
 **Hardware:** Linux PC, Two Type-C to Type-A data cables, A network cable  
 
@@ -164,7 +150,8 @@ enx18b905123456: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
         TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
 ```
 
-#### **3. Command:** `usbd_cdc_rndis_test`  
+### 3.CDC_RNDIS
+**Command:** `usbd_cdc_rndis_test`  
 **Function Description:** Initialize a USB RNDIS (Remote NDIS) device  
 **Hardware:** Windows PC, Two Type-C to Type-A data cables, A network cable  
 
@@ -196,7 +183,8 @@ Windows Settings Network and Internet Port Display:
     <img src="./picture/windows_rndis.png" alt="GPIO_Output" width="650"   height="550" >  
 </div> 
 
-#### **4. Command:** `usbd_hid_keyboard_test`  
+### 4.HID_Keyboard 
+**Command:** `usbd_hid_keyboard_test`  
 **Function Description:** Initialize a virtual USB keyboard device  
 **Hardware:** Windows/Linux PC, Two Type-C to Type-A data cables  
 
@@ -210,7 +198,8 @@ IUSBD_CLI hid_keyboard_init done
 I/USB HID KeyBoard configured done
 ```
 
-#### **5. Command:** `usbd_msc_test`  
+### 5.MSC
+**5. Command:** `usbd_msc_test`  
 **Function Description:** Initialize a USB device that supports MSC protocols  
 **Hardware:** Windows/Linux PC, Two Type-C to Type-A data cables  
 
@@ -222,7 +211,8 @@ I/USB MSC configured done
 ```
 
 
-#### **6. Command:** `usbd_uac_v1_test`  
+### 6.UAV
+**6. Command:** `usbd_uac_v1_test`  
 **Function Description:** Initialize a USB Audio Class v1.0 device  
 **Hardware:** Windows PC, Two Type-C to Type-A data cables  
 
@@ -241,7 +231,8 @@ Windows Terminal UAC Recorder Display:
     <img src="./picture/windows_uac.png" alt="GPIO_Output" width="520"   height="300" >  
 </div> 
 
-#### **7. Command:** `usbd_uvc_mjpeg_test`  
+### 7.UVC
+**Command:** `usbd_uvc_mjpeg_test`  
 **Function Description:** Initialize a USB Video Class device  
 **Hardware:** Windows PC, Two Type-C to Type-A data cables  
 
@@ -261,7 +252,7 @@ Windows Terminal UVC Camera Display:
     <img src="./picture/windows_uvc.png" alt="GPIO_Output" width="500"   height="390" >  
 </div> 
 
-#### **8. Command:** `usbd_cdc_acm_msc_test`  
+### **8. Command:** `usbd_cdc_acm_msc_test`  
 **Function Description:** Initialize a USB device that supports both CDC-ACM and MSC protocols  
 **Hardware:** Windows/Linux PC 、 Two Type-C to Type-A data cables
 
@@ -276,52 +267,43 @@ IACM USBD ACM Ready!
 IACM DTR clear, Exit the loopback test mode
 ```
 
-The following will provide a detailed introduction to the host mode of USB.
--
+## Host Function
 
-**Hardware:**
-Two QCC748 chip development boards with USB interfaces, a USB hub, and a USB flash drive formatted with the FAT32 file system. If your development board's USB does not support external power, you will need a powered hub or devices that do not require USB power.
+### 1. CDC-ECM
+**Function Description:** As a USB host, automatically recognizes and tests connected CDC-ECM devices (such as USB Ethernet adapters)  
+**Hardware:** CDC-ECM device, Type-C to Type-A data cable  
 
-<img src="./picture/image.png" width = 600>
+**Note:** After successfully identifying the CDC-ECM device, the MAC address and maximum segment size will be printed, and it will be registered as a network device. Use `usbh_stop` to shut down.
 
-**Note:** In case your board doesn't have micro-USB connector connected to USB peripheral, you may have to DIY a cable and connect D+ and D- to the pins
-
-After the flashing you should see this output:
-```
-[I/USB] usb host start!
-[I/USB] EHCI HCIVERSION:0x0100
-[I/USB] EHCI HCSPARAMS:0x000001
-[I/USB] EHCI HCCPARAMS:0x0006
-[I/USB] EHCI ppc:0, n_ports:1, n_cc:0, n_pcc:0
-[I/USB] EHCI uses tt for ls/fs device
-```
-When connected to the USB HUB, you will see the following output:
+Serial port printing display：
 
 ```
-[I/USB] New high-speed device on Hub 1, Port 1 connected
-[I/USB] New device found,idVendor:2109,idProduct:2817,bcdDevice:0214
-[I/USB] The device has 1 interfaces
-[I/USB] Enumeration success, start loading class driver
-[I/USB] Loading hub class driver
-Hub Descriptor:
-bLength: 0x09             
-bDescriptorType: 0x29     
-bNbrPorts: 0x04           
-wHubCharacteristics: 0x00e9 
-bPwrOn2PwrGood: 0xaf      
-bHubContrCurrent: 0x64    
-DeviceRemovable: 0x00     
-PortPwrCtrlMask: 0xff     
-[I/USB] Ep=81 Attr=03 Mps=1 Interval=12 Mult=00
-[I/USB] port 1, status:0x100, change:0x00
-[I/USB] port 2, status:0x100, change:0x00
-[I/USB] port 3, status:0x100, change:0x00
-[I/USB] port 4, status:0x100, change:0x00
-[I/USB] Register HUB Class:/dev/hub2
+[I/usbh_hub] New high-speed device on Bus 0, Hub 1, Port 1 connected
+[I/usbh_core] New device found,idVendor:ffff,idProduct:ffff,bcdDevice:0100
+[I/usbh_core] The device has 1 bNumConfigurations
+[I/usbh_core] The device has 2 interfaces
+[I/usbh_core] Enumeration success, start loading class driver
+[I/usbh_core] Loading cdc_ecm class driver
+[I/usbh_cdc_ecm] CDC ECM MAC address 18:b9:05:12:34:56
+[I/usbh_cdc_ecm] CDC ECM Max Segment Size:1514
+[I/usbh_cdc_ecm] Ep=83 Attr=03 Mps=16 Interval=05 Mult=00
+[I/usbh_cdc_ecm] Ep=02 Attr=02 Mps=512 Interval=00 Mult=00
+[I/usbh_cdc_ecm] Ep=81 Attr=02 Mps=512 Interval=00 Mult=00
+[I/usbh_cdc_ecm] Set CDC ECM packet filter:000c
+[I/usbh_cdc_ecm] Register CDC ECM Class:/dev/cdc_ether
+[I/USB] USBH CDC ECM run
+USBH CDC ECM LWIP test start
+[I/usbh_core] Loading cdc_data class driver
+[I/USB] CDC ECM link down
 ```
 
-Then, plug the USB flash drive formatted with the FAT32 file system into the USB HUB. After the host enumerates the MSC device, it will use FatFs to mount the file system and perform read/write speed tests. You will see the following output:
+### 2. MSC
+**Function Description:** As a USB host, automatically recognizes and tests connected MSC devices (such as USB flash drives)  
+**Hardware:** USB flash drive, Type-C to Type-A data cable  
 
+**Note:** After successfully identifying the MSC device, read and write tests will be performed. Use `usbh_stop` to shut down.
+
+Serial port printing display：
 ```
 [I/USB] New high-speed device on Hub 2, Port 1 connected
 [I/USB] New device found,idVendor:04e8,idProduct:61fd,bcdDevice:0005
@@ -337,23 +319,27 @@ Then, plug the USB flash drive formatted with the FAT32 file system into the USB
 [I/USB] Register MSC Class:/dev/sda
 
 [I/USB] ******************** be about to write test... **********************
-[I/USB] Write Test Succeed! 
+[I/USB] Write Test Succeed!
 [I/USB] Single data size:32768 Byte, Write the number:1024, Total size:32768 KB
-[I/USB] Time:1766ms, Write Speed:18554 KB/s 
+[I/USB] Time:1766ms, Write Speed:18554 KB/s
 
 [I/USB] ******************** be about to read test... **********************
-[I/USB] Read Test Succeed! 
+[I/USB] Read Test Succeed!
 [I/USB] Single data size:32768Byte, Read the number:1024, Total size:32768 KB
-[I/USB] Time:1496ms, Read Speed:21903 KB/s 
+[I/USB] Time:1496ms, Read Speed:21903 KB/s
 
 [I/USB] ******************** be about to check test... **********************
-[I/USB] Check Test Succeed! 
-[I/USB] All Data Is Good! 
+[I/USB] Check Test Succeed!
+[I/USB] All Data Is Good!
 ```
 
-After flashing the other board via the USB port, enter the command `usbd_cdc_acm_test` in slave mode. For details on the serial port output, please refer to the description of the `usbd_cdc_acm_test` command. Then, connect the board to the HUB. A CDC-ACM loopback speed test will be initiated automatically.
-Please note that the current host-side test code is not optimized for performance, so the measured transfer speeds may appear lower than expected. The output will be similar to the following: 
+### 3. CDC-ACM
+**Function Description:** As a USB host, automatically recognizes and tests connected CDC-ACM devices (such as USB-to-serial adapters)  
+**Hardware:** USB-to-serial adapter, Type-C to Type-A data cable  
 
+**Note:** After successfully identifying the CDC-ACM device, speed testing will be performed. Use `usbh_stop` to shut down.
+
+Serial port printing display：
 ```
 [I/usbh_hub] New high-speed device on Bus 0, Hub 1, Port 1 connected
 [I/usbh_core] New device found,idVendor:ffff,idProduct:ffff,bcdDevice:0100
@@ -373,6 +359,31 @@ USBH ACM out speed: 11309 KB/S
 USBH ACM in speed: 11309 KB/S
 USBH ACM total speed: 22618 KB/S
 USBH ACM speed test end
+```
+
+### 4. HID
+**Function Description:** As a USB host, automatically recognizes and tests connected HID devices (such as mice, keyboards)  
+**Hardware:** HID device (mouse, keyboard), Type-C to Type-A data cable  
+
+**Note:** After successfully identifying the HID device, it will be registered as an input device. Use `usbh_stop` to shut down.
+
+Serial port printing display：
+```
+[I/usbh_hub] New low-speed device on Bus 0, Hub 1, Port 1 connected
+[I/usbh_core] New device found,idVendor:413c,idProduct:2113,bcdDevice:0110
+[I/usbh_core] The device has 1 bNumConfigurations
+[I/usbh_core] The device has 2 interfaces
+[I/usbh_core] Enumeration success, start loading class driver
+[I/usbh_core] Loading hid class driver
+[I/usbh_hid] Ep=81 Attr=03 Mps=8 Interval=10 Mult=00
+[I/usbh_hid] Register HID Class:/dev/input0
+USBH HID test start, hid_interval: 10ms
+[I/usbh_core] Loading hid class driver
+[W/usbh_hid] Do not support set idle
+[I/usbh_hid] Ep=82 Attr=03 Mps=3 Interval=10 Mult=00
+[I/usbh_hid] Register HID Class:/dev/input1
+[E/USB] USBH HID test already running
+USBH HID test end
 ```
 
 ### Technical Details

@@ -13,6 +13,7 @@
 #include <stdbool.h>
 #include <FreeRTOS.h>
 #include <semphr.h>
+#include "at_pal.h"
 
 #include <lwip/tcpip.h>
 #include <lwip/netdb.h>
@@ -159,14 +160,16 @@ static int at_setup_cmd_cwmode(int argc, const char **argv)
 
     if (at_wifi_config->wifi_mode != mode) {
         at_wifi_config->wifi_mode = mode;
-        if (at->store) {
-            at_wifi_config_save(AT_CONFIG_KEY_WIFI_MODE);
-        }
         at_wifi_set_mode();
     }
 
+    if (at->store) {
+        at_wifi_config_save(AT_CONFIG_KEY_WIFI_MODE);
+    }
     return AT_RESULT_CODE_OK;
 }
+
+static int at_scan_get_ecn(uint8_t auth);
 
 static int at_query_cmd_cwstate(int argc, const char **argv)
 {
@@ -181,8 +184,24 @@ static int at_query_cmd_cwstate(int argc, const char **argv)
 
     wifi_mgmr_sta_connect_ind_stat_get(&info);
 
+    int calc_mode = 0;
+    int calc_auth = 0;
+
+    wifi_proto proto = at_wifi_mode_get(0);
+    calc_mode = proto.byte;
+
+    if (state == FHOST_STA_CONNECTED || state == FHOST_STA_CONNECTING) {
+        calc_auth = at_scan_get_ecn(info.security);
+    } else {
+        calc_auth = 0;
+    }
+
+    if (calc_mode == 0) {
+        calc_mode = at_wifi_config->sta_proto.byte;
+    }
+
     if (state == FHOST_STA_CONNECTED && !ip4_addr_isany(&ipaddr)) {
-        at_response_string("+CWSTATE:%d,\"%s\"\r\n", 2, info.ssid);
+        at_response_string("+CWSTATE:%d,\"%s\",%d,%d\r\n", 2, info.ssid, calc_mode, calc_auth);
         return AT_RESULT_CODE_OK;
     }
     if (at_wifi_config->reconnect_state ||
@@ -190,18 +209,18 @@ static int at_query_cmd_cwstate(int argc, const char **argv)
         state == FHOST_STA_CONNECTING ||
         state == FHOST_STA_4WAY_HANDSHAKE ||
         state == FHOST_STA_GROUP_HANDSHAKE) {
-        at_response_string("+CWSTATE:%d,\"%s\"\r\n", 3, at_wifi_config->sta_info.ssid);
+        at_response_string("+CWSTATE:%d,\"%s\",%d,%d\r\n", 3, at_wifi_config->sta_info.ssid, calc_mode, calc_auth);
         return AT_RESULT_CODE_OK;
     }
 
     if (state == FHOST_STA_DISCONNECTED) {
         if ((at_wifi_config->wifi_mode != WIFI_STATION_MODE) && (at_wifi_config->wifi_mode != WIFI_AP_STA_MODE)) {
-            at_response_string("+CWSTATE:%d,\"\"\r\n", 0);
+            at_response_string("+CWSTATE:%d,\"\",%d,%d\r\n", 0, calc_mode, calc_auth);
         } else {
-            at_response_string("+CWSTATE:%d,\"\"\r\n", 4);
+            at_response_string("+CWSTATE:%d,\"\",%d,%d\r\n", 4, calc_mode, calc_auth);
         }
     } else if (state == FHOST_STA_CONNECTED) {
-        at_response_string("+CWSTATE:%d,\"%s\"\r\n", 1, info.ssid);
+        at_response_string("+CWSTATE:%d,\"%s\",%d,%d\r\n", 1, info.ssid, calc_mode, calc_auth);
     }
     return AT_RESULT_CODE_OK;
 }
@@ -1381,7 +1400,7 @@ static void cb_sniffer(struct qcc74x_frame_info *info, void *arg)
             return;
         }
         buffer_len = info->length * 2 + 30;
-        buffer = pvPortMalloc(buffer_len + 64);
+        buffer = at_malloc(buffer_len + 64);
         if (!buffer) {
             return;
         }
@@ -1393,19 +1412,21 @@ static void cb_sniffer(struct qcc74x_frame_info *info, void *arg)
 
         //n = snprintf(buffer, buffer_len, "\r\n+CWMONITOR,%d,%d:", phy_freq_to_channel(0, info->freq), info->length);
 
-        for (int i = 0; i < info->length; i++) {
-            n = snprintf(buffer + offset, buffer_len - offset, "%02x", info->payload[i]);
-            if (n > 0) {
+        for (int i = 0; i < info->length && offset < (buffer_len + 64) - 2; i++) {
+            n = snprintf(buffer + offset, (buffer_len + 64) - offset, "%02x", info->payload[i]);
+            if (n > 0 && n < (buffer_len + 64) - offset) {
                 offset += n;
+            } else {
+                break; // Buffer overflow protection
             }
         }
-        n = snprintf(buffer + offset, buffer_len - offset, "\r\n");
-        if (n > 0) {
+        n = snprintf(buffer + offset, (buffer_len + 64) - offset, "\r\n");
+        if (n > 0 && n < (buffer_len + 64) - offset) {
             offset += n;
         }
         
-        AT_CMD_DATA_SEND(buffer, strlen(buffer));
-        vPortFree(buffer);
+        AT_CMD_DATA_SEND(buffer, offset);
+        at_free(buffer);
     }
 }
 
@@ -1561,7 +1582,9 @@ static int at_setup_cmd_cwcountry(int argc, const char **argv)
     if (at->store) {
         at_wifi_config_save(AT_CONFIG_KEY_WIFI_COUNTRY_CODE);
     }
-    wifi_mgmr_set_country_code(code);
+    if (wifi_mgmr_set_country_code(code) < 0) {
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_EXEC_FAIL);
+    }
     return AT_RESULT_CODE_OK;
 }
 #endif

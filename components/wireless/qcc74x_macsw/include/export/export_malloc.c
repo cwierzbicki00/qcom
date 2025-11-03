@@ -21,7 +21,7 @@
 #define struct_func_alloc_def(name)                                             \
     void *name##_alloc()                                                        \
     {                                                                           \
-        struct name *p = (struct name *)malloc(sizeof(struct name));            \
+        struct name *p = (struct name *)rtos_malloc(sizeof(struct name));         \
         return p;                                                               \
     }                                                                           \
 

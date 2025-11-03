@@ -55,7 +55,6 @@ sdk_add_include_directories(
 	# src/common/include/toolchain
 	src/common/tinycrypt/include/tinycrypt
 	src/hci_onchip
-	src/qcc74x_hci_wrapper
 	src/host
 	src/include/bluetooth
 	src/include/drivers/bluetooth
@@ -139,7 +138,6 @@ sdk_library_add_sources(
 	src/common/tinycrypt/source/hmac_prng.c
 	src/common/tinycrypt/source/sha256.c
 	src/common/tinycrypt/source/utils.c
-	src/qcc74x_hci_wrapper/qcc74x_hci_wrapper.c
 	src/hci_onchip/hci_driver.c
 	src/host/crypto.c
 	src/host/hci_core.c
@@ -147,7 +145,27 @@ sdk_library_add_sources(
 	src/host/l2cap.c
 	src/host/uuid.c
 )
+#ifeq ($(CONFIG_BT_HOST_HCI_TL),1)
+#CFLAGS += -DCONFIG_BT_HOST_HCI_TL
+#ble_stack_srcs_dirs+= src/qcc74x_hci_tl
+#else
+#ble_stack_srcs_dirs+= src/qcc74x_hci_wrapper
+#endif
 
+if(CONFIG_BT_HOST_HCI_TL)
+    sdk_library_add_sources(
+        src/hci_tl/qcc74x_hci_tl.c
+        src/hci_tl/qcc74x_hci_uart_dma.c
+    )
+	sdk_add_include_directories(src/hci_tl)
+else()
+    sdk_library_add_sources(
+        src/qcc74x_hci_wrapper/qcc74x_hci_wrapper.c
+    )
+	sdk_add_include_directories(src/qcc74x_hci_wrapper)
+endif()
+sdk_add_compile_definitions_ifdef(CONFIG_BT_HOST_HCI_TL -DCONFIG_BT_HOST_HCI_TL)
+sdk_add_compile_definitions_ifdef(CONFIG_BT_HOST_HCI -DCONFIG_BT_HOST_HCI)
 sdk_library_add_sources(
 	../version_btble_component.c
 )

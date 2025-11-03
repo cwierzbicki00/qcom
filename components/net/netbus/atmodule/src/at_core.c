@@ -61,7 +61,14 @@ uint32_t at_cmd_get_version(void)
 
 int at_cmd_get_compile_time(char *time, size_t buf_len)
 {
-    snprintf(time, buf_len, "%s %s", __DATE__, __TIME__);
+    if (!time || buf_len == 0) {
+        return -1;
+    }
+    
+    int ret = snprintf(time, buf_len, "%s %s", __DATE__, __TIME__);
+    if (ret < 0 || ret >= buf_len) {
+        return -1;
+    }
     return 0;
 }
 
@@ -90,7 +97,7 @@ static int at_arg_is_string(const char *arg)
 
 int at_arg_is_null(const char *arg)
 {
-    if (strlen(arg) <= 0)
+    if (!arg || strlen(arg) <= 0)
         return 1;
     else
         return 0;
@@ -127,7 +134,7 @@ int at_arg_get_string(const char *arg, char *string, int max)
         return 0;
 
     len = strlen(arg)-2;
-    if (len >= max)
+    if (len >= max || len < 0)
         return 0;
 
     strlcpy(string, arg+1, max);
@@ -197,7 +204,7 @@ void at_cmd_syslog(uint32_t error)
 {
     char outbuf[64];
 
-    if (at->syslog) {
+    if (at && at->syslog) {
         snprintf(outbuf, sizeof(outbuf), "ERR CODE:0x%08lx\r\n", error);
         at->device_ops.write_data((uint8_t *)outbuf, strlen(outbuf));
     }

@@ -18,12 +18,13 @@
 #include <wifi_mgmr.h>
 #include "at_config.h"
 #include "at_wifi_config.h"
+#include "at_pal.h"
 
 wifi_config *at_wifi_config = NULL;
 
 int at_wifi_config_init(void)
 {
-    at_wifi_config = (wifi_config *)pvPortMalloc(sizeof(wifi_config));
+    at_wifi_config = (wifi_config *)at_malloc(sizeof(wifi_config));
     if (at_wifi_config == NULL) {
         printf("[WIFI_CONFIG] Error: memory allocation failed\r\n");
         return -1;

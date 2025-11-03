@@ -1,11 +1,13 @@
 {
     "version": "0.2.0",
     "configurations": [
+
         {
             "name": "Debug with OpenOCD",
             "type": "cppdbg",
             "request": "launch",
             "preLaunchTask": "Launch OpenOCD",
+            "postDebugTask": "Terminate OpenOCD",
             "program": "${workspaceRoot}/${input:elfFilePath}",
             "args": [],
             "stopAtEntry": false,

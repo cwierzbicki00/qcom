@@ -7,7 +7,7 @@
             "command": "${workspaceRoot}/tools/openocd/openocd",
             "args": [
                 "-f", "${workspaceRoot}/tools/openocd/interface/ch347.cfg",
-                "-f", "${workspaceRoot}/tools/openocd/target/tgt_e907.cfg"
+                "-f", "${workspaceRoot}/tools/openocd/target/tgt_qcc74x.cfg"
             ],
             "isBackground": true,
             "problemMatcher": {
@@ -25,6 +25,14 @@
                     "endsPattern": "Info : Listening on port 3333 for gdb connections"
                 }
             }
+    
+        },
+        {
+            "label": "Terminate OpenOCD",
+            "type": "shell",
+            "command": "taskkill",
+            "args": ["/IM", "openocd.exe", "/F"],
+            "problemMatcher": []
         }
     ]
 }

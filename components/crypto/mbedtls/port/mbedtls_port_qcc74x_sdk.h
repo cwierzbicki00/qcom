@@ -6,8 +6,8 @@
 #include <stdlib.h>
 #include "mem.h"
 
-#define MBEDTLS_PLATFORM_STD_FREE kfree
-#define MBEDTLS_PLATFORM_STD_CALLOC kcalloc
+#define MBEDTLS_PLATFORM_STD_FREE free
+#define MBEDTLS_PLATFORM_STD_CALLOC calloc
 
 #define MBEDTLS_PLATFORM_FPRINTF_MACRO fprintf
 #define MBEDTLS_PLATFORM_PRINTF_MACRO printf

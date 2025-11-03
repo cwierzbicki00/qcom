@@ -13,8 +13,9 @@
 #define WIFI_MGMR_SCAN_ITEMS_MAX (50)
 
 struct ieee80211_dot_d {
-    char *code;
-    int channel_num;
+    const char *code;
+    uint8_t channel_start;
+    uint8_t channel_num;
 };
 
 struct wlan_netif {
@@ -63,6 +64,8 @@ typedef struct wifi_mgmr {
     // the all channel nums for some country code
     int channel_nums;
     char country_code[3];
+    char old_country_code[3];
+    bool ieee80211d_enable;
     uint8_t disable_autoreconnect;
     uint8_t ready;
     uint8_t max_sta_supported;
@@ -102,7 +105,7 @@ typedef struct wifi_mgmr {
 } wifi_mgmr_t;
 extern wifi_mgmr_t wifiMgmr;
 
-int wifi_mgmr_init(wifi_conf_t *conf);
+int wifi_mgmr_init(void);
 int wifi_mgmr_get_channel_nums(const char *country_code);
 char *wifi_mgmr_auth_to_str(uint8_t auth);
 char *wifi_mgmr_cipher_to_str(uint8_t cipher);

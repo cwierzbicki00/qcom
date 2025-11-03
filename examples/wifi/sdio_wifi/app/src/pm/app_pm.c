@@ -169,13 +169,6 @@ int cmd_wifi_lp(int argc, char **argv)
 
 extern qcc74x_lp_fw_cfg_t lpfw_cfg;
 
-void set_dtim_config(int dtim)
-{
-    lpfw_cfg.dtim_origin = dtim;
-
-    wifi_mgmr_sta_ps_enter();
-}
-
 static void cmd_tickless(int argc, char **argv)
 {
     if ((argc > 1) && (argv[1] != NULL)) {

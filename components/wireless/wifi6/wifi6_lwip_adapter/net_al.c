@@ -324,7 +324,7 @@ int net_if_add(net_al_if_t *net_if,
 {
     err_t status;
 
-    *net_if = (net_al_if_t)malloc(sizeof(inet_if_t));
+    *net_if = (net_al_if_t)rtos_malloc(sizeof(inet_if_t));
     memset(*net_if, 0, sizeof(inet_if_t));
     status = netifapi_netif_add(*net_if,
                                (const ip4_addr_t *)ipaddr,

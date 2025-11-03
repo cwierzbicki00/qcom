@@ -77,6 +77,8 @@ enum
     SCANU_GET_SCAN_RESULT_REQ,
     /// Scan result confirmation.
     SCANU_GET_SCAN_RESULT_CFM,
+    /// Indicate country code to fhost
+    SCANU_COUNTRY_CODE_IND,
 };
 
 enum scan_msg_tag
@@ -188,9 +190,12 @@ enum
     ME_GET_REMAINING_TX_REQ,
     // Get the number of frames remaining in each Tx queue confirmation
     ME_GET_REMAINING_TX_CFM,
-
+    // Get wifi stats request
     ME_GET_STATS_REQ,
-
+    // Get wifi stats confirmation
+    ME_GET_STATS_CFM,
+    // Clear wifi stats
+    ME_CLR_STATS_REQ,
     /*
      * Section of internal ME messages. No ME API messages should be defined below this point
      */

@@ -2739,6 +2739,7 @@ wpas_dpp_pkex_finish(struct wpa_supplicant *wpa_s, const u8 *peer,
 {
 	struct dpp_bootstrap_info *bi;
 
+	wpas_dpp_pkex_clear_code(wpa_s);
 	bi = dpp_pkex_finish(wpa_s->dpp, wpa_s->dpp_pkex, peer, freq);
 	if (!bi)
 		return NULL;
@@ -2992,6 +2993,22 @@ wpas_dpp_gas_req_handler(void *ctx, void *resp_ctx, const u8 *sa,
 	wpa_msg(wpa_s, MSG_INFO, DPP_EVENT_CONF_REQ_RX "src=" MACSTR,
 		MAC2STR(sa));
 	resp = dpp_conf_req_rx(auth, query, query_len);
+
+static void wpas_dpp_pkex_clear_code(struct wpa_supplicant *wpa_s)
+{
+	if (!wpa_s->dpp_pkex_code && !wpa_s->dpp_pkex_identifier)
+		return;
+
+	/* Delete PKEX code and identifier on successful completion of
+	 * PKEX. We are not supposed to reuse these without being
+	 * explicitly requested to perform PKEX again. */
+	os_free(wpa_s->dpp_pkex_code);
+	wpa_s->dpp_pkex_code = NULL;
+	os_free(wpa_s->dpp_pkex_identifier);
+	wpa_s->dpp_pkex_identifier = NULL;
+
+}
+
 
 #ifdef CONFIG_DPP2
 	if (!resp && auth->waiting_cert) {
@@ -3369,7 +3386,7 @@ int wpas_dpp_pkex_remove(struct wpa_supplicant *wpa_s, const char *id)
 			return -1;
 	}
 
-	if ((id_val != 0 && id_val != 1) || !wpa_s->dpp_pkex_code)
+	if ((id_val != 0 && id_val != 1))
 		return -1;
 
 	/* TODO: Support multiple PKEX entries */

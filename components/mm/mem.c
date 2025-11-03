@@ -59,30 +59,46 @@ void kmem_init(void *heapstart, size_t heapsize)
     qcc74x_mem_init(KMEM_HEAP, heapstart, heapsize);
 }
 
-/****************************************************************************
- * Name: malloc
- *
- * Description:
- *   Allocate memory from the user heap.
- *
- * Input Parameters:
- *   size - Size (in bytes) of the memory region to be allocated.
- *
- * Returned Value:
- *   The address of the allocated memory (NULL on failure to allocate)
- *
- ****************************************************************************/
 
-void *kmalloc(size_t size)
+/**
+ * kmalloc 
+ * - allocate memory from the kernel heap 
+ * - Allocates a contiguous block from kernel heap, at least pointer-size aligned.
+ * - Returns NULL on failure. 
+ *
+ * @size: number of bytes to allocate.
+ * @flags: allocation context flags (accepted for compatibility; ignored here).
+ *
+ *
+ * Common flags (compatibility notes; not functionally enforced here):
+ * %MM_KERNEL  — normal kernel allocation (sleeping not implemented).
+ * %MM_ZERO    — Zero the allocated memory before returning. Also see kzalloc().
+ * %MM_ATOMIC  — atomic-context allocation, may use emergency pools (not provided).
+ * %MM_DMA     — Allocate memory directly accessible by DMA (not provided).
+ *
+ * Notes:
+ * - For alignment-sensitive allocations, use memalign(); for resizing, use realloc().
+ */
+
+void *kmalloc(size_t size, int flag)
 {
+    void *ptr = NULL;
+    struct mem_heap_s *heap = KMEM_HEAP;
+
     MEM_LOG("kmalloc %d\r\n", size);
 
-    return qcc74x_malloc(KMEM_HEAP, size);
+    ptr = qcc74x_malloc_align(heap, (flag & MM_ALIGN32) ? 32 : sizeof(void *), size);
+
+    if (ptr && (flag & MM_ZERO)) {
+        memset(ptr, 0, size);
+    }
+
+    return ptr;
 }
 
 void *pvPortMallocStack(size_t xSize)
 {
-    return kmalloc(xSize);
+    return kmalloc(xSize, MM_KERNEL);
 }
 
 /****************************************************************************
@@ -122,7 +138,7 @@ void vPortFreeStack(void *pv)
 
 void *kcalloc(size_t size, size_t len)
 {
-    return qcc74x_calloc(KMEM_HEAP, size, len);
+    return kmalloc(size * len, MM_KERNEL|MM_ZERO);
 }
 
 /****************************************************************************
@@ -251,7 +267,7 @@ uint32_t kfree_size(void)
 
 uint32_t pfree_size(void)
 {
-#if defined(CONFIG_PSRAM_HEAP) && defined(QCC743) // only for qcc74x_undef
+#if defined(CONFIG_PSRAM) && defined(QCC743) // only for qcc74x_undef
     return g_pmemheap.free_bytes;
 #else
     return 0;

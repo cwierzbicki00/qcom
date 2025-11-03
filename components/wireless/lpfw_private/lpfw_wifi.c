@@ -10,10 +10,8 @@
 // STA Info table
 // #include "ip/lmac/src/mm/mm.h"
 
-#ifdef QCC74x_WIFI_LP_FW
-#include "rwnx_platform.h"
+//#include "rwnx_platform.h"
 #include "wl_api.h"
-#endif
 
 #include "qcc74x_lp.h"
 
@@ -170,29 +168,6 @@ ATTR_ROM_WIFI_SECTION volatile lp_fw_ie_t *lpfw_find_tim(uint32_t interval_start
     return NULL;
 }
 
-#ifdef QCC74x_WIFI_LP_FW
-extern void rwnx_platform_init(void);
-extern void rwnxl_init(void);
-extern void rwnx_lpfw_init(struct mac_addr const *mac, struct mac_addr const *bssid);
-void lpfw_wifi_init(uint32_t* wl_rmem_addr, volatile iot2lp_para_t *p_iot2lp_parameter)
-{
-    if (p_iot2lp_parameter->ap_channel == 14) {
-        wl_lp_init((uint8_t *)wl_rmem_addr, 2484);
-    } else {
-        wl_lp_init((uint8_t *)wl_rmem_addr, 2412 + (p_iot2lp_parameter->ap_channel - 1) * 5);
-    }
-
-    /* mac init */
-    rwnx_platform_init();
-    rwnxl_init();
-
-    /* use rwnx_lpfw_init initialize mac for lpfw */
-    rwnx_lpfw_init((struct mac_addr const *)p_iot2lp_parameter->local_mac, (struct mac_addr const *)p_iot2lp_parameter->bssid);
-
-    return;
-}
-#endif
-
 /* wifi gate */
 ATTR_ROM_WIFI_SECTION void lpfw_wifi_clk_gate(void)
 {
@@ -242,7 +217,7 @@ ATTR_ROM_WIFI_SECTION int lpfw_bcn_timestamp_check(uint64_t beacon_timestamp_now
 }
 
 /* Calibrate RC32K and update the beacon timestamp */
-ATTR_ROM_WIFI_SECTION int lpfw_recal_rc32k(uint64_t beacon_timestamp_now_us, uint64_t rtc_timestamp_now_us, uint32_t mode)
+ATTR_ROM_WIFI_SECTION int lpfw_recal_rc32k(uint64_t beacon_timestamp_now_us, uint64_t rtc_timestamp_now_us, uint32_t mode, int clock_ready_check)
 {
     uint64_t rtc_timestamp_last_us, beacon_timestamp_last_us;
     int64_t rtc_us, beacon_us;
@@ -253,15 +228,13 @@ ATTR_ROM_WIFI_SECTION int lpfw_recal_rc32k(uint64_t beacon_timestamp_now_us, uin
     rtc_timestamp_last_us = iot2lp_para->last_rc32trim_stamp_rtc_us;
     beacon_timestamp_last_us = iot2lp_para->last_rc32trim_stamp_beacon_us;
 
-#ifndef QCC74x_WIFI_LP_FW
-    if(qcc74x_lp_get_32k_clock_ready() == 0) {
+    if(clock_ready_check && qcc74x_lp_get_32k_clock_ready() == 0) {
         /* wait 32k_clock ready */
         ret = -2;
         iot2lp_para->last_rc32trim_stamp_valid = 0;
         qcc74x_lp_set_32k_trim_ready(0);
         return ret;
     }
-#endif
 
     if (iot2lp_para->last_rc32trim_stamp_valid == 0) {
         ret = -3;
@@ -318,8 +291,7 @@ ATTR_ROM_WIFI_SECTION int lpfw_recal_rc32k(uint64_t beacon_timestamp_now_us, uin
         }
     }
 
-#ifndef QCC74x_WIFI_LP_FW
-    if(qcc74x_lp_get_32k_trim_ready() == 0){
+    if(clock_ready_check && qcc74x_lp_get_32k_trim_ready() == 0){
         /*  */
         ret = 2;
         if(LP_DIFF(iot2lp_para->rtc32k_error_ppm, diff_ppm) < 1500){
@@ -328,7 +300,6 @@ ATTR_ROM_WIFI_SECTION int lpfw_recal_rc32k(uint64_t beacon_timestamp_now_us, uin
             ret = 3;
         }
     }
-#endif
 
     if (QCC74x_GET_REG_BITS_VAL(QCC74x_RD_REG(HBN_BASE, HBN_GLB), HBN_F32K_SEL)) {
         /* rtc use xtal32k, only soft recal */

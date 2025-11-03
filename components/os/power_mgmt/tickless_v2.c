@@ -485,6 +485,12 @@ void vApplicationSleep(TickType_t xExpectedIdleTime) {
     if (rwnxl_pds_wifi_config(&lpfw_cfg) != 0) {
       configASSERT(0); /* should not reach here */
     }
+
+    if(qcc74x_lp_fw_enter_check_allow() == 0){
+      tickless_info("Sleep Abort! bcn_dtim check");
+      ___WFI();
+      return;
+    }
   }
 
   uint32_t wifi_get_next_wakeup_timer_time(void);

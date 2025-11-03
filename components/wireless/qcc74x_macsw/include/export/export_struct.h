@@ -12,6 +12,8 @@ struct_func_dcl(rxu_mgt_ind, uint16_t, center_freq);
 struct_func_dcl(rxu_mgt_ind, uint8_t, band);
 struct_func_dcl(rxu_mgt_ind, int8_t, rssi);
 
+struct_func_dcl(scanu_country_code_ind, char*, country_code);
+
 struct_func_dcl(scanu_start_cfm, uint8_t, vif_idx);
 struct_func_dcl(scanu_start_cfm, uint8_t, status);
 struct_func_dcl(scanu_start_cfm, uint8_t, result_cnt);
@@ -387,6 +389,11 @@ struct_func_len(me_get_edca_req);
 
 struct_func_dcl(me_get_edca_cfm, uint32_t, ac_param);
 struct_func_len(me_get_edca_cfm);
+
+struct_func_dcl(me_get_stats_cfm, struct ieee80211_stats, sta_stats);
+struct_func_dcl(me_get_stats_cfm, struct ieee80211_stats, ap_stats);
+struct_func_dcl(me_get_stats_cfm, struct ieee80211_stats, adhoc_stats);
+struct_func_len(me_get_stats_cfm);
 
 struct_func_dcl(me_get_remaining_tx_cfm, uint8_t, tx0_cnt);
 struct_func_dcl(me_get_remaining_tx_cfm, uint8_t, tx1_cnt);

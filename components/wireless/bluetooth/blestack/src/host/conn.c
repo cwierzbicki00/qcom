@@ -358,7 +358,6 @@ static int send_conn_le_param_update(struct bt_conn *conn,
 			conn->le.pending_latency = param->latency;
 			conn->le.pending_timeout = param->timeout;
 		}
-
 		return rc;
 	}
 
@@ -2346,6 +2345,10 @@ int bt_conn_le_param_update(struct bt_conn *conn,
 	       conn->le.features[0], param->interval_min,
 	       param->interval_max, param->latency, param->timeout);
 
+	if (!bt_le_conn_params_valid(param)) {
+		return -EINVAL;
+	}
+
 	/* Check if there's a need to update conn params */
 	if (conn->le.interval >= param->interval_min &&
 	    conn->le.interval <= param->interval_max &&
@@ -2373,7 +2376,6 @@ int bt_conn_le_param_update(struct bt_conn *conn,
 		conn->le.pending_timeout = param->timeout;
 		atomic_set_bit(conn->flags, BT_CONN_SLAVE_PARAM_SET);
 	}
-
 	return 0;
 }
 
@@ -2860,7 +2862,9 @@ int bt_conn_auth_passkey_entry(struct bt_conn *conn, unsigned int passkey)
 	if (!bt_auth) {
 		return -EINVAL;
 	}
-
+	if (passkey > 999999 || passkey < 0) {
+		return -EINVAL;
+	}
 	if (IS_ENABLED(CONFIG_BT_SMP) && conn->type == BT_CONN_TYPE_LE) {
 		bt_smp_auth_passkey_entry(conn, passkey);
 		return 0;

@@ -199,6 +199,7 @@ int https_fota_finish(https_fota_handle_t fota, bool reboot)
     if (ret != 0) {
         HTTPS_FOTA_STATUS_CALLBACK(https_fota, HTTPS_FOTA_IMAGE_VERIFY_FAIL)
         ret = -HTTPS_FOTA_IMAGE_VERIFY_FAIL;
+        ota_abort(https_fota->ota);
         goto __end;
     }
     HTTPS_FOTA_STATUS_CALLBACK(https_fota, HTTPS_FOTA_SUCCESS)

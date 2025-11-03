@@ -7,10 +7,10 @@
 #include "usbd_video.h"
 #include "uvc_static_mjpeg_image.h"
 
-#define MAX_PACKETS_IN_ONE_TRANSFER 1
+#define VIDEO_IN_EP        0x81
+#define VIDEO_INT_EP       0x82
 
-#define VIDEO_IN_EP                 0x81
-#define VIDEO_INT_EP                0x82
+#define VIDEO_NO_COPY_MODE 0
 
 #ifdef CONFIG_USB_HS
 #define MAX_PAYLOAD_SIZE  512 // for high speed with one transcations every one micro frame
@@ -255,9 +255,13 @@ void usbd_video_close(uint8_t busid, uint8_t intf)
 
 void usbd_video_iso_callback(uint8_t busid, uint8_t ep, uint32_t nbytes)
 {
-    if (usbd_video_stream_split_transfer(busid, ep)) {
-        /* one frame has done */
-        iso_tx_busy = false;
+    // USB_LOG_INFO("iso %d\r\n", nbytes);
+
+    if (nbytes) {
+        if (usbd_video_stream_split_transfer(busid, ep)) {
+            /* one frame has done */
+            iso_tx_busy = false;
+        }
     }
 }
 
@@ -283,17 +287,24 @@ void uvc_mjpeg_init(uint8_t busid, uintptr_t reg_base)
     usbd_initialize(busid, reg_base, usbd_event_handler);
 }
 
-static USB_NOCACHE_RAM_SECTION USB_MEM_ALIGNX uint8_t packet_buffer[2][MAX_PACKETS_IN_ONE_TRANSFER * MAX_PAYLOAD_SIZE];
+static USB_NOCACHE_RAM_SECTION USB_MEM_ALIGNX uint8_t packet_buffer[MAX_PAYLOAD_SIZE];
+
+#if (VIDEO_NO_COPY_MODE)
+static USB_NOCACHE_RAM_SECTION USB_MEM_ALIGNX uint8_t frame_buffer[32 * 1024];
+#endif
 
 void uvc_mjpeg_test_polling(uint8_t busid)
 {
-    if (tx_flag) {
+    if (tx_flag && iso_tx_busy == false) {
         iso_tx_busy = true;
-        usbd_video_stream_start_write(busid, VIDEO_IN_EP, &packet_buffer[0][0], &packet_buffer[1][0], MAX_PACKETS_IN_ONE_TRANSFER * MAX_PAYLOAD_SIZE, (uint8_t *)cherryusb_mjpeg, sizeof(cherryusb_mjpeg));
-        while (iso_tx_busy) {
-            if (tx_flag == 0) {
-                break;
-            }
-        }
+
+#if (VIDEO_NO_COPY_MODE)
+        /* cherryusb_mjpeg is a static MJPEG frame buffer, so we need copy it to frame_buffer */
+        memcpy(frame_buffer, cherryusb_mjpeg, sizeof(cherryusb_mjpeg));
+        usbd_video_stream_start_write(busid, VIDEO_IN_EP, packet_buffer, (uint8_t *)frame_buffer, sizeof(cherryusb_mjpeg), false);
+#else
+
+        usbd_video_stream_start_write(busid, VIDEO_IN_EP, packet_buffer, (uint8_t *)cherryusb_mjpeg, sizeof(cherryusb_mjpeg), true);
+#endif
     }
 }

@@ -35,9 +35,6 @@ static struct qcc74x_device_s *uart0;
 
 #define WIFI_STACK_SIZE  (1536)
 #define TASK_PRIORITY_FW (16)
-static wifi_conf_t conf = {
-    .country_code = "US",
-};
 
 extern void shell_init_with_task(struct qcc74x_device_s *shell);
 
@@ -132,7 +129,7 @@ void wifi_event_handler(uint32_t code)
     switch (code) {
         case CODE_WIFI_ON_INIT_DONE: {
             LOG_I("[APP] [EVT] %s, CODE_WIFI_ON_INIT_DONE\r\n", __func__);
-            wifi_mgmr_init(&conf);
+            wifi_mgmr_init();
         } break;
         case CODE_WIFI_ON_MGMR_DONE: {
             LOG_I("[APP] [EVT] %s, CODE_WIFI_ON_MGMR_DONE\r\n", __func__);

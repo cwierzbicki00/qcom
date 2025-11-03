@@ -43,6 +43,12 @@ void ot_radioInit(otRadio_opt_t opt)
 
     otRadioVar_ptr->opt.byte = opt.byte;
 
+#if (OPENTHREAD_FTD || OPENTHREAD_MTD)
+    otRadioVar_ptr->ot_findAddresses_ptr = ot_findAddresses_ftd;
+#elif OPENTHREAD_RADIO
+    otRadioVar_ptr->opt.bf.isFtd = true;
+#endif
+
     uint32_t tag = otrEnterCrit();
     utils_dlist_init(&otRadioVar_ptr->frameList);
     utils_dlist_init(&otRadioVar_ptr->rxFrameList);
@@ -62,10 +68,6 @@ void ot_radioInit(otRadio_opt_t opt)
         otLinkMetrics_init(IEEE802_15_4_RADIO_RECEIVE_SENSITIVITY);
     }
 
-#if (OPENTHREAD_FTD || OPENTHREAD_MTD)
-    otRadioVar_ptr->ot_findAddresses_ptr = ot_findAddresses_ftd;
-#endif
-    
     otrExitCrit(tag);
 }
 

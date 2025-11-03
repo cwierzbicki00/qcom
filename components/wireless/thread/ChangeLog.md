@@ -1,5 +1,26 @@
 # change log on Thread module
 
+## 2025/6/9
+
+- openthread_utils: 1.6.17
+- openthread_br: 1.6.17
+- openthread/openthread_port/openthread_rest: 1.6.20
+  - ot_nxspi: try one more time to exhaust nxspi readbuf
+
+## 2025/6/6
+
+- openthread_utils: 1.6.17
+- openthread_br: 1.6.17
+- openthread/openthread_port/openthread_rest: 1.6.19
+  - Add nxspi protocol serial support
+
+## 2025/4/25
+
+- openthread_utils: 1.6.17
+- openthread_br: 1.6.17
+- openthread/openthread_port/openthread_rest: 1.6.18
+  - enable isFtd by default to enable frame pending search function for RCP
+
 ## 2025/3/12
 
 - openthread_utils: 1.6.16

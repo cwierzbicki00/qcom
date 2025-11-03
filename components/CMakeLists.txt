@@ -1,4 +1,3 @@
-add_subdirectory(ai)
 add_subdirectory(crypto)
 add_subdirectory(fs)
 add_subdirectory(graphics)

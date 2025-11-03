@@ -22,10 +22,11 @@
 #include "qcc74x_adc.h"
 #include "at_config.h"
 #include "at_base_config.h"
+#include "at_pal.h"
 
 base_config *at_base_config = NULL;
 
-static at_base_adc_tsen_init(void)
+static void at_base_adc_tsen_init(void)
 {
     struct qcc74x_device_s *adc;
     
@@ -52,7 +53,7 @@ static at_base_adc_tsen_init(void)
 
 int at_base_config_init(void)
 {
-    at_base_config = (base_config *)pvPortMalloc(sizeof(base_config));
+    at_base_config = (base_config *)at_malloc(sizeof(base_config));
     if (at_base_config == NULL) {
         AT_CMD_PRINTF("Failed to allocate memory for at_base_config\r\n");
         return -1;
@@ -91,8 +92,7 @@ int at_base_config_save(const char *key)
     }
     if (strcmp(key, AT_CONFIG_KEY_SYS_MSG) == 0)
         return at_config_write(key, &at_base_config->sysmsg_cfg, sizeof(base_sysmsg_cfg));
-    else
-        return -1;
+
     return 0;
 }
 

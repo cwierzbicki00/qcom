@@ -8,7 +8,7 @@
 
 #define VERSION_LMAC154_MAJOR 1
 #define VERSION_LMAC154_MINOR 6
-#define VERSION_LMAC154_PATCH 12
+#define VERSION_LMAC154_PATCH 15
 
 // #define VERSION_LMAC154_SRC_EXTRA_INFO "customer-1"
 
@@ -518,7 +518,7 @@ uint32_t lmac154_isTriggerTimeSelected(void);
 *******************************************************************************/
 void lmac154_runTxCM(void);
 
-
+#if defined(CONFIG_LMAC154_TX_CW_SUPPORTED)
 /****************************************************************************//**
  * @brief  Run tx continuous wave (single tone)
  *         Call lmac154_resetTx to stop
@@ -529,6 +529,7 @@ void lmac154_runTxCM(void);
  *
 *******************************************************************************/
 void lmac154_runTxCW(void);
+#endif
 
 
 /****************************************************************************//**

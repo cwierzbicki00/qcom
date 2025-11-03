@@ -33,7 +33,7 @@
 #include "qcc74x_mtd.h"
 #include "easyflash.h"
 #include "clock_manager.h"
-#include "linear_allocator.h"
+#include "pm_manager.h"
 
 #define DBG_TAG "MAIN"
 #include "log.h"
@@ -67,161 +67,12 @@
 /****************************************************************************
  * Private Data
  ****************************************************************************/
-int enable_multicast_broadcas = 0;
-static TaskHandle_t rxl_process_task_hd = NULL;
-static linear_allocator pm_mem;
-struct pbuf *pm_pbuf;
-
-int pm_sys_init(void)
-{
-    memset(&pm_mem, 0, sizeof(linear_allocator));
-    return 0;
-}
-
-int pm_mem_pool_alloc(void)                                                                                
-{                                                                                                          
-    pm_pbuf = pbuf_alloc(PBUF_RAW, PM_MEM_POOL_SIZE, PBUF_RAM);                                            
-                                                                                                           
-    if (!pm_pbuf) {                                                                                        
-        printf("!!!! pbuf alloc fail.\r\n");                                                               
-        return -1;                                                                                         
-    }                                                                                                      
-                                                                                                           
-    if (pm_pbuf->len < PM_MEM_POOL_SIZE) {                                                                 
-        printf("WARNING: pbuf actual len %d < expected pool size %d!\n", pm_pbuf->len, PM_MEM_POOL_SIZE);  
-    }                                                                                                      
-                                                                                                           
-    linear_allocator_init(&pm_mem, pm_pbuf->payload, pm_pbuf->len);                                        
-                                                                                                           
-    return 0;                                                                                              
-}                                                                                                          
-
-int pm_mem_pool_free(void)
-{
-    if (pm_pbuf) {
-        pbuf_free(pm_pbuf);
-        pm_pbuf = NULL;
-    }
-
-    linear_allocator_reset(&pm_mem);
-
-    return 0;
-}
-
-uint32_t rxl_pbuf_pool_get(void)
-{
-    uint32_t addr = (uint32_t)&pm_mem;
-
-    if ((addr & 0xF0000000) == 0x60000000) {
-        addr = (addr & 0x0FFFFFFF) | 0x20000000;
-    }
-
-    return addr;
-}
-
-int pm_enter_lp_perparation(void)                                        
-{                                                                        
-    int ret = 0;                                                         
-    int dtim = 0;                                                        
-    if (enable_multicast_broadcas) {                                     
-        ret = pm_mem_pool_alloc();                                       
-                                                                         
-        if (!ret) {                                                      
-            lpfw_cfg.buf_addr = rxl_pbuf_pool_get();                     
-        } else {                                                         
-            lpfw_cfg.buf_addr = NULL;                                    
-        }                                                                
-    } else {                                                             
-        lpfw_cfg.buf_addr = NULL;                                        
-    }                                                                    
-                                                                         
-    dtim = wifi_mgmr_sta_get_listen_itv();                               
-                                                                         
-    if (dtim < 0) {                                                      
-        lpfw_cfg.dtim_origin = 10;                                       
-    } else {                                                             
-        lpfw_cfg.dtim_origin = dtim;                                     
-    }                                                                    
-                                                                         
-    qcc74x_lp_fw_bcn_loss_cfg_dtim_default(lpfw_cfg.dtim_origin);        
-                                                                         
-    if (wifi_mgmr_sta_state_get()) {                                     
-        wifi_mgmr_sta_ps_enter();                                        
-    }                                                                    
-                                                                         
-    return ret;                                                          
-}                                                                        
-                                                                         
-int pm_exit_lp_perparation(void)                                         
-{                                                                        
-    pm_mem_pool_free();                                                  
-    lpfw_cfg.buf_addr = NULL;                                            
-                                                                         
-    if (wifi_mgmr_sta_state_get()) {                                     
-        wifi_mgmr_sta_ps_exit();                                         
-    }                                                                    
-                                                                         
-    return 0;                                                            
-}                                                                        
-
-int pm_enable_tickless(void)
-{
-    pm_enter_lp_perparation();
-
-    tickless_enter();
-
-    return 0;
-}
-
-int pm_disable_tickless(void)
-{
-    pm_exit_lp_perparation();
-
-    tickless_exit();
-
-    return 0;
-}
-
-static void process_multicase_broadcast(void *pvParameters)
-{
-    struct pbuf *p;
-
-    while (1) {
-        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-
-        linear_allocator_iter_reset(&pm_mem);
-        p = (struct pbuf *)linear_allocator_next_ptr(&pm_mem);
-        while (p) {
-            if (p != NULL && p->payload) {
-                //print_pbuf_contents(p, 0);
-
-                if (netif_default && netif_default->input) {
-                    err_t ret = netif_default->input(p, netif_default);
-                    if (ret != ERR_OK) {
-                        printf("[RECV_TASK] Failed to input pbuf to netif\r\n");
-                        pbuf_free(p);
-                    }
-                } else {
-                }
-            }
-            p = (struct pbuf *)linear_allocator_next_ptr(&pm_mem);
-        }
-
-        linear_allocator_reset(&pm_mem);
-    }
-
-    vTaskDelete(NULL);
-}
-
 static struct qcc74x_device_s *uart0;
 
 TaskHandle_t wifi_fw_task;
 static TaskHandle_t app_start_handle;
 struct bt_conn *bleapp_default_conn;
 
-static wifi_conf_t conf = {
-    .country_code = "US",
-};
 #if defined(CFG_BLE_ENABLE)
 static void ble_connected(struct bt_conn *conn, u8_t err)
 {
@@ -346,7 +197,7 @@ void wifi_event_handler(uint32_t code)
     switch (code) {
         case CODE_WIFI_ON_INIT_DONE: {
             LOG_I("[APP] [EVT] %s, CODE_WIFI_ON_INIT_DONE\r\n", __func__);
-            wifi_mgmr_init(&conf);
+            wifi_mgmr_init();
         } break;
         case CODE_WIFI_ON_MGMR_DONE: {
             LOG_I("[APP] [EVT] %s, CODE_WIFI_ON_MGMR_DONE\r\n", __func__);
@@ -442,6 +293,7 @@ GLB_GPIO_Type pinList[4] = {
 static int lp_exit(void *arg)
 {
     int wakeup_reason;
+    extern TaskHandle_t rxl_process_task_hd;
 
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 
@@ -466,7 +318,7 @@ static int lp_exit(void *arg)
         vTaskNotifyGiveFromISR(rxl_process_task_hd, &xHigherPriorityTaskWoken);
         portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
     } else {
-        linear_allocator_reset(&pm_mem);
+        pm_alloc_mem_reset();
     }
 
     //GLB_GPIO_Func_Init(GPIO_FUN_JTAG, pinList, 4);
@@ -474,33 +326,12 @@ static int lp_exit(void *arg)
     return 0;
 }
 
-#ifdef CONFIG_SHELL
-int cmd_wifi_lp(int argc, char **argv)
+int qcc74x_pm_app_check(void)
 {
-    int ret = 0;
-    printf("enter wireless low power!\r\n");
-
-    qcc74x_lp_init();
-    // qcc74x_lp_fw_init();
-    qcc74x_lp_sys_callback_register(lp_enter, NULL, lp_exit, NULL);
-
-    while (1) {
-        // lp_exit(0);
-        ret = qcc74x_lp_fw_enter(&lpfw_cfg);
-        if (ret < 0) {
-            printf("[E]qcc74x_lpfw_enter Fail,ErrId:%d\r\n", ret);
-        } else {
-            printf("qcc74x_lpfw_enter Success\r\n");
-        }
-        arch_delay_ms(1000);
-    }
-
-    return 0;
+    return pm_pbufc_check();
 }
 
-extern int enable_tickless;
-extern qcc74x_lp_fw_cfg_t lpfw_cfg;
-
+#ifdef CONFIG_SHELL
 static void cmd_tickless(int argc, char **argv)
 {	
     int broadcast = 0;
@@ -513,9 +344,9 @@ static void cmd_tickless(int argc, char **argv)
     }
 
     if (broadcast) {
-        enable_multicast_broadcas = 1;
+        enable_multicast_broadcast = 1;
     } else {
-        enable_multicast_broadcas = 0;
+        enable_multicast_broadcast = 0;
     }
 
     pm_enable_tickless();
@@ -532,8 +363,8 @@ static void cmd_set_dtim(int argc, char **argv)
     } else {
         dtim = 10;
     }
-
-	wifi_mgmr_sta_set_listen_itv(dtim);
+    
+    set_dtim_config(dtim);
 }
 
 static int test_tcp_keepalive(int argc, char **argv)
@@ -729,9 +560,8 @@ static void cmd_get_clock_source(int argc, char **argv)
     }
 }
 
-SHELL_CMD_EXPORT_ALIAS(cmd_tickless, tickless, cmd tickless);
-SHELL_CMD_EXPORT_ALIAS(cmd_set_dtim, set_dtim, cmd_set_dtim);
-SHELL_CMD_EXPORT_ALIAS(cmd_wifi_lp, wifi_lp_test, wifi low power test);
+SHELL_CMD_EXPORT_ALIAS(cmd_tickless, pm_enter_lp, cmd tickless);
+SHELL_CMD_EXPORT_ALIAS(cmd_set_dtim, wifi_lp_set_dtim, cmd_set_dtim);
 SHELL_CMD_EXPORT_ALIAS(test_tcp_keepalive, lpfw_tcp_keepalive, tcp keepalive test);
 SHELL_CMD_EXPORT_ALIAS(cmd_hbn_test, hbn_test, hbn test);
 SHELL_CMD_EXPORT_ALIAS(cmd_io_dbg, io_debug, cmd io_debug);
@@ -802,7 +632,6 @@ int main(void)
 #endif
 
     xTaskCreate(app_start_task, (char *)"app_start", 1024, NULL, 15, &app_start_handle);
-    xTaskCreate(process_multicase_broadcast, (char*)"hellow", 300, NULL, 10, &rxl_process_task_hd);
     
     vTaskStartScheduler();
 

@@ -500,6 +500,11 @@
   #else
     #define NX_TXFRAME_LEN 256
   #endif //(NX_P2P)
+
+  #ifdef CFG_ADHOC_ENABLE
+    #undef NX_TXFRAME_LEN
+    #define NX_TXFRAME_LEN 2304
+  #endif
 #else
   #define NX_TXFRAME_LEN   128
 #endif

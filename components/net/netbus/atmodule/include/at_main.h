@@ -102,7 +102,7 @@ uint64_t at_current_ms_get();
 
 int at_register_function(at_func restore, at_func stop);
 
-void at_response_result(int result_code);
+void at_response_result(uint32_t result_code);
 
 void at_response_string(const char *format, ... );
 

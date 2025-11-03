@@ -54,8 +54,16 @@ elseif ("${OT_SERIAL}" STREQUAL "UART")
   if ($(OT_SERIAL_LINE_SIZE)) 
     sdk_add_private_compile_definitions(-DOT_SERIAL_LINE_SIZE=${OT_SERIAL_LINE_SIZE})
   endif()
+elseif ("${OT_SERIAL}" STREQUAL "NXSPI") 
+  sdk_library_add_sources(./ot_nxspi.c)
 else ()
   message (FATAL_ERROR "openthread_port: ${OT_SERIAL} is not available for OT_SERIAL.")
+endif()
+
+if (DEFINED OT_NCP AND NOT OT_NCP)
+  sdk_add_compile_definitions(-DNXSPI_OPENTHREAD_RADIO=1)
+else()
+  sdk_add_compile_definitions(-DNXSPI_OPENTHREAD_RADIO=0)
 endif()
 
 # disable undef warning

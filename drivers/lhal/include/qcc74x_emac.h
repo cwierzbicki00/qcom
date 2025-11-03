@@ -9,24 +9,24 @@
 #define EMAC_SPEED_10M_SUPPORT (0)
 #endif
 
-#ifndef EMAC_TX_BD_BUM_MAX
-#define EMAC_TX_BD_BUM_MAX (64)
+#ifndef EMAC_TX_BD_NUM_MAX
+#define EMAC_TX_BD_NUM_MAX (64)
 #endif
 
-#ifndef EMAC_RX_BD_BUM_MAX
-#define EMAC_RX_BD_BUM_MAX (64)
+#ifndef EMAC_RX_BD_NUM_MAX
+#define EMAC_RX_BD_NUM_MAX (64)
 #endif
 
-#if (EMAC_TX_BD_BUM_MAX & (EMAC_TX_BD_BUM_MAX - 1) != 0) || EMAC_TX_BD_BUM_MAX > 64
+#if (EMAC_TX_BD_NUM_MAX & (EMAC_TX_BD_NUM_MAX - 1) != 0) || EMAC_TX_BD_NUM_MAX > 64
 #error "emac tx bd num error, must be 2^n and <= 64"
 #else
-#define EMAC_TX_BD_BUM_MASK (EMAC_TX_BD_BUM_MAX - 1)
+#define EMAC_TX_BD_NUM_MASK (EMAC_TX_BD_NUM_MAX - 1)
 #endif
 
-#if (EMAC_RX_BD_BUM_MAX & (EMAC_RX_BD_BUM_MAX - 1) != 0) || EMAC_RX_BD_BUM_MAX > 64
+#if (EMAC_RX_BD_NUM_MAX & (EMAC_RX_BD_NUM_MAX - 1) != 0) || EMAC_RX_BD_NUM_MAX > 64
 #error "emac tx bd num error, must be 2^n and <= 64"
 #else
-#define EMAC_RX_BD_BUM_MASK (EMAC_RX_BD_BUM_MAX - 1)
+#define EMAC_RX_BD_NUM_MASK (EMAC_RX_BD_NUM_MAX - 1)
 #endif
 
 /* feature CMD */

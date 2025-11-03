@@ -290,6 +290,49 @@ void bt_keys_link_key_store(struct bt_keys_link_key *link_key)
 	bt_keys_link_key_set(link_key);
 	#endif
 }
+
+void bt_br_foreach_bond(void (*func)(const struct bt_br_bond_info *info, 
+                                     void *user_data), 
+                        void *user_data)
+{
+    #if defined(QCC74x_BT_LINK_KEYS_STORE)
+    for (int i = 0; i < MAX_LINK_KEY_NUMBER; i++) {
+        if (key_list.keys.used[i]) {
+            struct bt_keys_link_key *key = &key_list.keys.link_key[i];
+            const struct bt_br_bond_info info = {
+                .addr = &key->addr,
+                .link_key = key->val,
+                .link_key_size = sizeof(key->val)
+            };
+            
+            BT_DBG("Found BR/EDR bond: %s, Link Key: %s", 
+                   bt_addr_str(&key->addr),
+                   bt_hex(key->val, sizeof(key->val)));
+            
+            func(&info, user_data);
+        }
+    }
+    #else
+    for (int i = 0; i < ARRAY_SIZE(key_pool); i++) {
+        struct bt_keys_link_key *key = &key_pool[i];
+        
+        if (bt_addr_cmp(&key->addr, BT_ADDR_ANY) != 0) {
+            const struct bt_br_bond_info info = {
+                .addr = &key->addr,
+                .link_key = key->val,
+                .link_key_size = sizeof(key->val)
+            };
+            
+            BT_DBG("Found BR/EDR bond: %s, Link Key: %s", 
+                   bt_addr_str(&key->addr),
+                   bt_hex(key->val, sizeof(key->val)));
+            
+            func(&info, user_data);
+        }
+    }
+    #endif
+}
+
 #if !defined(QCC74x_BLE)
 #if defined(CONFIG_BT_SETTINGS)
 #if IS_ENABLED(CONFIG_BT_KEYS_OVERWRITE_OLDEST)

@@ -965,7 +965,7 @@ static int usbh_rtl8152_read_regs(struct usbh_rtl8152 *rtl8152_class,
     if (ret < 8) {
         return ret;
     }
-    memcpy(data, g_rtl8152_buf, ret - 8);
+    memcpy(data, g_rtl8152_buf, MIN(ret - 8, size));
 
     return ret;
 }
@@ -2121,6 +2121,7 @@ static int usbh_rtl8152_disconnect(struct usbh_hubport *hport, uint8_t intf)
         }
 
         if (hport->config.intf[intf].devname[0] != '\0') {
+            usb_osal_thread_schedule_other();
             USB_LOG_INFO("Unregister rtl8152 Class:%s\r\n", hport->config.intf[intf].devname);
             usbh_rtl8152_stop(rtl8152_class);
         }

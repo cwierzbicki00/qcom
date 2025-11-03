@@ -18,6 +18,10 @@
 #include <stdlib.h>
 #include <net/buf.h>
 
+#if defined(CONFIG_TLSF)
+#include <mem.h>
+#endif
+
 #if defined(QCC74x_MCU_SDK)
 #define TRNG_LOOP_COUNTER   (17)
 extern QCC74x_Err_Type Sec_Eng_Trng_Get_Random(uint8_t *data,uint32_t len);
@@ -423,12 +427,20 @@ void k_get_random_byte_array(uint8_t *buf, size_t len)
 
 void *k_malloc(size_t size)
 {
+    #if defined(CONFIG_TLSF)
+    return kmalloc(size,MM_KERNEL);
+    #else
     return malloc(size);
+    #endif
 }
 
 void k_free(void *buf)
 {
+    #if defined(CONFIG_TLSF)
+    return kfree(buf);
+    #else
     return free(buf);
+    #endif
 }
 
 void bt_assert(void)

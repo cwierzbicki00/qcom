@@ -1,5 +1,8 @@
 # change log on lmac154 module
 
+## 2025/9/17
+- Version: 1.6.15
+
 ## 2025/3/12
 - Version: 1.6.12
 - Changes

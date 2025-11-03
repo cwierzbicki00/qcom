@@ -4,14 +4,15 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-# ~~~
+# cmake-format: off
+
 # set(CONFIG_CHERRYUSB_DEVICE 1)
 # set(CONFIG_CHERRYUSB_DEVICE_CDC 1)
 # set(CONFIG_CHERRYUSB_DEVICE_HID 1)
 # set(CONFIG_CHERRYUSB_DEVICE_MSC 1)
-# set(CONFIG_CHERRYUSB_DEVICE_DCD "dwc2_st")
+# set(CONFIG_CHERRYUSB_DEVICE_AUDIO 1)
+# set(CONFIG_CHERRYUSB_DEVICE_VIDEO 1)
 
-# ~~~
 # set(CONFIG_CHERRYUSB_HOST 1)
 # set(CONFIG_CHERRYUSB_HOST_CDC_ACM 1)
 # set(CONFIG_CHERRYUSB_HOST_CDC_ECM 1)
@@ -24,8 +25,9 @@
 # set(CONFIG_CHERRYUSB_HOST_BLUETOOTH 1)
 # set(CONFIG_CHERRYUSB_HOST_ASIX 1)
 # set(CONFIG_CHERRYUSB_HOST_RTL8152 1)
+
 # set(CONFIG_CHERRYUSB_OSAL "freertos")
-# set(CONFIG_CHERRYUSB_HOST_HCD "ehci_xxx")
+# cmake-format: on
 
 list(
     APPEND
@@ -180,6 +182,7 @@ if(CONFIG_CHERRYUSB_HOST)
     if(CONFIG_CHERRYUSB_HOST_PL2303)
         list(APPEND cherryusb_srcs ${CMAKE_CURRENT_LIST_DIR}/class/vendor/serial/usbh_pl2303.c)
     endif()
+    
     if(CONFIG_CHERRYUSB_HOST_AOA)
         list(APPEND cherryusb_srcs ${CMAKE_CURRENT_LIST_DIR}/class/aoa/usbh_aoa.c)
     endif()
@@ -192,29 +195,6 @@ endif()
 if(DEFINED CONFIG_CHERRYUSB_OSAL)
     if("${CONFIG_CHERRYUSB_OSAL}" STREQUAL "freertos")
         list(APPEND cherryusb_srcs ${CMAKE_CURRENT_LIST_DIR}/osal/usb_osal_freertos.c)
-    elseif("${CONFIG_CHERRYUSB_OSAL}" STREQUAL "rtthread")
-        list(APPEND cherryusb_srcs ${CMAKE_CURRENT_LIST_DIR}/osal/usb_osal_rtthread.c)
-    elseif("${CONFIG_CHERRYUSB_OSAL}" STREQUAL "yoc")
-        list(APPEND cherryusb_srcs ${CMAKE_CURRENT_LIST_DIR}/osal/usb_osal_yoc.c)
-    elseif("${CONFIG_CHERRYUSB_OSAL}" STREQUAL "idf")
-        list(APPEND cherryusb_incs ${CMAKE_CURRENT_LIST_DIR}/osal/idf)
-        list(APPEND cherryusb_srcs ${CMAKE_CURRENT_LIST_DIR}/osal/idf/usb_osal_idf.c)
-    elseif("${CONFIG_CHERRYUSB_OSAL}" STREQUAL "threadx")
-        list(APPEND cherryusb_srcs ${CMAKE_CURRENT_LIST_DIR}/osal/usb_osal_threadx.c)
     endif()
 endif()
 
-if(CONFIG_CHERRYRB)
-    list(APPEND cherryusb_srcs ${CMAKE_CURRENT_LIST_DIR}/third_party/cherryrb/chry_ringbuffer.c)
-    list(APPEND cherryusb_incs ${CMAKE_CURRENT_LIST_DIR}/third_party/cherryrb)
-endif()
-
-if(CONFIG_CHERRYMP)
-    list(APPEND cherryusb_srcs ${CMAKE_CURRENT_LIST_DIR}/third_party/cherrymp/chry_mempool.c)
-    list(APPEND cherryusb_incs ${CMAKE_CURRENT_LIST_DIR}/third_party/cherrymp)
-    if("${CONFIG_CHERRYUSB_OSAL}" STREQUAL "freertos")
-        list(APPEND cherryusb_srcs ${CMAKE_CURRENT_LIST_DIR}/third_party/cherrymp/chry_mempool_osal_freertos.c)
-    elseif("${CONFIG_CHERRYUSB_OSAL}" STREQUAL "rtthread")
-        list(APPEND cherryusb_srcs ${CMAKE_CURRENT_LIST_DIR}/third_party/cherrymp/chry_mempool_osal_rtthread.c)
-    endif()
-endif()

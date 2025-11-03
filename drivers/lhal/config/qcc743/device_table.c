@@ -282,6 +282,13 @@ struct qcc74x_device_s qcc743_device_table[] = {
       .sub_idx = 0,
       .dev_type = QCC74x_DEVICE_TYPE_WO,
       .user_data = NULL },
+      { .name = QCC74x_NAME_USB_V2,
+      .reg_base = USB_BASE,
+      .irq_num = QCC743_IRQ_USB,
+      .idx = 0,
+      .sub_idx = 0,
+      .dev_type = QCC74x_DEVICE_TYPE_USB,
+      .user_data = NULL },
 };
 
 struct qcc74x_device_s *qcc74x_device_get_by_name(const char *name)

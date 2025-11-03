@@ -7,6 +7,7 @@
 #include "at_fs.h"
 #include "at_main.h"
 #include "at_core.h"
+#include "at_pal.h"
 
 #define AT_FS_PRINTF AT_CMD_PRINTF
 
@@ -111,8 +112,8 @@ int at_load_file(const char *path, char **buf, int *n)
 
     *n = (size_t) size;
 
-    if (*n + 1 == 0 ||
-        (*buf = calloc(1, *n + 1)) == NULL) {
+    if (*n < 0 || *n > SIZE_MAX - 1 ||
+        (*buf = at_calloc(1, *n + 1)) == NULL) {
         AT_FS_PRINTF("Failed to allocate memory for file: %s\r\n", path);
         at_fs_close(f);
         return -1;
@@ -121,7 +122,7 @@ int at_load_file(const char *path, char **buf, int *n)
     if (at_fs_read(f, *buf, *n) != *n) {
         AT_FS_PRINTF("Failed to read file into buffer: %s\r\n", path);
         at_fs_close(f);
-        free(*buf);
+        at_free(*buf);
         *buf = NULL;
         return -1;
     }

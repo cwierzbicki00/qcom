@@ -24,37 +24,63 @@
 #include "at_core.h"
 #include "at_ble_config.h"
 #include "at_ble_main.h"
-
+#include "at_pal.h"
+#if defined(CONFIG_BLE_HOST_CHECK)
+#include <bt_errno.h>
+#endif
 #define AT_BLE_CMD_PRINTF printf
 #define AT_BLE_SCAN_DEBUG_OUTPUT 0
 
-static int get_mac_from_string(char *string, uint8_t mac[6])
+static int get_mac_from_string(const char *string, uint8_t mac[6])
 {
-    int i, j = 0;
-    char mac_string[13];
-
-    if (strlen(string) != 17) {
+    if (string == NULL || strlen(string) != 17) {
         return -1;
     }
 
-    memset(mac_string, 0, sizeof(mac_string));
-    for (i = 0; i < strlen(string); i++) {
+    if (string[2] != ':' || string[5] != ':' || 
+        string[8] != ':' || string[11] != ':' || 
+        string[14] != ':') {
+        return -1;
+    }
+
+    uint8_t hex_str[13]; 
+    int j = 0;
+
+    for (int i = 0; i < 17; i++) {
+    
         if (i % 3 == 2) {
-            if (string[i] != ':') {
-                return -1;
-            }
-        } else {
-            mac_string[j++] = string[i];
+            continue;
         }
+
+        uint8_t c = string[i];
+        if (!isxdigit(c)) {
+            return -1;
+        }
+
+        hex_str[j++] = c;
+    }
+    hex_str[12] = '\0'; 
+
+    if (utils_hex2bin(hex_str, 12, mac, 6) != 6) {
+        return -1;
     }
 
-    if (utils_hex2bin((const char *)mac_string, strlen(mac_string), mac, 6) > 0) {
-        return 0;
-    }
-
-    return -1;
+    return 0; 
 }
+static int is_valid_uuid_string(const char *uuid_str)
+{
+    size_t len = strlen(uuid_str);
 
+    if(len!=4 && len!=32)
+        return 1;
+    for(size_t i=0;i<len;i++)
+    {
+        if(!isxdigit(uuid_str[i]))
+            return 1;
+    }
+    
+    return 0;
+}
 static void hex_to_string(uint8_t *hex, int hex_len, char *string, int string_len)
 {
     int i;
@@ -77,7 +103,7 @@ static int at_setup_cmd_ble_init(int argc, const char **argv)
 
     AT_CMD_PARSE_NUMBER(0, &role);
 
-    if (role != BLE_DISABLE && role != BLE_CLIENT && role != BLE_SERVER)
+    if (role != BLE_SERVER && role != BLE_CLIENT && role != BLE_DUALMODE&&role != BLE_DISABLE)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
 
     if (at_ble_init(role) != 0) {
@@ -111,7 +137,8 @@ static int at_setup_cmd_ble_addr(int argc, const char **argv)
     if (at_ble_config->work_role == BLE_DISABLE)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_INIT);
 
-    at_ble_set_public_addr(addr);
+    if(at_ble_set_public_addr(addr) != 0)
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_EXEC_FAIL);
     
     return AT_RESULT_CODE_OK;
 }
@@ -124,7 +151,7 @@ static int at_query_cmd_ble_name(int argc, const char **argv)
 
 static int at_setup_cmd_ble_name(int argc, const char **argv)
 {
-    char ble_name[29+1];
+    char ble_name[29+1]={0};
 
     AT_CMD_PARSE_STRING(0, ble_name, sizeof(ble_name));
     if (at_ble_config->work_role == BLE_DISABLE)
@@ -141,7 +168,7 @@ static int at_setup_cmd_ble_name(int argc, const char **argv)
 
 static int at_query_cmd_ble_scan_param(int argc, const char **argv)
 {
-    if (at_ble_config->work_role == BLE_DISABLE)
+    if (at_ble_config->work_role != BLE_CLIENT&&at_ble_config->work_role != BLE_DUALMODE)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_INIT);
     at_response_string("+BLESCANPARAM:%d,%d,%d,%d,%d\r\n",
             at_ble_config->scan_param.scan_type,
@@ -165,7 +192,7 @@ static int at_setup_cmd_ble_scan_param(int argc, const char **argv)
     AT_CMD_PARSE_NUMBER(2, &filter_policy);
     AT_CMD_PARSE_NUMBER(3, &scan_interval);
     AT_CMD_PARSE_NUMBER(4, &scan_window);
-    if (at_ble_config->work_role != BLE_CLIENT)
+    if (at_ble_config->work_role != BLE_CLIENT && at_ble_config->work_role != BLE_DUALMODE)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_INIT);
     if (scan_type != 0 && scan_type != 1)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
@@ -177,7 +204,8 @@ static int at_setup_cmd_ble_scan_param(int argc, const char **argv)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     if (scan_window < 0x4 || scan_window > 0x4000)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
-
+    if (scan_window > scan_interval)
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     at_ble_config->scan_param.scan_type = scan_type;
     at_ble_config->scan_param.own_addr_type = own_addr_type;
     at_ble_config->scan_param.filter_policy = filter_policy;
@@ -220,7 +248,7 @@ static int at_setup_cmd_ble_scan(int argc, const char **argv)
 
     AT_CMD_PARSE_NUMBER(0, &enable);
 
-    if (at_ble_config->work_role != BLE_CLIENT)
+    if (at_ble_config->work_role != BLE_CLIENT&&at_ble_config->work_role != BLE_DUALMODE)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_INIT);
     if (enable != 0 && enable != 1)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
@@ -242,21 +270,23 @@ static int at_setup_cmd_ble_scan(int argc, const char **argv)
 
 static int at_setup_cmd_ble_scan_rsp_data(int argc, const char **argv)
 {
-    if (at_ble_config->work_role != BLE_SERVER)
+    if (at_ble_config->work_role != BLE_SERVER&&at_ble_config->work_role != BLE_DUALMODE)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_INIT);
 
-    char scan_rsp_data[62 + 1];
+    char scan_rsp_data[62 + 1] = {0};
 
     AT_CMD_PARSE_STRING(0, scan_rsp_data, sizeof(scan_rsp_data));
-    if (strlen(scan_rsp_data) <= 0)
+    if (strlen(scan_rsp_data) <= 0||strlen(scan_rsp_data)%2!=0)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     at_ble_config->scan_rsp_data.len = utils_hex2bin(scan_rsp_data, strlen(scan_rsp_data), at_ble_config->scan_rsp_data.data, sizeof(at_ble_config->scan_rsp_data.data));
+    if(at_ble_config->scan_rsp_data.len != (strlen(scan_rsp_data)/2))
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     return AT_RESULT_CODE_OK;
 }
 
 static int at_query_cmd_ble_adv_param(int argc, const char **argv)
 {
-    if (at_ble_config->work_role != BLE_SERVER)
+    if (at_ble_config->work_role != BLE_SERVER&&at_ble_config->work_role != BLE_DUALMODE)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_INIT);
 
     at_response_string("+BLEADVPARAM:%d,%d,%d,%d\r\n",
@@ -272,7 +302,7 @@ static int at_setup_cmd_ble_adv_param(int argc, const char **argv)
     int adv_int_max = 0;
     int adv_type = 0;
     int channel_map = 0;
-    if (at_ble_config->work_role != BLE_SERVER)
+    if (at_ble_config->work_role != BLE_SERVER&&at_ble_config->work_role != BLE_DUALMODE)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_INIT);
 
     AT_CMD_PARSE_NUMBER(0, &adv_int_min);
@@ -301,21 +331,23 @@ static int at_setup_cmd_ble_adv_param(int argc, const char **argv)
 
 static int at_setup_cmd_ble_adv_data(int argc, const char **argv)
 {
-    if (at_ble_config->work_role != BLE_SERVER)
+    if (at_ble_config->work_role != BLE_SERVER&&at_ble_config->work_role != BLE_DUALMODE)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_INIT);
 
-    char adv_data[62 + 1];
+    char adv_data[62 + 1] = {0};
 
     AT_CMD_PARSE_STRING(0, adv_data, sizeof(adv_data));
-    if (strlen(adv_data) <= 0)
+    if (strlen(adv_data) <= 0 || strlen(adv_data)%2!=0)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     at_ble_config->adv_data.len = utils_hex2bin(adv_data, strlen(adv_data), at_ble_config->adv_data.data, sizeof(at_ble_config->adv_data.data));
+    if(at_ble_config->adv_data.len != (strlen(adv_data)/2))
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     return AT_RESULT_CODE_OK;
 }
 
 static int at_exe_cmd_ble_adv_start(int argc, const char **argv)
 {
-    if (at_ble_config->work_role != BLE_SERVER)
+    if (at_ble_config->work_role != BLE_SERVER&&at_ble_config->work_role != BLE_DUALMODE)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_INIT);
 
     if (at_ble_adv_start() != 0) {
@@ -327,7 +359,7 @@ static int at_exe_cmd_ble_adv_start(int argc, const char **argv)
 
 static int at_exe_cmd_ble_adv_stop(int argc, const char **argv)
 {
-    if (at_ble_config->work_role != BLE_SERVER)
+    if (at_ble_config->work_role != BLE_SERVER&&at_ble_config->work_role != BLE_DUALMODE)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_INIT);
 
     if (at_ble_adv_stop() != 0) {
@@ -345,8 +377,8 @@ static int at_query_cmd_ble_conn(int argc, const char **argv)
     int conn_num = 0;
 
     for (i = 0; i < BLE_CONN_MAX_NUM; i++) {
-        if (at_ble_is_valid_conn_idx(i) && at_ble_is_connected(i) && at_ble_conn_get_addr(i, addr)) {
-            at_response_string("+BLECONN:%d,\"%02x:%02x:%02x:%02x:%02x:%02x\"\r\n", i, addr[5], addr[4], addr[3], addr[2], addr[1], addr[0]);
+        if (at_ble_is_valid_conn_idx(i) && at_ble_is_connected(i) && at_ble_conn_get_addr(i, addr)&&(at_ble_conn_get_role(i)!=-1)) {
+            at_response_string("+BLECONN:%d,%d,\"%02x:%02x:%02x:%02x:%02x:%02x\"\r\n", i,at_ble_conn_get_role(i), addr[5], addr[4], addr[3], addr[2], addr[1], addr[0]);
             conn_num++;
         }
     }
@@ -373,6 +405,8 @@ static int at_setup_cmd_ble_conn(int argc, const char **argv)
 
     if (!at_ble_is_valid_conn_idx(conn_index))
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
+    if (at_ble_is_connected(conn_index))
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     if (get_mac_from_string(addr_string, remote_address) != 0) {
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     }
@@ -385,11 +419,12 @@ static int at_setup_cmd_ble_conn(int argc, const char **argv)
             return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     }
 
-    if (at_ble_config->work_role != BLE_CLIENT)
+    if (at_ble_config->work_role != BLE_CLIENT&&at_ble_config->work_role != BLE_DUALMODE)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_INIT);
 
-    if (!at_ble_conn(conn_index, remote_address, addr_type, timeout))
+    if (!at_ble_conn(conn_index, remote_address, addr_type, timeout)) {
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_TIMEOUT);
+    }
 
     return AT_RESULT_CODE_OK;
 }
@@ -403,7 +438,9 @@ static int at_query_cmd_ble_conn_param(int argc, const char **argv)
     int timeout = 0;
     int i = 0;
     int connected_num = 0;
-
+    if (at_ble_config->work_role == BLE_DISABLE)
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_INIT);
+    
     for (i = 0; i < BLE_CONN_MAX_NUM; i++) {
         if (at_ble_is_connected(i) && at_ble_conn_get_param(i, &min_interval, &max_interval, &cur_interval, &latency, &timeout)) {
             at_response_string("+BLECONNPARAM:%d,%d,%d,%d,%d,%d\r\n",
@@ -434,6 +471,34 @@ static int at_setup_cmd_ble_conn_param(int argc, const char **argv)
 
     if (!at_ble_is_valid_conn_idx(conn_index))
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
+    if (at_ble_config->work_role == BLE_DISABLE)
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_INIT);
+    if (!at_ble_is_connected(conn_index))
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
+    #if defined(CONFIG_BLE_HOST_CHECK)
+    {
+        int err = 0;
+        err = at_ble_conn_update_param(conn_index, min_interval, max_interval, latency, timeout);
+        if (err != 0)
+        {
+            if (err == -EINVAL)
+            {
+                return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
+            }
+            if (err == -EACCES)
+            {
+                return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_ALLOWED);
+            }
+            if (err == -ENOBUFS)
+            {
+                return AT_RESULT_WITH_SUB_CODE(AT_SUB_NO_MEMORY);
+            }
+
+            return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_EXEC_FAIL);
+        }
+    }
+    #else
+    {
     if (min_interval < 0x6 || min_interval > 0xC80)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     if (max_interval < 0x6 || max_interval > 0xC80)
@@ -444,15 +509,10 @@ static int at_setup_cmd_ble_conn_param(int argc, const char **argv)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     if (timeout < 0xA || timeout > 0xC80)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
-    if (at_ble_config->work_role == BLE_DISABLE)
-        return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_INIT);
-        
-
-    if (!at_ble_is_connected(conn_index))
-        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
-    if (!at_ble_conn_update_param(conn_index, min_interval, max_interval, latency, timeout))
+    if (at_ble_conn_update_param(conn_index, min_interval, max_interval, latency, timeout) != 0)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_EXEC_FAIL);
-
+    }
+    #endif
     return AT_RESULT_CODE_OK;
 }
 
@@ -486,17 +546,42 @@ static int at_setup_cmd_ble_datalen(int argc, const char **argv)
     AT_CMD_PARSE_NUMBER(2, &tx_time);
     if (!at_ble_is_valid_conn_idx(conn_index))
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
-    if (tx_octets < 0x1B || tx_octets > 0xFB)
-        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
-    if (tx_time <= 0x0)
-        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     if (at_ble_config->work_role == BLE_DISABLE)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_INIT);
     if (!at_ble_is_connected(conn_index))
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
-    if (at_ble_conn_update_datalen(conn_index, tx_octets,tx_time))
-        return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_EXEC_FAIL);
+    #if defined(CONFIG_BLE_HOST_CHECK)
+    {
+        int err = 0;
+        err = at_ble_conn_update_datalen(conn_index, tx_octets,tx_time);
+        if (err != 0)
+        {
+            if (err == -EINVAL)
+            {
+                return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
+            }
+            if (err == -EACCES)
+            {
+                return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_ALLOWED);
+            }
+            if (err == -ENOBUFS)
+            {
+                return AT_RESULT_WITH_SUB_CODE(AT_SUB_NO_MEMORY);
+            }
 
+            return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_EXEC_FAIL);
+        }
+    }
+    #else
+    {
+    if (tx_octets < 0x1B || tx_octets > 0xFB)
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
+    if (tx_time < 0x0 || tx_time > 17040)
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
+    if (at_ble_conn_update_datalen(conn_index, tx_octets,tx_time)!=0)
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_EXEC_FAIL);
+    }
+    #endif
     return AT_RESULT_CODE_OK;
 }
 
@@ -525,7 +610,7 @@ static int at_query_cmd_ble_gatts_service(int argc, const char **argv)
     uint8_t type;
     char uuid_string[33];
     uint8_t uuid_type;
-    if (at_ble_config->work_role != BLE_SERVER)
+    if (at_ble_config->work_role != BLE_SERVER&&at_ble_config->work_role != BLE_DUALMODE)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_INIT);
 
     for (i = 0; i < BLE_SRV_MAX_NUM; i++) {
@@ -549,7 +634,7 @@ static int at_setup_cmd_ble_gatts_service_create(int argc, const char **argv)
     uint8_t srv_uuid[16]={0};
     int srv_uuid_len = 0;
     int uuid_type = 0;
-    if (at_ble_config->work_role != BLE_SERVER)
+    if (at_ble_config->work_role != BLE_SERVER&&at_ble_config->work_role != BLE_DUALMODE)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_INIT);
 
     AT_CMD_PARSE_NUMBER(0, &srv_idx);
@@ -558,6 +643,8 @@ static int at_setup_cmd_ble_gatts_service_create(int argc, const char **argv)
     AT_CMD_PARSE_NUMBER(3, &uuid_type);
 
     if (srv_idx < 0 || srv_idx >= BLE_SRV_MAX_NUM)
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
+    if(is_valid_uuid_string(srv_uuid_string))
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     srv_uuid_len = utils_hex2bin(srv_uuid_string, strlen(srv_uuid_string), srv_uuid, sizeof(srv_uuid));
     if (srv_uuid_len != 16&&srv_uuid_len != 2)
@@ -581,7 +668,7 @@ static int at_setup_cmd_ble_gatts_service_delete(int argc, const char **argv)
 {
     int srv_idx = 0;
 
-    if (at_ble_config->work_role != BLE_SERVER)
+    if (at_ble_config->work_role != BLE_SERVER&&at_ble_config->work_role != BLE_DUALMODE)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_INIT);
 
     AT_CMD_PARSE_NUMBER(0, &srv_idx);
@@ -600,7 +687,7 @@ static int at_setup_cmd_ble_gatts_service_register(int argc, const char **argv)
 {
     int enable = 0;
 
-    if (at_ble_config->work_role != BLE_SERVER)
+    if (at_ble_config->work_role != BLE_SERVER&&at_ble_config->work_role != BLE_DUALMODE)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_INIT);
 
     AT_CMD_PARSE_NUMBER(0, &enable);
@@ -621,7 +708,7 @@ static int at_query_cmd_ble_gatts_char(int argc, const char **argv)
     uint8_t uuidtype;
     char uuid_string[33];
 
-    if (at_ble_config->work_role != BLE_SERVER)
+    if (at_ble_config->work_role != BLE_SERVER&&at_ble_config->work_role != BLE_DUALMODE)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_INIT);
 
     for (i = 0; i < BLE_SRV_MAX_NUM; i++) {
@@ -651,7 +738,7 @@ static int at_setup_cmd_ble_gatts_char_create(int argc, const char **argv)
     uint8_t char_uuid[16];
     int char_uuid_len = 0;
     int uuid_type = 0;
-    if (at_ble_config->work_role != BLE_SERVER)
+    if (at_ble_config->work_role != BLE_SERVER&&at_ble_config->work_role != BLE_DUALMODE)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_INIT);
 
     AT_CMD_PARSE_NUMBER(0, &srv_idx);
@@ -663,6 +750,8 @@ static int at_setup_cmd_ble_gatts_char_create(int argc, const char **argv)
     if (srv_idx < 0 || srv_idx >= BLE_SRV_MAX_NUM)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     if (char_idx < 0 || char_idx >= BLE_CHAR_MAX_NUM)
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
+    if(is_valid_uuid_string(char_uuid_string))
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     char_uuid_len = utils_hex2bin(char_uuid_string, strlen(char_uuid_string), char_uuid, sizeof(char_uuid));
     if (char_uuid_len != 16&&char_uuid_len != 2)
@@ -686,18 +775,27 @@ static int at_setup_cmd_ble_gatts_char_create(int argc, const char **argv)
 
 static int at_setup_cmd_ble_gatts_notify(int argc, const char **argv)
 {
+    int conn_index = 0;
     int srv_idx = 0;
     int char_idx = 0;
     int length = 0;
     int recv_num = 0;
     int send_num = 0;
 
-    if (at_ble_config->work_role != BLE_SERVER)
+    if (at_ble_config->work_role != BLE_SERVER&&at_ble_config->work_role != BLE_DUALMODE)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_INIT);
 
-    AT_CMD_PARSE_NUMBER(0, &srv_idx);
-    AT_CMD_PARSE_NUMBER(1, &char_idx );
-    AT_CMD_PARSE_NUMBER(2, &length);
+    AT_CMD_PARSE_NUMBER(0, &conn_index);
+
+    if (!at_ble_is_valid_conn_idx(conn_index))
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
+    
+    if (!at_ble_is_connected(conn_index))
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
+
+    AT_CMD_PARSE_NUMBER(1, &srv_idx);
+    AT_CMD_PARSE_NUMBER(2, &char_idx );
+    AT_CMD_PARSE_NUMBER(3, &length);
 
     if (srv_idx < 0 || srv_idx >= BLE_SRV_MAX_NUM)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
@@ -707,21 +805,22 @@ static int at_setup_cmd_ble_gatts_notify(int argc, const char **argv)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     }
 
-    char *buffer = (char *)pvPortMalloc(length);
+    char *buffer = (char *)at_malloc(length);
     if (!buffer) {
         AT_BLE_CMD_PRINTF("malloc %d bytes failed\r\n", length);
+        buffer = NULL;
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_NO_MEMORY);
     }
-    at_response_result(AT_RESULT_CODE_OK);
-
+    
     AT_CMD_RESPONSE(AT_CMD_MSG_WAIT_DATA);
     while(recv_num < length) {
        recv_num += AT_CMD_DATA_RECV(buffer + recv_num, length - recv_num);
     }
     at_response_string("Recv %d bytes\r\n", recv_num);
 
-    send_num = at_ble_gatts_service_notify(srv_idx, char_idx, buffer, recv_num);
-    vPortFree(buffer);
+    send_num = at_ble_gatts_service_notify(conn_index, srv_idx, char_idx, buffer, recv_num);
+    at_free(buffer);
+    buffer = NULL;
 
 
     if (send_num != recv_num) {
@@ -734,17 +833,26 @@ static int at_setup_cmd_ble_gatts_notify(int argc, const char **argv)
 static int at_setup_cmd_ble_gatts_indicate(int argc, const char **argv)
 {
     int srv_idx = 0;
+    int conn_index = 0;
     int char_idx = 0;
     int length = 0;
     int recv_num = 0;
     int send_num = 0;
 
-    if (at_ble_config->work_role != BLE_SERVER)
+    if (at_ble_config->work_role != BLE_SERVER&&at_ble_config->work_role != BLE_DUALMODE)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_INIT);
 
-    AT_CMD_PARSE_NUMBER(0, &srv_idx);
-    AT_CMD_PARSE_NUMBER(1, &char_idx );
-    AT_CMD_PARSE_NUMBER(2, &length);
+    AT_CMD_PARSE_NUMBER(0, &conn_index);
+
+    if (!at_ble_is_valid_conn_idx(conn_index))
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
+    
+    if (!at_ble_is_connected(conn_index))
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
+
+    AT_CMD_PARSE_NUMBER(1, &srv_idx);
+    AT_CMD_PARSE_NUMBER(2, &char_idx );
+    AT_CMD_PARSE_NUMBER(3, &length);
 
     if (srv_idx < 0 || srv_idx >= BLE_SRV_MAX_NUM)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
@@ -754,9 +862,10 @@ static int at_setup_cmd_ble_gatts_indicate(int argc, const char **argv)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     }
 
-    char *buffer = (char *)pvPortMalloc(length);
+    char *buffer = (char *)at_malloc(length);
     if (!buffer) {
         AT_BLE_CMD_PRINTF("malloc %d bytes failed\r\n", length);
+        buffer = NULL;
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_NO_MEMORY);
     }
 
@@ -766,8 +875,9 @@ static int at_setup_cmd_ble_gatts_indicate(int argc, const char **argv)
     }
     at_response_string("Recv %d bytes\r\n", recv_num);
 
-    send_num = at_ble_gatts_service_indicate(srv_idx, char_idx, buffer, recv_num);
-    vPortFree(buffer);
+    send_num = at_ble_gatts_service_indicate(conn_index, srv_idx, char_idx, buffer, recv_num);
+    at_free(buffer);
+    buffer = NULL;
 
     if (send_num != recv_num) {
         return AT_RESULT_CODE_SEND_FAIL;
@@ -782,8 +892,8 @@ static int at_setup_cmd_ble_gatts_read(int argc, const char **argv)
     int length = 0;
     int recv_num = 0;
     int send_num = 0;
-
-    if (at_ble_config->work_role != BLE_SERVER)
+    
+    if (at_ble_config->work_role != BLE_SERVER&&at_ble_config->work_role != BLE_DUALMODE)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_INIT);
 
     AT_CMD_PARSE_NUMBER(0, &srv_idx);
@@ -798,9 +908,10 @@ static int at_setup_cmd_ble_gatts_read(int argc, const char **argv)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     }
 
-    char *buffer = (char *)pvPortMalloc(length);
+    char *buffer = (char *)at_malloc(length);
     if (!buffer) {
         AT_BLE_CMD_PRINTF("malloc %d bytes failed\r\n", length);
+        buffer = NULL;
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_NO_MEMORY);
     }
 
@@ -811,7 +922,8 @@ static int at_setup_cmd_ble_gatts_read(int argc, const char **argv)
     at_response_string("Recv %d bytes\r\n", recv_num);
 
     send_num = at_ble_gatts_service_read(srv_idx, char_idx, buffer, recv_num);
-    vPortFree(buffer);
+    at_free(buffer);
+    buffer = NULL;
 
     if (send_num != recv_num) {
         return AT_RESULT_CODE_SEND_FAIL;
@@ -832,7 +944,7 @@ static int at_setup_cmd_ble_gattc_service_discover(int argc, const char **argv)
     if (!at_ble_is_connected(conn_index))
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
 
-    if (at_ble_config->work_role != BLE_CLIENT)
+    if (at_ble_config->work_role != BLE_CLIENT&&at_ble_config->work_role != BLE_DUALMODE)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_INIT);
 
     if (!at_ble_gattc_service_discover(conn_index, 5000)) {
@@ -857,7 +969,7 @@ static int at_setup_cmd_ble_gattc_char_discover(int argc, const char **argv)
     if (srv_idx < 0)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
 
-    if (at_ble_config->work_role != BLE_CLIENT)
+    if (at_ble_config->work_role != BLE_CLIENT&&at_ble_config->work_role != BLE_DUALMODE)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_INIT);
 
     if (!at_ble_gattc_service_char_discover(conn_index, srv_idx, 5000)) {
@@ -876,7 +988,7 @@ static int at_setup_cmd_ble_gattc_write(int argc, const char **argv)
     int recv_num = 0;
     int send_num = 0;
 
-    if (at_ble_config->work_role != BLE_CLIENT)
+    if (at_ble_config->work_role != BLE_CLIENT&&at_ble_config->work_role != BLE_DUALMODE)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_INIT);
 
     AT_CMD_PARSE_NUMBER(0, &conn_index);
@@ -888,17 +1000,18 @@ static int at_setup_cmd_ble_gattc_write(int argc, const char **argv)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     if (!at_ble_is_connected(conn_index))
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
-    if (srv_idx < 0)
+    if (srv_idx < 0||srv_idx >= BLE_GATTC_SRV_MAX_NUM)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
-    if (char_idx < 0)
+    if (char_idx < 0||char_idx >= BLE_GATTC_CHAR_MAX_NUM)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     if (length <= 0 || length > 244) {
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     }
 
-    char *buffer = (char *)pvPortMalloc(length);
+    char *buffer = (char *)at_malloc(length);
     if (!buffer) {
         AT_BLE_CMD_PRINTF("malloc %d bytes failed\r\n", length);
+        buffer = NULL;
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_NO_MEMORY);
     }
 
@@ -909,7 +1022,8 @@ static int at_setup_cmd_ble_gattc_write(int argc, const char **argv)
     at_response_string("Recv %d bytes\r\n", recv_num);
 
     send_num = at_ble_gattc_service_write(conn_index, srv_idx, char_idx, buffer, recv_num);
-    vPortFree(buffer);
+    at_free(buffer);
+    buffer = NULL;
 
     if (send_num != recv_num) {
         return AT_RESULT_CODE_SEND_FAIL;
@@ -924,7 +1038,7 @@ static int at_setup_cmd_ble_gattc_read(int argc, const char **argv)
     int srv_idx = 0;
     int char_idx = 0;
 
-    if (at_ble_config->work_role != BLE_CLIENT)
+    if (at_ble_config->work_role != BLE_CLIENT&&at_ble_config->work_role != BLE_DUALMODE)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_INIT);
 
     AT_CMD_PARSE_NUMBER(0, &conn_index);
@@ -935,9 +1049,9 @@ static int at_setup_cmd_ble_gattc_read(int argc, const char **argv)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     if (!at_ble_is_connected(conn_index))
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
-    if (srv_idx < 0)
+    if (srv_idx < 0||srv_idx >= BLE_GATTC_SRV_MAX_NUM)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
-    if (char_idx < 0)
+    if (char_idx < 0||char_idx >= BLE_GATTC_CHAR_MAX_NUM)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
 
     if (!at_ble_gattc_service_read(conn_index, srv_idx, char_idx, 5000)) {
@@ -963,11 +1077,36 @@ static int at_setup_cmd_ble_tx_power(int argc, const char **argv)
 
     if (at_ble_config->work_role == BLE_DISABLE)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_INIT);
+    #if defined(CONFIG_BLE_HOST_CHECK)
+    {
+        int err = 0;
+        err = at_ble_set_tx_power(power);
+        if (err != 0)
+        {
+            if (err == -EINVAL)
+            {
+                return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
+            }
+            if (err == -EACCES)
+            {
+                return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_ALLOWED);
+            }
+            if (err == -ENOBUFS)
+            {
+                return AT_RESULT_WITH_SUB_CODE(AT_SUB_NO_MEMORY);
+            }
+
+            return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_EXEC_FAIL);
+        }
+    }
+    #else
+    {
     if(power<0||power>20)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
-    if (at_ble_set_tx_power(power) != 0) {
+    if (at_ble_set_tx_power(power) != 0)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_EXEC_FAIL);
     }
+    #endif
     return AT_RESULT_CODE_OK;
 }
 
@@ -1003,8 +1142,34 @@ static int at_setup_cmd_ble_sec_cancel(int argc, const char **argv)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     if (!at_ble_is_connected(index))
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
-    if(at_ble_sec_auth_cancel(index))
+    #if defined(CONFIG_BLE_HOST_CHECK)
+    {
+        int err = 0;
+        err = at_ble_sec_auth_cancel(index);
+        if (err != 0)
+        {
+            if (err == -EINVAL)
+            {
+                return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
+            }
+            if (err == -EACCES)
+            {
+                return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_ALLOWED);
+            }
+            if (err == -ENOBUFS)
+            {
+                return AT_RESULT_WITH_SUB_CODE(AT_SUB_NO_MEMORY);
+            }
+
+            return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_EXEC_FAIL);
+        }
+    }
+    #else
+    {
+    if(at_ble_sec_auth_cancel(index)!=0)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_EXEC_FAIL);
+    }
+    #endif
     return AT_RESULT_CODE_OK;
 }
 
@@ -1018,8 +1183,33 @@ static int at_setup_cmd_ble_sec_passkey_confirm(int argc, const char **argv)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     if (!at_ble_is_connected(index))
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
-    if(at_ble_sec_auth_passkey_confirm(index))
+    #if defined(CONFIG_BLE_HOST_CHECK)
+    {
+        int err = 0;
+        err = at_ble_sec_auth_passkey_confirm(index);
+        if (err != 0)
+        {
+            if (err == -EINVAL)
+            {
+                return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
+            }
+            if (err == -EACCES)
+            {
+                return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_ALLOWED);
+            }
+            if (err == -ENOBUFS)
+            {
+                return AT_RESULT_WITH_SUB_CODE(AT_SUB_NO_MEMORY);
+            }
+            return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_EXEC_FAIL);
+        }
+    }
+    #else
+    {
+    if(at_ble_sec_auth_passkey_confirm(index)!=0)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_EXEC_FAIL);
+    }
+    #endif
     return AT_RESULT_CODE_OK;
 }
 
@@ -1033,8 +1223,33 @@ static int at_setup_cmd_ble_sec_pairing_confirm(int argc, const char **argv)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     if (!at_ble_is_connected(index))
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
-    if(at_ble_sec_auth_pairing_confirm(index))
+    #if defined(CONFIG_BLE_HOST_CHECK)
+    {
+        int err = 0;
+        err = at_ble_sec_auth_pairing_confirm(index);
+        if (err != 0)
+        {
+            if (err == -EINVAL)
+            {
+                return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
+            }
+            if (err == -EACCES)
+            {
+                return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_ALLOWED);
+            }
+            if (err == -ENOBUFS)
+            {
+                return AT_RESULT_WITH_SUB_CODE(AT_SUB_NO_MEMORY);
+            }
+            return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_EXEC_FAIL);
+        }
+    }
+    #else
+    {
+    if(at_ble_sec_auth_pairing_confirm(index)!=0)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_EXEC_FAIL);
+    }
+    #endif
     return AT_RESULT_CODE_OK;
 }
 
@@ -1050,10 +1265,35 @@ static int at_setup_cmd_ble_sec_passkey(int argc, const char **argv)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     if (!at_ble_is_connected(index))
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
+    #if defined(CONFIG_BLE_HOST_CHECK)
+    {
+        int err = 0;
+        err = at_ble_sec_auth_passkey(index,key);
+        if (err != 0)
+        {
+            if (err == -EINVAL)
+            {
+                return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
+            }
+            if (err == -EACCES)
+            {
+                return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_ALLOWED);
+            }
+            if (err == -ENOBUFS)
+            {
+                return AT_RESULT_WITH_SUB_CODE(AT_SUB_NO_MEMORY);
+            }
+            return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_EXEC_FAIL);
+        }
+    }
+    #else
+    {
     if (key > 999999|| key < 0) 
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
-    if(at_ble_sec_auth_passkey(index,key))
+    if(at_ble_sec_auth_passkey(index,key)!=0)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_EXEC_FAIL);
+    }
+    #endif
     return AT_RESULT_CODE_OK;
 }
 
@@ -1091,14 +1331,39 @@ static int at_setup_cmd_ble_sec_start(int argc, const char **argv)
     AT_CMD_PARSE_NUMBER(1, &lvl);
     if (at_ble_config->work_role == BLE_DISABLE)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_INIT);
-    if(lvl<0||lvl>4)
-        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     if (!at_ble_is_valid_conn_idx(index))
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     if (!at_ble_is_connected(index))
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
-    if(at_ble_sec_start_security(index,lvl))
+    #if defined(CONFIG_BLE_HOST_CHECK)
+    {
+        int err = 0;
+        err = at_ble_sec_start_security(index,lvl);
+        if (err != 0)
+        {
+            if (err == -EINVAL)
+            {
+                return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
+            }
+            if (err == -EACCES)
+            {
+                return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_ALLOWED);
+            }
+            if (err == -ENOBUFS)
+            {
+                return AT_RESULT_WITH_SUB_CODE(AT_SUB_NO_MEMORY);
+            }
+            return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_EXEC_FAIL);
+        }
+    }
+    #else
+    {
+    if(lvl<0||lvl>4)
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
+    if(at_ble_sec_start_security(index,lvl)!=0)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_EXEC_FAIL);
+    }
+    #endif
     return AT_RESULT_CODE_OK;
 }
 
@@ -1108,7 +1373,7 @@ static int at_setup_cmd_ble_gattc_subscribe(int argc, const char **argv)
     int c_handle = 0;
     int v_handle = 0;
     int val = 0;
-    if (at_ble_config->work_role != BLE_CLIENT)
+    if (at_ble_config->work_role != BLE_CLIENT&&at_ble_config->work_role != BLE_DUALMODE)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_INIT);
 
     AT_CMD_PARSE_NUMBER(0, &index);
@@ -1121,9 +1386,33 @@ static int at_setup_cmd_ble_gattc_subscribe(int argc, const char **argv)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     if(val!=1&&val!=2)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
-    if (!at_ble_subscribe(index,c_handle,v_handle,val)) {
+    #if defined(CONFIG_BLE_HOST_CHECK)
+    {
+        int err = 0;
+        err = at_ble_subscribe(index,c_handle,v_handle,val);
+        if (err != 0)
+        {
+            if (err == -EINVAL)
+            {
+                return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
+            }
+            if (err == -EACCES)
+            {
+                return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_ALLOWED);
+            }
+            if (err == -ENOBUFS)
+            {
+                return AT_RESULT_WITH_SUB_CODE(AT_SUB_NO_MEMORY);
+            }
+            return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_EXEC_FAIL);
+        }
+    }
+    #else
+    {
+    if (at_ble_subscribe(index,c_handle,v_handle,val)!=0)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_EXEC_FAIL);
     }
+    #endif
 
     return AT_RESULT_CODE_OK;
 }
@@ -1132,7 +1421,7 @@ static int at_setup_cmd_ble_gattc_unsubscribe(int argc, const char **argv)
 {
     int conn_index = 0;
     int value_handle = 0;
-    if (at_ble_config->work_role != BLE_CLIENT)
+    if (at_ble_config->work_role != BLE_CLIENT&&at_ble_config->work_role != BLE_DUALMODE)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_INIT);
 
     AT_CMD_PARSE_NUMBER(0, &conn_index);
@@ -1142,9 +1431,33 @@ static int at_setup_cmd_ble_gattc_unsubscribe(int argc, const char **argv)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     if (!at_ble_is_connected(conn_index))
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
-    if (!at_ble_unsubscribe(conn_index,value_handle)) {
+    #if defined(CONFIG_BLE_HOST_CHECK)
+    {
+        int err = 0;
+        err = at_ble_unsubscribe(conn_index,value_handle);
+        if (err != 0)
+        {
+            if (err == -EINVAL)
+            {
+                return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
+            }
+            if (err == -EACCES)
+            {
+                return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_ALLOWED);
+            }
+            if (err == -ENOBUFS)
+            {
+                return AT_RESULT_WITH_SUB_CODE(AT_SUB_NO_MEMORY);
+            }
+            return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_EXEC_FAIL);
+        }
+    }
+    #else
+    {
+    if (at_ble_unsubscribe(conn_index,value_handle)!=0)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_EXEC_FAIL);
     }
+    #endif
 
     return AT_RESULT_CODE_OK;
 }
@@ -1152,7 +1465,7 @@ static int at_setup_cmd_ble_gattc_unsubscribe(int argc, const char **argv)
 #if defined(CONFIG_BT_BAS_SERVER)
 static int at_exe_cmd_ble_bas_register(int argc, const char **argv)
 {
-    if (at_ble_config->work_role != BLE_SERVER)
+    if (at_ble_config->work_role != BLE_SERVER&&at_ble_config->work_role != BLE_DUALMODE)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_INIT);
     if(at_ble_config->ble_bas_init!=0)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_EXEC_FAIL);
@@ -1167,7 +1480,7 @@ static int at_exe_cmd_ble_bas_register(int argc, const char **argv)
 
 static int at_exe_cmd_ble_bas_unregister(int argc, const char **argv)
 {
-    if (at_ble_config->work_role != BLE_SERVER)
+    if (at_ble_config->work_role != BLE_SERVER&&at_ble_config->work_role != BLE_DUALMODE)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_INIT);
     if(at_ble_config->ble_bas_init!=1)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_INIT);
@@ -1183,7 +1496,7 @@ static int at_exe_cmd_ble_bas_unregister(int argc, const char **argv)
 
 static int at_query_cmd_ble_bas_getlevel(int argc, const char **argv)
 {
-    if (at_ble_config->work_role != BLE_SERVER)
+    if (at_ble_config->work_role != BLE_SERVER&&at_ble_config->work_role != BLE_DUALMODE)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_INIT);
     if(at_ble_config->ble_bas_init==0)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_INIT);
@@ -1200,26 +1513,49 @@ static int at_setup_cmd_ble_bas_setlevel(int argc, const char **argv)
     
     int conn_index = 0;
     int value_handle = 0;
-    if (at_ble_config->work_role != BLE_SERVER)
+    if (at_ble_config->work_role != BLE_SERVER&&at_ble_config->work_role != BLE_DUALMODE)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_INIT);
     if(at_ble_config->ble_bas_init==0)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_INIT);
     AT_CMD_PARSE_NUMBER(0, &conn_index);
     AT_CMD_PARSE_NUMBER(1, &value_handle );
-    if(value_handle<0||value_handle>100)
-        return AT_RESULT_CODE_FAIL;
-    if(at_ble_set_battery_level(conn_index, value_handle)!=-1)
+    #if defined(CONFIG_BLE_HOST_CHECK)
     {
-        return AT_RESULT_CODE_OK;
+        int err = 0;
+        err = at_ble_set_battery_level(conn_index, value_handle);
+        if (err != 0)
+        {
+            if (err == -EINVAL)
+            {
+                return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
+            }
+            if (err == -EACCES)
+            {
+                return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_ALLOWED);
+            }
+            if (err == -ENOBUFS)
+            {
+                return AT_RESULT_WITH_SUB_CODE(AT_SUB_NO_MEMORY);
+            }
+            return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_EXEC_FAIL);
+        }
     }
-    return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_EXEC_FAIL);
+    #else
+    {
+    if(value_handle<0||value_handle>100)
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
+    if(at_ble_set_battery_level(conn_index, value_handle)!=0)
+         return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_EXEC_FAIL);
+    }
+    #endif
+    return AT_RESULT_CODE_OK;
 }
 
 #endif
 
 static int at_exe_cmd_ble_ias_register(int argc, const char **argv)
 {
-    if (at_ble_config->work_role != BLE_SERVER)
+    if (at_ble_config->work_role != BLE_SERVER&&at_ble_config->work_role != BLE_DUALMODE)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_INIT);
     if(at_ble_config->ble_ias_init!=0)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_EXEC_FAIL);
@@ -1234,7 +1570,7 @@ static int at_exe_cmd_ble_ias_register(int argc, const char **argv)
 
 static int at_exe_cmd_ble_ias_unregister(int argc, const char **argv)
 {
-    if (at_ble_config->work_role != BLE_SERVER)
+    if (at_ble_config->work_role != BLE_SERVER&&at_ble_config->work_role != BLE_DUALMODE)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_INIT);
     if(at_ble_config->ble_ias_init!=1)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_INIT);
@@ -1257,7 +1593,7 @@ static int at_setup_cmd_ble_dis_register(int argc, const char **argv)
     AT_CMD_PARSE_NUMBER(1, &vid);
     AT_CMD_PARSE_NUMBER(2, &pid);
     AT_CMD_PARSE_NUMBER(3, &pnp_ver);
-    if (at_ble_config->work_role!= BLE_SERVER)
+    if (at_ble_config->work_role != BLE_SERVER&&at_ble_config->work_role != BLE_DUALMODE)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_INIT);
     if(at_ble_config->ble_dis_init!=0)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_EXEC_FAIL);
@@ -1282,7 +1618,7 @@ static int at_setup_cmd_ble_dis_register(int argc, const char **argv)
 
 static int at_exe_cmd_ble_dis_unregister(int argc, const char **argv)
 {
-    if (at_ble_config->work_role != BLE_SERVER)
+    if (at_ble_config->work_role != BLE_SERVER&&at_ble_config->work_role != BLE_DUALMODE)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_INIT);
     if(at_ble_config->ble_dis_init!=1)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_INIT);
@@ -1301,21 +1637,49 @@ static int at_setup_cmd_ble_dis_set(int argc, const char **argv)
     int  disname_value_len  =  0 ;
     AT_CMD_PARSE_STRING(0, disname_string, sizeof(disname_string));
     AT_CMD_PARSE_STRING(1, disname_value, sizeof(disname_value));
-
-    if (strlen(disname_string) <= 0)
-        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
-    if (strlen(disname_value) <= 0)
-        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     AT_CMD_PARSE_NUMBER(2, &disname_value_len);
+
     if (at_ble_config->work_role != BLE_SERVER)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_INIT);
     if(at_ble_config->ble_dis_init!=1)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_EXEC_FAIL);
+    #if defined(CONFIG_BLE_HOST_CHECK)
+    {
+        int err = 0;
+        err = at_ble_dis_set(disname_string,disname_value,disname_value_len);
+        if (err != 0)
+        {
+            if (err == -EINVAL)
+            {
+                return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
+            }
+            if (err == -EACCES)
+            {
+                return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_ALLOWED);
+            }
+            if (err == -ENOBUFS)
+            {
+                return AT_RESULT_WITH_SUB_CODE(AT_SUB_NO_MEMORY);
+            }
+            return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_EXEC_FAIL);
+        }
+    }
+    #else
+    {
+    if (strlen(disname_string) <= 0)
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
+    if (strlen(disname_value) <= 0)
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     if(disname_value_len<=0 || disname_value_len >21)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
-    if(at_ble_dis_set(disname_string,disname_value,disname_value_len)==0)
-        return AT_RESULT_CODE_OK;
-    return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_EXEC_FAIL);
+    if(strlen(disname_value)!=disname_value_len)
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
+    if(at_ble_dis_set(disname_string,disname_value,disname_value_len)!= 0)
+        return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_EXEC_FAIL);
+    }
+    #endif
+    return AT_RESULT_CODE_OK;
+    
 }
 #endif
 
@@ -1341,8 +1705,8 @@ static const at_cmd_struct at_ble_cmd[] = {
     {"+BLEGATTSREGISTER", NULL, NULL, at_setup_cmd_ble_gatts_service_register, NULL, 1, 1},
     {"+BLEGATTSCHAR", NULL, at_query_cmd_ble_gatts_char, NULL, NULL, 0, 0},
     {"+BLEGATTSCHARCRE", NULL, NULL, at_setup_cmd_ble_gatts_char_create, NULL, 6, 6},
-    {"+BLEGATTSNTFY", NULL, NULL, at_setup_cmd_ble_gatts_notify, NULL, 3, 3},
-    {"+BLEGATTSIND", NULL, NULL, at_setup_cmd_ble_gatts_indicate, NULL, 3, 3},
+    {"+BLEGATTSNTFY", NULL, NULL, at_setup_cmd_ble_gatts_notify, NULL, 4, 4},
+    {"+BLEGATTSIND", NULL, NULL, at_setup_cmd_ble_gatts_indicate, NULL, 4, 4},
     {"+BLEGATTSRD", NULL, NULL, at_setup_cmd_ble_gatts_read, NULL, 3, 3},
     {"+BLEGATTCSRVDIS", NULL, NULL, at_setup_cmd_ble_gattc_service_discover, NULL, 1, 1},
     {"+BLEGATTCCHARDIS", NULL, NULL, at_setup_cmd_ble_gattc_char_discover, NULL, 2, 2},

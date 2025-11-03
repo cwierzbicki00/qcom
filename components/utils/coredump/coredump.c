@@ -168,6 +168,9 @@ void coredump_run(void) {
     }
 
     printf("\r\n-+-+-+- QCC74x COREDUMP END +-+-+-+\r\n");
+
+    int qcc74x_sys_reset_por(void);
+    qcc74x_sys_reset_por();
     while (1) {
         asm ("nop");
     }

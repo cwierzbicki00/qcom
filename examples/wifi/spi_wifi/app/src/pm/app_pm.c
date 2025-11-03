@@ -41,75 +41,9 @@
 #include "qcc743_glb.h"
 #include "clock_manager.h"
 #include "tickless.h"
-#include "linear_allocator.h"
+#include "pm_manager.h"
 
-#define PM_MEM_POOL_SIZE    (1460 *2)
-static TaskHandle_t rxl_process_task_hd = NULL;
-int enable_multicast_broadcas = 0;
-extern qcc74x_lp_fw_cfg_t lpfw_cfg;
-static linear_allocator pm_mem;
-struct pbuf *pm_pbuf;
-
-int pm_sys_init(void)
-{
-    memset(&pm_mem, 0, sizeof(linear_allocator));
-
-    wifi_mgmr_sta_ps_status_register(tickless_handke_get());
-
-    return 0;
-}
-
-int pm_mem_pool_alloc(void)
-{
-    if (pm_pbuf) {
-        return 0;
-    }
-
-    pm_pbuf = pbuf_alloc(PBUF_RAW, PM_MEM_POOL_SIZE, PBUF_RAM);
-
-    if (!pm_pbuf) {
-        printf("!!!! pbuf alloc fail.\r\n");
-        return -1;
-    }
-
-    if (pm_pbuf->len < PM_MEM_POOL_SIZE) {
-        printf("WARNING: pbuf actual len %d < expected pool size %d!\n", pm_pbuf->len, PM_MEM_POOL_SIZE);
-    }
-
-    if (!pm_pbuf->payload) {
-        printf("[PM] Error: pbuf payload is NULL!\r\n");
-        return -1;
-    }
-
-    linear_allocator_init(&pm_mem, pm_pbuf->payload, pm_pbuf->len);
-
-    return 0;
-}
-
-int pm_mem_pool_free(void)
-{
-    if (pm_pbuf) {
-        pbuf_free(pm_pbuf);
-        pm_pbuf = NULL;
-    }
-
-    linear_allocator_reset(&pm_mem);
-
-    return 0;
-}
-
-uint32_t rxl_pbuf_pool_get(void)
-{
-    uint32_t addr = (uint32_t)&pm_mem;
-
-    if ((addr & 0xF0000000) == 0x60000000) {
-        addr = (addr & 0x0FFFFFFF) | 0x20000000;
-    }
-
-    return addr;
-}
-
-#define APP_PM_IELD_TASK_STACK_SIZE (512)
+#define APP_PM_IELD_TASK_STACK_SIZE (384)
 
 void vApplicationGetIdleTaskMemory(StaticTask_t **ppxIdleTaskTCBBuffer, StackType_t **ppxIdleTaskStackBuffer, uint32_t *pulIdleTaskStackSize)
 {
@@ -177,6 +111,7 @@ static void set_cpu_bclk_80M_and_gate_clk(void)
 static int lp_exit(void *arg)
 {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+    extern TaskHandle_t rxl_process_task_hd; 
     int wakeup_reason;
 
     nxspi_ps_exit(NULL);
@@ -202,7 +137,7 @@ static int lp_exit(void *arg)
         vTaskNotifyGiveFromISR(rxl_process_task_hd, &xHigherPriorityTaskWoken);
         portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
     } else {
-        linear_allocator_reset(&pm_mem);
+        pm_alloc_mem_reset();
     }
 
     //GLB_GPIO_Func_Init(GPIO_FUN_JTAG, pinList, 4);
@@ -210,253 +145,9 @@ static int lp_exit(void *arg)
     return 0;
 }
 
-#if 0
-static int lp_exit(void *arg)
-{
-    printf("start board recovery.\r\n");
-    /* recovery system_clock_init\peripheral_clock_init\console_init*/
-    board_recovery();
-    printf("board recovery.\r\n");
-
-    GLB_Set_EM_Sel(GLB_WRAM160KB_EM0KB);
-
-    board_rf_ctl(BRD_CTL_RF_RESET_DEFAULT, 0);
-
-    vPortSetupTimerInterrupt();
-
-    qcc74x_uart_rxint_mask(uart_shell, false);
-    qcc74x_irq_attach(uart_shell->irq_num, uart_shell_isr, NULL);
-    qcc74x_irq_enable(uart_shell->irq_num);
-    printf("init uart.\r\n");
-
-    GLB_GPIO_Func_Init(GPIO_FUN_JTAG, pinList, 4);
-
-    return 0;
-}
-#endif
-
 static int lp_enter(void *arg)
 {
     nxspi_ps_enter(NULL);
-    return 0;
-}
-
-#ifdef CONFIG_SHELL
-int cmd_wifi_lp(int argc, char **argv)
-{
-    int ret = 0;
-    printf("enter wireless low power!\r\n");
-
-    qcc74x_lp_init();
-    // qcc74x_lp_fw_init();
-    qcc74x_lp_sys_callback_register(lp_enter, NULL, lp_exit, NULL);
-
-    while (1) {
-        // lp_exit(0);
-        ret = qcc74x_lp_fw_enter(&lpfw_cfg);
-        if (ret < 0) {
-            printf("[E]qcc74x_lpfw_enter Fail,ErrId:%d\r\n", ret);
-        } else {
-            printf("qcc74x_lpfw_enter Success\r\n");
-        }
-        arch_delay_ms(1000);
-    }
-
-    return 0;
-}
-
-void set_dtim_config(int dtim)
-{
-    lpfw_cfg.dtim_origin = dtim;
-    wifi_mgmr_sta_set_listen_itv(dtim);
-}
-
-void clear_dtim_config(void)
-{
-    // Use default config
-    lpfw_cfg.dtim_origin = 10;
-    wifi_mgmr_sta_set_listen_itv(lpfw_cfg.dtim_origin);
-}
-
-uint8_t lp_interval_get(void)
-{
-    return lpfw_cfg.dtim_num;
-}
-
-static void cmd_twt(int argc, char **argv)
-{
-    lpfw_cfg.dtim_origin = 0;
-
-    qcc74x_lp_fw_bcn_loss_cfg_dtim_default(lpfw_cfg.dtim_origin);
-    pm_enable_tickless();
-}
-
-int pm_enter_lp_perparation(void)
-{
-    int ret = 0;
-    int dtim = 0;
-    if (enable_multicast_broadcas) {
-        ret = pm_mem_pool_alloc();
-
-        if (!ret) {
-            lpfw_cfg.buf_addr = rxl_pbuf_pool_get();
-        } else {
-            lpfw_cfg.buf_addr = NULL;
-        }
-    } else {
-        lpfw_cfg.buf_addr = NULL;
-    }
-
-    dtim = wifi_mgmr_sta_get_listen_itv();
-
-    lpfw_cfg.dtim_origin = dtim;
-
-    qcc74x_lp_fw_bcn_loss_cfg_dtim_default(lpfw_cfg.dtim_origin);
-
-    if (wifi_mgmr_sta_state_get()) {
-        wifi_mgmr_sta_ps_enter();
-    }
-
-    return ret;
-}
-
-int pm_exit_lp_perparation(void)
-{
-    pm_mem_pool_free();
-    lpfw_cfg.buf_addr = NULL;
-
-    if (wifi_mgmr_sta_state_get()) {
-        wifi_mgmr_sta_ps_exit();
-    }
-
-    return 0;
-}
-
-int pm_enable_tickless(void)
-{
-    pm_enter_lp_perparation();
-
-    tickless_enter();
-
-    return 0;
-}
-
-int pm_disable_tickless(void)
-{
-    pm_exit_lp_perparation();
-
-    tickless_exit();
-
-    return 0;
-}
-
-int pm_status_update(int status)
-{
-    //update status
-    if (status) {
-        pm_disable_tickless();
-    } else {
-        pm_enable_tickless();
-    }
-}
-
-static void cmd_tickless(int argc, char **argv)
-{
-    uint8_t dtim;
-    if ((argc > 1) && (argv[1] != NULL)) {
-        printf("%s\r\n", argv[1]);
-        dtim = atoi(argv[1]);
-    } else {
-        dtim = 10;
-    }
-
-    set_dtim_config(dtim);
-    pm_enable_tickless();
-}
-
-static int test_tcp_keepalive(int argc, char **argv)
-{
-    int sockfd;
-    // uint8_t *recv_buffer;
-    struct sockaddr_in dest, my_addr;
-    char buffer[51];
-    uint32_t pck_cnt = 0;
-    uint32_t pck_total = 0;
-
-    /* Create a socket */
-    if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-        printf("Error in socket\r\n");
-        return -1;
-    }
-
-    /*---Initialize server address/port struct---*/
-    memset(&my_addr, 0, sizeof(my_addr));
-    my_addr.sin_family = AF_INET;
-    my_addr.sin_addr.s_addr = INADDR_ANY;
-    my_addr.sin_port = htons(50001);
-
-    memset(&dest, 0, sizeof(dest));
-    dest.sin_family = AF_INET;
-    dest.sin_port = htons(50001);
-    inet_aton(argv[1], &dest.sin_addr);
-
-    if (argc == 4) {
-        pck_cnt = atoi(argv[3]);
-        printf("keep alive pck:%ld\r\n");
-    }
-
-    printf("tcp server ip: %s\r\n", argv[1]);
-
-    if (bind(sockfd, (struct sockaddr *)&my_addr, sizeof(my_addr)) != 0) {
-        printf("Error in bind\r\n");
-        close(sockfd);
-        return -1;
-    }
-
-    /*---Connect to server---*/
-    if (connect(sockfd, (struct sockaddr *)&dest, sizeof(dest)) != 0) {
-        printf("Error in connect\r\n");
-        close(sockfd);
-        return -1;
-    }
-
-    /*---Get "Hello?"---*/
-    memset(buffer, 'A', sizeof(buffer) - 1);
-
-#ifdef LP_APP
-    if (argc > 2) {
-        cmd_tickless(0, NULL);
-    }
-#endif
-
-    int ret = 0;
-
-    while (1) {
-        pck_total++;
-        snprintf(buffer, sizeof(buffer), "SEQ = %ld  ", pck_total);
-
-        buffer[sizeof(buffer) - 2] = '\n';
-        ret = write(sockfd, buffer, sizeof(buffer) - 1);
-        if (ret != sizeof(buffer) - 1) {
-            printf("write error: %d\n", ret);
-            break;
-        }
-        printf("**********************************\n");
-        printf("SEQ:%ld WRITE SUCCESS %d\n", pck_total, ret);
-
-        if (pck_cnt && (pck_total >= pck_cnt)) {
-            qcc74x_pm_event_bit_set(PSM_EVENT_APP);
-            break;
-        }
-#if 0
-        ret = read(sockfd, buffer, sizeof(buffer)-1);
-        buffer[sizeof(buffer) -1] = 0;
-        printf("read ret: %d, %s\r\n", ret, buffer);
-#endif
-        vTaskDelay(pdMS_TO_TICKS(30 * 1000));
-    }
-
-    close(sockfd);
     return 0;
 }
 
@@ -510,51 +201,6 @@ void modify_register_bits_incremental(int increment)
     */
 }
 
-static void cmd_xtal32k_calibration(int argc, char **argv)
-{
-    uint32_t offset;
-
-    offset = atoi(argv[1]);
-    printf("offset:%d\r\n", offset);
-    modify_register_bits_incremental(offset); 
-}
-
-static void cmd_xtal32k_calc(int argc, char **argv)
-{
-    uint64_t rtc_us, rtc_cal_us;
-    uint64_t mtimer_us, mtimer_cal_us;
-    uint64_t mius;
-
-
-    uint32_t delay;
-
-    delay = atoi(argv[1]);
-    printf("delay:%ld\r\n", delay);
-
-    //xtal 32k calibration
-    __disable_irq();
-    rtc_us = qcc74x_rtc_get_time(NULL);
-    mtimer_us = qcc74x_mtimer_get_time_us();
-    __enable_irq();
-
-    vTaskDelay(delay);
-
-    __disable_irq();
-    rtc_cal_us = qcc74x_rtc_get_time(NULL);
-    mtimer_cal_us = qcc74x_mtimer_get_time_us();
-    __enable_irq();
-
-    rtc_us = ((rtc_cal_us - rtc_us) * 1000000) / 32768;
-    mtimer_us = mtimer_cal_us - mtimer_us;
-
-    if (rtc_us > mtimer_us) {
-        mius = rtc_us - mtimer_us;
-    } else {
-        mius = mtimer_us - rtc_us;
-    }
-    printf("mtimer:%llu rtc:%llu minus:%llu\r\n", mtimer_us, rtc_us, mius);
-}
-
 static void lp_io_wakeup_callback(uint64_t wake_up_io_bits)
 {
     //enable_tickless = 0;
@@ -573,7 +219,7 @@ static void lp_io_wakeup_callback(uint64_t wake_up_io_bits)
 static qcc74x_lp_io_cfg_t lp_wake_io_cfg;
 int lp_set_wakeup_by_io(uint8_t io, uint8_t mode)
 {
-    if ((io != 16 && io != 28) || (mode > 1)) {
+    if ((io != 16 && io != 28) || (mode !=0 && mode != 1)) {
         printf("[PM] Error: only support gpio 16, 28 and mode 0/1\r\n");
         return -1;
     } 
@@ -607,10 +253,10 @@ int lp_set_wakeup_by_io(uint8_t io, uint8_t mode)
 
 int lp_delete_wakeup_by_io(uint8_t io)
 {
-    if (io < 28 || io > 29) {
-        printf("[PM] Error: only support gpio 28, 29 now.\r\n");
+    if (io != 16 && io != 28) {
+        printf("[PM] Error: only support gpio 16, 28 and mode 0/1\r\n");
         return -1;
-    }
+    } 
 
     lp_wake_io_cfg.io_wakeup_unmask &= ~((uint64_t)1 << io);
     
@@ -726,17 +372,10 @@ static void cmd_delete_arp_timer(int argc, char **argv)
     return;
 }
 
-SHELL_CMD_EXPORT_ALIAS(cmd_tickless, tickless, cmd tickless);
-SHELL_CMD_EXPORT_ALIAS(cmd_twt, twt, cmd twt);
-SHELL_CMD_EXPORT_ALIAS(cmd_wifi_lp, wifi_lp_test, wifi low power test);
-SHELL_CMD_EXPORT_ALIAS(test_tcp_keepalive, lpfw_tcp_keepalive, tcp keepalive test);
 SHELL_CMD_EXPORT_ALIAS(cmd_io_dbg, io_debug, cmd io_debug);
 SHELL_CMD_EXPORT_ALIAS(cmd_32k_output, output_32k, cmd 32k output);
-SHELL_CMD_EXPORT_ALIAS(cmd_xtal32k_calibration, xtal_calibration, cmd xtal calibration);
-SHELL_CMD_EXPORT_ALIAS(cmd_xtal32k_calc, calc, cmd xtal32k calc);
 SHELL_CMD_EXPORT_ALIAS(cmd_create_arp_timer, create_arp_timer, cmd create arp timer);
 SHELL_CMD_EXPORT_ALIAS(cmd_delete_arp_timer, delete_arp_timer, cmd delete arp timer);
-#endif
 
 static TaskHandle_t xtal32k_check_entry_task_hd = NULL;
 
@@ -744,13 +383,6 @@ void timerCallback(TimerHandle_t xTimer)
 {
     pm_disable_tickless();
     xTimerDelete(xTimer, portMAX_DELAY);
-
-    //if (wifi_mgmr_sta_state_get()) {
-    //    wifi_mgmr_sta_ps_exit();
-    //}
-    //spisync_wakeuparg_t wakeup_arg;
-    //wakeup_arg.wakeup_reason = 2;
-    //spisync_ps_wakeup(NULL, &wakeup_arg);
 }
 
 void createAndStartTimer(const char* timerName, TickType_t timerPeriod)
@@ -831,8 +463,63 @@ void keepalive_callback(TimerHandle_t xTimer)
     wifi_mgmr_null_data_send();
 }
 
-void app_pm_twt_param_set(int s, int t, int e, int n, int m)
+#define TWT_SETUP_REQUEST   0
+#define TWT_SETUP_SUGGEST   1
+#define TWT_SETUP_DEMAND    2
+
+#define TWT_FLOW_ANNOUNCED      0
+#define TWT_FLOW_UNANNOUNCED    1
+
+static int twt_param_validate(int s, int t, int e, int n, int m)
 {
+    /* 1) SetupType */
+    if ((s < TWT_SETUP_REQUEST) || (s > TWT_SETUP_DEMAND)) {
+        printf("[TWT] Invalid setup_type %d (expect 0-2)\n", s);
+        return -1;
+    }
+
+    /* 2) FlowType */
+    if ((t != TWT_FLOW_ANNOUNCED) && (t != TWT_FLOW_UNANNOUNCED)) {
+        printf("[TWT] Invalid flow_type %d (expect 0/1)\n", t);
+        return -2;
+    }
+
+    /* 3) Exponent */
+    if ((e < 0) || (e > 31)) {
+        printf("[TWT] wake_int_exp %d out of range 0-31\n", e);
+        return -3;
+    }
+
+    /* 4) Wake-up window (min_twt_wake_dur) */
+    if ((n < 0) || (n > 255)) {
+        printf("[TWT] min_twt_wake_dur %d out of range 0-255\n", n);
+        return -4;
+    }
+
+    /* 5) Mantissa */
+    if ((m <= 0) || (m > 65535)) {
+        printf("[TWT] wake_int_mantissa %d out of range 1-65535\n", m);
+        return -5;
+    }
+
+    uint64_t interval_us   = (uint64_t)m << (e + 8);   // m*2^e*256
+    uint32_t sp_us         = (uint32_t)n * 256;        // n*256
+    if (sp_us >= interval_us) {
+        printf("[TWT] SP (%u µs) >= Interval (%llu µs) – adjust n/e/m\n",
+               sp_us, (unsigned long long)interval_us);
+        return -6;
+    }
+
+    return 0;
+}
+
+int app_pm_twt_param_set(int s, int t, int e, int n, int m)
+{
+    int ret = twt_param_validate(s, t, e, n, m);
+    if (ret) {
+        return -1;
+    }
+
     twt_setup_params_struct_t param;
     param.setup_type = s;
     param.flow_type = t;
@@ -842,16 +529,8 @@ void app_pm_twt_param_set(int s, int t, int e, int n, int m)
     param.wake_int_mantissa = m;
 
     wifi_mgmr_sta_twt_setup(&param);
-}
 
-
-void app_pm_twt_enter(void)
-{
-    //TODO: Fix it.
-    pm_enable_tickless();
-
-    lpfw_cfg.dtim_origin = 0;
-    qcc74x_lp_fw_bcn_loss_cfg_dtim_default(lpfw_cfg.dtim_origin);
+    return 0;
 }
 
 int app_create_keepalive_timer(uint32_t periods)
@@ -905,119 +584,6 @@ int app_delete_keepalive_timer(void)
     return 0;
 }
 
-#if 0
-static void print_pbuf_contents(struct pbuf *p, int pbuf_index)
-{
-    if (!p || !p->payload) {
-        printf("[RECV_TASK] pbuf %d is NULL or has no payload\r\n", pbuf_index);
-        return;
-    }
-
-    printf("[RECV_TASK] ========== PBUF %d CONTENTS ==========\r\n", pbuf_index);
-    printf("[RECV_TASK] pbuf->len: %d, pbuf->tot_len: %d\r\n", p->len, p->tot_len);
-    printf("[RECV_TASK] pbuf->type: %d, pbuf->flags: 0x%02x\r\n", p->type_internal, p->flags);
-    printf("[RECV_TASK] pbuf->payload: %p\r\n", p->payload);
-
-    uint8_t *data = (uint8_t *)p->payload;
-    uint16_t len = p->len;
-
-    if (len >= 14) {
-        printf("[RECV_TASK] Ethernet Header Analysis:\r\n");
-        printf("  Dest MAC: %02x:%02x:%02x:%02x:%02x:%02x\r\n",
-               data[0], data[1], data[2], data[3], data[4], data[5]);
-        printf("  Src MAC:  %02x:%02x:%02x:%02x:%02x:%02x\r\n",
-               data[6], data[7], data[8], data[9], data[10], data[11]);
-
-        uint16_t ethertype = (data[12] << 8) | data[13];
-        printf("  EtherType: 0x%04x ", ethertype);
-
-        switch (ethertype) {
-            case 0x0800:
-                printf("(IPv4)\r\n");
-                break;
-            case 0x0806:
-                printf("(ARP)\r\n");
-                break;
-            case 0x86DD:
-                printf("(IPv6)\r\n");
-                break;
-            default:
-                printf("(Unknown)\r\n");
-                break;
-        }
-
-        if (ethertype == 0x0800 && len >= 34) {
-            printf("[RECV_TASK] IPv4 Header Analysis:\r\n");
-            uint8_t *ip_header = &data[14];
-            uint8_t version = (ip_header[0] >> 4) & 0x0F;
-            uint8_t ihl = ip_header[0] & 0x0F;
-            uint8_t protocol = ip_header[9];
-
-            printf("  Version: %d, IHL: %d\r\n", version, ihl);
-            printf("  Protocol: %d ", protocol);
-
-            switch (protocol) {
-                case 1:
-                    printf("(ICMP)\r\n");
-                    break;
-                case 6:
-                    printf("(TCP)\r\n");
-                    break;
-                case 17:
-                    printf("(UDP)\r\n");
-                    break;
-                default:
-                    printf("(Other)\r\n");
-                    break;
-            }
-
-            printf("  Src IP: %d.%d.%d.%d\r\n",
-                   ip_header[12], ip_header[13], ip_header[14], ip_header[15]);
-            printf("  Dst IP: %d.%d.%d.%d\r\n",
-                   ip_header[16], ip_header[17], ip_header[18], ip_header[19]);
-        }
-    }
-
-    printf("[RECV_TASK] ====================================\r\n");
-}
-#endif
-
-static void process_multicase_broadcast(void *pvParameters)
-{
-    struct pbuf *p;
-
-    while (1) {
-        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-
-        linear_allocator_iter_reset(&pm_mem);
-        p = (struct pbuf *)linear_allocator_next_ptr(&pm_mem);
-        while (p) {
-            if (p != NULL && p->payload) {
-                //print_pbuf_contents(p, 0);
-                
-                #if CONFIG_LWIP_ONHOST_ENABLE
-                extern int dual_stack_input(struct pbuf *p, bool is_sta);
-                dual_stack_input(p, 1);
-                #else
-                if (netif_default && netif_default->input) {
-                    err_t ret = netif_default->input(p, netif_default);
-                    if (ret != ERR_OK) {
-                        printf("[RECV_TASK] Failed to input pbuf to netif\r\n");
-                        pbuf_free(p);
-                    }
-                } else {
-                }
-                #endif
-            }
-            p = (struct pbuf *)linear_allocator_next_ptr(&pm_mem);
-        }
-
-        linear_allocator_reset(&pm_mem);
-    }
-
-    vTaskDelete(NULL);
-}
-
 void app_pm_exit_pds15(void)
 {
     pm_disable_tickless();
@@ -1026,7 +592,16 @@ void app_pm_exit_pds15(void)
 
 int qcc74x_pm_app_check(void)
 {
-    return nxspi_ps_get();
+    int spi_check, pbufc_check;
+
+    spi_check = nxspi_ps_get();
+    pbufc_check = pm_pbufc_check();
+
+    if (!spi_check && !pbufc_check) {
+        return 0; 
+    }
+
+    return 1;
 }
 
 int pwr_info_clear(void)
@@ -1082,9 +657,6 @@ int app_pm_init(void)
 
     app_clock_init();
     app_atmoudle_init();
-
-    printf("[OS] Starting process_multicase_broadcast task...\r\n");
-    xTaskCreate(process_multicase_broadcast, (char*)"hellow", 384, NULL, 10, &rxl_process_task_hd);
 
     return 0;
 }

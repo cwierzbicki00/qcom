@@ -4,11 +4,9 @@
 #include <media.h>
 #include <cli.h>
 #include <msp/kernel.h>
-// #include <board.h>
 #include <msp_fs.h>
 #include <avutil/vol_scale.h>
 #include <devices/drv_snd_qcc743.h>
-// #include "bt/app_bt.h"
 #include "avutil/av_config.h"
 
 #define TAG "player"
@@ -162,7 +160,6 @@ void play_sintest(int sec)
                         MSP_DEFAULT_APP_PRI);
 }
 
-extern void app_bt_adv_enable(int enable);
 static int cli_player_proc(int argc, char **argv)
 {
     if (argc < 2) {
@@ -274,17 +271,6 @@ static int cli_player_proc(int argc, char **argv)
             printf("%d, %.3f, %.3f\n", i, db, db- db_last);
             db_last = db;
         }
-#if defined(CONFIG_BT_BREDR) && (CONFIG_BT_BREDR == 1)
-    } else if (strcmp(argv[1], "a2dp") == 0) {
-        if (argc == 3) {
-            int cmd = atoi(argv[2]);
-            if (cmd == 0) {
-                app_bt_adv_enable(0);
-            } else {
-                app_bt_adv_enable(1);
-            }
-        }
-#endif
     } else if (strcmp(argv[1], "loop_play") == 0) {
         char *   url;
 
@@ -322,7 +308,6 @@ static void cmd_player_func(char *buf, int len, int argc, char **argv)
         printf("\tsmta stop|pause|resume 0|1|2|255\n");
         printf("\tsmta vol +|-|?|[0-100]\n");
         printf("\tsmta sin 3\n");
-        printf("\tsmta a2dp 1|0\n");
         printf("\tsmta state_get\n");
     }
 }

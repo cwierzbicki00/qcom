@@ -137,7 +137,7 @@ static void common_set(u16_t id, uint32_t opcode, uint8_t ack,
 }
 #endif
 
-#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undefP) || defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undefL) || defined(QCC743D)
+#if defined(QCC74x_undef) || defined(QCC74x_undef) || defined(QCC74x_undefP) || defined(QCC743) || defined(QCC74x_undef) || defined(QCC74x_undefL) || defined(QCC75X)
 #define vOutputString(...)  printf(__VA_ARGS__)
 #else
 #define vOutputString(...)  qcc74x_print(SYSTEM_UART_ID, PRINT_MODULE_CLI, __VA_ARGS__)

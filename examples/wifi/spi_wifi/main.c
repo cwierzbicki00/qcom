@@ -44,6 +44,12 @@
 #include "app_spiwifi.h"
 #include "app_pm.h"
 
+#if NXSPI_OPENTHREAD_RADIO
+#include "lmac154.h"
+#include "openthread_port.h"
+#include "openthread/ncp.h"
+#endif
+
 #include "board.h"
 #include "shell.h"
 
@@ -56,6 +62,9 @@
 
 static struct qcc74x_device_s *uart0;
 extern void shell_init_with_task(struct qcc74x_device_s *shell);
+#if NXSPI_OPENTHREAD_RADIO
+extern void __libc_init_array(void);
+#endif
 
 /* Add forward declaration if needed */
 void board_spi0_gpio_3pin_init(void);
@@ -64,8 +73,32 @@ void app_init_entry(void *param)
 {
     app_spiwifi_init();
 
+#if NXSPI_OPENTHREAD_RADIO
+    otRadio_opt_t opt;
+
+    opt.byte = 0;
+    opt.bf.isCoexEnable = true;
+    opt.bf.isLinkMetricEnable = true;
+    opt.bf.isCSLReceiverEnable = true;
+    opt.bf.isTimeSyncEnable = true;
+
+    otrStart(opt);
+#endif
+
     vTaskDelete(NULL);
 }
+
+#if NXSPI_OPENTHREAD_RADIO
+void vApplicationTickHook( void )
+{
+    lmac154_monitor();
+}
+
+void otrInitUser(otInstance * instance)
+{
+    otAppNcpInit((otInstance * )instance);
+}
+#endif
 
 int main(void)
 {
@@ -91,6 +124,9 @@ void at_minidump_init(uint32_t, size_t);
 #else
     board_spi0_gpio_init();
 #endif 
+#if NXSPI_OPENTHREAD_RADIO
+    __libc_init_array();
+#endif
 
     if (xTaskCreate(app_init_entry, (char *)"init", INIT_STACK_SIZE, NULL, TASK_PRIORITY_INIT, NULL) != pdPASS) {
         printf("[main] Error: xTaskCreate failed\r\n");

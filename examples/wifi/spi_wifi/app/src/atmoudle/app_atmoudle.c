@@ -12,6 +12,9 @@
 #include <utils_crc.h>
 
 #include <nxspi.h>
+#if NXSPI_OPENTHREAD_RADIO
+#include <openthread_port.h>
+#endif
 
 #if 0
 spisync_t    *at_spisync = NULL;
@@ -68,7 +71,7 @@ static void __spisync_gpio_init(void *arg)
 #if 0
 #define FAKEBUF_SIZE SPISYNC_PAYLOADBUF_LEN
 #else
-#define FAKEBUF_SIZE NXBD_MTU
+#define FAKEBUF_SIZE 1024
 #endif
 static void atspisync_fakepush_forpop_cmd(int argc, char **argv)
 {
@@ -147,6 +150,10 @@ void app_atmoudle_init(void)
     at_module_init();
 #if NXSPI_HCI
     spihci_init();
+#endif
+#if NXSPI_OPENTHREAD_RADIO
+    extern void ot_nxspi_notify_rxd(void);
+    nxspi_rxd_callback_register(ot_nxspi_notify_rxd, NXSPI_TYPE_OT);
 #endif
 }
 

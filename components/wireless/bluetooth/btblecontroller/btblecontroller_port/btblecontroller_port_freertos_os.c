@@ -1,6 +1,9 @@
 #include "btblecontroller_port_os.h"
 #include "FreeRTOS.h"
 
+#if defined(CONFIG_TLSF)
+#include "mem.h"
+#endif
 __attribute__((weak)) int btblecontroller_task_new(btblecontroller_TaskFunction_t taskFunction,const char *name, int stack_size, void *arg, int prio,void *taskHandler)
 {
     return xTaskCreate( (TaskFunction_t)taskFunction, name, stack_size, arg, prio,(TaskHandle_t * const)taskHandler);
@@ -67,11 +70,19 @@ __attribute__((weak)) void * btblecontroller_task_get_current_task_handle(void)
 
 __attribute__((weak)) void *btblecontroller_malloc(size_t xWantedSize)
 {
+    #if defined(CONFIG_TLSF)
+    return kmalloc(xWantedSize,MM_KERNEL);
+    #else
     return pvPortMalloc(xWantedSize);
+    #endif
 }
 
 __attribute__((weak)) void btblecontroller_free(void *buf)
 {
+    #if defined(CONFIG_TLSF)
+    kfree(buf);
+    #else
     vPortFree(buf);
+    #endif
 }
 
