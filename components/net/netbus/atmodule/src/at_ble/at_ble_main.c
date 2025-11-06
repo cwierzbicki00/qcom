@@ -367,15 +367,15 @@ static void ble_connected(struct bt_conn *conn, u8_t err)
             BLE_UNLOCK();
             return;
         }
-        at_response_string("+BLE:CONNECTED:%d,%d,\"%02x:%02x:%02x:%02x:%02x:%02x\"\r\n",
+        at_response_string("+BLE:CONNECTED:%d,\"%02x:%02x:%02x:%02x:%02x:%02x\",%d\r\n",
                         conn_data->idx,
-                        BT_CONN_ROLE_SLAVE,
                         remote_addr->a.val[5],
                         remote_addr->a.val[4],
                         remote_addr->a.val[3],
                         remote_addr->a.val[2],
                         remote_addr->a.val[1],
-                        remote_addr->a.val[0]);
+                        remote_addr->a.val[0],
+                        BT_CONN_ROLE_SLAVE);
         
     }
 }
@@ -394,21 +394,27 @@ static void ble_disconnected(struct bt_conn *conn, u8_t reason)
         return;
     
     BLE_LOCK();
-    at_response_string("+BLE:DISCONNECTED:%d,%d,\"%02x:%02x:%02x:%02x:%02x:%02x\"\r\n",
+    at_response_string("+BLE:DISCONNECTED:%d,\"%02x:%02x:%02x:%02x:%02x:%02x\",%d\r\n",
             conn_data->idx,
-            conn_data->role,
             conn_data->addr[5],
             conn_data->addr[4],
             conn_data->addr[3],
             conn_data->addr[2],
             conn_data->addr[1],
-            conn_data->addr[0]);
+            conn_data->addr[0],
+            conn_data->role);
 
     conn_data->state = BLE_CONN_STATE_DISCONNECTED;
     conn_data->conn  = NULL;
     conn_data->valid = 0;
     memset(&conn_data->addr,0,sizeof(conn_data->addr));
     conn_data->indicate_finish = 0;
+
+    if (conn->role == BT_CONN_ROLE_SLAVE)
+    {
+        set_adv_enable(true);
+    }
+ 
     BLE_UNLOCK();
     
 }

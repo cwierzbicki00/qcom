@@ -1549,6 +1549,9 @@ static int at_query_cmd_cwcountry(int argc, const char **argv)
 {
     char country_code_string[5] = {0};
     wifi_mgmr_get_country_code(country_code_string);
+    if (country_code_string[0] == 'W' && country_code_string[1] == 'W' && country_code_string[2] == '\0') {
+        strcpy(country_code_string, "00");
+    }
     at_response_string("+CWCOUNTRY:%d,\"%s\"\r\n",
             at_wifi_config->wifi_country.country_policy,
             country_code_string);
@@ -1569,6 +1572,9 @@ static int at_setup_cmd_cwcountry(int argc, const char **argv)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     }
     for (country_code=0; country_code<WIFI_COUNTRY_CODE_MAX; country_code++) {
+        if (code[0] == '0' && code[1] == '0' && code[2] == '\0') {
+            strcpy(code, "WW");
+        }
         if (strcasecmp(code, country_code_string[country_code]) == 0) {
             break;
         }

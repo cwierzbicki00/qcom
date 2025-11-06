@@ -378,7 +378,7 @@ static int at_query_cmd_ble_conn(int argc, const char **argv)
 
     for (i = 0; i < BLE_CONN_MAX_NUM; i++) {
         if (at_ble_is_valid_conn_idx(i) && at_ble_is_connected(i) && at_ble_conn_get_addr(i, addr)&&(at_ble_conn_get_role(i)!=-1)) {
-            at_response_string("+BLECONN:%d,%d,\"%02x:%02x:%02x:%02x:%02x:%02x\"\r\n", i,at_ble_conn_get_role(i), addr[5], addr[4], addr[3], addr[2], addr[1], addr[0]);
+            at_response_string("+BLECONN:%d,\"%02x:%02x:%02x:%02x:%02x:%02x\",%d\r\n", i, addr[5], addr[4], addr[3], addr[2], addr[1], addr[0],at_ble_conn_get_role(i));
             conn_num++;
         }
     }
@@ -776,6 +776,7 @@ static int at_setup_cmd_ble_gatts_char_create(int argc, const char **argv)
 static int at_setup_cmd_ble_gatts_notify(int argc, const char **argv)
 {
     int conn_index = 0;
+    int conn_index_vaild = 0;
     int srv_idx = 0;
     int char_idx = 0;
     int length = 0;
@@ -785,17 +786,16 @@ static int at_setup_cmd_ble_gatts_notify(int argc, const char **argv)
     if (at_ble_config->work_role != BLE_SERVER&&at_ble_config->work_role != BLE_DUALMODE)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_INIT);
 
-    AT_CMD_PARSE_NUMBER(0, &conn_index);
+    AT_CMD_PARSE_NUMBER(0, &srv_idx);
+    AT_CMD_PARSE_NUMBER(1, &char_idx );
+    AT_CMD_PARSE_NUMBER(2, &length);
+    AT_CMD_PARSE_OPT_NUMBER(3, &conn_index,conn_index_vaild);
 
     if (!at_ble_is_valid_conn_idx(conn_index))
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     
     if (!at_ble_is_connected(conn_index))
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
-
-    AT_CMD_PARSE_NUMBER(1, &srv_idx);
-    AT_CMD_PARSE_NUMBER(2, &char_idx );
-    AT_CMD_PARSE_NUMBER(3, &length);
 
     if (srv_idx < 0 || srv_idx >= BLE_SRV_MAX_NUM)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
@@ -811,7 +811,7 @@ static int at_setup_cmd_ble_gatts_notify(int argc, const char **argv)
         buffer = NULL;
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_NO_MEMORY);
     }
-    
+    at_response_result(AT_RESULT_CODE_OK);
     AT_CMD_RESPONSE(AT_CMD_MSG_WAIT_DATA);
     while(recv_num < length) {
        recv_num += AT_CMD_DATA_RECV(buffer + recv_num, length - recv_num);
@@ -834,6 +834,7 @@ static int at_setup_cmd_ble_gatts_indicate(int argc, const char **argv)
 {
     int srv_idx = 0;
     int conn_index = 0;
+    int conn_index_vaild = 0;
     int char_idx = 0;
     int length = 0;
     int recv_num = 0;
@@ -842,17 +843,16 @@ static int at_setup_cmd_ble_gatts_indicate(int argc, const char **argv)
     if (at_ble_config->work_role != BLE_SERVER&&at_ble_config->work_role != BLE_DUALMODE)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_INIT);
 
-    AT_CMD_PARSE_NUMBER(0, &conn_index);
+    AT_CMD_PARSE_NUMBER(0, &srv_idx);
+    AT_CMD_PARSE_NUMBER(1, &char_idx );
+    AT_CMD_PARSE_NUMBER(2, &length);
+    AT_CMD_PARSE_OPT_NUMBER(3, &conn_index,conn_index_vaild);
 
     if (!at_ble_is_valid_conn_idx(conn_index))
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
     
     if (!at_ble_is_connected(conn_index))
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
-
-    AT_CMD_PARSE_NUMBER(1, &srv_idx);
-    AT_CMD_PARSE_NUMBER(2, &char_idx );
-    AT_CMD_PARSE_NUMBER(3, &length);
 
     if (srv_idx < 0 || srv_idx >= BLE_SRV_MAX_NUM)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
@@ -1705,8 +1705,8 @@ static const at_cmd_struct at_ble_cmd[] = {
     {"+BLEGATTSREGISTER", NULL, NULL, at_setup_cmd_ble_gatts_service_register, NULL, 1, 1},
     {"+BLEGATTSCHAR", NULL, at_query_cmd_ble_gatts_char, NULL, NULL, 0, 0},
     {"+BLEGATTSCHARCRE", NULL, NULL, at_setup_cmd_ble_gatts_char_create, NULL, 6, 6},
-    {"+BLEGATTSNTFY", NULL, NULL, at_setup_cmd_ble_gatts_notify, NULL, 4, 4},
-    {"+BLEGATTSIND", NULL, NULL, at_setup_cmd_ble_gatts_indicate, NULL, 4, 4},
+    {"+BLEGATTSNTFY", NULL, NULL, at_setup_cmd_ble_gatts_notify, NULL, 3, 4},
+    {"+BLEGATTSIND", NULL, NULL, at_setup_cmd_ble_gatts_indicate, NULL, 3, 4},
     {"+BLEGATTSRD", NULL, NULL, at_setup_cmd_ble_gatts_read, NULL, 3, 3},
     {"+BLEGATTCSRVDIS", NULL, NULL, at_setup_cmd_ble_gattc_service_discover, NULL, 1, 1},
     {"+BLEGATTCCHARDIS", NULL, NULL, at_setup_cmd_ble_gattc_char_discover, NULL, 2, 2},
