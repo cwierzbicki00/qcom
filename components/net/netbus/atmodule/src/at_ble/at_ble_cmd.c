@@ -776,7 +776,7 @@ static int at_setup_cmd_ble_gatts_char_create(int argc, const char **argv)
 static int at_setup_cmd_ble_gatts_notify(int argc, const char **argv)
 {
     int conn_index = 0;
-    int conn_index_vaild = 0;
+    int conn_index_valid = 0;
     int srv_idx = 0;
     int char_idx = 0;
     int length = 0;
@@ -789,7 +789,7 @@ static int at_setup_cmd_ble_gatts_notify(int argc, const char **argv)
     AT_CMD_PARSE_NUMBER(0, &srv_idx);
     AT_CMD_PARSE_NUMBER(1, &char_idx );
     AT_CMD_PARSE_NUMBER(2, &length);
-    AT_CMD_PARSE_OPT_NUMBER(3, &conn_index,conn_index_vaild);
+    AT_CMD_PARSE_OPT_NUMBER(3, &conn_index,conn_index_valid);
 
     if (!at_ble_is_valid_conn_idx(conn_index))
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
@@ -834,7 +834,7 @@ static int at_setup_cmd_ble_gatts_indicate(int argc, const char **argv)
 {
     int srv_idx = 0;
     int conn_index = 0;
-    int conn_index_vaild = 0;
+    int conn_index_valid = 0;
     int char_idx = 0;
     int length = 0;
     int recv_num = 0;
@@ -846,12 +846,9 @@ static int at_setup_cmd_ble_gatts_indicate(int argc, const char **argv)
     AT_CMD_PARSE_NUMBER(0, &srv_idx);
     AT_CMD_PARSE_NUMBER(1, &char_idx );
     AT_CMD_PARSE_NUMBER(2, &length);
-    AT_CMD_PARSE_OPT_NUMBER(3, &conn_index,conn_index_vaild);
+    AT_CMD_PARSE_OPT_NUMBER(3, &conn_index,conn_index_valid);
 
     if (!at_ble_is_valid_conn_idx(conn_index))
-        return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
-    
-    if (!at_ble_is_connected(conn_index))
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_PARA_VALUE_INVALID);
 
     if (srv_idx < 0 || srv_idx >= BLE_SRV_MAX_NUM)
@@ -1639,7 +1636,7 @@ static int at_setup_cmd_ble_dis_set(int argc, const char **argv)
     AT_CMD_PARSE_STRING(1, disname_value, sizeof(disname_value));
     AT_CMD_PARSE_NUMBER(2, &disname_value_len);
 
-    if (at_ble_config->work_role != BLE_SERVER)
+    if (at_ble_config->work_role != BLE_SERVER&&at_ble_config->work_role != BLE_DUALMODE)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_NOT_INIT);
     if(at_ble_config->ble_dis_init!=1)
         return AT_RESULT_WITH_SUB_CODE(AT_SUB_CMD_EXEC_FAIL);

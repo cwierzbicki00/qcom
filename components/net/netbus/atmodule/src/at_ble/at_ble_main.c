@@ -1211,23 +1211,23 @@ int at_ble_conn(int idx, uint8_t *addr, int addr_type, int timeout)
     if (!conn) {
         AT_BLE_PRINTF("Connection failed\r\n");
     } else {
-        ble_conn_data_set(idx,BT_CONN_ROLE_MASTER,ble_addr.a.val, addr_type, conn, param.interval_min, param.interval_max, 0, BLE_CONN_STATE_CONNCTING);
         if(conn->state == BT_CONN_CONNECTED) {
             AT_BLE_PRINTF("Le link with this peer device has existed\r\n");
             return 1;
         } else {
             AT_BLE_PRINTF("Connection pending\r\n");
+            ble_conn_data_set(idx,BT_CONN_ROLE_MASTER,ble_addr.a.val, addr_type, conn, param.interval_min, param.interval_max, 0, BLE_CONN_STATE_CONNCTING);
             while(at_current_ms_get() - start_time < timeout*1000) {
                 if (at_ble_is_connected(idx)) {
-                     at_response_string("+BLE:CONNECTED:%d %d,\"%02x:%02x:%02x:%02x:%02x:%02x\"\r\n",
+                     at_response_string("+BLE:CONNECTED:%d,\"%02x:%02x:%02x:%02x:%02x:%02x\",%d\r\n",
                             idx,
-                            BT_CONN_ROLE_MASTER,
                             addr[0],
                             addr[1],
                             addr[2],
                             addr[3],
                             addr[4],
-                            addr[5]);
+                            addr[5],
+                            BT_CONN_ROLE_MASTER);
                     ret = 1;
                     break;
                 }
