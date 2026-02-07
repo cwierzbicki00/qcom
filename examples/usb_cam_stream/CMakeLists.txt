@@ -13,6 +13,6 @@ sdk_add_include_directories(${QCC74x_SDK_BASE}/components/usb/cherryusb/common)
 sdk_add_include_directories(${QCC74x_SDK_BASE}/components/usb/cherryusb/core)
 
 sdk_set_main_file(main.c)
-target_sources(app PRIVATE wifi_ap.c frame_pool.c uvc_capture.c usb_ehci_iso_stub.c)
+target_sources(app PRIVATE wifi_ap.c frame_pool.c uvc_capture.c usb_ehci_iso_stub.c http_server.c)
 
 project(usb_cam_stream)

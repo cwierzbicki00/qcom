@@ -225,111 +225,95 @@
 
 ---
 
-## Phase 3 — HTTP MJPEG Streaming Server
+## Phase 3 — HTTP MJPEG Streaming Server ✅ DONE
 
-### 3.1 Minimal HTTP server (raw sockets)
+### 3.1 Minimal HTTP server (raw sockets) ✅ DONE
 - **Spec:** 30-http-mjpeg-server (all four endpoints)
 - **Files:**
   - NEW `examples/usb_cam_stream/http_server.c` / `http_server.h`
 - **Implementation:**
-  - Use POSIX-compatible socket API (proven in `examples/wifi/sta/wifi_tcp/wifi_tcp_server.c`)
-  - Listener task: `socket()` → `bind(80)` → `listen(1)` → `accept()` loop
+  - Uses lwIP BSD socket API (`socket`, `bind`, `listen`, `accept`, `send`, `recv`, `closesocket`)
+  - Listener task: `socket()` → `bind(80)` → `listen(2)` → `accept()` loop
   - On accept: parse first line of HTTP request (`GET /path HTTP/1.x`)
-  - Route to handler based on path: `/`, `/stream`, `/snapshot.jpg`, `/status.json`
-  - Set `TCP_NODELAY` on streaming socket
-  - Reuse fixed header buffers (small static char arrays, ~256 bytes)
+  - Routes to handler based on path: `/`, `/stream`, `/snapshot.jpg`, `/status.json`
+  - Sets `TCP_NODELAY` on every accepted connection
+  - Sets `SO_REUSEADDR` on server socket
+  - Sets `SO_RCVTIMEO` (5s) on client sockets to avoid blocking on bad clients
+  - Reuses fixed header buffers (256 bytes for HTTP headers, 512 bytes for recv)
+  - `send_all()` helper loops to handle partial sends
+  - Task stack: 2048 words, priority 12
+  - Started from `CODE_WIFI_ON_AP_STARTED` event in `main.c`
 - **In-repo references:**
   - `examples/wifi/sta/wifi_tcp/wifi_tcp_server.c` — socket server pattern
-  - `examples/peripherals/emac/lwip_http_server/http_server.c` — netconn HTTP pattern
   - `components/net/lwip/lwip/src/include/lwip/sockets.h` — socket API
 - **Test:** `curl http://192.168.2.1/` returns HTML (even before camera attached)
-- **Risks:** lwIP socket API on this platform may have quirks. Verify `SO_REUSEADDR`, `TCP_NODELAY` are supported. The listen backlog may be limited.
+- **Build notes (resolved):**
+  - `xPortGetFreeHeapSize()` is not available in this SDK's FreeRTOS config. Use `kfree_size()` from `mem.h` instead (same function used in `main.c`).
+  - `LWIP_SO_RCVTIMEO`, `LWIP_SO_SNDTIMEO`, `SO_REUSE` already enabled in `lwipopts_user.h`.
+  - Binary size: 861 KB (within 4 MB flash).
 
-### 3.2 GET / — Landing page
+### 3.2 GET / — Landing page ✅ DONE
 - **Spec:** 30-http-mjpeg-server (minimal HTML with `<img src="/stream">`)
 - **Files:** `examples/usb_cam_stream/http_server.c`
 - **Implementation:**
-  - Static const HTML string (< 512 bytes):
-    ```html
-    <html><body>
-    <h1>QCC748M-CAM</h1>
-    <p>IP: 192.168.2.1</p>
-    <img src="/stream">
-    <p><a href="/snapshot.jpg">Snapshot</a> | <a href="/status.json">Status</a></p>
-    </body></html>
-    ```
-  - Send as `Content-Type: text/html` with `Content-Length`, then close connection
+  - Static const HTML string (< 512 bytes) with `<img src="/stream">`, snapshot/status links
+  - Uses `AP_IP_ADDR` from `wifi_ap.h` for IP display
+  - Sent as `Content-Type: text/html` with `Content-Length`, then connection closed
 - **Test:** Browser renders page with stream embed
 - **Risks:** None — static response.
 
-### 3.3 GET /stream — Multipart MJPEG stream
+### 3.3 GET /stream — Multipart MJPEG stream ✅ DONE
 - **Spec:** 30-http-mjpeg-server (multipart/x-mixed-replace, 10fps pacing, single client)
 - **Files:** `examples/usb_cam_stream/http_server.c`
 - **Implementation:**
-  - Track `stream_client_connected` (atomic bool). If already true → return 503
-  - Send response headers:
-    ```
-    HTTP/1.1 200 OK\r\n
-    Content-Type: multipart/x-mixed-replace; boundary=frame\r\n
-    Cache-Control: no-cache\r\n
-    Connection: close\r\n
-    \r\n
-    ```
-  - Streaming loop:
-    1. `frame_queue_pop(&frame, 100ms_timeout)` — get next MJPEG frame
-    2. If no frame (camera unavailable), sleep and retry
-    3. Enforce 10fps pacing: track `last_send_time`, skip frame if <100ms elapsed
-    4. Send part header + JPEG data + CRLF boundary:
-       ```
-       --frame\r\n
-       Content-Type: image/jpeg\r\n
-       Content-Length: <N>\r\n
-       X-Timestamp-Ms: <ms>\r\n
-       \r\n
-       <JPEG bytes>\r\n
-       ```
-    5. On `send()` error (client disconnected): break loop, set `stream_client_connected = false`
-    6. Free frame back to pool
-  - **Zero-copy path:** Send header from static buffer, then send JPEG data directly from frame pool buffer (two `send()` calls, frame freed after both succeed)
-- **In-repo references:**
-  - Spec 30 for exact multipart format
+  - Single-client enforcement via `g_stream_active` volatile bool; second client gets 503
+  - `SO_SNDTIMEO` set to 5 seconds to prevent blocking on slow clients
+  - 10fps pacing via `xTaskGetTickCount()` comparison (100ms minimum interval)
+  - Frames popped from `frame_queue_pop()` with 200ms timeout
+  - Zero-copy path: header + JPEG data + trailing CRLF sent as three `send_all()` calls
+  - Frame freed after all sends complete (or on send error)
+  - Client IP logged on connect/disconnect
+  - `frames_in`, `frames_sent`, `frames_dropped` counters updated in real-time
 - **Test:** Browser shows live video. VLC/ffplay plays `http://192.168.2.1/stream`
 - **Risks:**
-  - `send()` may block if TCP window is full (client not reading fast enough). Use `SO_SNDTIMEO` to bound blocking time. On timeout, drop the frame and continue.
   - Browser compatibility: some browsers may not handle `multipart/x-mixed-replace` well. Chrome and Firefox are known to work; Safari has issues.
 
-### 3.4 GET /snapshot.jpg — Single frame capture
+### 3.4 GET /snapshot.jpg — Single frame capture ✅ DONE
 - **Spec:** 30-http-mjpeg-server (latest frame once, 503 if camera unavailable)
 - **Files:** `examples/usb_cam_stream/http_server.c`
 - **Implementation:**
-  - Maintain a `latest_frame` pointer (atomically updated by capture task on each new frame)
-  - On request: if `camera_state != ATTACHED` → return 503
-  - Otherwise: copy frame reference, send `Content-Type: image/jpeg` + `Content-Length` + JPEG bytes, close
-  - Use a read-write lock or atomic pointer swap to avoid data races with capture task
+  - Returns 503 if camera state is not ATTACHED or STREAMING
+  - Pops a frame from the queue with 500ms timeout
+  - Sends as `Content-Type: image/jpeg` with `Content-Length`, then closes connection
+  - Frame freed immediately after send
 - **Test:** `curl -o snap.jpg http://192.168.2.1/snapshot.jpg` → valid JPEG file
-- **Risks:** Frame may be freed while being sent if capture task recycles it. Need reference counting or snapshot-specific buffer copy.
+- **Risks:** Snapshot consumes a frame from the queue; if streaming client is active, they share the queue.
 
-### 3.5 GET /status.json — Metrics endpoint
+### 3.5 GET /status.json — Metrics endpoint ✅ DONE
 - **Spec:** 30-http-mjpeg-server (JSON with camera_attached, selected_mode, counters, heap, uptime)
 - **Files:** `examples/usb_cam_stream/http_server.c`
 - **Implementation:**
-  - `snprintf()` into a small static buffer (~512 bytes)
-  - Fields: `camera_attached`, `selected_mode`, `frames_in`, `frames_dropped`, `frames_sent`, `stream_client_connected`, `stream_client_ip`, `heap_free_bytes` (via `xPortGetFreeHeapSize()`), `uptime_ms`
-  - All counters maintained as `volatile uint64_t` or `atomic` globals
+  - `snprintf()` into 512-byte stack buffer
+  - Fields: `camera_attached`, `selected_mode`, `frames_in`, `frames_dropped`, `frames_sent`, `stream_client_connected`, `stream_client_ip`, `heap_free_bytes` (via `kfree_size()`), `uptime_ms`
+  - Counters maintained as `volatile uint32_t` in `http_counters_t` struct
+  - Public `http_get_counters()` API for other modules (metrics, CLI)
 - **Test:** `curl http://192.168.2.1/status.json` → valid JSON, values update
 - **Risks:** None — simple formatting.
 
-### 3.6 Multipart format unit test
+### 3.6 Multipart format unit test ✅ DONE
 - **Spec:** 30-http-mjpeg-server (host-side test for multipart formatting)
 - **Files:**
   - NEW `examples/usb_cam_stream/test/test_multipart.c` — host-compilable test
 - **Implementation:**
-  - Extract multipart header formatting into a pure function
-  - Test with known fake JPEG buffer (e.g., 1000 bytes of 0xFF)
-  - Verify: boundary present, Content-Type correct, Content-Length matches, CRLF sequences correct
-  - Compile and run on host (not cross-compiled): `gcc -o test_multipart test_multipart.c && ./test_multipart`
-- **Test:** Host test passes
+  - Extracts multipart header formatting into a pure `multipart_format_header()` function
+  - 10 tests: boundary present, Content-Type correct, Content-Length matches, timestamp header, blank line terminator, header order, full part assembly with fake JPEG, zero-length JPEG, large values, CRLF count validation
+  - Build and run: `gcc -std=c11 -Wall -Wextra -O2 -o test/test_multipart test/test_multipart.c && ./test/test_multipart`
+- **Test:** 10/10 host tests passing
 - **Risks:** None — pure string formatting test.
+
+### CLI: stream_status ✅ DONE
+- **Files:** `examples/usb_cam_stream/http_server.c`
+- **Implementation:** `stream_status` shell command prints stream active status, client IP, frame counters
 
 ---
 
@@ -447,8 +431,8 @@ Phase 1 + Phase 2 + Phase 3 ─────────────────�
 | R2 | `usbh_video_open()` hardcodes 30fps interval; camera may not support it | **High** — negotiation fails | Patch `usbh_video.c` to accept camera's default interval, or add interval parameter. |
 | R3 | ~~PSRAM section not available on qcc744dk linker script~~ **RESOLVED** — `.psram_noinit` works | N/A | N/A |
 | R4 | Frame size exceeds 100 KB for some cameras/scenes | **Medium** — frame truncation | Increase block size to 150 KB or dynamically size based on negotiated resolution. |
-| R5 | `send()` blocks on slow WiFi client, stalling capture pipeline | **Medium** — frame buildup, drops | Decouple with queue. Set `SO_SNDTIMEO`. Drop frames if send would block too long. |
-| R6 | ~~Combined WiFi+USB firmware exceeds flash/RAM limits~~ **RESOLVED** — 856 KB at Phase 2.2 | N/A | N/A |
+| R5 | ~~`send()` blocks on slow WiFi client, stalling capture pipeline~~ **MITIGATED** — `SO_SNDTIMEO` set to 5s, 10fps pacing drops excess frames | N/A | N/A |
+| R6 | ~~Combined WiFi+USB firmware exceeds flash/RAM limits~~ **RESOLVED** — 861 KB at Phase 3 | N/A | N/A |
 | R7 | UVC payload header varies by camera (PTS/SCR optional fields) | **Low** — frame assembly corruption | Parse header length field (byte 0) to determine actual data offset. Don't assume 2-byte header. |
 
 ---

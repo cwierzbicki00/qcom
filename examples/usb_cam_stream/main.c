@@ -22,6 +22,7 @@
 
 #include "wifi_ap.h"
 #include "uvc_capture.h"
+#include "http_server.h"
 
 #define DBG_TAG "MAIN"
 #include "log.h"
@@ -83,6 +84,10 @@ void wifi_event_handler(uint32_t code)
             break;
 
         case CODE_WIFI_ON_AP_STARTED:
+            wifi_ap_event_handler(code);
+            http_server_start();
+            break;
+
         case CODE_WIFI_ON_AP_STOPPED:
         case CODE_WIFI_ON_AP_STA_ADD:
         case CODE_WIFI_ON_AP_STA_DEL:
