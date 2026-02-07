@@ -91,6 +91,11 @@ void wifi_ap_event_handler(uint32_t code)
     }
 }
 
+int wifi_ap_get_sta_count(void)
+{
+    return ap_sta_count;
+}
+
 static int cmd_wifi_status(int argc, char **argv)
 {
     printf("SoftAP SSID:   %s\r\n", AP_SSID);

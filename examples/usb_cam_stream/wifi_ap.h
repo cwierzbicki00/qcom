@@ -21,4 +21,7 @@
 void wifi_ap_start(void);
 void wifi_ap_event_handler(uint32_t code);
 
+/* Return the current number of connected stations. */
+int wifi_ap_get_sta_count(void);
+
 #endif /* WIFI_AP_H */

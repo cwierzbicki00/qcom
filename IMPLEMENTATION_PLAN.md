@@ -317,41 +317,47 @@
 
 ---
 
-## Phase 4 — Observability & CLI
+## Phase 4 — Observability & CLI ✅ DONE
 
-### 4.1 Boot logging
+### 4.1 Boot logging ✅ DONE
 - **Spec:** 40-observability (firmware version, board ID, SoftAP status, camera status at boot)
 - **Files:** `examples/usb_cam_stream/main.c`
 - **Implementation:**
-  - On boot: `printf("FW: usb-cam-stream built %s %s\r\n", __DATE__, __TIME__)`
-  - After AP start event: log SSID, channel, IP
-  - Log camera attached/not-attached state
+  - On boot: `LOG_I("FW: usb-cam-stream built %s %s\r\n", __DATE__, __TIME__)`
+  - Chip/board identification via `qcc74x_efuse_get_device_info()`: package name, PSRAM info, flash info, chip revision
+  - SRAM and PSRAM heap sizes logged at boot
+  - After AP start event: SSID, channel, IP logged by `wifi_ap.c`
+  - Camera attach/detach events logged by `uvc_capture.c`
 - **Test:** Boot log contains all required fields
-- **Risks:** None.
+- **Build notes:** Requires `#include "qcc74x_efuse.h"` in `main.c`.
 
-### 4.2 Periodic metrics (1 Hz)
+### 4.2 Periodic metrics (1 Hz) ✅ DONE
 - **Spec:** 40-observability (frames_in/sent/dropped per second, client count, heap free)
 - **Files:**
   - NEW `examples/usb_cam_stream/metrics.c` / `metrics.h`
 - **Implementation:**
-  - FreeRTOS timer firing every 1 second
-  - Compute deltas from previous tick for per-second rates
-  - `printf()` one-line summary: `[METRICS] in=%u sent=%u drop=%u clients=%u heap=%u\r\n`
+  - FreeRTOS software timer (`xTimerCreate`) firing every 1 second
+  - Computes deltas from previous tick for per-second rates using `http_get_counters()`
+  - `printf("[METRICS] in=%u sent=%u drop=%u clients=%d heap=%u\r\n", ...)`
+  - Connected client count via `wifi_ap_get_sta_count()`
+  - Heap free via `kfree_size()`
+  - `metrics_init()` called from `CODE_WIFI_ON_AP_STARTED` event (after HTTP server start)
 - **Test:** Metrics appear on console every second during streaming
 - **Risks:** None.
 
-### 4.3 Event logging
+### 4.3 Event logging ✅ DONE
 - **Spec:** 40-observability (UVC stall/restart, HTTP client connect/disconnect, WiFi STA connect/disconnect)
 - **Files:** Spread across `uvc_capture.c`, `http_server.c`, `wifi_ap.c`
 - **Implementation:**
-  - Each module logs significant events with `printf("[UVC] ...")`, `[HTTP] ...`, `[WIFI] ...` prefixes
-  - WiFi events: log MAC address on STA add/del
-  - HTTP events: log client IP on connect, reason on disconnect
-  - UVC events: log stall, restart attempt, restart result
+  - Each module logs significant events with `[UVC]`, `[HTTP]`, `[WIFI]` prefixes via `LOG_I()`
+  - WiFi events: log MAC address on STA add/del (wifi_ap.c)
+  - HTTP events: log client IP on connect/disconnect (http_server.c)
+  - UVC events: log VID/PID on attach, mode selection, detach (uvc_capture.c)
+  - UVC stall/restart logging ready for Phase 2.4 when ISO streaming is implemented
 - **Test:** Console shows all event types during normal operation
 - **Risks:** None.
 
-### 4.4 CLI debug commands
+### 4.4 CLI debug commands ✅ DONE
 - **Spec:** 40-observability (`cam info`, `cam start`, `cam stop`, `stream status`, `wifi status`, `mem stats`)
 - **Files:**
   - `examples/usb_cam_stream/uvc_capture.c` — `cam_info`, `cam_start`, `cam_stop`
@@ -360,14 +366,16 @@
   - `examples/usb_cam_stream/metrics.c` — `mem_stats`
 - **Implementation:**
   - All registered via `SHELL_CMD_EXPORT_ALIAS(func, name, desc)`
-  - `cam info` → print VID/PID, selected mode, frame count
-  - `cam start` / `cam stop` → manual control of ISO streaming
-  - `stream status` → print /stream client connected, IP, frames sent
-  - `wifi status` → print AP SSID, channel, IP, STA count
-  - `mem stats` → `xPortGetFreeHeapSize()`, `xPortGetMinimumEverFreeHeapSize()`, block pool stats
-- **In-repo references:**
-  - `components/shell/shell.h` — `SHELL_CMD_EXPORT_ALIAS` macro
-  - `components/mm/mem.c` — existing `memtrace` command pattern
+  - `cam_info` → print state, VID/PID, selected mode, alt-setting, ISO MPS
+  - `cam_start` → call `usbh_video_open()` with negotiated params, transition to STREAMING state
+  - `cam_stop` → call `usbh_video_close()`, transition back to ATTACHED state
+  - `stream_status` → print /stream client connected, IP, frames in/sent/dropped
+  - `wifi_status` → print AP SSID, channel, IP, connected STA count and MACs
+  - `mem_stats` → print SRAM heap free (`kfree_size()`), PSRAM heap free (`pfree_size()`), frame pool stats (total/free/queued)
+- **Build notes (resolved):**
+  - `CONFIG_CHERRYUSB_HOST_VIDEO y` must be set in `proj.conf` to compile `usbh_video.c` into `libcherryusb.a`. Without this, `usbh_video_open()` and `usbh_video_close()` are unresolved when called from CLI commands (they only resolved previously through the weak-symbol override path).
+  - `wifi_ap_get_sta_count()` added to `wifi_ap.h` as public accessor for the static `ap_sta_count` variable.
+  - Binary size: 889 KB (within 4 MB flash).
 - **Test:** Each command responds with correct data on console
 - **Risks:** None — thin wrappers.
 
@@ -432,7 +440,7 @@ Phase 1 + Phase 2 + Phase 3 ─────────────────�
 | R3 | ~~PSRAM section not available on qcc744dk linker script~~ **RESOLVED** — `.psram_noinit` works | N/A | N/A |
 | R4 | Frame size exceeds 100 KB for some cameras/scenes | **Medium** — frame truncation | Increase block size to 150 KB or dynamically size based on negotiated resolution. |
 | R5 | ~~`send()` blocks on slow WiFi client, stalling capture pipeline~~ **MITIGATED** — `SO_SNDTIMEO` set to 5s, 10fps pacing drops excess frames | N/A | N/A |
-| R6 | ~~Combined WiFi+USB firmware exceeds flash/RAM limits~~ **RESOLVED** — 861 KB at Phase 3 | N/A | N/A |
+| R6 | ~~Combined WiFi+USB firmware exceeds flash/RAM limits~~ **RESOLVED** — 889 KB at Phase 4 | N/A | N/A |
 | R7 | UVC payload header varies by camera (PTS/SCR optional fields) | **Low** — frame assembly corruption | Parse header length field (byte 0) to determine actual data offset. Don't assume 2-byte header. |
 
 ---
@@ -444,7 +452,7 @@ Phase 1 + Phase 2 + Phase 3 ─────────────────�
 | `examples/usb_cam_stream/main.c` | Entry point, boot sequence, WiFi event handler |
 | `examples/usb_cam_stream/wifi_ap.c` / `.h` | SoftAP configuration, STA limit enforcement, WiFi CLI |
 | `examples/usb_cam_stream/frame_pool.c` / `.h` | MJPEG frame buffer pool (PSRAM-backed) + FreeRTOS queue |
-| `examples/usb_cam_stream/uvc_capture.c` / `.h` | UVC host enumeration, format negotiation, ISO streaming, stall recovery |
+| `examples/usb_cam_stream/uvc_capture.c` / `.h` | UVC host enumeration, format negotiation, cam_start/cam_stop CLI, ISO streaming, stall recovery |
 | `examples/usb_cam_stream/usb_ehci_iso_stub.c` | Linker stubs for missing EHCI ISO functions (to be replaced with real impl) |
 | `examples/usb_cam_stream/http_server.c` / `.h` | Raw socket HTTP server: /, /stream, /snapshot.jpg, /status.json |
 | `examples/usb_cam_stream/metrics.c` / `.h` | Periodic metrics, counters, CLI debug commands |

@@ -23,6 +23,9 @@
 #include "wifi_ap.h"
 #include "uvc_capture.h"
 #include "http_server.h"
+#include "metrics.h"
+
+#include "qcc74x_efuse.h"
 
 #define DBG_TAG "MAIN"
 #include "log.h"
@@ -86,6 +89,7 @@ void wifi_event_handler(uint32_t code)
         case CODE_WIFI_ON_AP_STARTED:
             wifi_ap_event_handler(code);
             http_server_start();
+            metrics_init();
             break;
 
         case CODE_WIFI_ON_AP_STOPPED:
@@ -105,6 +109,19 @@ int main(void)
     board_init();
 
     LOG_I("FW: usb-cam-stream built %s %s\r\n", __DATE__, __TIME__);
+
+    /* Print chip/board identification */
+    {
+        qcc74x_efuse_device_info_type dev_info;
+        qcc74x_efuse_get_device_info(&dev_info);
+        LOG_I("Board: qcc744dk  Chip: %s  PSRAM: %s  Flash: %s  Rev: A%d\r\n",
+              dev_info.package_name ? dev_info.package_name : "?",
+              dev_info.psram_info_name ? dev_info.psram_info_name : "?",
+              dev_info.flash_info_name ? dev_info.flash_info_name : "?",
+              dev_info.version);
+        LOG_I("SRAM heap: %u bytes  PSRAM heap: %u bytes\r\n",
+              (unsigned)kfree_size(), (unsigned)pfree_size());
+    }
 
     uart0 = qcc74x_device_get_by_name("uart0");
     shell_init_with_task(uart0);

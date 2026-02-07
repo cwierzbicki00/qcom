@@ -208,22 +208,24 @@ const uvc_mode_t *uvc_get_mode(void)
 /* CLI: cam_info                                                       */
 /* ------------------------------------------------------------------ */
 
+static const char *cam_state_str(camera_state_t st)
+{
+    switch (st) {
+        case CAMERA_DETACHED:    return "DETACHED";
+        case CAMERA_ATTACHED:    return "ATTACHED";
+        case CAMERA_STREAMING:   return "STREAMING";
+        case CAMERA_UNAVAILABLE: return "UNAVAILABLE";
+        default:                 return "UNKNOWN";
+    }
+}
+
 static int cmd_cam_info(int argc, char **argv)
 {
     (void)argc; (void)argv;
 
     camera_state_t st = g_cam_state;
-    const char *state_str;
 
-    switch (st) {
-        case CAMERA_DETACHED:    state_str = "DETACHED";    break;
-        case CAMERA_ATTACHED:    state_str = "ATTACHED";    break;
-        case CAMERA_STREAMING:   state_str = "STREAMING";   break;
-        case CAMERA_UNAVAILABLE: state_str = "UNAVAILABLE"; break;
-        default:                 state_str = "UNKNOWN";     break;
-    }
-
-    printf("Camera state : %s\r\n", state_str);
+    printf("Camera state : %s\r\n", cam_state_str(st));
     if (st >= CAMERA_ATTACHED) {
         printf("  VID/PID    : 0x%04X / 0x%04X\r\n", g_cam_mode.vid, g_cam_mode.pid);
         printf("  Mode       : MJPEG %ux%u\r\n", g_cam_mode.width, g_cam_mode.height);
@@ -233,3 +235,68 @@ static int cmd_cam_info(int argc, char **argv)
     return 0;
 }
 SHELL_CMD_EXPORT_ALIAS(cmd_cam_info, cam_info, Show camera info);
+
+/* ------------------------------------------------------------------ */
+/* CLI: cam_start / cam_stop                                           */
+/* ------------------------------------------------------------------ */
+
+static int cmd_cam_start(int argc, char **argv)
+{
+    (void)argc; (void)argv;
+
+    if (!g_video_class) {
+        printf("No camera attached\r\n");
+        return -1;
+    }
+
+    if (g_cam_state == CAMERA_STREAMING) {
+        printf("Camera already streaming\r\n");
+        return 0;
+    }
+
+    if (g_cam_state != CAMERA_ATTACHED) {
+        printf("Camera not in ATTACHED state (current: %s)\r\n",
+               cam_state_str(g_cam_state));
+        return -1;
+    }
+
+    int ret = usbh_video_open(g_video_class, g_cam_mode.format,
+                               g_cam_mode.width, g_cam_mode.height,
+                               g_cam_mode.altsetting);
+    if (ret < 0) {
+        printf("usbh_video_open failed: %d\r\n", ret);
+        return -1;
+    }
+
+    g_cam_state = CAMERA_STREAMING;
+    printf("Camera streaming started\r\n");
+    return 0;
+}
+SHELL_CMD_EXPORT_ALIAS(cmd_cam_start, cam_start, Start camera streaming);
+
+static int cmd_cam_stop(int argc, char **argv)
+{
+    (void)argc; (void)argv;
+
+    if (!g_video_class) {
+        printf("No camera attached\r\n");
+        return -1;
+    }
+
+    if (g_cam_state != CAMERA_STREAMING && g_cam_state != CAMERA_ATTACHED) {
+        printf("Camera not streaming (current: %s)\r\n",
+               cam_state_str(g_cam_state));
+        return 0;
+    }
+
+    int ret = usbh_video_close(g_video_class);
+    if (ret < 0) {
+        printf("usbh_video_close failed: %d\r\n", ret);
+        return -1;
+    }
+
+    g_cam_state = CAMERA_ATTACHED;
+    printf("Camera streaming stopped\r\n");
+    return 0;
+}
+SHELL_CMD_EXPORT_ALIAS(cmd_cam_stop, cam_stop, Stop camera streaming);
