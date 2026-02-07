@@ -474,6 +474,19 @@
   - USB camera enumeration is asynchronous (happens after scheduler starts), so at boot time the camera is always in the "not attached" state. The attach event is logged separately by `uvc_capture.c` when USB enumeration completes.
 - **Test:** Host tests 19/19 passing. Build succeeds at 874 KB.
 
+### 5.6 Fix: /snapshot.jpg and /status.json blocked during active /stream ✅ DONE
+- **Spec:** 30-http-mjpeg-server (connection policy: "/snapshot.jpg and /status.json may still work while streaming.")
+- **Files:** `http_server.c`
+- **Bug:** HTTP server was single-threaded — when `handle_stream()` entered its infinite frame-sending loop, the main accept loop was blocked and could not accept new connections for `/snapshot.jpg`, `/status.json`, or `/`. This violated spec §Connection policy.
+- **Fix:** `/stream` handler now spawns a dedicated FreeRTOS task (`stream_task`, stack 2048, priority 12) that owns the streaming socket. The main HTTP server task's accept loop continues running, allowing `/snapshot.jpg`, `/status.json`, and `/` to be served concurrently.
+  - `handle_stream()` returns `true` to indicate the stream task took socket ownership (caller must not close it).
+  - Stream task context (`stream_task_ctx_t`) is heap-allocated by caller, freed by task after extracting socket fd and client address.
+  - Socket is closed by the stream task on disconnect/error, then task self-deletes via `vTaskDelete(NULL)`.
+  - Single-client enforcement (`g_stream_active`) and 503 rejection still work as before.
+  - All error paths (OOM, task creation failure) send 503 and return `false` so the main task closes the socket normally.
+- **Test:** Host tests 19/19 passing. Build succeeds at 882 KB.
+- **Risks:** Stream task adds ~8 KB SRAM usage (2048-word stack). QCC748M has 320 KB SRAM with ~200 KB free — no concern.
+
 ---
 
 ## Dependency Graph (Build Order)

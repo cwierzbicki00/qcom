@@ -27,6 +27,8 @@
 #define HTTP_TASK_PRIO      12
 #define HTTP_RECV_BUF_SIZE  512
 #define HTTP_HDR_BUF_SIZE   256
+#define STREAM_TASK_STACK   2048
+#define STREAM_TASK_PRIO    12
 
 /* Send timeout for streaming client (ms) */
 #define STREAM_SEND_TIMEOUT_MS 5000
@@ -119,21 +121,22 @@ static void handle_root(int sock)
 static volatile bool g_stream_active;
 static char          g_stream_client_ip[16];
 
-static void handle_stream(int sock, struct sockaddr_in *client_addr)
-{
-    /* Single-client enforcement */
-    if (g_stream_active) {
-        send_error(sock, "503 Service Unavailable",
-                   "Stream already in use by another client");
-        return;
-    }
+/* Context passed to the stream task (allocated by caller, freed by task) */
+typedef struct {
+    int                sock;
+    struct sockaddr_in client_addr;
+} stream_task_ctx_t;
 
-    g_stream_active = true;
-    g_counters.stream_client_connected = true;
+static void stream_task(void *arg)
+{
+    stream_task_ctx_t *ctx = (stream_task_ctx_t *)arg;
+    int sock = ctx->sock;
 
     /* Record client IP */
-    inet_ntoa_r(client_addr->sin_addr, g_stream_client_ip,
+    inet_ntoa_r(ctx->client_addr.sin_addr, g_stream_client_ip,
                 sizeof(g_stream_client_ip));
+    vPortFree(ctx);
+    ctx = NULL;
 
     LOG_I("[HTTP] Stream client connected: %s\r\n", g_stream_client_ip);
 
@@ -214,9 +217,52 @@ static void handle_stream(int sock, struct sockaddr_in *client_addr)
 
 cleanup:
     LOG_I("[HTTP] Stream client disconnected: %s\r\n", g_stream_client_ip);
+    closesocket(sock);
     g_stream_active = false;
     g_counters.stream_client_connected = false;
     g_stream_client_ip[0] = '\0';
+    vTaskDelete(NULL);
+}
+
+/*
+ * Try to start the stream on a dedicated task.
+ * Returns true if the stream task was launched (caller must NOT close sock).
+ * Returns false if rejected (caller closes sock as normal).
+ */
+static bool handle_stream(int sock, struct sockaddr_in *client_addr)
+{
+    /* Single-client enforcement */
+    if (g_stream_active) {
+        send_error(sock, "503 Service Unavailable",
+                   "Stream already in use by another client");
+        return false;
+    }
+
+    stream_task_ctx_t *ctx = pvPortMalloc(sizeof(stream_task_ctx_t));
+    if (!ctx) {
+        send_error(sock, "503 Service Unavailable",
+                   "Out of memory");
+        return false;
+    }
+
+    ctx->sock = sock;
+    ctx->client_addr = *client_addr;
+
+    g_stream_active = true;
+    g_counters.stream_client_connected = true;
+
+    BaseType_t ret = xTaskCreate(stream_task, "mjpeg", STREAM_TASK_STACK,
+                                 ctx, STREAM_TASK_PRIO, NULL);
+    if (ret != pdPASS) {
+        vPortFree(ctx);
+        g_stream_active = false;
+        g_counters.stream_client_connected = false;
+        send_error(sock, "503 Service Unavailable",
+                   "Cannot create stream task");
+        return false;
+    }
+
+    return true;  /* stream task owns the socket now */
 }
 
 /* ------------------------------------------------------------------ */
@@ -304,7 +350,12 @@ static void handle_status(int sock)
 /* Request parsing and routing                                         */
 /* ------------------------------------------------------------------ */
 
-static void handle_client(int sock, struct sockaddr_in *client_addr)
+/*
+ * Handle an accepted client connection.
+ * Returns true if a stream task took ownership of the socket
+ * (caller must NOT close it).  Returns false otherwise.
+ */
+static bool handle_client(int sock, struct sockaddr_in *client_addr)
 {
     char buf[HTTP_RECV_BUF_SIZE];
 
@@ -314,21 +365,21 @@ static void handle_client(int sock, struct sockaddr_in *client_addr)
 
     int n = recv(sock, buf, sizeof(buf) - 1, 0);
     if (n <= 0) {
-        return;
+        return false;
     }
     buf[n] = '\0';
 
     /* Parse first line: "GET /path HTTP/1.x" */
     if (strncmp(buf, "GET ", 4) != 0) {
         send_error(sock, "405 Method Not Allowed", "Only GET supported");
-        return;
+        return false;
     }
 
     const char *path = buf + 4;
     const char *path_end = strchr(path, ' ');
     if (!path_end) {
         send_error(sock, "400 Bad Request", "Malformed request");
-        return;
+        return false;
     }
 
     int path_len = (int)(path_end - path);
@@ -337,7 +388,7 @@ static void handle_client(int sock, struct sockaddr_in *client_addr)
     if (path_len == 1 && path[0] == '/') {
         handle_root(sock);
     } else if (path_len == 7 && strncmp(path, "/stream", 7) == 0) {
-        handle_stream(sock, client_addr);
+        return handle_stream(sock, client_addr);
     } else if (path_len == 13 && strncmp(path, "/snapshot.jpg", 13) == 0) {
         handle_snapshot(sock);
     } else if (path_len == 12 && strncmp(path, "/status.json", 12) == 0) {
@@ -345,6 +396,7 @@ static void handle_client(int sock, struct sockaddr_in *client_addr)
     } else {
         send_error(sock, "404 Not Found", "Unknown endpoint");
     }
+    return false;
 }
 
 /* ------------------------------------------------------------------ */
@@ -406,9 +458,11 @@ static void http_server_task(void *arg)
         int flag = 1;
         setsockopt(client_fd, IPPROTO_TCP, TCP_NODELAY, &flag, sizeof(flag));
 
-        handle_client(client_fd, &client_addr);
+        bool stream_owns_sock = handle_client(client_fd, &client_addr);
 
-        closesocket(client_fd);
+        if (!stream_owns_sock) {
+            closesocket(client_fd);
+        }
     }
 }
 

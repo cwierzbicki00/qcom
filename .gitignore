@@ -1,1 +1,5 @@
 .sprite
+
+# Compiled host-side test binaries
+examples/usb_cam_stream/test/test_frame_pool
+examples/usb_cam_stream/test/test_multipart
