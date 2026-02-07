@@ -14,6 +14,7 @@
 #include "shell.h"
 
 #include <string.h>
+#include <inttypes.h>
 
 #define DBG_TAG "UVC"
 #include "log.h"
@@ -57,7 +58,7 @@ static frame_t      g_cur_frame;
 static bool         g_cur_frame_valid;
 static uint8_t      g_last_fid;
 static bool         g_fid_initialized;
-static volatile uint32_t g_frames_captured;
+static volatile uint64_t g_frames_captured;
 
 /* Stall detection */
 static TimerHandle_t g_stall_timer;
@@ -283,7 +284,7 @@ static void stall_timer_cb(TimerHandle_t timer)
 {
     (void)timer;
 
-    static uint32_t last_frames = 0;
+    static uint64_t last_frames = 0;
 
     if (g_cam_state != CAMERA_STREAMING) {
         last_frames = g_frames_captured;
@@ -503,8 +504,8 @@ static void streaming_task(void *arg)
         g_cam_state = CAMERA_ATTACHED;
     }
 
-    LOG_I("[UVC] Streaming task stopped (frames captured: %u)\r\n",
-          (unsigned)g_frames_captured);
+    LOG_I("[UVC] Streaming task stopped (frames captured: %" PRIu64 ")\r\n",
+          (uint64_t)g_frames_captured);
     g_stream_task = NULL;
     vTaskDelete(NULL);
 }
@@ -655,7 +656,7 @@ const uvc_mode_t *uvc_get_mode(void)
     return &g_cam_mode;
 }
 
-uint32_t uvc_get_frames_captured(void)
+uint64_t uvc_get_frames_captured(void)
 {
     return g_frames_captured;
 }
@@ -688,7 +689,7 @@ static int cmd_cam_info(int argc, char **argv)
                g_cam_mode.width, g_cam_mode.height, g_cam_mode.fps);
         printf("  Alt-setting: %u\r\n", g_cam_mode.altsetting);
         printf("  ISO IN MPS : %u bytes\r\n", g_cam_mode.isoin_mps);
-        printf("  Frames cap : %u\r\n", (unsigned)g_frames_captured);
+        printf("  Frames cap : %" PRIu64 "\r\n", (uint64_t)g_frames_captured);
     }
     return 0;
 }

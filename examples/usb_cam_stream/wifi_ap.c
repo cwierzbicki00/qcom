@@ -134,6 +134,7 @@ int wifi_ap_get_sta_count(void)
 static int cmd_wifi_status(int argc, char **argv)
 {
     printf("SoftAP SSID:   %s\r\n", AP_SSID);
+    printf("Security:      WPA2-PSK\r\n");
     printf("Channel:       %d\r\n", AP_CHANNEL);
     printf("IP address:    %s\r\n", AP_IP_ADDR);
     printf("Connected STAs: %d\r\n", ap_sta_count);

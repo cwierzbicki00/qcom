@@ -6,9 +6,9 @@
 
 /* Streaming counters (read by /status.json and metrics) */
 typedef struct {
-    volatile uint32_t frames_dequeued;
-    volatile uint32_t frames_dropped;
-    volatile uint32_t frames_sent;
+    volatile uint64_t frames_dequeued;
+    volatile uint64_t frames_dropped;
+    volatile uint64_t frames_sent;
     volatile bool     stream_client_connected;
 } http_counters_t;
 

@@ -19,9 +19,9 @@
 /* 1 Hz periodic metrics                                               */
 /* ------------------------------------------------------------------ */
 
-static uint32_t prev_frames_in;
-static uint32_t prev_frames_sent;
-static uint32_t prev_frames_dropped;
+static uint64_t prev_frames_in;
+static uint64_t prev_frames_sent;
+static uint64_t prev_frames_dropped;
 
 static void metrics_timer_cb(TimerHandle_t xTimer)
 {
@@ -29,13 +29,13 @@ static void metrics_timer_cb(TimerHandle_t xTimer)
 
     const http_counters_t *c = http_get_counters();
 
-    uint32_t fi = uvc_get_frames_captured();
-    uint32_t fs = c->frames_sent;
-    uint32_t fd = c->frames_dropped;
+    uint64_t fi = uvc_get_frames_captured();
+    uint64_t fs = c->frames_sent;
+    uint64_t fd = c->frames_dropped;
 
-    uint32_t dfi = fi - prev_frames_in;
-    uint32_t dfs = fs - prev_frames_sent;
-    uint32_t dfd = fd - prev_frames_dropped;
+    uint64_t dfi = fi - prev_frames_in;
+    uint64_t dfs = fs - prev_frames_sent;
+    uint64_t dfd = fd - prev_frames_dropped;
 
     prev_frames_in      = fi;
     prev_frames_sent    = fs;

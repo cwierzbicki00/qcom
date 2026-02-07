@@ -497,6 +497,16 @@
 - **Build notes:**
   - Binary size: 875 KB (within 4 MB flash).
 
+### 5.8 Spec compliance: uint64 counters and wifi_status security field ✅ DONE
+- **Spec:** 30-http-mjpeg-server (`/status.json` field types), 20-wifi-softap (CLI status fields)
+- **Files:** `http_server.h`, `http_server.c`, `uvc_capture.h`, `uvc_capture.c`, `metrics.c`, `wifi_ap.c`
+- **Implementation:**
+  - **FIX:** Spec 30 requires `frames_in`, `frames_dropped`, `frames_sent`, and `uptime_ms` as `uint64` in `/status.json`. All counters were `uint32_t` — changed to `uint64_t` throughout: `http_counters_t` struct fields, `g_frames_captured` in `uvc_capture.c`, `uvc_get_frames_captured()` return type, `uptime_ms` computation, metrics delta tracking. JSON format strings updated to use `PRIu64`.
+  - **FIX:** `wifi_status` CLI was missing "Security" field. Added `"Security: WPA2-PSK"` line per spec 20-wifi-softap.
+- **Test:** Host tests 19/19 passing. Build succeeds at 875 KB.
+- **Build notes:**
+  - Binary size: 875 KB (within 4 MB flash).
+
 ---
 
 ## Dependency Graph (Build Order)

@@ -45,6 +45,6 @@ const uvc_mode_t *uvc_get_mode(void);
 /*
  * Get total frames captured since last streaming start.
  */
-uint32_t uvc_get_frames_captured(void);
+uint64_t uvc_get_frames_captured(void);
 
 #endif /* UVC_CAPTURE_H */

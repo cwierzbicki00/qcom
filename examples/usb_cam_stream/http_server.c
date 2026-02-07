@@ -11,6 +11,7 @@
 #include <lwip/inet.h>
 #include <string.h>
 #include <stdio.h>
+#include <inttypes.h>
 
 #include "shell.h"
 
@@ -303,7 +304,7 @@ static void handle_status(int sock)
                  mode->width, mode->height, mode->fps);
     }
 
-    uint32_t uptime_ms = (uint32_t)(xTaskGetTickCount() * portTICK_PERIOD_MS);
+    uint64_t uptime_ms = (uint64_t)xTaskGetTickCount() * portTICK_PERIOD_MS;
     uint32_t heap_free = kfree_size();
     uint32_t psram_free = pfree_size();
 
@@ -315,10 +316,10 @@ static void handle_status(int sock)
         "{"
         "\"camera_attached\":%s,"
         "\"selected_mode\":\"%s\","
-        "\"frames_in\":%u,"
-        "\"frames_dequeued\":%u,"
-        "\"frames_dropped\":%u,"
-        "\"frames_sent\":%u,"
+        "\"frames_in\":%" PRIu64 ","
+        "\"frames_dequeued\":%" PRIu64 ","
+        "\"frames_dropped\":%" PRIu64 ","
+        "\"frames_sent\":%" PRIu64 ","
         "\"stream_client_connected\":%s,"
         "\"stream_client_ip\":\"%s\","
         "\"heap_free_bytes\":%u,"
@@ -326,14 +327,14 @@ static void handle_status(int sock)
         "\"pool_total\":%u,"
         "\"pool_free\":%u,"
         "\"pool_queued\":%u,"
-        "\"uptime_ms\":%u"
+        "\"uptime_ms\":%" PRIu64
         "}",
         (st >= CAMERA_ATTACHED) ? "true" : "false",
         mode_str,
-        (unsigned)uvc_get_frames_captured(),
-        (unsigned)g_counters.frames_dequeued,
-        (unsigned)g_counters.frames_dropped,
-        (unsigned)g_counters.frames_sent,
+        (uint64_t)uvc_get_frames_captured(),
+        (uint64_t)g_counters.frames_dequeued,
+        (uint64_t)g_counters.frames_dropped,
+        (uint64_t)g_counters.frames_sent,
         g_counters.stream_client_connected ? "true" : "false",
         g_stream_client_ip[0] ? g_stream_client_ip : "",
         (unsigned)heap_free,
@@ -341,7 +342,7 @@ static void handle_status(int sock)
         (unsigned)pool_total,
         (unsigned)pool_free,
         (unsigned)pool_queued,
-        (unsigned)uptime_ms);
+        uptime_ms);
 
     send_response(sock, "200 OK", "application/json", json, jlen);
 }
@@ -489,9 +490,9 @@ static int cmd_stream_status(int argc, char **argv)
     if (g_stream_client_ip[0]) {
         printf("Client IP:      %s\r\n", g_stream_client_ip);
     }
-    printf("Frames dequeued:%u\r\n", (unsigned)g_counters.frames_dequeued);
-    printf("Frames sent:    %u\r\n", (unsigned)g_counters.frames_sent);
-    printf("Frames dropped: %u\r\n", (unsigned)g_counters.frames_dropped);
+    printf("Frames dequeued:%" PRIu64 "\r\n", (uint64_t)g_counters.frames_dequeued);
+    printf("Frames sent:    %" PRIu64 "\r\n", (uint64_t)g_counters.frames_sent);
+    printf("Frames dropped: %" PRIu64 "\r\n", (uint64_t)g_counters.frames_dropped);
     return 0;
 }
 SHELL_CMD_EXPORT_ALIAS(cmd_stream_status, stream_status, Show stream status);
