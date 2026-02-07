@@ -168,7 +168,7 @@ static void handle_stream(int sock, struct sockaddr_in *client_addr)
             continue;
         }
 
-        g_counters.frames_in++;
+        g_counters.frames_dequeued++;
 
         /* 10 fps pacing: skip frame if too soon */
         TickType_t now = xTaskGetTickCount();
@@ -270,6 +270,7 @@ static void handle_status(int sock)
         "\"camera_attached\":%s,"
         "\"selected_mode\":\"%s\","
         "\"frames_in\":%u,"
+        "\"frames_dequeued\":%u,"
         "\"frames_dropped\":%u,"
         "\"frames_sent\":%u,"
         "\"stream_client_connected\":%s,"
@@ -283,7 +284,8 @@ static void handle_status(int sock)
         "}",
         (st >= CAMERA_ATTACHED) ? "true" : "false",
         mode_str,
-        (unsigned)g_counters.frames_in,
+        (unsigned)uvc_get_frames_captured(),
+        (unsigned)g_counters.frames_dequeued,
         (unsigned)g_counters.frames_dropped,
         (unsigned)g_counters.frames_sent,
         g_counters.stream_client_connected ? "true" : "false",
@@ -433,7 +435,7 @@ static int cmd_stream_status(int argc, char **argv)
     if (g_stream_client_ip[0]) {
         printf("Client IP:      %s\r\n", g_stream_client_ip);
     }
-    printf("Frames in:      %u\r\n", (unsigned)g_counters.frames_in);
+    printf("Frames dequeued:%u\r\n", (unsigned)g_counters.frames_dequeued);
     printf("Frames sent:    %u\r\n", (unsigned)g_counters.frames_sent);
     printf("Frames dropped: %u\r\n", (unsigned)g_counters.frames_dropped);
     return 0;

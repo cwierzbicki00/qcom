@@ -30,6 +30,10 @@
 #define DBG_TAG "MAIN"
 #include "log.h"
 
+#ifndef FW_VERSION
+#define FW_VERSION "0.1.0"
+#endif
+
 #define WIFI_STACK_SIZE  (1536)
 #define TASK_PRIORITY_FW (16)
 
@@ -108,7 +112,7 @@ int main(void)
 {
     board_init();
 
-    LOG_I("FW: usb-cam-stream built %s %s\r\n", __DATE__, __TIME__);
+    LOG_I("FW: usb-cam-stream v" FW_VERSION " built %s %s\r\n", __DATE__, __TIME__);
 
     /* Print chip/board identification */
     {

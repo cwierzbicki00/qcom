@@ -29,7 +29,7 @@ static void metrics_timer_cb(TimerHandle_t xTimer)
 
     const http_counters_t *c = http_get_counters();
 
-    uint32_t fi = c->frames_in;
+    uint32_t fi = uvc_get_frames_captured();
     uint32_t fs = c->frames_sent;
     uint32_t fd = c->frames_dropped;
 
@@ -41,17 +41,18 @@ static void metrics_timer_cb(TimerHandle_t xTimer)
     prev_frames_sent    = fs;
     prev_frames_dropped = fd;
 
-    int clients = wifi_ap_get_sta_count();
+    int ap_clients = wifi_ap_get_sta_count();
+    int stream = c->stream_client_connected ? 1 : 0;
 
-    printf("[METRICS] in=%u sent=%u drop=%u clients=%d heap=%u psram=%u\r\n",
+    printf("[METRICS] in=%u sent=%u drop=%u clients=%d stream=%d heap=%u psram=%u\r\n",
            (unsigned)dfi, (unsigned)dfs, (unsigned)dfd,
-           clients, (unsigned)kfree_size(), (unsigned)pfree_size());
+           ap_clients, stream, (unsigned)kfree_size(), (unsigned)pfree_size());
 }
 
 void metrics_init(void)
 {
     const http_counters_t *c = http_get_counters();
-    prev_frames_in      = c->frames_in;
+    prev_frames_in      = uvc_get_frames_captured();
     prev_frames_sent    = c->frames_sent;
     prev_frames_dropped = c->frames_dropped;
 

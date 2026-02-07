@@ -438,6 +438,19 @@
   - No application-level warnings.
 - **Risks:** ~~Subtle leaks in error paths~~ **RESOLVED** — all paths audited, drain added.
 
+### 5.3 Spec compliance fixes ✅ DONE
+- **Spec:** 30-http-mjpeg-server (`frames_in` accuracy), 40-observability (periodic metrics, boot log)
+- **Files:** `http_server.c`, `http_server.h`, `metrics.c`, `main.c`
+- **Implementation:**
+  - **BUG FIX:** `/status.json` `frames_in` previously counted frames dequeued by the HTTP `/stream` handler. Now correctly reports total frames captured by the camera via `uvc_get_frames_captured()`. Added `frames_dequeued` as a new field to preserve HTTP-level dequeue count.
+  - **BUG FIX:** Periodic metrics `in=` rate now tracks camera capture rate (via `uvc_get_frames_captured()`) instead of HTTP dequeue rate.
+  - **ENHANCEMENT:** Periodic metrics now include `stream=` field showing whether an HTTP stream client is connected (spec requires "AP + stream" client count).
+  - **ENHANCEMENT:** Boot log now includes firmware version string (`FW_VERSION`, default `"0.1.0"`, build-time configurable via `-DFW_VERSION=...`).
+  - Renamed `http_counters_t.frames_in` → `frames_dequeued` for clarity.
+- **Test:** Host tests 19/19 passing. Build succeeds at 881 KB.
+- **Build notes:**
+  - Binary size: 881 KB (within 4 MB flash).
+
 ---
 
 ## Dependency Graph (Build Order)
