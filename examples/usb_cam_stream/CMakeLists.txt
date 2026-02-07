@@ -10,6 +10,6 @@ sdk_add_compile_definitions(-DSHELL_THREAD_PRIO=20)
 sdk_add_include_directories(.)
 
 sdk_set_main_file(main.c)
-target_sources(app PRIVATE wifi_ap.c)
+target_sources(app PRIVATE wifi_ap.c frame_pool.c)
 
 project(usb_cam_stream)

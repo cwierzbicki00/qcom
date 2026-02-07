@@ -117,10 +117,11 @@
 
 ## Phase 2 — USB UVC Host Capture Pipeline
 
-### 2.1 MJPEG frame buffer pool
+### 2.1 MJPEG frame buffer pool ✅ DONE
 - **Spec:** 10-usb-uvc-capture (bounded buffer pool, no per-frame heap alloc, drop oldest on overflow)
 - **Files:**
   - NEW `examples/usb_cam_stream/frame_pool.c` / `frame_pool.h`
+  - NEW `examples/usb_cam_stream/test/test_frame_pool.c`
 - **Implementation:**
   - Use `qcc74x_block_pool` from `components/utils/qcc74x_block_pool/`
   - Allocate pool memory from PSRAM: `__attribute__((section(".psram_noinit"), aligned(64)))`
@@ -136,13 +137,18 @@
     ```
   - FreeRTOS queue (`xQueueCreate(4, sizeof(frame_t))`) for producer→consumer handoff
   - On overflow (queue full): `xQueueReceive` the oldest frame, free its block, then enqueue new frame (drop-oldest policy)
-  - Expose: `frame_pool_init()`, `frame_alloc()`, `frame_free()`, `frame_queue_push()`, `frame_queue_pop()`
+  - Expose: `frame_pool_init()`, `frame_alloc()`, `frame_free()`, `frame_queue_push()`, `frame_queue_pop()`, `frame_pool_stats()`
 - **In-repo references:**
   - `components/utils/qcc74x_block_pool/qcc74x_block_pool.h` — block pool API
   - `examples/qcc74x_block_pool/main.c` — usage example
   - `components/mm/mem.h` — `kmalloc()` with `MM_PSRAM` flag (alternative to static PSRAM section)
-- **Test (host-side / compile-time):** Unit test validating: alloc N blocks, free N blocks, alloc N+1 triggers drop-oldest, no double-free
-- **Risks:** PSRAM section name may differ on qcc744dk board. Verify linker script `bsp/board/qcc744dk/qcc743_flash.ld` has `.psram_noinit` section. If not, use `kmalloc(size, MM_PSRAM)` at runtime.
+- **Test (host-side):** 8/8 tests passing — alloc/exhaust/realloc, FIFO ordering, drop-oldest on queue overflow, data integrity, double-free safety, empty-pop error.
+- **Build notes (resolved):**
+  - `.psram_noinit` section IS available in `bsp/board/qcc744dk/qcc743_flash.ld` at `0xA8000000` (4MB region).
+  - `CONFIG_PSRAM` is always defined for qcc744dk (hardcoded in `bsp/board/qcc744dk/CMakeLists.txt`). PSRAM is initialized in `board_init()`.
+  - `kmalloc(size, MM_PSRAM)` does NOT work — the `MM_PSRAM` flag is defined but ignored by `kmalloc()` (always allocates from SRAM). Use `.psram_noinit` section attribute instead.
+  - `qcc74x_block_pool` alignment math uses `~uint32_t` mask, truncating upper address bits on 64-bit hosts. Host test uses a portable mock allocator instead.
+  - Binary size: 847 KB (within 4 MB flash).
 
 ### 2.2 UVC host enumeration and format negotiation
 - **Spec:** 10-usb-uvc-capture (detect UVC, log VID/PID, negotiate MJPEG 640x480 @ 10fps)
