@@ -13,8 +13,30 @@
 
 #include "shell.h"
 
+#include <string.h>
+
 #define DBG_TAG "UVC"
 #include "log.h"
+
+/* ------------------------------------------------------------------ */
+/* Configuration                                                       */
+/* ------------------------------------------------------------------ */
+
+/* Number of ISO packets per URB submission.
+ * Each micro-frame delivers up to isoin_mps bytes.
+ * 8 packets = 1 full frame (1ms at high-speed).
+ * We use 16 packets (2ms) for double-buffering efficiency. */
+#define ISO_PKTS_PER_URB    16
+
+/* Number of URBs for double-buffering — submit 2 alternately */
+#define ISO_URB_COUNT       2
+
+/* Streaming task stack and priority */
+#define STREAM_TASK_STACK   2048
+#define STREAM_TASK_PRIO    14
+
+/* Stall detection: no complete frame for this many ms → restart */
+#define STALL_TIMEOUT_MS    2000
 
 /* ------------------------------------------------------------------ */
 /* State                                                               */
@@ -23,6 +45,19 @@
 static volatile camera_state_t g_cam_state = CAMERA_DETACHED;
 static uvc_mode_t              g_cam_mode;
 static struct usbh_video      *g_video_class;
+static TaskHandle_t             g_stream_task;
+static volatile bool            g_stream_stop;
+
+/* Frame assembly state */
+static frame_t      g_cur_frame;
+static bool         g_cur_frame_valid;
+static uint8_t      g_last_fid;
+static bool         g_fid_initialized;
+static volatile uint32_t g_frames_captured;
+
+/* Stall detection */
+static TimerHandle_t g_stall_timer;
+static volatile bool g_stall_detected;
 
 /* ------------------------------------------------------------------ */
 /* Helpers                                                             */
@@ -116,6 +151,396 @@ static uint8_t select_altsetting(struct usbh_video *vc)
 }
 
 /* ------------------------------------------------------------------ */
+/* UVC payload header parsing and frame assembly                       */
+/* ------------------------------------------------------------------ */
+
+/*
+ * Parse UVC payload header (USB Video Class 1.1, Section 2.4.3.3).
+ * Header is variable-length: byte 0 = header length (2-12 bytes),
+ * byte 1 = bmHeaderInfo (FID, EOF, PTS, SCR, etc.).
+ *
+ * Returns the offset where actual payload data begins.
+ */
+static void process_iso_data(const uint8_t *data, uint32_t len)
+{
+    if (len < 2) {
+        return; /* Too short for a UVC payload header */
+    }
+
+    uint8_t header_len = data[0];
+    uint8_t header_info = data[1];
+
+    if (header_len < 2 || header_len > len) {
+        return; /* Invalid header */
+    }
+
+    /* Extract FID and EOF bits */
+    uint8_t fid = header_info & 0x01;
+    uint8_t eof = (header_info >> 1) & 0x01;
+    uint8_t err = (header_info >> 6) & 0x01;
+
+    /* Payload data follows the header */
+    const uint8_t *payload = data + header_len;
+    uint32_t payload_len = len - header_len;
+
+    /* Detect frame boundary via FID toggle */
+    if (g_fid_initialized && fid != g_last_fid) {
+        /* FID toggled — previous frame is complete (if we had one) */
+        if (g_cur_frame_valid && g_cur_frame.len > 0) {
+            g_cur_frame.timestamp_ms =
+                (uint32_t)(xTaskGetTickCount() * portTICK_PERIOD_MS);
+            frame_queue_push(&g_cur_frame);
+            g_frames_captured++;
+            g_cur_frame_valid = false;
+        }
+    }
+    g_last_fid = fid;
+    g_fid_initialized = true;
+
+    /* If we have error bit set, discard current frame */
+    if (err) {
+        if (g_cur_frame_valid) {
+            frame_free(&g_cur_frame);
+            g_cur_frame_valid = false;
+        }
+        return;
+    }
+
+    /* Allocate a new frame buffer if needed */
+    if (!g_cur_frame_valid) {
+        if (frame_alloc(&g_cur_frame) != 0) {
+            /* No buffers available — drop data */
+            return;
+        }
+        g_cur_frame.len = 0;
+        g_cur_frame_valid = true;
+    }
+
+    /* Append payload data to current frame */
+    if (payload_len > 0 && g_cur_frame_valid) {
+        uint32_t space = FRAME_MAX_SIZE - g_cur_frame.len;
+        uint32_t copy_len = payload_len < space ? payload_len : space;
+        if (copy_len > 0) {
+            memcpy(g_cur_frame.data + g_cur_frame.len, payload, copy_len);
+            g_cur_frame.len += copy_len;
+        }
+    }
+
+    /* EOF marks end of frame */
+    if (eof && g_cur_frame_valid && g_cur_frame.len > 0) {
+        g_cur_frame.timestamp_ms =
+            (uint32_t)(xTaskGetTickCount() * portTICK_PERIOD_MS);
+        frame_queue_push(&g_cur_frame);
+        g_frames_captured++;
+        g_cur_frame_valid = false;
+    }
+}
+
+/* ------------------------------------------------------------------ */
+/* ISO URB completion callback                                         */
+/* ------------------------------------------------------------------ */
+
+static void iso_complete_cb(void *arg, int nbytes)
+{
+    struct usbh_urb *urb = (struct usbh_urb *)arg;
+    (void)nbytes;
+
+    if (!urb || g_stream_stop) {
+        return;
+    }
+
+    /* Process each ISO packet */
+    for (uint32_t i = 0; i < urb->num_of_iso_packets; i++) {
+        struct usbh_iso_frame_packet *pkt = &urb->iso_packet[i];
+
+        if (pkt->errorcode == 0 && pkt->actual_length > 0) {
+            process_iso_data(pkt->transfer_buffer, pkt->actual_length);
+        }
+        /* Reset for resubmission */
+        pkt->actual_length = 0;
+        pkt->errorcode = 0;
+    }
+
+    /* Resubmit URB for continuous streaming */
+    if (!g_stream_stop && g_cam_state == CAMERA_STREAMING) {
+        urb->errorcode = 0;
+        int ret = usbh_submit_urb(urb);
+        if (ret < 0) {
+            LOG_E("[UVC] ISO resubmit failed: %d\r\n", ret);
+        }
+    }
+}
+
+/* ------------------------------------------------------------------ */
+/* Stall detection timer callback                                      */
+/* ------------------------------------------------------------------ */
+
+static void stall_timer_cb(TimerHandle_t timer)
+{
+    (void)timer;
+
+    static uint32_t last_frames = 0;
+
+    if (g_cam_state != CAMERA_STREAMING) {
+        last_frames = g_frames_captured;
+        return;
+    }
+
+    if (g_frames_captured == last_frames) {
+        /* No new frames since last check */
+        LOG_W("[UVC] Stall detected — no frames for %d ms\r\n",
+              STALL_TIMEOUT_MS);
+        g_stall_detected = true;
+    }
+
+    last_frames = g_frames_captured;
+}
+
+/* ------------------------------------------------------------------ */
+/* Streaming task                                                      */
+/* ------------------------------------------------------------------ */
+
+static void streaming_task(void *arg)
+{
+    (void)arg;
+
+    struct usbh_video *vc = g_video_class;
+    if (!vc || !vc->isoin) {
+        LOG_E("[UVC] No ISO IN endpoint — cannot stream\r\n");
+        g_cam_state = CAMERA_UNAVAILABLE;
+        g_stream_task = NULL;
+        vTaskDelete(NULL);
+        return;
+    }
+
+    uint16_t mps = vc->isoin_mps;
+    if (mps == 0) {
+        mps = 512; /* fallback */
+    }
+
+    LOG_I("[UVC] Starting ISO streaming, MPS=%u, %d pkts/URB\r\n",
+          mps, ISO_PKTS_PER_URB);
+
+    /* Initialize frame assembly state */
+    g_cur_frame_valid = false;
+    g_fid_initialized = false;
+    g_frames_captured = 0;
+    g_stall_detected = false;
+    g_stream_stop = false;
+
+    /* Initialize frame pool */
+    frame_pool_init();
+
+    /* Allocate URB structures with ISO packet arrays.
+     * struct usbh_urb has a flexible array member iso_packet[0],
+     * so we allocate the full size including the packet descriptors. */
+    uint32_t urb_alloc_size = sizeof(struct usbh_urb) +
+                              ISO_PKTS_PER_URB * sizeof(struct usbh_iso_frame_packet);
+
+    /* Allocate data buffers for ISO packets — contiguous per URB */
+    uint32_t buf_size_per_urb = (uint32_t)mps * ISO_PKTS_PER_URB;
+
+    struct usbh_urb *urbs[ISO_URB_COUNT];
+    uint8_t *iso_bufs[ISO_URB_COUNT];
+
+    for (int u = 0; u < ISO_URB_COUNT; u++) {
+        urbs[u] = (struct usbh_urb *)pvPortMalloc(urb_alloc_size);
+        iso_bufs[u] = (uint8_t *)pvPortMalloc(buf_size_per_urb);
+
+        if (!urbs[u] || !iso_bufs[u]) {
+            LOG_E("[UVC] Failed to alloc URB/buffer %d\r\n", u);
+            /* Clean up what was allocated */
+            for (int j = 0; j <= u; j++) {
+                if (urbs[j]) vPortFree(urbs[j]);
+                if (iso_bufs[j]) vPortFree(iso_bufs[j]);
+            }
+            g_cam_state = CAMERA_UNAVAILABLE;
+            g_stream_task = NULL;
+            vTaskDelete(NULL);
+            return;
+        }
+
+        memset(urbs[u], 0, urb_alloc_size);
+    }
+
+    /* Configure and submit URBs */
+    for (int u = 0; u < ISO_URB_COUNT; u++) {
+        struct usbh_urb *urb = urbs[u];
+
+        urb->hport = vc->hport;
+        urb->ep = vc->isoin;
+        urb->transfer_buffer = iso_bufs[u];
+        urb->transfer_buffer_length = buf_size_per_urb;
+        urb->num_of_iso_packets = ISO_PKTS_PER_URB;
+        urb->timeout = 0; /* async mode */
+        urb->complete = iso_complete_cb;
+        urb->arg = urb;
+
+        /* Set up per-packet descriptors */
+        for (int p = 0; p < ISO_PKTS_PER_URB; p++) {
+            urb->iso_packet[p].transfer_buffer = iso_bufs[u] + (uint32_t)p * mps;
+            urb->iso_packet[p].transfer_buffer_length = mps;
+            urb->iso_packet[p].actual_length = 0;
+            urb->iso_packet[p].errorcode = 0;
+        }
+
+        int ret = usbh_submit_urb(urb);
+        if (ret < 0) {
+            LOG_E("[UVC] Initial ISO submit %d failed: %d\r\n", u, ret);
+        }
+    }
+
+    g_cam_state = CAMERA_STREAMING;
+    LOG_I("[UVC] Camera streaming — MJPEG %ux%u\r\n",
+          g_cam_mode.width, g_cam_mode.height);
+
+    /* Start stall detection timer */
+    if (g_stall_timer) {
+        xTimerStart(g_stall_timer, 0);
+    }
+
+    /* Main loop: just wait for stop signal or stall */
+    while (!g_stream_stop && g_cam_state == CAMERA_STREAMING) {
+        if (g_stall_detected) {
+            LOG_W("[UVC] Attempting stream restart after stall\r\n");
+
+            /* Kill outstanding URBs */
+            for (int u = 0; u < ISO_URB_COUNT; u++) {
+                if (urbs[u]->hcpriv) {
+                    usbh_kill_urb(urbs[u]);
+                }
+            }
+
+            /* Try to restart: close and reopen video */
+            usbh_video_close(vc);
+            vTaskDelay(pdMS_TO_TICKS(100));
+
+            int ret = usbh_video_open(vc, g_cam_mode.format,
+                                       g_cam_mode.width, g_cam_mode.height,
+                                       g_cam_mode.altsetting);
+            if (ret < 0) {
+                LOG_E("[UVC] Restart failed: %d — camera unavailable\r\n", ret);
+                g_cam_state = CAMERA_UNAVAILABLE;
+                break;
+            }
+
+            /* Reset frame assembly state */
+            if (g_cur_frame_valid) {
+                frame_free(&g_cur_frame);
+                g_cur_frame_valid = false;
+            }
+            g_fid_initialized = false;
+            g_stall_detected = false;
+
+            /* Resubmit URBs */
+            for (int u = 0; u < ISO_URB_COUNT; u++) {
+                struct usbh_urb *urb = urbs[u];
+                memset(urb, 0, sizeof(struct usbh_urb));
+                urb->hport = vc->hport;
+                urb->ep = vc->isoin;
+                urb->transfer_buffer = iso_bufs[u];
+                urb->transfer_buffer_length = buf_size_per_urb;
+                urb->num_of_iso_packets = ISO_PKTS_PER_URB;
+                urb->timeout = 0;
+                urb->complete = iso_complete_cb;
+                urb->arg = urb;
+
+                for (int p = 0; p < ISO_PKTS_PER_URB; p++) {
+                    urb->iso_packet[p].transfer_buffer = iso_bufs[u] + (uint32_t)p * mps;
+                    urb->iso_packet[p].transfer_buffer_length = mps;
+                    urb->iso_packet[p].actual_length = 0;
+                    urb->iso_packet[p].errorcode = 0;
+                }
+
+                ret = usbh_submit_urb(urb);
+                if (ret < 0) {
+                    LOG_E("[UVC] Restart submit %d failed: %d\r\n", u, ret);
+                    g_cam_state = CAMERA_UNAVAILABLE;
+                    break;
+                }
+            }
+
+            if (g_cam_state == CAMERA_UNAVAILABLE) {
+                break;
+            }
+            LOG_I("[UVC] Stream restarted successfully\r\n");
+        }
+
+        vTaskDelay(pdMS_TO_TICKS(50));
+    }
+
+    /* Cleanup: stop timer, kill URBs, free memory */
+    if (g_stall_timer) {
+        xTimerStop(g_stall_timer, 0);
+    }
+
+    for (int u = 0; u < ISO_URB_COUNT; u++) {
+        if (urbs[u]->hcpriv) {
+            usbh_kill_urb(urbs[u]);
+        }
+    }
+
+    /* Free any partial frame */
+    if (g_cur_frame_valid) {
+        frame_free(&g_cur_frame);
+        g_cur_frame_valid = false;
+    }
+
+    /* Free URBs and buffers */
+    for (int u = 0; u < ISO_URB_COUNT; u++) {
+        vPortFree(urbs[u]);
+        vPortFree(iso_bufs[u]);
+    }
+
+    if (g_cam_state == CAMERA_STREAMING) {
+        g_cam_state = CAMERA_ATTACHED;
+    }
+
+    LOG_I("[UVC] Streaming task stopped (frames captured: %u)\r\n",
+          (unsigned)g_frames_captured);
+    g_stream_task = NULL;
+    vTaskDelete(NULL);
+}
+
+/* ------------------------------------------------------------------ */
+/* Start/stop streaming                                                */
+/* ------------------------------------------------------------------ */
+
+static void start_streaming(void)
+{
+    if (g_stream_task) {
+        return; /* Already running */
+    }
+
+    /* Create stall detection timer if not yet created */
+    if (!g_stall_timer) {
+        g_stall_timer = xTimerCreate("uvc_stall",
+                                      pdMS_TO_TICKS(STALL_TIMEOUT_MS),
+                                      pdTRUE, /* auto-reload */
+                                      NULL,
+                                      stall_timer_cb);
+    }
+
+    g_stream_stop = false;
+    xTaskCreate(streaming_task, "uvc_iso", STREAM_TASK_STACK, NULL,
+                STREAM_TASK_PRIO, &g_stream_task);
+}
+
+static void stop_streaming(void)
+{
+    if (!g_stream_task) {
+        return;
+    }
+
+    g_stream_stop = true;
+
+    /* Wait for task to exit (up to 2 seconds) */
+    for (int i = 0; i < 40 && g_stream_task; i++) {
+        vTaskDelay(pdMS_TO_TICKS(50));
+    }
+}
+
+/* ------------------------------------------------------------------ */
 /* CherryUSB callbacks (override weak symbols)                         */
 /* ------------------------------------------------------------------ */
 
@@ -165,11 +590,18 @@ void usbh_video_run(struct usbh_video *video_class)
 
     LOG_I("[UVC] Camera ready — MJPEG %ux%u  MPS=%u\r\n",
           w, h, video_class->isoin_mps);
+
+    /* Auto-start streaming */
+    start_streaming();
 }
 
 void usbh_video_stop(struct usbh_video *video_class)
 {
     LOG_I("[UVC] Camera detached\r\n");
+
+    /* Stop streaming task first */
+    stop_streaming();
+
     g_cam_state   = CAMERA_DETACHED;
     g_video_class = NULL;
 }
@@ -204,6 +636,11 @@ const uvc_mode_t *uvc_get_mode(void)
     return &g_cam_mode;
 }
 
+uint32_t uvc_get_frames_captured(void)
+{
+    return g_frames_captured;
+}
+
 /* ------------------------------------------------------------------ */
 /* CLI: cam_info                                                       */
 /* ------------------------------------------------------------------ */
@@ -231,6 +668,7 @@ static int cmd_cam_info(int argc, char **argv)
         printf("  Mode       : MJPEG %ux%u\r\n", g_cam_mode.width, g_cam_mode.height);
         printf("  Alt-setting: %u\r\n", g_cam_mode.altsetting);
         printf("  ISO IN MPS : %u bytes\r\n", g_cam_mode.isoin_mps);
+        printf("  Frames cap : %u\r\n", (unsigned)g_frames_captured);
     }
     return 0;
 }
@@ -268,7 +706,7 @@ static int cmd_cam_start(int argc, char **argv)
         return -1;
     }
 
-    g_cam_state = CAMERA_STREAMING;
+    start_streaming();
     printf("Camera streaming started\r\n");
     return 0;
 }
@@ -288,6 +726,8 @@ static int cmd_cam_stop(int argc, char **argv)
                cam_state_str(g_cam_state));
         return 0;
     }
+
+    stop_streaming();
 
     int ret = usbh_video_close(g_video_class);
     if (ret < 0) {
