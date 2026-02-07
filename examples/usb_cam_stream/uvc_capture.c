@@ -661,6 +661,54 @@ uint64_t uvc_get_frames_captured(void)
     return g_frames_captured;
 }
 
+int uvc_start_capture(void)
+{
+    if (!g_video_class) {
+        return -1;
+    }
+
+    if (g_cam_state == CAMERA_STREAMING) {
+        return 0; /* Already streaming */
+    }
+
+    if (g_cam_state != CAMERA_ATTACHED) {
+        return -1;
+    }
+
+    int ret = usbh_video_open(g_video_class, g_cam_mode.format,
+                               g_cam_mode.width, g_cam_mode.height,
+                               g_cam_mode.altsetting);
+    if (ret < 0) {
+        LOG_E("[UVC] usbh_video_open failed in start_capture: %d\r\n", ret);
+        return -1;
+    }
+
+    start_streaming();
+    return 0;
+}
+
+int uvc_stop_capture(void)
+{
+    if (!g_video_class) {
+        return -1;
+    }
+
+    if (g_cam_state != CAMERA_STREAMING && g_cam_state != CAMERA_ATTACHED) {
+        return -1;
+    }
+
+    stop_streaming();
+
+    int ret = usbh_video_close(g_video_class);
+    if (ret < 0) {
+        LOG_E("[UVC] usbh_video_close failed in stop_capture: %d\r\n", ret);
+        return -1;
+    }
+
+    g_cam_state = CAMERA_ATTACHED;
+    return 0;
+}
+
 /* ------------------------------------------------------------------ */
 /* CLI: cam_info                                                       */
 /* ------------------------------------------------------------------ */
@@ -719,15 +767,12 @@ static int cmd_cam_start(int argc, char **argv)
         return -1;
     }
 
-    int ret = usbh_video_open(g_video_class, g_cam_mode.format,
-                               g_cam_mode.width, g_cam_mode.height,
-                               g_cam_mode.altsetting);
+    int ret = uvc_start_capture();
     if (ret < 0) {
-        printf("usbh_video_open failed: %d\r\n", ret);
+        printf("Start capture failed\r\n");
         return -1;
     }
 
-    start_streaming();
     printf("Camera streaming started\r\n");
     return 0;
 }
@@ -748,15 +793,12 @@ static int cmd_cam_stop(int argc, char **argv)
         return 0;
     }
 
-    stop_streaming();
-
-    int ret = usbh_video_close(g_video_class);
+    int ret = uvc_stop_capture();
     if (ret < 0) {
-        printf("usbh_video_close failed: %d\r\n", ret);
+        printf("Stop capture failed\r\n");
         return -1;
     }
 
-    g_cam_state = CAMERA_ATTACHED;
     printf("Camera streaming stopped\r\n");
     return 0;
 }

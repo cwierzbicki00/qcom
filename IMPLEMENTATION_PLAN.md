@@ -514,6 +514,14 @@
 - **Fix:** Added `channel=%d` with `AP_CHANNEL` to the "SoftAP started" log line.
 - **Test:** Host tests 19/19 passing. Build succeeds at 875 KB.
 
+### 5.10 Add public capture API per spec 10 ✅ DONE
+- **Spec:** 10-usb-uvc-capture (Frame delivery API: start_capture(), stop_capture(), get_latest_frame()/dequeue_frame())
+- **Files:** `uvc_capture.h`, `uvc_capture.c`
+- **Gap:** Spec 10 §Frame delivery API requires exposed internal API: `start_capture()`, `stop_capture()`, `get_latest_frame() or dequeue_frame()`. The frame dequeue was already public via `frame_queue_pop()` in `frame_pool.h` (used directly by HTTP server). However, start/stop capture were only available as static internal functions and CLI commands — no programmatic public API existed for other modules.
+- **Fix:** Added `uvc_start_capture()` and `uvc_stop_capture()` as public API functions in `uvc_capture.h`. Implementation wraps `usbh_video_open()` + `start_streaming()` and `stop_streaming()` + `usbh_video_close()` respectively. CLI `cam_start`/`cam_stop` commands refactored to use the new public API.
+- **Note:** `dequeue_frame()` maps to `frame_queue_pop()` from `frame_pool.h`, which is already the public frame delivery API consumed by the HTTP server. No additional wrapper needed — the spec says "internal API" and `frame_pool.h` is an internal header.
+- **Test:** Host tests 19/19 passing. Build succeeds.
+
 ---
 
 ## Dependency Graph (Build Order)

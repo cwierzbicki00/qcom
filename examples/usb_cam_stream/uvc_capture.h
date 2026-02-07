@@ -47,4 +47,18 @@ const uvc_mode_t *uvc_get_mode(void);
  */
 uint64_t uvc_get_frames_captured(void);
 
+/*
+ * Start capture: open UVC stream and begin ISO transfers.
+ * Requires camera in CAMERA_ATTACHED state.
+ * Returns 0 on success, -1 on error.
+ */
+int uvc_start_capture(void);
+
+/*
+ * Stop capture: stop ISO transfers and close UVC stream.
+ * Transitions camera from STREAMING back to ATTACHED.
+ * Returns 0 on success, -1 on error.
+ */
+int uvc_stop_capture(void);
+
 #endif /* UVC_CAPTURE_H */
