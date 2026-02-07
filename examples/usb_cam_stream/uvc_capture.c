@@ -38,6 +38,10 @@
 /* Stall detection: no complete frame for this many ms → restart */
 #define STALL_TIMEOUT_MS    2000
 
+/* Preferred frame interval in 100ns units (10 fps = 1,000,000) */
+#define PREFERRED_FPS           10
+#define PREFERRED_INTERVAL_100NS (10000000 / PREFERRED_FPS) /* 1,000,000 */
+
 /* ------------------------------------------------------------------ */
 /* State                                                               */
 /* ------------------------------------------------------------------ */
@@ -572,6 +576,10 @@ void usbh_video_run(struct usbh_video *video_class)
 
     LOG_I("[UVC] Selected MJPEG %ux%u  altsetting=%u\r\n", w, h, alt);
 
+    /* Set preferred frame interval (10 fps) before negotiation.
+     * The camera will adjust to its nearest supported interval. */
+    video_class->probe.dwFrameInterval = PREFERRED_INTERVAL_100NS;
+
     /* Negotiate with camera */
     int ret = usbh_video_open(video_class, USBH_VIDEO_FORMAT_MJPEG, w, h, alt);
     if (ret < 0) {
@@ -580,19 +588,27 @@ void usbh_video_run(struct usbh_video *video_class)
         return;
     }
 
+    /* Log negotiated frame interval (camera may have adjusted our preference) */
+    uint32_t negotiated_interval = video_class->probe.dwFrameInterval;
+    uint32_t negotiated_fps = (negotiated_interval > 0)
+                              ? (10000000 / negotiated_interval) : 0;
+    LOG_I("[UVC] Negotiated interval=%u (100ns) → ~%u fps\r\n",
+          (unsigned)negotiated_interval, (unsigned)negotiated_fps);
+
     /* Record negotiated mode */
     g_cam_mode.vid        = vid;
     g_cam_mode.pid        = pid;
     g_cam_mode.width      = w;
     g_cam_mode.height     = h;
+    g_cam_mode.fps        = (uint8_t)(negotiated_fps > 255 ? 255 : negotiated_fps);
     g_cam_mode.format     = USBH_VIDEO_FORMAT_MJPEG;
     g_cam_mode.altsetting = alt;
     g_cam_mode.isoin_mps  = video_class->isoin_mps;
     g_video_class         = video_class;
     g_cam_state           = CAMERA_ATTACHED;
 
-    LOG_I("[UVC] Camera ready — MJPEG %ux%u  MPS=%u\r\n",
-          w, h, video_class->isoin_mps);
+    LOG_I("[UVC] Camera ready — MJPEG %ux%u @ %ufps  MPS=%u\r\n",
+          w, h, (unsigned)g_cam_mode.fps, video_class->isoin_mps);
 
     /* Auto-start streaming */
     start_streaming();
@@ -668,7 +684,8 @@ static int cmd_cam_info(int argc, char **argv)
     printf("Camera state : %s\r\n", cam_state_str(st));
     if (st >= CAMERA_ATTACHED) {
         printf("  VID/PID    : 0x%04X / 0x%04X\r\n", g_cam_mode.vid, g_cam_mode.pid);
-        printf("  Mode       : MJPEG %ux%u\r\n", g_cam_mode.width, g_cam_mode.height);
+        printf("  Mode       : MJPEG %ux%u @ %ufps\r\n",
+               g_cam_mode.width, g_cam_mode.height, g_cam_mode.fps);
         printf("  Alt-setting: %u\r\n", g_cam_mode.altsetting);
         printf("  ISO IN MPS : %u bytes\r\n", g_cam_mode.isoin_mps);
         printf("  Frames cap : %u\r\n", (unsigned)g_frames_captured);

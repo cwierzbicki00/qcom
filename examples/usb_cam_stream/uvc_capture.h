@@ -20,6 +20,7 @@ typedef struct {
     uint16_t height;
     uint8_t  format;           /* USBH_VIDEO_FORMAT_MJPEG or UNCOMPRESSED */
     uint8_t  altsetting;       /* Selected bandwidth alt-setting */
+    uint8_t  fps;              /* Negotiated FPS (camera may differ from request) */
     uint16_t isoin_mps;        /* ISO IN max packet size (after mult) */
 } uvc_mode_t;
 

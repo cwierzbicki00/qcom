@@ -14,6 +14,7 @@
 struct usbh_video_resolution {
     uint16_t wWidth;
     uint16_t wHeight;
+    uint32_t dwDefaultFrameInterval; /* 100ns units; 0 = not parsed */
 };
 
 struct usbh_video_format {

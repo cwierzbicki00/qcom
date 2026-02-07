@@ -451,6 +451,20 @@
 - **Build notes:**
   - Binary size: 881 KB (within 4 MB flash).
 
+### 5.4 Spec compliance audit — remaining gaps ✅ DONE
+- **Spec:** 40-observability (git tag in boot log, DHCP status), 10-usb-uvc-capture (FPS negotiation)
+- **Files:** `main.c`, `CMakeLists.txt`, `wifi_ap.c`, `uvc_capture.c`, `uvc_capture.h`, `http_server.c`, SDK: `usbh_video.c`, `usbh_video.h`
+- **Implementation:**
+  - **FIX:** Boot log now includes git tag via `GIT_TAG` define, auto-populated by CMake `git describe --tags --always --dirty` at configure time. Format: `FW: usb-cam-stream v0.1.0 (24210c1-dirty) built ...`.
+  - **FIX:** SoftAP boot log now includes `DHCP=on/off` field as required by spec 40-observability.
+  - **FIX:** FPS negotiation implemented per spec 10-usb-uvc-capture §4: firmware requests 10fps (dwFrameInterval=1,000,000 100ns units) in UVC probe/commit. Camera adjusts to nearest supported interval. Negotiated FPS logged and stored in `uvc_mode_t.fps`.
+  - **SDK PATCH:** `usbh_videostreaming_set_cur_probe()` and `set_cur_commit()` no longer hardcode 333333 (30fps). They respect the value set by application code; default to 333333 only if zero.
+  - **SDK PATCH:** `struct usbh_video_resolution` extended with `dwDefaultFrameInterval` field, parsed from MJPEG and uncompressed frame descriptors during enumeration.
+  - **ENHANCEMENT:** `cam_info` CLI now shows FPS. `/status.json` `selected_mode` now includes FPS (e.g., `"MJPEG 640x480 @ 10fps"`).
+- **Test:** Host tests 19/19 passing. Build succeeds.
+- **Build notes:**
+  - Binary built successfully after clean rebuild (SDK headers modified).
+
 ---
 
 ## Dependency Graph (Build Order)
@@ -476,7 +490,7 @@ Phase 1 + Phase 2 + Phase 3 ─────────────────�
 | # | Risk | Impact | Mitigation |
 |---|------|--------|------------|
 | R1 | ~~CONFIRMED: EHCI ISO functions not implemented in SDK~~ **RESOLVED** — Full iTD driver implemented in `usb_ehci_iso_stub.c` with `ehci_iso_urb_init()`, `ehci_kill_iso_urb()`, `ehci_scan_isochronous_list()`. | N/A | N/A |
-| R2 | `usbh_video_open()` hardcodes 30fps interval; camera may not support it | **High** — negotiation fails | Patch `usbh_video.c` to accept camera's default interval, or add interval parameter. |
+| R2 | ~~`usbh_video_open()` hardcodes 30fps interval~~ **RESOLVED** — SDK patched to use application-set `dwFrameInterval` (defaults to 333333 if zero). Firmware requests 10fps; camera negotiates nearest supported. | N/A | N/A |
 | R3 | ~~PSRAM section not available on qcc744dk linker script~~ **RESOLVED** — `.psram_noinit` works | N/A | N/A |
 | R4 | Frame size exceeds 100 KB for some cameras/scenes | **Medium** — frame truncation | Increase block size to 150 KB or dynamically size based on negotiated resolution. |
 | R5 | ~~`send()` blocks on slow WiFi client, stalling capture pipeline~~ **MITIGATED** — `SO_SNDTIMEO` set to 5s, 10fps pacing drops excess frames | N/A | N/A |

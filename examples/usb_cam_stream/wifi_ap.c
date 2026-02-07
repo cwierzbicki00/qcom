@@ -31,8 +31,8 @@ void wifi_ap_start(void)
     ap.start = AP_DHCP_START;
     ap.limit = AP_DHCP_LIMIT;
 
-    LOG_I("[WIFI] Starting SoftAP: SSID=%s channel=%d IP=%s\r\n",
-          AP_SSID, AP_CHANNEL, AP_IP_ADDR);
+    LOG_I("[WIFI] Starting SoftAP: SSID=%s channel=%d IP=%s DHCP=%s\r\n",
+          AP_SSID, AP_CHANNEL, AP_IP_ADDR, ap.use_dhcpd ? "on" : "off");
 
     int ret = wifi_mgmr_ap_start(&ap);
     if (ret != 0) {
@@ -44,7 +44,7 @@ void wifi_ap_event_handler(uint32_t code)
 {
     switch (code) {
         case CODE_WIFI_ON_AP_STARTED:
-            LOG_I("[WIFI] SoftAP started: SSID=%s IP=%s\r\n", AP_SSID, AP_IP_ADDR);
+            LOG_I("[WIFI] SoftAP started: SSID=%s IP=%s DHCP=on\r\n", AP_SSID, AP_IP_ADDR);
             break;
 
         case CODE_WIFI_ON_AP_STOPPED:

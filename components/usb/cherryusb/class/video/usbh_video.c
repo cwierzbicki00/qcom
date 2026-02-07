@@ -127,7 +127,9 @@ int usbh_videostreaming_set_cur_probe(struct usbh_video *video_class, uint8_t fo
     video_class->probe.bFormatIndex = formatindex;
     video_class->probe.bFrameIndex = frameindex;
     video_class->probe.dwMaxPayloadTransferSize = 0;
-    video_class->probe.dwFrameInterval = 333333;
+    if (video_class->probe.dwFrameInterval == 0) {
+        video_class->probe.dwFrameInterval = 333333; /* default 30fps */
+    }
     return usbh_video_set(video_class, VIDEO_REQUEST_SET_CUR, video_class->data_intf, 0x00, VIDEO_VS_PROBE_CONTROL, (uint8_t *)&video_class->probe, 26);
 }
 
@@ -136,7 +138,7 @@ int usbh_videostreaming_set_cur_commit(struct usbh_video *video_class, uint8_t f
     memcpy(&video_class->commit, &video_class->probe, sizeof(struct video_probe_and_commit_controls));
     video_class->commit.bFormatIndex = formatindex;
     video_class->commit.bFrameIndex = frameindex;
-    video_class->commit.dwFrameInterval = 333333;
+    /* Use probe's negotiated interval (preserved from GET_CUR response or set by application) */
     return usbh_video_set(video_class, VIDEO_REQUEST_SET_CUR, video_class->data_intf, 0x00, VIDEO_VS_COMMIT_CONTROL, (uint8_t *)&video_class->commit, 26);
 }
 
@@ -438,12 +440,14 @@ static int usbh_video_ctrl_connect(struct usbh_hubport *hport, uint8_t intf)
 
                             video_class->format[format_index - 1].frame[frame_index - 1].wWidth = ((struct video_cs_if_vs_frame_uncompressed_descriptor *)p)->wWidth;
                             video_class->format[format_index - 1].frame[frame_index - 1].wHeight = ((struct video_cs_if_vs_frame_uncompressed_descriptor *)p)->wHeight;
+                            video_class->format[format_index - 1].frame[frame_index - 1].dwDefaultFrameInterval = ((struct video_cs_if_vs_frame_uncompressed_descriptor *)p)->dwDefaultFrameInterval;
                             break;
                         case VIDEO_VS_FRAME_MJPEG_DESCRIPTOR_SUBTYPE:
                             frame_index = p[DESC_bFrameIndex];
 
                             video_class->format[format_index - 1].frame[frame_index - 1].wWidth = ((struct video_cs_if_vs_frame_mjpeg_descriptor *)p)->wWidth;
                             video_class->format[format_index - 1].frame[frame_index - 1].wHeight = ((struct video_cs_if_vs_frame_mjpeg_descriptor *)p)->wHeight;
+                            video_class->format[format_index - 1].frame[frame_index - 1].dwDefaultFrameInterval = ((struct video_cs_if_vs_frame_mjpeg_descriptor *)p)->dwDefaultFrameInterval;
                             break;
                         default:
                             break;

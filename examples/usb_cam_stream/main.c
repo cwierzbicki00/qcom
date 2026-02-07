@@ -112,7 +112,8 @@ int main(void)
 {
     board_init();
 
-    LOG_I("FW: usb-cam-stream v" FW_VERSION " built %s %s\r\n", __DATE__, __TIME__);
+    LOG_I("FW: usb-cam-stream v" FW_VERSION " (" GIT_TAG ") built %s %s\r\n",
+          __DATE__, __TIME__);
 
     /* Print chip/board identification */
     {

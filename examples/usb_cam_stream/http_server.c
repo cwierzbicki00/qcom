@@ -251,10 +251,10 @@ static void handle_status(int sock)
     camera_state_t st = uvc_get_camera_state();
     const uvc_mode_t *mode = uvc_get_mode();
 
-    char mode_str[32] = "none";
+    char mode_str[40] = "none";
     if (st >= CAMERA_ATTACHED) {
-        snprintf(mode_str, sizeof(mode_str), "MJPEG %ux%u",
-                 mode->width, mode->height);
+        snprintf(mode_str, sizeof(mode_str), "MJPEG %ux%u @ %ufps",
+                 mode->width, mode->height, mode->fps);
     }
 
     uint32_t uptime_ms = (uint32_t)(xTaskGetTickCount() * portTICK_PERIOD_MS);

@@ -4,8 +4,22 @@ include(proj.conf)
 
 find_package(qcc74x_sdk REQUIRED HINTS $ENV{QCC74x_SDK_BASE})
 
+# Capture git tag at configure time for boot log
+execute_process(
+    COMMAND git describe --tags --always --dirty
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    OUTPUT_VARIABLE GIT_TAG
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    ERROR_QUIET
+    RESULT_VARIABLE GIT_RC
+)
+if(NOT GIT_RC EQUAL 0)
+    set(GIT_TAG "unknown")
+endif()
+
 sdk_add_compile_definitions(-DCONFIG_CLI_CMD_ENABLE)
 sdk_add_compile_definitions(-DSHELL_THREAD_PRIO=20)
+sdk_add_compile_definitions(-DGIT_TAG="${GIT_TAG}")
 
 sdk_add_include_directories(.)
 sdk_add_include_directories(${QCC74x_SDK_BASE}/components/usb/cherryusb/port/ehci)
