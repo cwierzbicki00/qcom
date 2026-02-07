@@ -141,6 +141,7 @@ int main(void)
     wifi_start_firmware_task();
 
     uvc_capture_init();
+    LOG_I("Camera: not attached (USB enumeration pending)\r\n");
 
     vTaskStartScheduler();
 

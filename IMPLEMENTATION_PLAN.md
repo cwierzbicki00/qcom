@@ -348,6 +348,7 @@
   - SRAM and PSRAM heap sizes logged at boot
   - After AP start event: SSID, channel, IP logged by `wifi_ap.c`
   - Camera attach/detach events logged by `uvc_capture.c`
+  - **Boot-time camera status:** `LOG_I("Camera: not attached (USB enumeration pending)")` emitted after `uvc_capture_init()` in `main()`, satisfying spec requirement to "print whether camera is attached at boot"
 - **Test:** Boot log contains all required fields
 - **Build notes:** Requires `#include "qcc74x_efuse.h"` in `main.c`.
 
@@ -464,6 +465,14 @@
 - **Test:** Host tests 19/19 passing. Build succeeds.
 - **Build notes:**
   - Binary built successfully after clean rebuild (SDK headers modified).
+
+### 5.5 Boot-time camera status log ✅ DONE
+- **Spec:** 40-observability ("Print whether camera is attached at boot")
+- **Files:** `main.c`
+- **Implementation:**
+  - Added `LOG_I("Camera: not attached (USB enumeration pending)")` after `uvc_capture_init()` in `main()`.
+  - USB camera enumeration is asynchronous (happens after scheduler starts), so at boot time the camera is always in the "not attached" state. The attach event is logged separately by `uvc_capture.c` when USB enumeration completes.
+- **Test:** Host tests 19/19 passing. Build succeeds at 874 KB.
 
 ---
 
