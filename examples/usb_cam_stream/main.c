@@ -21,6 +21,7 @@
 #include "shell.h"
 
 #include "wifi_ap.h"
+#include "uvc_capture.h"
 
 #define DBG_TAG "MAIN"
 #include "log.h"
@@ -111,6 +112,8 @@ int main(void)
 
     tcpip_init(NULL, NULL);
     wifi_start_firmware_task();
+
+    uvc_capture_init();
 
     vTaskStartScheduler();
 

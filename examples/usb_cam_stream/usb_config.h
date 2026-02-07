@@ -79,6 +79,7 @@
 #define CONFIG_USB_EHCI_QTD_NUM         (CONFIG_USB_EHCI_QH_NUM * 3)
 #define CONFIG_USB_EHCI_ITD_NUM         20
 #define CONFIG_USB_EHCI_HCOR_RESERVED_DISABLE
+#define CONFIG_USB_EHCI_ISO
 
 /* ---------------- OHCI Configuration ---------------- */
 #define CONFIG_USB_OHCI_HCOR_OFFSET (0x0)

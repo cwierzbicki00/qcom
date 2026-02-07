@@ -150,10 +150,11 @@
   - `qcc74x_block_pool` alignment math uses `~uint32_t` mask, truncating upper address bits on 64-bit hosts. Host test uses a portable mock allocator instead.
   - Binary size: 847 KB (within 4 MB flash).
 
-### 2.2 UVC host enumeration and format negotiation
+### 2.2 UVC host enumeration and format negotiation ✅ DONE
 - **Spec:** 10-usb-uvc-capture (detect UVC, log VID/PID, negotiate MJPEG 640x480 @ 10fps)
 - **Files:**
   - NEW `examples/usb_cam_stream/uvc_capture.c` / `uvc_capture.h`
+  - NEW `examples/usb_cam_stream/usb_ehci_iso_stub.c` (linker stubs for missing EHCI ISO functions)
 - **Implementation:**
   - Override `usbh_video_run(struct usbh_video *video_class)` (weak function in `usbh_video.c`)
   - On attach:
@@ -162,19 +163,25 @@
     3. Within MJPEG format, find resolution closest to 640x480 per spec selection policy (prefer exact, then nearest ≥320x240 and ≤1280x720)
     4. Call `usbh_video_open(video_class, USBH_VIDEO_FORMAT_MJPEG, width, height, altsetting)`
     5. Note: frame interval is hardcoded to 333333 (30fps) in driver; our streamer will cap at 10fps output
-  - Override `usbh_video_stop()` — set `camera_attached = false`, notify streaming server
-  - Initialize USB host stack: `usbh_initialize(0, USB_BASE)` in boot sequence
+  - Override `usbh_video_stop()` — set `camera_state = CAMERA_DETACHED`
+  - Initialize USB host stack: `usbh_initialize(0, usb_dev->reg_base)` in boot sequence via `uvc_capture_init()`
+  - Alt-setting selection: picks highest-bandwidth alt-setting (highest MPS) automatically
+  - CLI: `cam_info` shell command prints camera state, VID/PID, mode, alt-setting, MPS
 - **In-repo references:**
   - `components/usb/cherryusb/class/video/usbh_video.h` — `struct usbh_video`, format/resolution structures
   - `components/usb/cherryusb/class/video/usbh_video.c` — `usbh_video_open()`, weak `usbh_video_run/stop`
   - `components/usb/cherryusb/class/video/usb_video.h` — UVC descriptor constants
   - `examples/cherryusb/cherryusb_cli/host_demo/usbh_cli.c` — USB host init pattern
   - `examples/cherryusb/cherryusb_cli/usb_config.h` — USB host config defines
-- **Test:** Plug in Logitech webcam → console logs VID/PID and "Selected MJPEG 640x480"
-- **Risks:**
-  - `usbh_video_open()` hardcodes frame interval to 333333 (30fps). If camera doesn't support 30fps, negotiation may fail. May need to patch driver or accept camera's default fps.
-  - `altsetting` parameter: must be determined from parsed descriptors. The driver stores endpoint info but the altsetting selection logic needs validation.
-  - Some cameras expose multiple alt-settings with different max packet sizes. Need to select appropriate one for bandwidth.
+- **Test:** Plug in webcam → console logs VID/PID and "Selected MJPEG WxH"; `cam_info` prints state
+- **Build notes (resolved):**
+  - `CONFIG_USB_EHCI_ISO` must be defined in `usb_config.h` to enable ISO code paths in EHCI driver.
+  - **EHCI ISO functions are NOT implemented in SDK:** `ehci_iso_urb_init()`, `ehci_kill_iso_urb()`, `ehci_scan_isochronous_list()` are declared in `usb_hc_ehci.h` but have NO implementation anywhere in the SDK. Stub file `usb_ehci_iso_stub.c` provides link-time stubs returning `-USB_ERR_NOTSUPP`. Real ISO implementation needed for Phase 2.3.
+  - CherryUSB EHCI headers require explicit include paths added to CMakeLists.txt: `port/ehci`, `common`, `core`.
+  - Binary size: 856 KB (within 4 MB flash).
+- **Risks (resolved):**
+  - `altsetting` parameter: resolved — `select_altsetting()` picks highest MPS among alt-settings 1..N-1.
+  - Multiple alt-settings: resolved — highest bandwidth selected automatically.
 
 ### 2.3 ISO streaming and frame assembly
 - **Spec:** 10-usb-uvc-capture (frame delivery, monotonic timestamp)
@@ -197,7 +204,8 @@
   - `components/usb/cherryusb/class/video/usb_video.h` — UVC payload header format constants
 - **Test:** Console logs "Frame #N, size=XXXXX bytes" incrementing continuously
 - **Risks:**
-  - **Critical:** ISO transfer scheduling on this platform is not well-documented. Need hardware validation that `usbh_submit_urb()` works correctly with ISO endpoints. The SDK may use a software USB host controller (MUSB, DWC2, etc.) — the ISO handling quality varies.
+  - **BLOCKING:** EHCI ISO functions (`ehci_iso_urb_init`, `ehci_kill_iso_urb`, `ehci_scan_isochronous_list`) are NOT implemented in the SDK. They are declared in `usb_hc_ehci.h` and called under `#ifdef CONFIG_USB_EHCI_ISO`, but no source file provides them. Must implement EHCI ITD (Isochronous Transfer Descriptor) management or find an alternative (e.g., upstream CherryUSB patches, or bulk transfer if camera supports it). Stub file `usb_ehci_iso_stub.c` currently returns `-USB_ERR_NOTSUPP`.
+  - Data structures exist: `struct ehci_itd_hw`, `struct ehci_iso_hw`, ITD pool of `CONFIG_USB_EHCI_ITD_NUM` (20) entries, periodic frame list integration needed.
   - UVC payload header parsing: some cameras add PTS/SCR fields that shift data offset. Must parse header length field, not assume fixed 2-byte header.
   - Frame size may exceed 100 KB for high-quality MJPEG. Need to handle truncation gracefully or increase buffer size.
 
@@ -435,12 +443,12 @@ Phase 1 + Phase 2 + Phase 3 ─────────────────�
 
 | # | Risk | Impact | Mitigation |
 |---|------|--------|------------|
-| R1 | ISO isochronous transfers may not work correctly on this USB host controller | **Blocking** — no video without ISO | Test with `usbh_submit_urb()` on hardware ASAP (Phase 2.3). Check if SDK has a working ISO demo. |
+| R1 | **CONFIRMED:** EHCI ISO functions not implemented in SDK (`ehci_iso_urb_init`, `ehci_kill_iso_urb`, `ehci_scan_isochronous_list` declared but missing). Stubs link but return `-USB_ERR_NOTSUPP`. | **Blocking** — no video without ISO | Must implement EHCI ITD management (data structures exist in `usb_hc_ehci.h`), find upstream CherryUSB ISO patch, or use bulk transfer if camera supports it. |
 | R2 | `usbh_video_open()` hardcodes 30fps interval; camera may not support it | **High** — negotiation fails | Patch `usbh_video.c` to accept camera's default interval, or add interval parameter. |
-| R3 | PSRAM section not available on qcc744dk linker script | **Medium** — can't use static PSRAM alloc | Fallback: `kmalloc(size, MM_PSRAM)` at runtime. Verify PSRAM is initialized in `board_init()`. |
+| R3 | ~~PSRAM section not available on qcc744dk linker script~~ **RESOLVED** — `.psram_noinit` works | N/A | N/A |
 | R4 | Frame size exceeds 100 KB for some cameras/scenes | **Medium** — frame truncation | Increase block size to 150 KB or dynamically size based on negotiated resolution. |
 | R5 | `send()` blocks on slow WiFi client, stalling capture pipeline | **Medium** — frame buildup, drops | Decouple with queue. Set `SO_SNDTIMEO`. Drop frames if send would block too long. |
-| R6 | Combined WiFi+USB firmware exceeds flash/RAM limits | **Medium** — won't fit | Profile after Phase 0.1. qcc744dk has 4MB flash + 4MB PSRAM — should be sufficient. Strip unused components. |
+| R6 | ~~Combined WiFi+USB firmware exceeds flash/RAM limits~~ **RESOLVED** — 856 KB at Phase 2.2 | N/A | N/A |
 | R7 | UVC payload header varies by camera (PTS/SCR optional fields) | **Low** — frame assembly corruption | Parse header length field (byte 0) to determine actual data offset. Don't assume 2-byte header. |
 
 ---
@@ -453,6 +461,7 @@ Phase 1 + Phase 2 + Phase 3 ─────────────────�
 | `examples/usb_cam_stream/wifi_ap.c` / `.h` | SoftAP configuration, STA limit enforcement, WiFi CLI |
 | `examples/usb_cam_stream/frame_pool.c` / `.h` | MJPEG frame buffer pool (PSRAM-backed) + FreeRTOS queue |
 | `examples/usb_cam_stream/uvc_capture.c` / `.h` | UVC host enumeration, format negotiation, ISO streaming, stall recovery |
+| `examples/usb_cam_stream/usb_ehci_iso_stub.c` | Linker stubs for missing EHCI ISO functions (to be replaced with real impl) |
 | `examples/usb_cam_stream/http_server.c` / `.h` | Raw socket HTTP server: /, /stream, /snapshot.jpg, /status.json |
 | `examples/usb_cam_stream/metrics.c` / `.h` | Periodic metrics, counters, CLI debug commands |
 | `examples/usb_cam_stream/Makefile` | Build wrapper |
