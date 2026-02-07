@@ -259,6 +259,10 @@ static void handle_status(int sock)
 
     uint32_t uptime_ms = (uint32_t)(xTaskGetTickCount() * portTICK_PERIOD_MS);
     uint32_t heap_free = kfree_size();
+    uint32_t psram_free = pfree_size();
+
+    uint32_t pool_total, pool_free, pool_queued;
+    frame_pool_stats(&pool_total, &pool_free, &pool_queued);
 
     char json[512];
     int jlen = snprintf(json, sizeof(json),
@@ -271,6 +275,10 @@ static void handle_status(int sock)
         "\"stream_client_connected\":%s,"
         "\"stream_client_ip\":\"%s\","
         "\"heap_free_bytes\":%u,"
+        "\"psram_free_bytes\":%u,"
+        "\"pool_total\":%u,"
+        "\"pool_free\":%u,"
+        "\"pool_queued\":%u,"
         "\"uptime_ms\":%u"
         "}",
         (st >= CAMERA_ATTACHED) ? "true" : "false",
@@ -281,6 +289,10 @@ static void handle_status(int sock)
         g_counters.stream_client_connected ? "true" : "false",
         g_stream_client_ip[0] ? g_stream_client_ip : "",
         (unsigned)heap_free,
+        (unsigned)psram_free,
+        (unsigned)pool_total,
+        (unsigned)pool_free,
+        (unsigned)pool_queued,
         (unsigned)uptime_ms);
 
     send_response(sock, "200 OK", "application/json", json, jlen);

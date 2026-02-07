@@ -118,6 +118,9 @@ int frame_alloc(frame_t *frame)
 {
     void *blk = NULL;
 
+    configASSERT(initialised);
+    configASSERT(frame != NULL);
+
     /* Non-blocking alloc (wait = 0) */
     if (qcc74x_block_pool_alloc(&blk_pool, &blk, 0) != 0) {
         return -1;
@@ -168,6 +171,21 @@ int frame_queue_pop(frame_t *frame, uint32_t timeout_ms)
         return 0;
     }
     return -1;
+}
+
+void frame_queue_drain(void)
+{
+    frame_t frame;
+    uint32_t drained = 0;
+
+    while (xQueueReceive(frame_queue, &frame, 0) == pdTRUE) {
+        frame_free(&frame);
+        drained++;
+    }
+
+    if (drained > 0) {
+        LOG_I("drained %u queued frames\r\n", (unsigned)drained);
+    }
 }
 
 void frame_pool_stats(uint32_t *total, uint32_t *free_count,

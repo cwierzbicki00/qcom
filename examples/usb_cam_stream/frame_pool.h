@@ -52,6 +52,12 @@ void frame_queue_push(const frame_t *frame);
 int frame_queue_pop(frame_t *frame, uint32_t timeout_ms);
 
 /*
+ * Drain all frames from the ready queue, freeing each back to the pool.
+ * Call when stopping the capture pipeline to prevent pool block leaks.
+ */
+void frame_queue_drain(void);
+
+/*
  * Query pool statistics.
  * Any pointer may be NULL if not needed.
  */

@@ -486,6 +486,9 @@ static void streaming_task(void *arg)
         g_cur_frame_valid = false;
     }
 
+    /* Drain queued frames to return pool blocks */
+    frame_queue_drain();
+
     /* Free URBs and buffers */
     for (int u = 0; u < ISO_URB_COUNT; u++) {
         vPortFree(urbs[u]);

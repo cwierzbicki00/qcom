@@ -11,6 +11,7 @@
  *   7. Double-free is harmless (frame_free sets data=NULL).
  *   8. Pop on empty queue returns -1.
  *   9. Pool fully restored after drain.
+ *  10. frame_queue_drain() frees all queued frames back to pool.
  *
  * Build & run:
  *   cd examples/usb_cam_stream
@@ -204,6 +205,19 @@ static int frame_queue_pop(frame_t *frame, uint32_t timeout_ms)
 {
     TickType_t ticks = (timeout_ms == 0) ? 0 : pdMS_TO_TICKS(timeout_ms);
     return (xQueueReceive(frame_queue, frame, ticks) == pdTRUE) ? 0 : -1;
+}
+
+static void frame_queue_drain(void)
+{
+    frame_t frame;
+    uint32_t drained = 0;
+    while (xQueueReceive(frame_queue, &frame, 0) == pdTRUE) {
+        frame_free(&frame);
+        drained++;
+    }
+    if (drained > 0) {
+        LOG_I("drained %u queued frames\n", (unsigned)drained);
+    }
 }
 
 static void frame_pool_stats(uint32_t *total, uint32_t *free_count,
@@ -437,6 +451,30 @@ static int test_pop_empty_returns_error(void)
     return frame_queue_pop(&f, 0) == -1;
 }
 
+static int test_drain_frees_all_queued(void)
+{
+    /* Fill queue with frames */
+    frame_t frames[FRAME_POOL_COUNT];
+    for (int i = 0; i < FRAME_POOL_COUNT; i++) {
+        if (frame_alloc(&frames[i]) != 0) return 0;
+        frames[i].len = 7000 + i;
+        frame_queue_push(&frames[i]);
+    }
+
+    uint32_t free_before;
+    frame_pool_stats(NULL, &free_before, NULL);
+    if (free_before != 0) { printf("expected 0 free got %u ", free_before); return 0; }
+
+    /* Drain should free all queued frames back to pool */
+    frame_queue_drain();
+
+    uint32_t total, free_after, queued;
+    frame_pool_stats(&total, &free_after, &queued);
+    if (free_after != total) { printf("expected %u free got %u ", total, free_after); return 0; }
+    if (queued != 0)         { printf("queue should be 0 got %u ", queued); return 0; }
+    return 1;
+}
+
 /* ------------------------------------------------------------------ */
 /* Main                                                                */
 /* ------------------------------------------------------------------ */
@@ -453,6 +491,7 @@ int main(void)
     RUN_TEST(test_double_free_harmless);
     RUN_TEST(test_pool_fully_restored);
     RUN_TEST(test_pop_empty_returns_error);
+    RUN_TEST(test_drain_frees_all_queued);
 
     printf("\n=== Results: %d/%d passed", tests_pass, tests_run);
     if (tests_fail > 0) printf(", %d FAILED", tests_fail);
