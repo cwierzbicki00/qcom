@@ -507,6 +507,13 @@
 - **Build notes:**
   - Binary size: 875 KB (within 4 MB flash).
 
+### 5.9 Spec compliance: SoftAP started log missing channel ✅ DONE
+- **Spec:** 40-observability ("Print SoftAP status: SSID, channel, IP, DHCP on/off")
+- **Files:** `wifi_ap.c`
+- **Bug:** The `CODE_WIFI_ON_AP_STARTED` event handler logged SSID, IP, and DHCP status but was missing the channel number. The "Starting SoftAP" log (emitted before the SDK call) included channel, but the "SoftAP started" confirmation log (emitted after SDK confirms AP is running) did not.
+- **Fix:** Added `channel=%d` with `AP_CHANNEL` to the "SoftAP started" log line.
+- **Test:** Host tests 19/19 passing. Build succeeds at 875 KB.
+
 ---
 
 ## Dependency Graph (Build Order)

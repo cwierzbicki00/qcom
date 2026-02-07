@@ -49,7 +49,8 @@ void wifi_ap_event_handler(uint32_t code)
 {
     switch (code) {
         case CODE_WIFI_ON_AP_STARTED:
-            LOG_I("[WIFI] SoftAP started: SSID=%s IP=%s DHCP=on\r\n", AP_SSID, AP_IP_ADDR);
+            LOG_I("[WIFI] SoftAP started: SSID=%s channel=%d IP=%s DHCP=on\r\n",
+                  AP_SSID, AP_CHANNEL, AP_IP_ADDR);
             break;
 
         case CODE_WIFI_ON_AP_STOPPED:
