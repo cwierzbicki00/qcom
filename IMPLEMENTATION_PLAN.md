@@ -487,6 +487,16 @@
 - **Test:** Host tests 19/19 passing. Build succeeds at 882 KB.
 - **Risks:** Stream task adds ~8 KB SRAM usage (2048-word stack). QCC748M has 320 KB SRAM with ~200 KB free — no concern.
 
+### 5.7 Fix: Log disconnecting STA MAC address ✅ DONE
+- **Spec:** 40-observability ("Wi-Fi station connect/disconnect and MAC")
+- **Files:** `wifi_ap.c`
+- **Bug:** `CODE_WIFI_ON_AP_STA_DEL` event handler only logged the STA count, not the disconnecting station's MAC address. Spec 40-observability requires "Wi-Fi station connect/disconnect and MAC" in failure event logs.
+- **Root cause:** The SDK event system does not pass the station MAC or index with `CODE_WIFI_ON_AP_STA_DEL` events. By the time the event fires, the station has already been removed from the firmware's station table, so `wifi_mgmr_ap_sta_info_get()` returns `is_used=0` for the departed slot.
+- **Fix:** Added `sta_mac_cache[4][6]` array that mirrors the firmware station table. On `CODE_WIFI_ON_AP_STA_ADD`, the newly connected STA's MAC is cached. On `CODE_WIFI_ON_AP_STA_DEL`, the cache is diffed against the firmware table to identify which slot became empty, and the cached MAC is logged before clearing. Cache is also cleared on `CODE_WIFI_ON_AP_STOPPED`.
+- **Test:** Host tests 19/19 passing. Build succeeds at 875 KB.
+- **Build notes:**
+  - Binary size: 875 KB (within 4 MB flash).
+
 ---
 
 ## Dependency Graph (Build Order)
