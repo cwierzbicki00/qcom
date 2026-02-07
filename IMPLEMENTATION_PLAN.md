@@ -522,6 +522,13 @@
 - **Note:** `dequeue_frame()` maps to `frame_queue_pop()` from `frame_pool.h`, which is already the public frame delivery API consumed by the HTTP server. No additional wrapper needed — the spec says "internal API" and `frame_pool.h` is an internal header.
 - **Test:** Host tests 19/19 passing. Build succeeds.
 
+### 5.11 Spec compliance: periodic metrics client count ✅ DONE
+- **Spec:** 40-observability ("current connected client count (AP + stream)")
+- **Files:** `metrics.c`
+- **Bug:** Periodic metrics logged AP client count and stream client count as two separate fields (`clients=%d stream=%d`). Spec 40-observability requires "current connected client count (AP + stream)" — a single summed value.
+- **Fix:** Changed to sum `wifi_ap_get_sta_count() + stream_client_connected` into a single `clients=%d` field in the `[METRICS]` log line.
+- **Test:** Host tests 19/19 passing. Build succeeds.
+
 ---
 
 ## Dependency Graph (Build Order)

@@ -41,12 +41,11 @@ static void metrics_timer_cb(TimerHandle_t xTimer)
     prev_frames_sent    = fs;
     prev_frames_dropped = fd;
 
-    int ap_clients = wifi_ap_get_sta_count();
-    int stream = c->stream_client_connected ? 1 : 0;
+    int clients = wifi_ap_get_sta_count() + (c->stream_client_connected ? 1 : 0);
 
-    printf("[METRICS] in=%u sent=%u drop=%u clients=%d stream=%d heap=%u psram=%u\r\n",
+    printf("[METRICS] in=%u sent=%u drop=%u clients=%d heap=%u psram=%u\r\n",
            (unsigned)dfi, (unsigned)dfs, (unsigned)dfd,
-           ap_clients, stream, (unsigned)kfree_size(), (unsigned)pfree_size());
+           clients, (unsigned)kfree_size(), (unsigned)pfree_size());
 }
 
 void metrics_init(void)
