@@ -6,9 +6,9 @@
 
 ---
 
-## Phase 0 — Project Scaffold & Build Verification
+## Phase 0 — Project Scaffold & Build Verification ✅ DONE
 
-### 0.1 Create example directory and build skeleton
+### 0.1 Create example directory and build skeleton ✅ DONE
 - **Spec:** 00-system (overall firmware structure)
 - **Files:**
   - NEW `examples/usb_cam_stream/main.c` — entry point
@@ -31,8 +31,15 @@
   ```
 - **Test:** `make CHIP=qcc743 BOARD=qcc744dk` succeeds with an empty `main()` + `board_init()` + `vTaskStartScheduler()`
 - **Risks:** Component config conflicts between WiFi and USB stacks; linker section collisions. Validate that the combined linker script has both `FSymTab` (shell) and USB class sections.
+- **Build notes (resolved):**
+  - `usb_config.h` must define `USB_NOCACHE_RAM_SECTION`, `CONFIG_USBHOST_PSC_PRIO/STACKSIZE`, `CONFIG_USBHOST_REQUEST_BUFFER_LEN`, and `CONFIG_USB_EHCI_HCOR_RESERVED_DISABLE` — these are required by CherryUSB host internals.
+  - `lwipopts_user.h` must include the `CONFIG_HIGH_PERFORMANCE` guard (set by WiFi component CMakeLists.txt) to define `LWIP_ASSERT_CORE_LOCKED()` as empty, avoiding `lock_tcpip_core` undeclared errors in `lwiperf.c`.
+  - `mbedtls_sample_config.h` must be present (copied from ap_sta_bridge).
+  - `FreeRTOSConfig.h` copied from ap_sta_bridge.
+  - `CONFIG_STA_MAX` in proj.conf does NOT propagate to C defines (line commented out in wifi6/CMakeLists.txt). `CFG_STA_MAX` is hardcoded to 4. Single-STA enforcement is done in software in `wifi_ap.c`.
+  - Binary size: ~867 KB (well within 4 MB flash).
 
-### 0.2 Establish boot sequence skeleton
+### 0.2 Establish boot sequence skeleton ✅ DONE
 - **Spec:** 00-system
 - **Files:** `examples/usb_cam_stream/main.c`
 - **Boot sequence (order matters):**
@@ -51,9 +58,9 @@
 
 ---
 
-## Phase 1 — Wi-Fi SoftAP + DHCP Server
+## Phase 1 — Wi-Fi SoftAP + DHCP Server ✅ DONE
 
-### 1.1 Auto-start SoftAP on boot
+### 1.1 Auto-start SoftAP on boot ✅ DONE
 - **Spec:** 20-wifi-softap (auto-start, SSID, security, addressing)
 - **Files:**
   - `examples/usb_cam_stream/main.c` — add AP start in `CODE_WIFI_ON_MGMR_DONE` event
@@ -82,7 +89,7 @@
 - **Test:** Phone connects to `QCC748M-CAM`, gets IP in 192.168.2.100-200 range, can `ping 192.168.2.1`
 - **Risks:** Channel selection may conflict if regulatory domain restricts it. `use_dhcpd=true` should auto-start DHCP via the AP params struct — verify in `wifi_mgmr_ap_start` implementation.
 
-### 1.2 Enforce single-station limit
+### 1.2 Enforce single-station limit ✅ DONE
 - **Spec:** 20-wifi-softap (one client limit, reject second)
 - **Files:** `examples/usb_cam_stream/wifi_ap.c`
 - **Implementation:**
@@ -94,7 +101,7 @@
 - **Test:** Connect first device → success. Connect second device → rejected, first stays connected
 - **Risks:** SDK may not expose `wifi_mgmr_ap_sta_delete()` or it may be named differently. Must verify API. Fallback: set `CONFIG_STA_MAX 1` and rely on firmware-level rejection.
 
-### 1.3 SoftAP CLI commands (debug)
+### 1.3 SoftAP CLI commands (debug) ✅ DONE
 - **Spec:** 20-wifi-softap (CLI: AP status, DHCP leases), 40-observability (`wifi status`)
 - **Files:** `examples/usb_cam_stream/wifi_ap.c`
 - **Implementation:**
