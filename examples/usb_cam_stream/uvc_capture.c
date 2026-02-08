@@ -628,7 +628,8 @@ void usbh_video_run(struct usbh_video *video_class)
     uint16_t vid = video_class->hport->device_desc.idVendor;
     uint16_t pid = video_class->hport->device_desc.idProduct;
 
-    LOG_I("[UVC] Camera attached  VID=0x%04X  PID=0x%04X\r\n", vid, pid);
+    LOG_I("[UVC] Camera attached  VID=0x%04X  PID=0x%04X  ctrl_intf=%u  data_intf=%u\r\n",
+          vid, pid, video_class->ctrl_intf, video_class->data_intf);
 
     /* List all supported formats/resolutions (debug) */
     usbh_video_list_info(video_class);
@@ -693,8 +694,9 @@ void usbh_video_run(struct usbh_video *video_class)
     g_video_class         = video_class;
     g_cam_state           = CAMERA_ATTACHED;
 
-    LOG_I("[UVC] Camera ready — MJPEG %ux%u @ %ufps  MPS=%u\r\n",
-          w, h, (unsigned)g_cam_mode.fps, video_class->isoin_mps);
+    LOG_I("[UVC] Camera ready — MJPEG %ux%u @ %ufps  MPS=%u  EP=0x%02X\r\n",
+          w, h, (unsigned)g_cam_mode.fps, video_class->isoin_mps,
+          video_class->isoin ? video_class->isoin->bEndpointAddress : 0);
 
     /* Auto-start streaming */
     start_streaming();

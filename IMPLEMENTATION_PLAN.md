@@ -564,6 +564,19 @@
   - **VERIFIED:** DHCP range `AP_DHCP_START=100, AP_DHCP_LIMIT=101` is correct — SDK formula is `end_num = start + limit - 1 = 200`, giving 192.168.2.100-200 (101 addresses).
 - **Test:** Host tests 19/19 passing. Build succeeds.
 
+### 5.15 Spec compliance: UVC interface/endpoint logging + DHCP lease display ✅ DONE
+- **Spec:** 10-usb-uvc-capture §UVC enumeration ("Log vendor ID, product ID, and selected interface/endpoint details"), 20-wifi-softap §CLI ("Print DHCP leases (if available)")
+- **Files:** `uvc_capture.c`, `wifi_ap.c`
+- **Implementation:**
+  - **FIX:** Camera attach log now includes `ctrl_intf` and `data_intf` interface numbers from CherryUSB's `struct usbh_video`. Previously only logged VID/PID.
+  - **FIX:** Camera ready log now includes ISO IN endpoint address (`EP=0x82` format) so the full interface/endpoint chain is visible.
+  - **FIX:** DHCP lease tracking implemented via `dhcpd_status_callback_set()` callback. When a STA obtains an IP via DHCP ACK, the callback stores the IP in `sta_ip_cache[]` keyed by the STA's MAC cache slot. A DHCP lease log line is emitted.
+  - **FIX:** `wifi_status` CLI now displays the DHCP-assigned IP address alongside each connected STA's MAC (or "IP=pending" if DHCP hasn't completed yet).
+  - **SDK BUG NOTE:** Header `dhcp_server.h` declares `dhcpd_sta_status_callback_set()` but the implementation in `dhcp_server_raw.c` defines `dhcpd_status_callback_set()` (name mismatch). Worked around by declaring the correct prototype locally.
+- **Test:** Host tests 19/19 passing. Build succeeds at 884 KB.
+- **Build notes:**
+  - Binary size: 884 KB (within 4 MB flash).
+
 ---
 
 ## Dependency Graph (Build Order)
