@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "frame_pool.h"
 
 /* Camera state visible to other modules (HTTP server, metrics) */
 typedef enum {
@@ -60,5 +61,18 @@ int uvc_start_capture(void);
  * Returns 0 on success, -1 on error.
  */
 int uvc_stop_capture(void);
+
+/*
+ * Dequeue the next completed frame.
+ * Blocks up to timeout_ms.  Returns 0 on success, -1 on timeout.
+ * Caller must call uvc_frame_release() when done with the frame.
+ */
+int uvc_dequeue_frame(frame_t *frame, uint32_t timeout_ms);
+
+/*
+ * Release a dequeued frame back to the buffer pool.
+ * Caller must not use frame->data after this call.
+ */
+void uvc_frame_release(frame_t *frame);
 
 #endif /* UVC_CAPTURE_H */

@@ -783,6 +783,16 @@ int uvc_stop_capture(void)
     return 0;
 }
 
+int uvc_dequeue_frame(frame_t *frame, uint32_t timeout_ms)
+{
+    return frame_queue_pop(frame, timeout_ms);
+}
+
+void uvc_frame_release(frame_t *frame)
+{
+    frame_free(frame);
+}
+
 /* ------------------------------------------------------------------ */
 /* CLI: cam_info                                                       */
 /* ------------------------------------------------------------------ */

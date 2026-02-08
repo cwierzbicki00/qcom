@@ -1,5 +1,4 @@
 #include "http_server.h"
-#include "frame_pool.h"
 #include "uvc_capture.h"
 #include "wifi_ap.h"
 
@@ -163,7 +162,7 @@ static void stream_task(void *arg)
 
     for (;;) {
         frame_t frame;
-        if (frame_queue_pop(&frame, 200) != 0) {
+        if (uvc_dequeue_frame(&frame, 200) != 0) {
             /* No frame available; check if camera still alive */
             if (uvc_get_camera_state() == CAMERA_DETACHED ||
                 uvc_get_camera_state() == CAMERA_UNAVAILABLE) {
@@ -179,7 +178,7 @@ static void stream_task(void *arg)
         if (last_send != 0 &&
             (now - last_send) < pdMS_TO_TICKS(STREAM_FRAME_INTERVAL_MS)) {
             g_counters.frames_dropped++;
-            frame_free(&frame);
+            uvc_frame_release(&frame);
             continue;
         }
 
@@ -195,23 +194,23 @@ static void stream_task(void *arg)
 
         /* Send part header */
         if (send_all(sock, part_hdr, phlen) < 0) {
-            frame_free(&frame);
+            uvc_frame_release(&frame);
             break;
         }
 
         /* Send JPEG data (zero-copy from frame pool) */
         if (send_all(sock, frame.data, (int)frame.len) < 0) {
-            frame_free(&frame);
+            uvc_frame_release(&frame);
             break;
         }
 
         /* Send trailing CRLF */
         if (send_all(sock, "\r\n", 2) < 0) {
-            frame_free(&frame);
+            uvc_frame_release(&frame);
             break;
         }
 
-        frame_free(&frame);
+        uvc_frame_release(&frame);
         g_counters.frames_sent++;
         last_send = now;
     }
@@ -280,13 +279,13 @@ static void handle_snapshot(int sock)
 
     /* Try to grab a frame with short timeout */
     frame_t frame;
-    if (frame_queue_pop(&frame, 500) != 0) {
+    if (uvc_dequeue_frame(&frame, 500) != 0) {
         send_error(sock, "503 Service Unavailable", "No frame available");
         return;
     }
 
     send_response(sock, "200 OK", "image/jpeg", frame.data, (int)frame.len);
-    frame_free(&frame);
+    uvc_frame_release(&frame);
 }
 
 /* ------------------------------------------------------------------ */

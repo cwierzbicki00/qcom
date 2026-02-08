@@ -541,6 +541,20 @@
 - **Build notes:**
   - Binary size: 876 KB (within 4 MB flash).
 
+### 5.13 Self-contained UVC capture API: add uvc_dequeue_frame/uvc_frame_release ✅ DONE
+- **Spec:** 10-usb-uvc-capture §Frame delivery API ("start_capture(), stop_capture(), get_latest_frame() or dequeue_frame()")
+- **Files:** `uvc_capture.h`, `uvc_capture.c`, `http_server.c`
+- **Gap:** Spec 10 requires the UVC capture module to expose a complete frame delivery API. While `uvc_start_capture()` and `uvc_stop_capture()` existed, `dequeue_frame()` was only available as `frame_queue_pop()` in `frame_pool.h` — requiring consumers (HTTP server) to directly include the internal frame pool header. The UVC capture API was not self-contained.
+- **Fix:**
+  - Added `uvc_dequeue_frame(frame_t *frame, uint32_t timeout_ms)` to `uvc_capture.h/.c` — wraps `frame_queue_pop()`.
+  - Added `uvc_frame_release(frame_t *frame)` to `uvc_capture.h/.c` — wraps `frame_free()`.
+  - Added `#include "frame_pool.h"` to `uvc_capture.h` so `frame_t` is available to consumers without a separate include.
+  - Updated `http_server.c` to use `uvc_dequeue_frame()` / `uvc_frame_release()` instead of `frame_queue_pop()` / `frame_free()`, and removed direct `#include "frame_pool.h"`.
+  - The UVC capture API is now fully self-contained: `uvc_capture_init()`, `uvc_start_capture()`, `uvc_stop_capture()`, `uvc_dequeue_frame()`, `uvc_frame_release()`, plus state/mode/counter queries.
+- **Test:** Host tests 19/19 passing. Build succeeds at 876 KB.
+- **Build notes:**
+  - Binary size: 876 KB (within 4 MB flash).
+
 ---
 
 ## Dependency Graph (Build Order)
