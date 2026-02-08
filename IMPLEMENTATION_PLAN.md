@@ -359,7 +359,7 @@
 - **Implementation:**
   - FreeRTOS software timer (`xTimerCreate`) firing every 1 second
   - Computes deltas from previous tick for per-second rates using `http_get_counters()`
-  - `printf("[METRICS] in=%u sent=%u drop=%u clients=%d heap=%u\r\n", ...)`
+  - `printf("[METRICS] frames_in=%u frames_sent=%u frames_dropped=%u clients=%d heap=%u psram=%u\r\n", ...)`
   - Connected client count via `wifi_ap_get_sta_count()`
   - Heap free via `kfree_size()`
   - `metrics_init()` called from `CODE_WIFI_ON_AP_STARTED` event (after HTTP server start)
@@ -576,6 +576,13 @@
 - **Test:** Host tests 19/19 passing. Build succeeds at 884 KB.
 - **Build notes:**
   - Binary size: 884 KB (within 4 MB flash).
+
+### 5.16 Spec compliance: periodic metrics field names ✅ DONE
+- **Spec:** 40-observability ("frames_in per second", "frames_sent per second", "frames_dropped per second")
+- **Files:** `metrics.c`
+- **Bug:** Periodic metrics log used abbreviated field names (`in=`, `sent=`, `drop=`) instead of spec-required names (`frames_in=`, `frames_sent=`, `frames_dropped=`). Spec 40-observability explicitly names these as "frames_in", "frames_sent", "frames_dropped".
+- **Fix:** Updated `printf` format string from `[METRICS] in=%u sent=%u drop=%u ...` to `[METRICS] frames_in=%u frames_sent=%u frames_dropped=%u ...`.
+- **Test:** Host tests 19/19 passing. Build succeeds.
 
 ---
 
