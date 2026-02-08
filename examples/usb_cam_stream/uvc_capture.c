@@ -725,7 +725,8 @@ void usbh_video_run(struct usbh_video *video_class)
 
 void usbh_video_stop(struct usbh_video *video_class)
 {
-    LOG_I("[UVC] Camera detached\r\n");
+    LOG_I("[UVC] Camera detached  VID=0x%04X  PID=0x%04X\r\n",
+          g_cam_mode.vid, g_cam_mode.pid);
 
     /* Stop streaming task first */
     stop_streaming();

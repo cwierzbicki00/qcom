@@ -636,6 +636,13 @@
 - **Fix:** Changed the STA_ADD handler to diff the firmware station table against `sta_mac_cache[]`. A slot is identified as "new" if the firmware reports it as used but the cache has an all-zero MAC (never seen) or a different MAC. The newly identified STA's info is stored and used for both logging and rejection. On rejection, the new STA's cache entry and IP cache are also cleared.
 - **Test:** Host tests 19/19 passing. Build succeeds.
 
+### 5.22 Spec compliance: camera detach log includes VID/PID ✅ DONE
+- **Spec:** 40-observability (camera attach/detach logging symmetry)
+- **Files:** `uvc_capture.c`
+- **Bug:** `usbh_video_stop()` logged `"[UVC] Camera detached"` without camera identification. The attach event logged VID/PID and interface details, but the detach event did not include VID/PID, making it harder to correlate attach/detach pairs in logs.
+- **Fix:** Changed detach log to `"[UVC] Camera detached  VID=0x%04X  PID=0x%04X"` using `g_cam_mode.vid` and `g_cam_mode.pid`, which are valid at detach time (populated during attach, not cleared until after detach handler runs).
+- **Test:** Host tests 19/19 passing. Build succeeds at 877 KB.
+
 ---
 
 ## Dependency Graph (Build Order)
