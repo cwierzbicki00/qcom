@@ -529,6 +529,18 @@
 - **Fix:** Changed to sum `wifi_ap_get_sta_count() + stream_client_connected` into a single `clients=%d` field in the `[METRICS]` log line.
 - **Test:** Host tests 19/19 passing. Build succeeds.
 
+### 5.12 Spec compliance: FPS selection from camera intervals + stall timeout ✅ DONE
+- **Spec:** 10-usb-uvc-capture §4 ("choose nearest >= 10 if available; else nearest below"), §Fault handling ("> 2 seconds")
+- **Files:** `uvc_capture.c`, SDK: `usbh_video.h`, `usbh_video.c`
+- **Implementation:**
+  - **FIX:** Spec 10 §4 requires selecting FPS from the camera's available frame intervals, not just blindly requesting 10fps. Previously, the code set `probe.dwFrameInterval = 1000000` (10fps) without examining what intervals the camera actually supports.
+  - **SDK PATCH:** `struct usbh_video_resolution` extended with `bFrameIntervalType` and `dwFrameInterval[8]` array. Descriptor parser in `usbh_video.c` now extracts discrete frame intervals from MJPEG and uncompressed frame descriptors during enumeration.
+  - **NEW:** `select_best_frame_interval()` function implements the spec policy: from discrete intervals, pick the nearest with fps >= 10 (interval <= 1,000,000); if none, pick nearest with fps < 10 (interval > 1,000,000). Falls back to requesting 10fps if no discrete intervals are available (continuous or unparsed).
+  - **FIX:** Stall timeout changed from exactly 2000ms to 2500ms. Spec says "> 2 seconds"; 2000ms is not strictly greater than 2s.
+- **Test:** Host tests 19/19 passing. Build succeeds at 876 KB.
+- **Build notes:**
+  - Binary size: 876 KB (within 4 MB flash).
+
 ---
 
 ## Dependency Graph (Build Order)

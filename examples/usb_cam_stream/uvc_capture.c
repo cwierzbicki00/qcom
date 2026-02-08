@@ -36,8 +36,9 @@
 #define STREAM_TASK_STACK   2048
 #define STREAM_TASK_PRIO    14
 
-/* Stall detection: no complete frame for this many ms → restart */
-#define STALL_TIMEOUT_MS    2000
+/* Stall detection: no complete frame for this many ms → restart.
+ * Spec requires >2 seconds, so use 2500ms. */
+#define STALL_TIMEOUT_MS    2500
 
 /* Preferred frame interval in 100ns units (10 fps = 1,000,000) */
 #define PREFERRED_FPS           10
@@ -126,6 +127,65 @@ static bool select_best_resolution(struct usbh_video *vc,
     *out_w = best_w;
     *out_h = best_h;
     return true;
+}
+
+/*
+ * FPS selection policy (from spec 10-usb-uvc-capture §4):
+ *  "If the camera's fps choices do not include 10, choose the nearest
+ *   >= 10 if available; else choose the nearest below."
+ *
+ * Frame intervals are in 100ns units.  10 fps = 1,000,000.
+ * Lower interval = higher fps.  We want the interval whose fps is
+ * closest to PREFERRED_FPS, with preference for >= PREFERRED_FPS
+ * (i.e. interval <= preferred_interval).
+ *
+ * Returns the chosen interval in 100ns units, or 0 if no selection
+ * could be made (caller should fall back to PREFERRED_INTERVAL_100NS).
+ */
+static uint32_t select_best_frame_interval(const struct usbh_video_resolution *res)
+{
+    uint8_t n = res->bFrameIntervalType;
+
+    if (n == 0) {
+        /* Continuous or no interval data — rely on probe/commit negotiation */
+        return 0;
+    }
+
+    if (n > USBH_VIDEO_MAX_FRAME_INTERVALS) {
+        n = USBH_VIDEO_MAX_FRAME_INTERVALS;
+    }
+
+    /* Separate candidates: intervals <= preferred (fps >= 10) and > preferred (fps < 10) */
+    uint32_t best_ge = 0;      /* best interval with fps >= preferred (interval <= pref) */
+    uint32_t best_ge_diff = UINT32_MAX;
+    uint32_t best_lt = 0;      /* best interval with fps < preferred (interval > pref) */
+    uint32_t best_lt_diff = UINT32_MAX;
+
+    for (uint8_t i = 0; i < n; i++) {
+        uint32_t iv = res->dwFrameInterval[i];
+        if (iv == 0) continue;
+
+        if (iv <= PREFERRED_INTERVAL_100NS) {
+            /* fps >= preferred */
+            uint32_t diff = PREFERRED_INTERVAL_100NS - iv;
+            if (diff < best_ge_diff) {
+                best_ge_diff = diff;
+                best_ge = iv;
+            }
+        } else {
+            /* fps < preferred */
+            uint32_t diff = iv - PREFERRED_INTERVAL_100NS;
+            if (diff < best_lt_diff) {
+                best_lt_diff = diff;
+                best_lt = iv;
+            }
+        }
+    }
+
+    /* Prefer nearest >= 10fps; else nearest below */
+    if (best_ge != 0) return best_ge;
+    if (best_lt != 0) return best_lt;
+    return 0;
 }
 
 /*
@@ -577,9 +637,23 @@ void usbh_video_run(struct usbh_video *video_class)
 
     LOG_I("[UVC] Selected MJPEG %ux%u  altsetting=%u\r\n", w, h, alt);
 
-    /* Set preferred frame interval (10 fps) before negotiation.
-     * The camera will adjust to its nearest supported interval. */
-    video_class->probe.dwFrameInterval = PREFERRED_INTERVAL_100NS;
+    /* Select best frame interval from camera's available choices per spec §4:
+     * "choose nearest >= 10fps if available; else nearest below" */
+    const struct usbh_video_resolution *sel_res =
+        &video_class->format[format_idx - 1].frame[frame_idx - 1];
+    uint32_t chosen_interval = select_best_frame_interval(sel_res);
+    if (chosen_interval == 0) {
+        /* No discrete intervals available — request preferred and let camera adjust */
+        chosen_interval = PREFERRED_INTERVAL_100NS;
+        LOG_I("[UVC] No discrete intervals — requesting %u fps\r\n",
+              (unsigned)PREFERRED_FPS);
+    } else {
+        uint32_t chosen_fps = (chosen_interval > 0) ? (10000000 / chosen_interval) : 0;
+        LOG_I("[UVC] Selected interval=%u (100ns) → ~%u fps from %u available\r\n",
+              (unsigned)chosen_interval, (unsigned)chosen_fps,
+              (unsigned)sel_res->bFrameIntervalType);
+    }
+    video_class->probe.dwFrameInterval = chosen_interval;
 
     /* Negotiate with camera */
     int ret = usbh_video_open(video_class, USBH_VIDEO_FORMAT_MJPEG, w, h, alt);

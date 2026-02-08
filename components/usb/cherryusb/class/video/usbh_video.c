@@ -437,17 +437,35 @@ static int usbh_video_ctrl_connect(struct usbh_hubport *hport, uint8_t intf)
                             break;
                         case VIDEO_VS_FRAME_UNCOMPRESSED_DESCRIPTOR_SUBTYPE:
                             frame_index = p[DESC_bFrameIndex];
-
-                            video_class->format[format_index - 1].frame[frame_index - 1].wWidth = ((struct video_cs_if_vs_frame_uncompressed_descriptor *)p)->wWidth;
-                            video_class->format[format_index - 1].frame[frame_index - 1].wHeight = ((struct video_cs_if_vs_frame_uncompressed_descriptor *)p)->wHeight;
-                            video_class->format[format_index - 1].frame[frame_index - 1].dwDefaultFrameInterval = ((struct video_cs_if_vs_frame_uncompressed_descriptor *)p)->dwDefaultFrameInterval;
+                            {
+                                struct usbh_video_resolution *res = &video_class->format[format_index - 1].frame[frame_index - 1];
+                                struct video_cs_if_vs_frame_uncompressed_descriptor *fd = (struct video_cs_if_vs_frame_uncompressed_descriptor *)p;
+                                res->wWidth = fd->wWidth;
+                                res->wHeight = fd->wHeight;
+                                res->dwDefaultFrameInterval = fd->dwDefaultFrameInterval;
+                                res->bFrameIntervalType = fd->bFrameIntervalType;
+                                uint8_t n = fd->bFrameIntervalType;
+                                if (n > USBH_VIDEO_MAX_FRAME_INTERVALS) n = USBH_VIDEO_MAX_FRAME_INTERVALS;
+                                for (uint8_t iv = 0; iv < n; iv++) {
+                                    memcpy(&res->dwFrameInterval[iv], &fd->dwFrameInterval[iv], sizeof(uint32_t));
+                                }
+                            }
                             break;
                         case VIDEO_VS_FRAME_MJPEG_DESCRIPTOR_SUBTYPE:
                             frame_index = p[DESC_bFrameIndex];
-
-                            video_class->format[format_index - 1].frame[frame_index - 1].wWidth = ((struct video_cs_if_vs_frame_mjpeg_descriptor *)p)->wWidth;
-                            video_class->format[format_index - 1].frame[frame_index - 1].wHeight = ((struct video_cs_if_vs_frame_mjpeg_descriptor *)p)->wHeight;
-                            video_class->format[format_index - 1].frame[frame_index - 1].dwDefaultFrameInterval = ((struct video_cs_if_vs_frame_mjpeg_descriptor *)p)->dwDefaultFrameInterval;
+                            {
+                                struct usbh_video_resolution *res = &video_class->format[format_index - 1].frame[frame_index - 1];
+                                struct video_cs_if_vs_frame_mjpeg_descriptor *fd = (struct video_cs_if_vs_frame_mjpeg_descriptor *)p;
+                                res->wWidth = fd->wWidth;
+                                res->wHeight = fd->wHeight;
+                                res->dwDefaultFrameInterval = fd->dwDefaultFrameInterval;
+                                res->bFrameIntervalType = fd->bFrameIntervalType;
+                                uint8_t n = fd->bFrameIntervalType;
+                                if (n > USBH_VIDEO_MAX_FRAME_INTERVALS) n = USBH_VIDEO_MAX_FRAME_INTERVALS;
+                                for (uint8_t iv = 0; iv < n; iv++) {
+                                    memcpy(&res->dwFrameInterval[iv], &fd->dwFrameInterval[iv], sizeof(uint32_t));
+                                }
+                            }
                             break;
                         default:
                             break;

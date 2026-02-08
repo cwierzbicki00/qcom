@@ -11,10 +11,15 @@
 #define USBH_VIDEO_FORMAT_UNCOMPRESSED 0
 #define USBH_VIDEO_FORMAT_MJPEG        1
 
+/* Maximum discrete frame intervals stored per resolution */
+#define USBH_VIDEO_MAX_FRAME_INTERVALS 8
+
 struct usbh_video_resolution {
     uint16_t wWidth;
     uint16_t wHeight;
     uint32_t dwDefaultFrameInterval; /* 100ns units; 0 = not parsed */
+    uint8_t  bFrameIntervalType;     /* 0=continuous, 1..N=discrete count */
+    uint32_t dwFrameInterval[USBH_VIDEO_MAX_FRAME_INTERVALS]; /* discrete intervals (100ns) */
 };
 
 struct usbh_video_format {
