@@ -108,24 +108,38 @@ void wifi_ap_event_handler(uint32_t code)
             struct wifi_sta_basic_info sta_info;
             memset(&sta_info, 0, sizeof(sta_info));
 
-            /* Scan for the newly added STA and cache its MAC */
+            /* Find the NEWLY added STA by diffing firmware table against our cache.
+             * A slot is "new" if the firmware says it's used but our cache has
+             * an all-zero MAC (never seen) or a different MAC. */
+            int new_slot = -1;
+            uint8_t zero_mac[6] = {0};
             for (int i = 0; i < CFG_STA_MAX; i++) {
-                wifi_mgmr_ap_sta_info_get(&sta_info, i);
-                if (sta_info.is_used && sta_info.sta_idx != 0xef) {
-                    memcpy(sta_mac_cache[i], sta_info.sta_mac, 6);
-                    LOG_I("[WIFI] STA connected: %02x:%02x:%02x:%02x:%02x:%02x (count=%d)\r\n",
-                          sta_info.sta_mac[0], sta_info.sta_mac[1],
-                          sta_info.sta_mac[2], sta_info.sta_mac[3],
-                          sta_info.sta_mac[4], sta_info.sta_mac[5],
-                          ap_sta_count);
-                    break;
+                struct wifi_sta_basic_info si;
+                memset(&si, 0, sizeof(si));
+                wifi_mgmr_ap_sta_info_get(&si, i);
+                if (si.is_used && si.sta_idx != 0xef) {
+                    if (memcmp(sta_mac_cache[i], zero_mac, 6) == 0 ||
+                        memcmp(sta_mac_cache[i], si.sta_mac, 6) != 0) {
+                        /* This slot is newly occupied — cache and log it */
+                        memcpy(sta_mac_cache[i], si.sta_mac, 6);
+                        sta_info = si;
+                        new_slot = i;
+                        LOG_I("[WIFI] STA connected: %02x:%02x:%02x:%02x:%02x:%02x (count=%d)\r\n",
+                              si.sta_mac[0], si.sta_mac[1],
+                              si.sta_mac[2], si.sta_mac[3],
+                              si.sta_mac[4], si.sta_mac[5],
+                              ap_sta_count);
+                        break;
+                    }
                 }
             }
 
-            /* Enforce single-station limit (backup to CONFIG_STA_MAX=1 in proj.conf) */
-            if (ap_sta_count > 1) {
+            /* Enforce single-station limit: reject the NEW station, keep the old one */
+            if (ap_sta_count > 1 && new_slot >= 0) {
                 LOG_W("[WIFI] Rejecting extra STA (limit=1)\r\n");
                 wifi_mgmr_ap_sta_delete(sta_info.sta_idx);
+                memset(sta_mac_cache[new_slot], 0, 6);
+                sta_ip_cache[new_slot] = 0;
                 ap_sta_count--;
             }
             break;

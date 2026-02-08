@@ -629,6 +629,13 @@
 - **Fix:** Changed `AP_SECURITY` default from `"wpa2"` to `"WPA2"` in `wifi_ap.h`.
 - **Test:** Host tests 19/19 passing. Build succeeds at 877 KB.
 
+### 5.21 Bug fix: STA_ADD rejects wrong station when enforcing single-client limit ✅ DONE
+- **Spec:** 20-wifi-softap (single client limit: "reject/disconnect second client")
+- **Files:** `wifi_ap.c`
+- **Bug:** `CODE_WIFI_ON_AP_STA_ADD` handler scanned the firmware station table for the first `is_used` slot and stored its `sta_info`. When a second STA connected and `ap_sta_count > 1`, the code called `wifi_mgmr_ap_sta_delete(sta_info.sta_idx)` — but `sta_info` pointed to the first used slot found (the existing STA in slot 0), not the newly added STA (in slot 1). This would disconnect the EXISTING client instead of the new one.
+- **Fix:** Changed the STA_ADD handler to diff the firmware station table against `sta_mac_cache[]`. A slot is identified as "new" if the firmware reports it as used but the cache has an all-zero MAC (never seen) or a different MAC. The newly identified STA's info is stored and used for both logging and rejection. On rejection, the new STA's cache entry and IP cache are also cleared.
+- **Test:** Host tests 19/19 passing. Build succeeds.
+
 ---
 
 ## Dependency Graph (Build Order)
