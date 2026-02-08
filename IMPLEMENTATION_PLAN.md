@@ -555,6 +555,15 @@
 - **Build notes:**
   - Binary size: 876 KB (within 4 MB flash).
 
+### 5.14 Spec compliance: stall restart once-only + AP start/stop CLI ✅ DONE
+- **Spec:** 10-usb-uvc-capture §Fault handling ("restart once, then camera unavailable"), 20-wifi-softap §CLI ("start/stop AP")
+- **Files:** `uvc_capture.c`, `wifi_ap.c`, `wifi_ap.h`
+- **Implementation:**
+  - **FIX:** Stall restart was not limited to one attempt. The stall timer fires continuously, and after a successful restart, another stall would trigger another restart indefinitely. Added `g_restart_attempted` flag: on first stall, attempt restart; on second stall (recurrence after restart), transition to `CAMERA_UNAVAILABLE` per spec. Flag is reset when streaming starts fresh (camera re-plug).
+  - **FIX:** Spec 20-wifi-softap requires CLI commands to start/stop the AP. Added `ap_start` and `ap_stop` shell commands in `wifi_ap.c` using configured parameters. Added `wifi_ap_stop()` public function wrapping `wifi_mgmr_ap_stop()`. SDK's generic `wifi_ap_start`/`wifi_ap_stop` commands (from `cli_al.c`) also remain available via `CONFIG_CLI_CMD_ENABLE`.
+  - **VERIFIED:** DHCP range `AP_DHCP_START=100, AP_DHCP_LIMIT=101` is correct — SDK formula is `end_num = start + limit - 1 = 200`, giving 192.168.2.100-200 (101 addresses).
+- **Test:** Host tests 19/19 passing. Build succeeds.
+
 ---
 
 ## Dependency Graph (Build Order)

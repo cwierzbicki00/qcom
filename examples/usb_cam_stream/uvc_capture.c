@@ -64,6 +64,7 @@ static volatile uint64_t g_frames_captured;
 /* Stall detection */
 static TimerHandle_t g_stall_timer;
 static volatile bool g_stall_detected;
+static volatile bool g_restart_attempted;  /* Only one restart per streaming session */
 
 /* ------------------------------------------------------------------ */
 /* Helpers                                                             */
@@ -391,6 +392,7 @@ static void streaming_task(void *arg)
     g_fid_initialized = false;
     g_frames_captured = 0;
     g_stall_detected = false;
+    g_restart_attempted = false;
     g_stream_stop = false;
 
     /* Initialize frame pool */
@@ -467,6 +469,15 @@ static void streaming_task(void *arg)
     /* Main loop: just wait for stop signal or stall */
     while (!g_stream_stop && g_cam_state == CAMERA_STREAMING) {
         if (g_stall_detected) {
+            /* Spec 10 §Fault handling: "Attempt to restart UVC streaming once.
+             * If restart fails, transition to camera unavailable until replugged." */
+            if (g_restart_attempted) {
+                LOG_E("[UVC] Stall recurred after restart — camera unavailable\r\n");
+                g_cam_state = CAMERA_UNAVAILABLE;
+                break;
+            }
+            g_restart_attempted = true;
+
             LOG_W("[UVC] Attempting stream restart after stall\r\n");
 
             /* Kill outstanding URBs */

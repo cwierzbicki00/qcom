@@ -19,6 +19,7 @@
 #define AP_DHCP_LIMIT 101
 
 void wifi_ap_start(void);
+void wifi_ap_stop(void);
 void wifi_ap_event_handler(uint32_t code);
 
 /* Return the current number of connected stations. */

@@ -132,6 +132,30 @@ int wifi_ap_get_sta_count(void)
     return ap_sta_count;
 }
 
+void wifi_ap_stop(void)
+{
+    LOG_I("[WIFI] Stopping SoftAP\r\n");
+    wifi_mgmr_ap_stop();
+}
+
+static int cmd_ap_start(int argc, char **argv)
+{
+    (void)argc; (void)argv;
+    wifi_ap_start();
+    printf("SoftAP start requested\r\n");
+    return 0;
+}
+SHELL_CMD_EXPORT_ALIAS(cmd_ap_start, ap_start, Start SoftAP with configured params);
+
+static int cmd_ap_stop(int argc, char **argv)
+{
+    (void)argc; (void)argv;
+    wifi_ap_stop();
+    printf("SoftAP stop requested\r\n");
+    return 0;
+}
+SHELL_CMD_EXPORT_ALIAS(cmd_ap_stop, ap_stop, Stop SoftAP);
+
 static int cmd_wifi_status(int argc, char **argv)
 {
     printf("SoftAP SSID:   %s\r\n", AP_SSID);
