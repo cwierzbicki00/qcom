@@ -609,6 +609,18 @@
   - Updated variable comment to "One restart allowed per physical plug cycle".
 - **Test:** Host tests 19/19 passing. Build succeeds.
 
+### 5.19 Spec compliance: all SoftAP params build-time configurable + dynamic DHCP log ✅ DONE
+- **Spec:** 20-wifi-softap ("SSID/password must be build-time configurable via single header"), 40-observability ("DHCP on/off")
+- **Files:** `wifi_ap.h`, `wifi_ap.c`
+- **Implementation:**
+  - **FIX:** `AP_CHANNEL`, `AP_IP_ADDR`, `AP_NET_MASK`, `AP_DHCP_START`, `AP_DHCP_LIMIT` now wrapped in `#ifndef` guards for build-time override via `-D` flags, matching existing `AP_SSID`/`AP_PASSWORD` pattern.
+  - **FIX:** Added `AP_USE_DHCP` (default 1) and `AP_SECURITY` (default `"wpa2"`) as build-time configurable defines. `wifi_ap_start()` uses these instead of hardcoded values.
+  - **FIX:** `CODE_WIFI_ON_AP_STARTED` event handler log now uses `AP_USE_DHCP ? "on" : "off"` instead of hardcoded `"DHCP=on"` string. Both the "Starting SoftAP" and "SoftAP started" logs are now dynamic.
+  - **FIX:** `wifi_status` CLI now prints `AP_SECURITY` instead of hardcoded `"WPA2-PSK"`.
+- **Test:** Host tests 19/19 passing. Build succeeds at 877 KB.
+- **Build notes:**
+  - Binary size: 877 KB (within 4 MB flash).
+
 ---
 
 ## Dependency Graph (Build Order)

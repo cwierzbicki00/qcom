@@ -63,9 +63,9 @@ void wifi_ap_start(void)
 
     ap.ssid = AP_SSID;
     ap.key = AP_PASSWORD;
-    ap.akm = "wpa2";
+    ap.akm = AP_SECURITY;
     ap.channel = AP_CHANNEL;
-    ap.use_dhcpd = true;
+    ap.use_dhcpd = AP_USE_DHCP;
     ap.ap_ipaddr = inet_addr(AP_IP_ADDR);
     ap.ap_mask = inet_addr(AP_NET_MASK);
     ap.start = AP_DHCP_START;
@@ -91,8 +91,9 @@ void wifi_ap_event_handler(uint32_t code)
 {
     switch (code) {
         case CODE_WIFI_ON_AP_STARTED:
-            LOG_I("[WIFI] SoftAP started: SSID=%s channel=%d IP=%s DHCP=on\r\n",
-                  AP_SSID, AP_CHANNEL, AP_IP_ADDR);
+            LOG_I("[WIFI] SoftAP started: SSID=%s channel=%d IP=%s DHCP=%s\r\n",
+                  AP_SSID, AP_CHANNEL, AP_IP_ADDR,
+                  AP_USE_DHCP ? "on" : "off");
             break;
 
         case CODE_WIFI_ON_AP_STOPPED:
@@ -203,7 +204,7 @@ SHELL_CMD_EXPORT_ALIAS(cmd_ap_stop, ap_stop, Stop SoftAP);
 static int cmd_wifi_status(int argc, char **argv)
 {
     printf("SoftAP SSID:   %s\r\n", AP_SSID);
-    printf("Security:      WPA2-PSK\r\n");
+    printf("Security:      %s\r\n", AP_SECURITY);
     printf("Channel:       %d\r\n", AP_CHANNEL);
     printf("IP address:    %s\r\n", AP_IP_ADDR);
     printf("Connected STAs: %d\r\n", ap_sta_count);

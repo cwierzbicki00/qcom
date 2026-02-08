@@ -12,11 +12,33 @@
 #define AP_PASSWORD "change-me-please"
 #endif
 
+#ifndef AP_CHANNEL
 #define AP_CHANNEL   6
+#endif
+
+#ifndef AP_IP_ADDR
 #define AP_IP_ADDR   "192.168.2.1"
+#endif
+
+#ifndef AP_NET_MASK
 #define AP_NET_MASK  "255.255.255.0"
+#endif
+
+#ifndef AP_DHCP_START
 #define AP_DHCP_START 100
+#endif
+
+#ifndef AP_DHCP_LIMIT
 #define AP_DHCP_LIMIT 101
+#endif
+
+#ifndef AP_USE_DHCP
+#define AP_USE_DHCP 1
+#endif
+
+#ifndef AP_SECURITY
+#define AP_SECURITY "wpa2"
+#endif
 
 void wifi_ap_start(void);
 void wifi_ap_stop(void);
