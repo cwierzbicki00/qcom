@@ -136,7 +136,10 @@ void wifi_ap_event_handler(uint32_t code)
 
             /* Enforce single-station limit: reject the NEW station, keep the old one */
             if (ap_sta_count > 1 && new_slot >= 0) {
-                LOG_W("[WIFI] Rejecting extra STA (limit=1)\r\n");
+                LOG_W("[WIFI] Rejecting extra STA: %02x:%02x:%02x:%02x:%02x:%02x (limit=1)\r\n",
+                      sta_info.sta_mac[0], sta_info.sta_mac[1],
+                      sta_info.sta_mac[2], sta_info.sta_mac[3],
+                      sta_info.sta_mac[4], sta_info.sta_mac[5]);
                 wifi_mgmr_ap_sta_delete(sta_info.sta_idx);
                 memset(sta_mac_cache[new_slot], 0, 6);
                 sta_ip_cache[new_slot] = 0;
