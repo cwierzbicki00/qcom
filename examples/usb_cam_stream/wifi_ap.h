@@ -37,7 +37,7 @@
 #endif
 
 #ifndef AP_SECURITY
-#define AP_SECURITY "wpa2"
+#define AP_SECURITY "WPA2"
 #endif
 
 void wifi_ap_start(void);

@@ -614,12 +614,20 @@
 - **Files:** `wifi_ap.h`, `wifi_ap.c`
 - **Implementation:**
   - **FIX:** `AP_CHANNEL`, `AP_IP_ADDR`, `AP_NET_MASK`, `AP_DHCP_START`, `AP_DHCP_LIMIT` now wrapped in `#ifndef` guards for build-time override via `-D` flags, matching existing `AP_SSID`/`AP_PASSWORD` pattern.
-  - **FIX:** Added `AP_USE_DHCP` (default 1) and `AP_SECURITY` (default `"wpa2"`) as build-time configurable defines. `wifi_ap_start()` uses these instead of hardcoded values.
+  - **FIX:** Added `AP_USE_DHCP` (default 1) and `AP_SECURITY` (default `"WPA2"`) as build-time configurable defines. `wifi_ap_start()` uses these instead of hardcoded values.
   - **FIX:** `CODE_WIFI_ON_AP_STARTED` event handler log now uses `AP_USE_DHCP ? "on" : "off"` instead of hardcoded `"DHCP=on"` string. Both the "Starting SoftAP" and "SoftAP started" logs are now dynamic.
   - **FIX:** `wifi_status` CLI now prints `AP_SECURITY` instead of hardcoded `"WPA2-PSK"`.
 - **Test:** Host tests 19/19 passing. Build succeeds at 877 KB.
 - **Build notes:**
   - Binary size: 877 KB (within 4 MB flash).
+
+### 5.20 Bug fix: AP_SECURITY must use uppercase "WPA2" ✅ DONE
+- **Spec:** 20-wifi-softap (WPA2-PSK security)
+- **Files:** `wifi_ap.h`
+- **Bug:** `AP_SECURITY` was defined as `"wpa2"` (lowercase). The SDK's WPA supplicant (`wpa_config_parse_proto()` in `config.c`) uses case-sensitive `os_strcmp()` to compare against `"WPA"`, `"WPA2"`, `"RSN"`. Lowercase `"wpa2"` would fail to match, causing the AP to potentially start without WPA2 security.
+- **Evidence:** All SDK examples (AT module `at_wifi_main.c`) use uppercase: `config.akm = "WPA2"`. The `wifi_mgmr_ext.h` header doc says `"OPEN/WPA/WPA2 can be supported now"` (uppercase). Default fallback is `"WPA2"` (uppercase).
+- **Fix:** Changed `AP_SECURITY` default from `"wpa2"` to `"WPA2"` in `wifi_ap.h`.
+- **Test:** Host tests 19/19 passing. Build succeeds at 877 KB.
 
 ---
 
