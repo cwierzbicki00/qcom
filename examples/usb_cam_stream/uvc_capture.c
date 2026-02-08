@@ -66,6 +66,21 @@ static TimerHandle_t g_stall_timer;
 static volatile bool g_stall_detected;
 static volatile bool g_restart_attempted;  /* Only one restart per streaming session */
 
+/* State change notification callback */
+static uvc_state_callback_t g_state_callback;
+
+/* ------------------------------------------------------------------ */
+/* State change notification                                           */
+/* ------------------------------------------------------------------ */
+
+static void set_cam_state(camera_state_t new_state)
+{
+    g_cam_state = new_state;
+    if (g_state_callback) {
+        g_state_callback(new_state);
+    }
+}
+
 /* ------------------------------------------------------------------ */
 /* Helpers                                                             */
 /* ------------------------------------------------------------------ */
@@ -373,7 +388,7 @@ static void streaming_task(void *arg)
     struct usbh_video *vc = g_video_class;
     if (!vc || !vc->isoin) {
         LOG_E("[UVC] No ISO IN endpoint — cannot stream\r\n");
-        g_cam_state = CAMERA_UNAVAILABLE;
+        set_cam_state(CAMERA_UNAVAILABLE);
         g_stream_task = NULL;
         vTaskDelete(NULL);
         return;
@@ -421,7 +436,7 @@ static void streaming_task(void *arg)
                 if (urbs[j]) vPortFree(urbs[j]);
                 if (iso_bufs[j]) vPortFree(iso_bufs[j]);
             }
-            g_cam_state = CAMERA_UNAVAILABLE;
+            set_cam_state(CAMERA_UNAVAILABLE);
             g_stream_task = NULL;
             vTaskDelete(NULL);
             return;
@@ -457,7 +472,7 @@ static void streaming_task(void *arg)
         }
     }
 
-    g_cam_state = CAMERA_STREAMING;
+    set_cam_state(CAMERA_STREAMING);
     LOG_I("[UVC] Camera streaming — MJPEG %ux%u\r\n",
           g_cam_mode.width, g_cam_mode.height);
 
@@ -473,7 +488,7 @@ static void streaming_task(void *arg)
              * If restart fails, transition to camera unavailable until replugged." */
             if (g_restart_attempted) {
                 LOG_E("[UVC] Stall recurred after restart — camera unavailable\r\n");
-                g_cam_state = CAMERA_UNAVAILABLE;
+                set_cam_state(CAMERA_UNAVAILABLE);
                 break;
             }
             g_restart_attempted = true;
@@ -496,7 +511,7 @@ static void streaming_task(void *arg)
                                        g_cam_mode.altsetting);
             if (ret < 0) {
                 LOG_E("[UVC] Restart failed: %d — camera unavailable\r\n", ret);
-                g_cam_state = CAMERA_UNAVAILABLE;
+                set_cam_state(CAMERA_UNAVAILABLE);
                 break;
             }
 
@@ -531,7 +546,7 @@ static void streaming_task(void *arg)
                 ret = usbh_submit_urb(urb);
                 if (ret < 0) {
                     LOG_E("[UVC] Restart submit %d failed: %d\r\n", u, ret);
-                    g_cam_state = CAMERA_UNAVAILABLE;
+                    set_cam_state(CAMERA_UNAVAILABLE);
                     break;
                 }
             }
@@ -572,7 +587,7 @@ static void streaming_task(void *arg)
     }
 
     if (g_cam_state == CAMERA_STREAMING) {
-        g_cam_state = CAMERA_ATTACHED;
+        set_cam_state(CAMERA_ATTACHED);
     }
 
     LOG_I("[UVC] Streaming task stopped (frames captured: %" PRIu64 ")\r\n",
@@ -640,7 +655,7 @@ void usbh_video_run(struct usbh_video *video_class)
 
     if (!select_best_resolution(video_class, &format_idx, &frame_idx, &w, &h)) {
         LOG_E("[UVC] No MJPEG format found — camera unusable\r\n");
-        g_cam_state = CAMERA_UNAVAILABLE;
+        set_cam_state(CAMERA_UNAVAILABLE);
         return;
     }
 
@@ -671,7 +686,7 @@ void usbh_video_run(struct usbh_video *video_class)
     int ret = usbh_video_open(video_class, USBH_VIDEO_FORMAT_MJPEG, w, h, alt);
     if (ret < 0) {
         LOG_E("[UVC] usbh_video_open failed: %d\r\n", ret);
-        g_cam_state = CAMERA_UNAVAILABLE;
+        set_cam_state(CAMERA_UNAVAILABLE);
         return;
     }
 
@@ -692,7 +707,7 @@ void usbh_video_run(struct usbh_video *video_class)
     g_cam_mode.altsetting = alt;
     g_cam_mode.isoin_mps  = video_class->isoin_mps;
     g_video_class         = video_class;
-    g_cam_state           = CAMERA_ATTACHED;
+    set_cam_state(CAMERA_ATTACHED);
 
     LOG_I("[UVC] Camera ready — MJPEG %ux%u @ %ufps  MPS=%u  EP=0x%02X\r\n",
           w, h, (unsigned)g_cam_mode.fps, video_class->isoin_mps,
@@ -709,7 +724,7 @@ void usbh_video_stop(struct usbh_video *video_class)
     /* Stop streaming task first */
     stop_streaming();
 
-    g_cam_state   = CAMERA_DETACHED;
+    set_cam_state(CAMERA_DETACHED);
     g_video_class = NULL;
 }
 
@@ -792,7 +807,7 @@ int uvc_stop_capture(void)
         return -1;
     }
 
-    g_cam_state = CAMERA_ATTACHED;
+    set_cam_state(CAMERA_ATTACHED);
     return 0;
 }
 
@@ -804,6 +819,11 @@ int uvc_dequeue_frame(frame_t *frame, uint32_t timeout_ms)
 void uvc_frame_release(frame_t *frame)
 {
     frame_free(frame);
+}
+
+void uvc_register_state_callback(uvc_state_callback_t cb)
+{
+    g_state_callback = cb;
 }
 
 /* ------------------------------------------------------------------ */

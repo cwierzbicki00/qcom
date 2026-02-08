@@ -75,4 +75,18 @@ int uvc_dequeue_frame(frame_t *frame, uint32_t timeout_ms);
  */
 void uvc_frame_release(frame_t *frame);
 
+/*
+ * Camera state change callback.
+ * Called from ISR or task context when camera state transitions.
+ * Keep the callback lightweight (e.g. send a notification, set a flag).
+ */
+typedef void (*uvc_state_callback_t)(camera_state_t new_state);
+
+/*
+ * Register a callback to be notified when camera state changes.
+ * Only one callback is supported; subsequent calls replace the previous.
+ * Pass NULL to unregister.
+ */
+void uvc_register_state_callback(uvc_state_callback_t cb);
+
 #endif /* UVC_CAPTURE_H */

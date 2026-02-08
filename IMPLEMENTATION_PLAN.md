@@ -584,6 +584,20 @@
 - **Fix:** Updated `printf` format string from `[METRICS] in=%u sent=%u drop=%u ...` to `[METRICS] frames_in=%u frames_sent=%u frames_dropped=%u ...`.
 - **Test:** Host tests 19/19 passing. Build succeeds.
 
+### 5.17 Spec compliance: camera state change notification to HTTP server ✅ DONE
+- **Spec:** 10-usb-uvc-capture §UVC enumeration ("On USB detach: Notify streaming server that camera is unavailable")
+- **Files:** `uvc_capture.h`, `uvc_capture.c`, `http_server.c`
+- **Gap:** Spec 10 requires the UVC capture module to actively notify the streaming server when camera becomes unavailable. Previously, camera state changes were only visible via polling (`uvc_get_camera_state()`). The HTTP stream task polled with a 200ms dequeue timeout but never broke out of its loop on camera detach — it would spin indefinitely.
+- **Fix:**
+  - Added `uvc_state_callback_t` typedef and `uvc_register_state_callback()` API to `uvc_capture.h/.c`. Allows a single callback to be notified on any camera state transition.
+  - Added internal `set_cam_state()` helper that updates `g_cam_state` and fires the callback. All direct `g_cam_state = X` assignments replaced with `set_cam_state(X)`.
+  - HTTP server registers `on_camera_state_change()` callback at startup via `uvc_register_state_callback()`. Callback sets `g_camera_gone` flag when state transitions to `CAMERA_DETACHED` or `CAMERA_UNAVAILABLE`.
+  - **BUG FIX:** Stream task now checks `g_camera_gone` flag after dequeue timeout and `break`s out of the streaming loop, logging `"Camera unavailable — ending stream"`. Previously, it would `continue` forever, keeping the socket open and the stream task alive indefinitely.
+  - The callback fires immediately when camera detaches (from `usbh_video_stop()` → `set_cam_state(CAMERA_DETACHED)`), so the stream task exits within 200ms (the dequeue timeout) rather than spinning.
+- **Test:** Host tests 19/19 passing. Build succeeds at 877 KB.
+- **Build notes:**
+  - Binary size: 877 KB (within 4 MB flash).
+
 ---
 
 ## Dependency Graph (Build Order)

@@ -11,10 +11,10 @@ set -euo pipefail
 # Environment overrides:
 #   RALPH_CMD   : command used to run the agent (default: "claude")
 #   RALPH_MODEL : model name passed to claude (default: "opus")
-#
-# Notes:
-# - This script assumes a Claude-style CLI interface.
-# - If you use a different agent CLI, edit run_agent() accordingly.
+
+# Setup toolchain PATH for Linux
+export QCC_SDK="/home/sprite/qcom"
+export PATH="$QCC_SDK/toolchain/linux_x86_64/bin:$QCC_SDK/tools/make:$QCC_SDK/tools/cmake/bin:$QCC_SDK/tools/ninja:$PATH"
 
 MODE="build"
 MAX_ITERATIONS=0
@@ -71,13 +71,7 @@ echo "RALPH_MODEL: $RALPH_MODEL"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
 run_agent() {
-  # Claude Code-style invocation.
-  # If your CLI differs, change this function only.
-  cat "$PROMPT_FILE" | "$RALPH_CMD" -p \
-    --dangerously-skip-permissions \
-    --output-format=stream-json \
-    --model "$RALPH_MODEL" \
-    --verbose
+  cat "$PROMPT_FILE" | "$RALPH_CMD" -p     --dangerously-skip-permissions     --model "$RALPH_MODEL"     --verbose
 }
 
 ITER=0

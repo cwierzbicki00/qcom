@@ -119,7 +119,18 @@ static void handle_root(int sock)
 /* ------------------------------------------------------------------ */
 
 static volatile bool g_stream_active;
+static volatile bool g_camera_gone;   /* Set by UVC state callback */
 static char          g_stream_client_ip[16];
+
+/* Camera state change callback — sets flag so stream task can exit promptly */
+static void on_camera_state_change(camera_state_t new_state)
+{
+    if (new_state == CAMERA_DETACHED || new_state == CAMERA_UNAVAILABLE) {
+        g_camera_gone = true;
+    } else if (new_state == CAMERA_STREAMING) {
+        g_camera_gone = false;
+    }
+}
 
 /* Context passed to the stream task (allocated by caller, freed by task) */
 typedef struct {
@@ -164,9 +175,9 @@ static void stream_task(void *arg)
         frame_t frame;
         if (uvc_dequeue_frame(&frame, 200) != 0) {
             /* No frame available; check if camera still alive */
-            if (uvc_get_camera_state() == CAMERA_DETACHED ||
-                uvc_get_camera_state() == CAMERA_UNAVAILABLE) {
-                /* Camera gone — keep connection open, client sees stale last frame */
+            if (g_camera_gone) {
+                LOG_I("[HTTP] Camera unavailable — ending stream\r\n");
+                break;
             }
             continue;
         }
@@ -472,6 +483,7 @@ static void http_server_task(void *arg)
 
 void http_server_start(void)
 {
+    uvc_register_state_callback(on_camera_state_change);
     xTaskCreate(http_server_task, "http", HTTP_TASK_STACK, NULL,
                 HTTP_TASK_PRIO, NULL);
 }
