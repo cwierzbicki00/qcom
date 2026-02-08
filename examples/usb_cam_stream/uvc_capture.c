@@ -64,7 +64,7 @@ static volatile uint64_t g_frames_captured;
 /* Stall detection */
 static TimerHandle_t g_stall_timer;
 static volatile bool g_stall_detected;
-static volatile bool g_restart_attempted;  /* Only one restart per streaming session */
+static volatile bool g_restart_attempted;  /* One restart allowed per physical plug cycle */
 
 /* State change notification callback */
 static uvc_state_callback_t g_state_callback;
@@ -407,7 +407,9 @@ static void streaming_task(void *arg)
     g_fid_initialized = false;
     g_frames_captured = 0;
     g_stall_detected = false;
-    g_restart_attempted = false;
+    /* Note: g_restart_attempted is NOT reset here — it is only reset in
+     * usbh_video_run() (physical re-plug) per spec 10 §Fault handling:
+     * "transition to camera unavailable until replugged". */
     g_stream_stop = false;
 
     /* Initialize frame pool */
@@ -642,6 +644,10 @@ void usbh_video_run(struct usbh_video *video_class)
 {
     uint16_t vid = video_class->hport->device_desc.idVendor;
     uint16_t pid = video_class->hport->device_desc.idProduct;
+
+    /* Reset stall restart allowance on physical re-plug per spec 10
+     * §Fault handling: "until replugged". */
+    g_restart_attempted = false;
 
     LOG_I("[UVC] Camera attached  VID=0x%04X  PID=0x%04X  ctrl_intf=%u  data_intf=%u\r\n",
           vid, pid, video_class->ctrl_intf, video_class->data_intf);

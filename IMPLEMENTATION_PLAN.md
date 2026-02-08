@@ -559,7 +559,7 @@
 - **Spec:** 10-usb-uvc-capture §Fault handling ("restart once, then camera unavailable"), 20-wifi-softap §CLI ("start/stop AP")
 - **Files:** `uvc_capture.c`, `wifi_ap.c`, `wifi_ap.h`
 - **Implementation:**
-  - **FIX:** Stall restart was not limited to one attempt. The stall timer fires continuously, and after a successful restart, another stall would trigger another restart indefinitely. Added `g_restart_attempted` flag: on first stall, attempt restart; on second stall (recurrence after restart), transition to `CAMERA_UNAVAILABLE` per spec. Flag is reset when streaming starts fresh (camera re-plug).
+  - **FIX:** Stall restart was not limited to one attempt. The stall timer fires continuously, and after a successful restart, another stall would trigger another restart indefinitely. Added `g_restart_attempted` flag: on first stall, attempt restart; on second stall (recurrence after restart), transition to `CAMERA_UNAVAILABLE` per spec. Flag is reset only on physical camera re-plug (see 5.18).
   - **FIX:** Spec 20-wifi-softap requires CLI commands to start/stop the AP. Added `ap_start` and `ap_stop` shell commands in `wifi_ap.c` using configured parameters. Added `wifi_ap_stop()` public function wrapping `wifi_mgmr_ap_stop()`. SDK's generic `wifi_ap_start`/`wifi_ap_stop` commands (from `cli_al.c`) also remain available via `CONFIG_CLI_CMD_ENABLE`.
   - **VERIFIED:** DHCP range `AP_DHCP_START=100, AP_DHCP_LIMIT=101` is correct — SDK formula is `end_num = start + limit - 1 = 200`, giving 192.168.2.100-200 (101 addresses).
 - **Test:** Host tests 19/19 passing. Build succeeds.
@@ -597,6 +597,17 @@
 - **Test:** Host tests 19/19 passing. Build succeeds at 877 KB.
 - **Build notes:**
   - Binary size: 877 KB (within 4 MB flash).
+
+### 5.18 Spec compliance: stall restart scope — reset only on physical replug ✅ DONE
+- **Spec:** 10-usb-uvc-capture §Fault handling ("If restart fails, transition to 'camera unavailable' until replugged")
+- **Files:** `uvc_capture.c`
+- **Bug:** `g_restart_attempted` flag was reset to `false` at the start of every `streaming_task()` execution (line 410), including when streaming was started via manual `uvc_start_capture()` / `cam_start` CLI. This allowed unlimited restart attempts across manual stop/start cycles without physical replug. The spec explicitly says "until replugged", meaning only a physical USB detach/reattach should reset the restart allowance.
+- **Fix:**
+  - Removed `g_restart_attempted = false` from `streaming_task()`.
+  - Added `g_restart_attempted = false` to `usbh_video_run()` — the CherryUSB callback that fires only on physical USB device attach.
+  - Now, each physical plug cycle allows exactly one stall restart attempt. If the restart fails or a second stall occurs after restart, the camera remains `CAMERA_UNAVAILABLE` until physically replugged.
+  - Updated variable comment to "One restart allowed per physical plug cycle".
+- **Test:** Host tests 19/19 passing. Build succeeds.
 
 ---
 
