@@ -1,0 +1,16 @@
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lib\rtsp\src\librtspsrv.c:16:6:rtsp_set_video_fps	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lib\rtsp\src\librtspsrv.c:21:5:rtsp_get_video_fps	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lib\rtsp\src\librtspsrv.c:26:6:set_strm_cb	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lib\rtsp\src\librtspsrv.c:32:6:rtsp_set_strm_report_cb	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lib\rtsp\src\librtspsrv.c:37:6:get_strm_cb	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lib\rtsp\src\librtspsrv.c:45:6:rtsp_strm_report_cb	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lib\rtsp\src\librtspsrv.c:54:6:rtsp_set_audioFmt	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lib\rtsp\src\librtspsrv.c:66:6:rtsp_set_videoFmt	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lib\rtsp\src\librtspsrv.c:75:5:rtsp_get_videoFmt	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lib\rtsp\src\librtspsrv.c:80:5:rtsp_get_audioFmt	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lib\rtsp\src\librtspsrv.c:85:5:rtsp_get_audio_en	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lib\rtsp\src\librtspsrv.c:90:5:rtsp_get_video_en	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lib\rtsp\src\librtspsrv.c:95:6:rtsp_set_video_en	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lib\rtsp\src\librtspsrv.c:100:6:rtsp_set_audio_en	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lib\rtsp\src\librtspsrv.c:105:5:rtsp_init_lib	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lib\rtsp\src\librtspsrv.c:115:5:rtsp_deinit_lib	16	static

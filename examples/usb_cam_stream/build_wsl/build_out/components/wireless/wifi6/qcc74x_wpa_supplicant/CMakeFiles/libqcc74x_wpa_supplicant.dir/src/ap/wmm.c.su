@@ -1,0 +1,4 @@
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/ap/wmm.c:109:6:hostapd_eid_wmm	96	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/ap/wmm.c:161:5:hostapd_eid_wmm_valid	0	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/ap/wmm.c:219:5:wmm_process_tspec	0	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/ap/wmm.c:325:6:hostapd_wmm_action	784	static

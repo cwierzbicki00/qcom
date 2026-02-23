@@ -1,0 +1,4 @@
+/mnt/c/Users/cwier/documents/github/qcom/components/net/lwip/lwip/src/core/ipv4/icmp.c:352:1:icmp_send_response	64	static
+/mnt/c/Users/cwier/documents/github/qcom/components/net/lwip/lwip/src/core/ipv4/icmp.c:85:1:icmp_input	64	static
+/mnt/c/Users/cwier/documents/github/qcom/components/net/lwip/lwip/src/core/ipv4/icmp.c:320:1:icmp_dest_unreach	0	static
+/mnt/c/Users/cwier/documents/github/qcom/components/net/lwip/lwip/src/core/ipv4/icmp.c:335:1:icmp_time_exceeded	0	static

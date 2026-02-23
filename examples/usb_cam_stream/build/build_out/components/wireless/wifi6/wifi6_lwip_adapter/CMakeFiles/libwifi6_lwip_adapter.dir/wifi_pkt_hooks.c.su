@@ -1,0 +1,4 @@
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\wifi6_lwip_adapter\wifi_pkt_hooks.c:8:6:qcc74x_pkt_eth_input_hook_register	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\wifi6_lwip_adapter\wifi_pkt_hooks.c:14:6:qcc74x_pkt_eth_input_hook_unregister	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\wifi6_lwip_adapter\wifi_pkt_hooks.c:23:6:qcc74x_pkt_eth_output_hook_register	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\wifi6_lwip_adapter\wifi_pkt_hooks.c:29:6:qcc74x_pkt_eth_output_hook_unregister	0	static

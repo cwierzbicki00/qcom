@@ -1,0 +1,7 @@
+/mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/mbedtls/library/ssl_cookie.c:112:12:ssl_cookie_hmac	80	static
+/mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/mbedtls/library/ssl_cookie.c:53:6:mbedtls_ssl_cookie_init	16	static
+/mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/mbedtls/library/ssl_cookie.c:66:6:mbedtls_ssl_cookie_set_timeout	0	static
+/mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/mbedtls/library/ssl_cookie.c:71:6:mbedtls_ssl_cookie_free	32	static
+/mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/mbedtls/library/ssl_cookie.c:82:5:mbedtls_ssl_cookie_setup	48	static
+/mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/mbedtls/library/ssl_cookie.c:137:5:mbedtls_ssl_cookie_write	0	static
+/mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/mbedtls/library/ssl_cookie.c:182:5:mbedtls_ssl_cookie_check	64	static

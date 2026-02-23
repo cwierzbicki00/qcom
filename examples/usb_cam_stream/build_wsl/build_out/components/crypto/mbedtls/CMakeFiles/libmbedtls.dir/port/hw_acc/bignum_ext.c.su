@@ -1,0 +1,8 @@
+/mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/port/hw_acc/bignum_ext.c:8:6:dump_mpi	32	static
+/mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/port/hw_acc/bignum_ext.c:27:5:mpi_words_to_reg_size	0	static
+/mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/port/hw_acc/bignum_ext.c:43:8:mpi_reg_size_to_words	0	static
+/mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/port/hw_acc/bignum_ext.c:58:8:mpi_words	0	static
+/mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/port/hw_acc/bignum_ext.c:69:5:mpi_clear_upper_bits	0	static
+/mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/port/hw_acc/bignum_ext.c:91:5:mpi_mod_2n	32	static
+/mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/port/hw_acc/bignum_ext.c:110:5:mpi_hensel_quad_mod_inv_prime_n	64	static
+/mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/port/hw_acc/bignum_ext.c:155:5:mpi_scalar_encode	32	static

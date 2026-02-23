@@ -1,0 +1,9 @@
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lib\rtsp\src\sd_handler.c:28:5:handle_lsn_sd	64	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lib\rtsp\src\sd_handler.c:116:5:handle_rtsp_sd	32	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lib\rtsp\src\sd_handler.c:150:5:handle_rtp_sd	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lib\rtsp\src\sd_handler.c:175:5:handle_rtcp_sd	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lib\rtsp\src\sd_handler.c:180:6:do_sd_handler	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lib\rtsp\src\sd_handler.c:198:5:register_sd_handler	32	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lib\rtsp\src\sd_handler.c:218:6:deregister_sd_handler	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lib\rtsp\src\sd_handler.c:234:6:init_sd_handler_list	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lib\rtsp\src\sd_handler.c:240:6:deinit_sd_handler_list	32	static

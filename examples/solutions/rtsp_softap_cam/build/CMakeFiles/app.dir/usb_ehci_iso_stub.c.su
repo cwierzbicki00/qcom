@@ -1,0 +1,4 @@
+C:\Users\cwier\Documents\GitHub\qcom\examples\solutions\rtsp_softap_cam\usb_ehci_iso_stub.c:162:13:iso_group_free	0	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\solutions\rtsp_softap_cam\usb_ehci_iso_stub.c:231:5:ehci_iso_urb_init	112	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\solutions\rtsp_softap_cam\usb_ehci_iso_stub.c:405:6:ehci_kill_iso_urb	0	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\solutions\rtsp_softap_cam\usb_ehci_iso_stub.c:455:6:ehci_scan_isochronous_list	128	static

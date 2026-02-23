@@ -1,0 +1,4 @@
+/mnt/c/Users/cwier/documents/github/qcom/components/net/lwip/lwip/src/api/netdb.c:92:1:lwip_gethostbyname	32	static
+/mnt/c/Users/cwier/documents/github/qcom/components/net/lwip/lwip/src/api/netdb.c:165:1:lwip_gethostbyname_r	80	static
+/mnt/c/Users/cwier/documents/github/qcom/components/net/lwip/lwip/src/api/netdb.c:239:1:lwip_freeaddrinfo	16	static
+/mnt/c/Users/cwier/documents/github/qcom/components/net/lwip/lwip/src/api/netdb.c:272:1:lwip_getaddrinfo	64	static

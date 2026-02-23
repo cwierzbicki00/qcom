@@ -1,0 +1,15 @@
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\common\hw_features_common.c:19:31:hw_get_channel_chan	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\common\hw_features_common.c:44:1:hw_mode_get_channel	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\common\hw_features_common.c:63:1:hw_get_channel_freq	48	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\common\hw_features_common.c:90:5:hw_get_freq	32	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\common\hw_features_common.c:100:5:hw_get_chan	32	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\common\hw_features_common.c:179:6:get_pri_sec_chan	432	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\common\hw_features_common.c:202:5:check_40mhz_5g	48	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\common\hw_features_common.c:296:5:check_40mhz_2g4	480	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\common\hw_features_common.c:381:5:hostapd_set_freq_params	64	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\common\hw_features_common.c:663:6:set_disable_ht40	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\common\hw_features_common.c:716:5:ieee80211ac_cap_check	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\common\hw_features_common.c:761:5:num_chan_to_bw	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\common\hw_features_common.c:775:5:chan_bw_allowed	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\common\hw_features_common.c:812:5:chan_pri_allowed	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\common\hw_features_common.c:111:5:allowed_ht40_channel_pair	80	static

@@ -1,0 +1,12 @@
+C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\src\flash\qcc74x_xip_sflash.c:54:101:qcc74x_xip_sflash_state_save	32	static
+C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\src\flash\qcc74x_xip_sflash.c:115:102:qcc74x_xip_sflash_state_restore	64	static
+C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\src\flash\qcc74x_xip_sflash.c:450:102:qcc74x_xip_sflash_read_via_cache_need_lock	32	static
+C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\src\flash\qcc74x_xip_sflash.c:480:103:qcc74x_xip_sflash_opt_enter	16	static
+C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\src\flash\qcc74x_xip_sflash.c:502:103:qcc74x_xip_sflash_opt_exit	0	static
+C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\src\flash\qcc74x_xip_sflash.c:171:102:qcc74x_xip_sflash_erase_need_lock	48	static
+C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\src\flash\qcc74x_xip_sflash.c:212:102:qcc74x_xip_sflash_write_need_lock	64	static
+C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\src\flash\qcc74x_xip_sflash.c:253:102:qcc74x_xip_sflash_read_need_lock	64	static
+C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\src\flash\qcc74x_xip_sflash.c:292:102:qcc74x_xip_sflash_get_jedecid_need_lock	48	static
+C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\src\flash\qcc74x_xip_sflash.c:332:102:qcc74x_xip_sflash_get_deviceid_need_lock	48	static
+C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\src\flash\qcc74x_xip_sflash.c:372:102:qcc74x_xip_sflash_get_uniqueid_need_lock	48	static
+C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\src\flash\qcc74x_xip_sflash.c:410:102:qcc74x_xip_sflash_clear_status_register_need_lock	48	static

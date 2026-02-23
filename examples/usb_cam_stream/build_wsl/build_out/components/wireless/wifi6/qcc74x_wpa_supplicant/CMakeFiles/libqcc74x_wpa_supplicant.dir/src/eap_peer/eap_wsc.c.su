@@ -1,0 +1,6 @@
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/eap_peer/eap_wsc.c:288:13:eap_wsc_deinit	16	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/eap_peer/eap_wsc.c:138:15:eap_wsc_init	240	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/utils/wpabuf.h:166:20:wpabuf_put_data	32	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/eap_peer/eap_wsc.c:300:24:eap_wsc_build_msg	32	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/eap_peer/eap_wsc.c:428:24:eap_wsc_process	80	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/eap_peer/eap_wsc.c:578:5:eap_peer_wsc_register	16	static

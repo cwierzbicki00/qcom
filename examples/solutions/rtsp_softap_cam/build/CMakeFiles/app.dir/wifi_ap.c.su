@@ -1,0 +1,8 @@
+C:\Users\cwier\Documents\GitHub\qcom\examples\solutions\rtsp_softap_cam\wifi_ap.c:39:13:dhcp_lease_cb	80	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\solutions\rtsp_softap_cam\wifi_ap.c:218:12:cmd_wifi_status	96	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\solutions\rtsp_softap_cam\wifi_ap.c:59:6:wifi_ap_start	80	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\solutions\rtsp_softap_cam\wifi_ap.c:200:12:cmd_ap_start	16	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\solutions\rtsp_softap_cam\wifi_ap.c:90:6:wifi_ap_event_handler	64	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\solutions\rtsp_softap_cam\wifi_ap.c:189:5:wifi_ap_get_sta_count	0	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\solutions\rtsp_softap_cam\wifi_ap.c:194:6:wifi_ap_stop	16	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\solutions\rtsp_softap_cam\wifi_ap.c:209:12:cmd_ap_stop	16	static

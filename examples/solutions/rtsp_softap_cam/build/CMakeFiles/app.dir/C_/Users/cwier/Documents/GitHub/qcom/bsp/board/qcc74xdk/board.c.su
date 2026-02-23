@@ -1,0 +1,11 @@
+C:\Users\cwier\Documents\GitHub\qcom\bsp\board\qcc74xdk\board.c:53:125:system_clock_init	16	static
+C:\Users\cwier\Documents\GitHub\qcom\bsp\board\qcc74xdk\board.c:520:13:reboot_cmd	0	static
+C:\Users\cwier\Documents\GitHub\qcom\bsp\board\qcc74xdk\board.c:541:13:mfg_cmd	0	static
+C:\Users\cwier\Documents\GitHub\qcom\bsp\board\qcc74xdk\board.c:262:6:qcc74x_show_log	16	static
+C:\Users\cwier\Documents\GitHub\qcom\bsp\board\qcc74xdk\board.c:269:13:qcc74x_sys_version	0	static
+C:\Users\cwier\Documents\GitHub\qcom\bsp\board\qcc74xdk\board.c:290:6:qcc74x_show_component_version	32	static
+C:\Users\cwier\Documents\GitHub\qcom\bsp\board\qcc74xdk\board.c:512:13:show_sys_versoin_cmd	0	static
+C:\Users\cwier\Documents\GitHub\qcom\bsp\board\qcc74xdk\board.c:303:6:qcc74x_show_chipinfo	64	static
+C:\Users\cwier\Documents\GitHub\qcom\bsp\board\qcc74xdk\board.c:365:6:board_init	128	static
+C:\Users\cwier\Documents\GitHub\qcom\bsp\board\qcc74xdk\board.c:529:6:mfg_config	0	static
+C:\Users\cwier\Documents\GitHub\qcom\bsp\board\qcc74xdk\board.c:777:5:board_device_info_version	16	static

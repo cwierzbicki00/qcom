@@ -1,0 +1,11 @@
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\core\timeouts.c:429:1:sys_timeout_abs	32	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\core\timeouts.c:478:1:lwip_cyclic_timer	32	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\core\timeouts.c:579:1:sys_timeout	32	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\core\timeouts.c:402:1:tcp_timer_needed	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\core\timeouts.c:379:1:tcpip_tcp_timer	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\core\timeouts.c:517:6:sys_timeouts_init	32	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\core\timeouts.c:544:6:sys_timeouts_set_timer_enable	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\core\timeouts.c:612:1:sys_untimeout	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\core\timeouts.c:647:1:sys_check_timeouts	32	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\core\timeouts.c:699:1:sys_restart_timeouts	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\core\timeouts.c:721:1:sys_timeouts_sleeptime	16	static

@@ -1,0 +1,5 @@
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/ap/mbo_ap.c:33:13:mbo_ap_parse_non_pref_chan	256	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/ap/mbo_ap.c:19:6:mbo_ap_sta_free	16	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/ap/mbo_ap.c:83:6:mbo_ap_check_sta_assoc	32	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/ap/mbo_ap.c:115:5:mbo_ap_get_info	48	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/ap/mbo_ap.c:208:6:mbo_ap_wnm_notification_req	48	static

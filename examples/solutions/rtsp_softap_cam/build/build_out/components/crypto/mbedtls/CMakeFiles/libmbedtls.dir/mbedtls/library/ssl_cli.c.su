@@ -1,0 +1,9 @@
+C:\Users\cwier\Documents\GitHub\qcom\components\crypto\mbedtls\mbedtls\include/mbedtls/ssl_ciphersuites.h:454:19:mbedtls_ssl_ciphersuite_cert_req_allowed	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\crypto\mbedtls\mbedtls\include/mbedtls/ssl_internal.h:1137:35:mbedtls_ssl_own_key	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\crypto\mbedtls\mbedtls\library\ssl_cli.c:646:12:ssl_write_session_ticket_ext	32	static
+C:\Users\cwier\Documents\GitHub\qcom\components\crypto\mbedtls\mbedtls\library\ssl_cli.c:197:12:ssl_write_signature_algorithms_ext	32	static
+C:\Users\cwier\Documents\GitHub\qcom\components\crypto\mbedtls\mbedtls\library\ssl_cli.c:296:12:ssl_write_supported_elliptic_curves_ext	48	static
+C:\Users\cwier\Documents\GitHub\qcom\components\crypto\mbedtls\mbedtls\library\ssl_cli.c:2569:12:ssl_check_server_ecdh_params	32	static
+C:\Users\cwier\Documents\GitHub\qcom\components\crypto\mbedtls\mbedtls\library\ssl_cli.c:39:12:ssl_conf_has_static_psk	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\crypto\mbedtls\mbedtls\library\ssl_cli.c:917:12:ssl_validate_ciphersuite	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\crypto\mbedtls\mbedtls\library\ssl_cli.c:4252:5:mbedtls_ssl_handshake_client_step	176	static

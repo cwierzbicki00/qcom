@@ -1,0 +1,7 @@
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lib\rtsp\src\util.c:65:5:set_block_mode	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lib\rtsp\src\util.c:85:5:create_and_bind	32	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lib\rtsp\src\util.c:125:13:get_status_reason	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lib\rtsp\src\util.c:144:7:skip_nalu_start_code	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lib\rtsp\src\util.c:164:5:get_nalu_sz	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lib\rtsp\src\util.c:210:7:encode_base64	32	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lib\rtsp\src\util.c:257:20:random64	16	static

@@ -1,0 +1,7 @@
+C:\Users\cwier\Documents\GitHub\qcom\examples\solutions\rtsp_softap_cam\rtp_local.c:224:12:produce_rtp_pkt	48	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\solutions\rtsp_softap_cam\rtp_local.c:405:12:send_h264_nalu	352	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\solutions\rtsp_softap_cam\rtp_local.c:642:12:send_audio_frm.isra	320	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\solutions\rtsp_softap_cam\rtp_local.c:470:12:send_mjpeg_frm.isra	384	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\solutions\rtsp_softap_cam\rtp_local.c:684:5:prefetch_frm	32	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\solutions\rtsp_softap_cam\rtp_local.c:880:5:create_rtp_sess	96	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\solutions\rtsp_softap_cam\rtp_local.c:905:6:destroy_rtp_sess	16	static

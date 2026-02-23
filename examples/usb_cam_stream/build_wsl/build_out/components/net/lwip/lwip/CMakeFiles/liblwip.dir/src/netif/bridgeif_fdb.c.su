@@ -1,0 +1,4 @@
+/mnt/c/Users/cwier/documents/github/qcom/components/net/lwip/lwip/src/netif/bridgeif_fdb.c:180:1:bridgeif_age_tmr	0	static
+/mnt/c/Users/cwier/documents/github/qcom/components/net/lwip/lwip/src/netif/bridgeif_fdb.c:76:1:bridgeif_fdb_update_src	48	static
+/mnt/c/Users/cwier/documents/github/qcom/components/net/lwip/lwip/src/netif/bridgeif_fdb.c:128:1:bridgeif_fdb_get_dst_ports	32	static
+/mnt/c/Users/cwier/documents/github/qcom/components/net/lwip/lwip/src/netif/bridgeif_fdb.c:195:1:bridgeif_fdb_init	16	static

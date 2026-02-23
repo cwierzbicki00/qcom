@@ -1,0 +1,7 @@
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\ap\ap_list.c:31:12:ap_list_beacon_olbc	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\ap\ap_list.c:76:13:ap_ap_list_del	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\ap\ap_list.c:119:13:ap_free_ap	32	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\ap\ap_list.c:169:6:ap_list_process_beacon	32	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\ap\ap_list.c:249:6:ap_list_timer	48	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\ap\ap_list.c:299:5:ap_list_init	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\ap\ap_list.c:305:6:ap_list_deinit	32	static

@@ -1,0 +1,10 @@
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/drivers/driver_common.c:176:12:wpa_check_wowlan_trigger	32	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/drivers/driver_common.c:13:6:wpa_scan_results_free	16	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/drivers/driver_common.c:27:14:event_to_string	0	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/drivers/driver_common.c:100:14:channel_width_to_string	0	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/drivers/driver_common.c:121:5:channel_width_to_int	0	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/drivers/driver_common.c:140:5:ht_supported	0	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/drivers/driver_common.c:158:5:vht_supported	0	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/drivers/driver_common.c:190:1:wpa_get_wowlan_triggers	64	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/drivers/driver_common.c:252:14:driver_flag_to_string	0	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/drivers/driver_common.c:326:14:driver_flag2_to_string	0	static

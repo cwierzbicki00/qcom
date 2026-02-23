@@ -9,6 +9,14 @@
 
 struct jpegframe_parser jpeg_parser;
 
+#define MJPEG_SEND_BUF_RESERVE         24U
+#define MJPEG_BACKPRESSURE_LOG_PERIOD  64U
+#define RTP_JPEG_RST_HDR_SZ            4U
+#define RTP_JPEG_QTABLE_HDR_SZ         4U
+
+static unsigned int g_mjpeg_backpressure_drops;
+static unsigned int g_mjpeg_parse_fail_drops;
+
 /* Update sequence number in RTP header. */
 #define update_seq(seq) do {                    \
         seq = htons(ntohs(seq) + 1);            \
@@ -38,6 +46,65 @@ static void init_rtp_hdr(struct rtp_hdr *hdrp, int media)
     hdrp->ts = 0;//random();
     hdrp->ssrc = random();
     return;
+}
+
+static unsigned int mjpeg_payload_cap(const struct rtsp_sess *sessp,
+                                      int first_fragment,
+                                      unsigned char q_factor,
+                                      unsigned short qtables_len,
+                                      int has_restart)
+{
+    unsigned int hdr_sz = sizeof(struct rtp_hdr) + sizeof(struct jpeghdr);
+
+    if (sessp->intlvd_mode) {
+        hdr_sz += sizeof(struct intlvd);
+    }
+
+    if (first_fragment && has_restart) {
+        hdr_sz += RTP_JPEG_RST_HDR_SZ;
+    }
+
+    if (first_fragment && q_factor >= 128U) {
+        hdr_sz += RTP_JPEG_QTABLE_HDR_SZ + qtables_len;
+    }
+
+    if (hdr_sz >= MAX_RTP_PKT_SZ) {
+        return 0U;
+    }
+
+    return MAX_RTP_PKT_SZ - hdr_sz;
+}
+
+static int estimate_mjpeg_pkt_count(const struct rtsp_sess *sessp,
+                                    unsigned int frame_sz,
+                                    unsigned char q_factor,
+                                    unsigned short qtables_len,
+                                    int has_restart)
+{
+    unsigned int bytes_left = frame_sz;
+    unsigned int offset = 0U;
+    int packets = 0;
+
+    while (bytes_left > 0U) {
+        unsigned int cap = mjpeg_payload_cap(sessp, (offset == 0U),
+                                             q_factor, qtables_len, has_restart);
+        unsigned int chunk;
+
+        if (cap == 0U) {
+            return -1;
+        }
+
+        chunk = (bytes_left < cap) ? bytes_left : cap;
+        offset += chunk;
+        bytes_left -= chunk;
+        packets++;
+
+        if (packets > (int)rtsp_send_buf_limit()) {
+            return -1;
+        }
+    }
+
+    return packets;
 }
 
 /**
@@ -98,6 +165,7 @@ static int produce_rtp_pkt(struct rtsp_sess *sessp, enum media_type media,
             break;
         default:
             printf("Unsupported or undefined NALU payload type[%d]\r\n", nalu_pt);
+            destroy_send_buf(sendp);
             return -1;
         }
         break;
@@ -109,36 +177,70 @@ static int produce_rtp_pkt(struct rtsp_sess *sessp, enum media_type media,
         send_sz += rtp_plp->audio.pl_sz;
         break;
     case RTP_PT_JPEG:
+    {
+        unsigned int payload_cap = 0U;
+        unsigned int copy_len = 0U;
+        int first_fragment = (rtp_plp->jpeg.jpghdr.off == 0U);
+
         ptr[0] = 0;
-        ptr[1] = rtp_plp->jpeg.jpghdr.off>>16;
-        ptr[2] = rtp_plp->jpeg.jpghdr.off>>8;
-        ptr[3] = rtp_plp->jpeg.jpghdr.off>>0;
+        ptr[1] = rtp_plp->jpeg.jpghdr.off >> 16;
+        ptr[2] = rtp_plp->jpeg.jpghdr.off >> 8;
+        ptr[3] = rtp_plp->jpeg.jpghdr.off >> 0;
         ptr[4] = rtp_plp->jpeg.jpghdr.type;
         ptr[5] = rtp_plp->jpeg.jpghdr.q;
         ptr[6] = rtp_plp->jpeg.jpghdr.width;
         ptr[7] = rtp_plp->jpeg.jpghdr.height;
         ptr += sizeof(rtp_plp->jpeg.jpghdr);
-        send_sz +=8;
+        send_sz += 8;
 
-        if (rtp_plp->jpeg.jpghdr.q >= 128 && rtp_plp->jpeg.jpghdr.off == 0) {
+        if (first_fragment && (rtp_plp->jpeg.jpghdr.type & RTP_JPEG_RESTART)) {
+            unsigned short dri = rtp_plp->jpeg.rsthdr.dri;
+            unsigned short flg = 0U;
+            flg |= (unsigned short)((rtp_plp->jpeg.rsthdr.f ? 1U : 0U) << 15);
+            flg |= (unsigned short)((rtp_plp->jpeg.rsthdr.l ? 1U : 0U) << 14);
+            flg |= (unsigned short)(rtp_plp->jpeg.rsthdr.count & 0x3FFFU);
+
+            ptr[0] = (char)(dri >> 8);
+            ptr[1] = (char)(dri & 0xFFU);
+            ptr[2] = (char)(flg >> 8);
+            ptr[3] = (char)(flg & 0xFFU);
+            ptr += RTP_JPEG_RST_HDR_SZ;
+            send_sz += RTP_JPEG_RST_HDR_SZ;
+        }
+
+        if (rtp_plp->jpeg.jpghdr.q >= 128 && first_fragment) {
             // memcpy(ptr, &qtblhdr, sizeof(qtblhdr));//notice cpu endian
             ptr[0] = 0;
             ptr[1] = 0;
             ptr[2] = jpeg_parser.qTablesLength>>8;
             ptr[3] = jpeg_parser.qTablesLength&0xff;
-            ptr += sizeof(rtp_plp->jpeg.qtblhdr);
+            ptr += RTP_JPEG_QTABLE_HDR_SZ;
             memcpy(ptr, jpeg_parser.qTables, jpeg_parser.qTablesLength);
             ptr += jpeg_parser.qTablesLength;
             send_sz +=jpeg_parser.qTablesLength;
             send_sz +=4;
 
         }
-        rtp_plp->jpeg.jpgfrm.data_len = MAX_RTP_PKT_SZ - (ptr-sendp->buf);
-        memcpy(ptr, rtp_plp->jpeg.jpgfrm.jpeg_data + rtp_plp->jpeg.jpghdr.off, rtp_plp->jpeg.jpgfrm.data_len);
-        send_sz += rtp_plp->jpeg.jpgfrm.data_len;
+        payload_cap = MAX_RTP_PKT_SZ - (unsigned int)(ptr - sendp->buf);
+        if (payload_cap == 0U) {
+            destroy_send_buf(sendp);
+            return -1;
+        }
+
+        copy_len = (unsigned int)rtp_plp->jpeg.jpgfrm.data_len;
+        if (copy_len == 0U || copy_len > payload_cap) {
+            copy_len = payload_cap;
+        }
+        rtp_plp->jpeg.jpgfrm.data_len = (int)copy_len;
+        memcpy(ptr,
+               rtp_plp->jpeg.jpgfrm.jpeg_data + rtp_plp->jpeg.jpghdr.off,
+               copy_len);
+        send_sz += (int)copy_len;
         break;
+    }
     default:
         printf("Unsupported or undefined RTP payload type[%d]\r\n", rtp_hdrp->pt);
+        destroy_send_buf(sendp);
         return -1;
     }
     
@@ -171,7 +273,9 @@ static int send_h264_nalu(struct rtsp_sess *sessp,
         rtp_pl.single.pl = nalu + 1;
         rtp_pl.single.pl_sz = sz - 1;
         rtp_hdrp->ts = htonl((uint32_t)timestamp * (90000/1000));
-        produce_rtp_pkt(sessp, MEDIA_TYPE_VIDEO, rtp_hdrp, &rtp_pl);
+        if (produce_rtp_pkt(sessp, MEDIA_TYPE_VIDEO, rtp_hdrp, &rtp_pl) < 0) {
+            return -1;
+        }
         update_seq(rtp_hdrp->seq);
     } else {
         /* Skip header of NALU. */
@@ -197,7 +301,9 @@ static int send_h264_nalu(struct rtsp_sess *sessp,
             pl_sz = end ? left : max_fu_sz;
             rtp_pl.fu_a.pl = ptr;
             rtp_pl.fu_a.pl_sz = pl_sz;
-            produce_rtp_pkt(sessp, MEDIA_TYPE_VIDEO, rtp_hdrp, &rtp_pl);
+            if (produce_rtp_pkt(sessp, MEDIA_TYPE_VIDEO, rtp_hdrp, &rtp_pl) < 0) {
+                return -1;
+            }
             update_seq(rtp_hdrp->seq);
 
             ptr += pl_sz;
@@ -218,73 +324,100 @@ static int send_mjpeg_frm(struct rtsp_sess *sessp,
 {
     struct rtp_hdr *rtp_hdrp = &sessp->rtp_rtcp[MEDIA_TYPE_VIDEO].rtp_hdr;
     struct rtp_pl rtp_pl;
-    int bytes_left = sz;
-    unsigned char *ptr = (unsigned char*)fb;
-    rtp_pl.jpeg.jpgfrm.jpeg_data= (unsigned char*)fb;
-    if (sz <= MAX_RTP_PL_SZ) {
-        rtp_hdrp->m = 0;
-        rtp_pl.single.hdr = ptr[0];
-        //rtp_pl.single.pl = ptr + 1;
-        rtp_pl.single.pl_sz = sz - 1;
-        rtp_hdrp->ts = htonl((uint32_t)timestamp * (90000/1000));
-        produce_rtp_pkt(sessp, MEDIA_TYPE_VIDEO, rtp_hdrp, &rtp_pl);
-        update_seq(rtp_hdrp->seq);
-    } else {
-        parse_jpeg_req(ptr, sz, &jpeg_parser);
-        jpeg_parser.qFactor = 255;
-        int dri = jpeg_parser.driFound;
+    unsigned int bytes_left = sz;
+    unsigned int payload_cap = 0U;
+    unsigned int free_slots = 0U;
+    unsigned int enqueued_pkts = 0U;
+    int need_pkts = 0;
+    int has_restart = 0;
+    unsigned char *ptr = (unsigned char *)fb;
 
-        /* Initialize RTP header
-         */
-        rtp_hdrp->v = 2;
-        rtp_hdrp->p = 0;
-        rtp_hdrp->x = 0;
-        rtp_hdrp->cc = 0;
-        rtp_hdrp->m = 0;
-        rtp_hdrp->pt = RTP_PT_JPEG;
-        rtp_hdrp->ts =  htonl((uint32_t)timestamp * (90000/1000));
-        rtp_hdrp->ssrc = 0;
-
-        /* Initialize JPEG header
-         */
-
-        rtp_pl.jpeg.jpghdr.tspec = 0;
-        rtp_pl.jpeg.jpghdr.off = 0;
-        rtp_pl.jpeg.jpghdr.type = jpeg_parser.type | ((dri != 0) ? RTP_JPEG_RESTART : 0);
-        rtp_pl.jpeg.jpghdr.q = jpeg_parser.qFactor;
-        rtp_pl.jpeg.jpghdr.width = jpeg_parser.width;
-        rtp_pl.jpeg.jpghdr.height = jpeg_parser.height;
-
-        /* Initialize DRI header
-         */
-        if (dri != 0) {
-                rtp_pl.jpeg.rsthdr.dri = dri;
-                rtp_pl.jpeg.rsthdr.f = 1;        /* This code does not align RIs */
-                rtp_pl.jpeg.rsthdr.l = 1;
-                rtp_pl.jpeg.rsthdr.count = 0x3fff;
+    if (parse_jpeg_req(ptr, sz, &jpeg_parser) != 0) {
+        g_mjpeg_parse_fail_drops++;
+        if ((g_mjpeg_parse_fail_drops % MJPEG_BACKPRESSURE_LOG_PERIOD) == 1U) {
+            printf("Drop MJPEG frame: jpeg parser rejected frame (drops=%u)\r\n",
+                   g_mjpeg_parse_fail_drops);
         }
-
-        /* Initialize quantization table header
-         */
-        if ( rtp_pl.jpeg.jpghdr.q >= 128) {
-                rtp_pl.jpeg.qtblhdr.mbz = 0;
-                rtp_pl.jpeg.qtblhdr.precision = 0; /* This code uses 8 bit tables only */
-                rtp_pl.jpeg.qtblhdr.length = 128;  /* 2 64-byte tables */
-        }
-
-        rtp_pl.jpeg.jpgfrm.data_len = 0;
-        while (bytes_left > 0) {
-            if (rtp_pl.jpeg.jpgfrm.data_len >= bytes_left) {
-                    rtp_pl.jpeg.jpgfrm.data_len = bytes_left;
-                    rtp_hdrp->m = 1;
-            }
-            produce_rtp_pkt(sessp, MEDIA_TYPE_VIDEO, rtp_hdrp, &rtp_pl);
-            rtp_pl.jpeg.jpghdr.off += rtp_pl.jpeg.jpgfrm.data_len;
-            bytes_left -= rtp_pl.jpeg.jpgfrm.data_len;
-            update_seq(rtp_hdrp->seq);
-        }
+        return -1;
     }
-        return 0;
+
+    jpeg_parser.qFactor = 255;
+    has_restart = (jpeg_parser.driFound != 0);
+
+    need_pkts = estimate_mjpeg_pkt_count(sessp, sz, jpeg_parser.qFactor,
+                                         jpeg_parser.qTablesLength,
+                                         has_restart);
+    free_slots = rtsp_send_buf_free_slots();
+    if (need_pkts <= 0 ||
+        free_slots <= MJPEG_SEND_BUF_RESERVE ||
+        (unsigned int)need_pkts > (free_slots - MJPEG_SEND_BUF_RESERVE)) {
+        g_mjpeg_backpressure_drops++;
+        if ((g_mjpeg_backpressure_drops % MJPEG_BACKPRESSURE_LOG_PERIOD) == 1U) {
+            printf("Drop MJPEG frame: backlog packets=%u need=%d free=%u\r\n",
+                   rtsp_send_buf_allocated(), need_pkts, free_slots);
+        }
+        return -1;
+    }
+
+    /* Initialize RTP header */
+    rtp_hdrp->v = 2;
+    rtp_hdrp->p = 0;
+    rtp_hdrp->x = 0;
+    rtp_hdrp->cc = 0;
+    rtp_hdrp->m = 0;
+    rtp_hdrp->pt = RTP_PT_JPEG;
+    rtp_hdrp->ts = htonl((uint32_t)timestamp * (90000 / 1000));
+    rtp_hdrp->ssrc = 0;
+
+    /* Initialize JPEG header */
+    rtp_pl.jpeg.jpghdr.tspec = 0;
+    rtp_pl.jpeg.jpghdr.off = 0;
+    rtp_pl.jpeg.jpghdr.type = jpeg_parser.type | (has_restart ? RTP_JPEG_RESTART : 0);
+    rtp_pl.jpeg.jpghdr.q = jpeg_parser.qFactor;
+    rtp_pl.jpeg.jpghdr.width = jpeg_parser.width;
+    rtp_pl.jpeg.jpghdr.height = jpeg_parser.height;
+
+    /* Initialize DRI header */
+    if (has_restart) {
+        rtp_pl.jpeg.rsthdr.dri = jpeg_parser.restartInterval;
+        rtp_pl.jpeg.rsthdr.f = 1;      /* This code does not align RIs */
+        rtp_pl.jpeg.rsthdr.l = 1;
+        rtp_pl.jpeg.rsthdr.count = 0x3fff;
+    }
+
+    /* Initialize quantization table header */
+    if (rtp_pl.jpeg.jpghdr.q >= 128) {
+        rtp_pl.jpeg.qtblhdr.mbz = 0;
+        rtp_pl.jpeg.qtblhdr.precision = 0; /* This code uses 8 bit tables only */
+        rtp_pl.jpeg.qtblhdr.length = jpeg_parser.qTablesLength;
+    }
+
+    rtp_pl.jpeg.jpgfrm.jpeg_data = (unsigned char *)fb;
+    while (bytes_left > 0U) {
+        payload_cap = mjpeg_payload_cap(sessp,
+                                        (rtp_pl.jpeg.jpghdr.off == 0U),
+                                        rtp_pl.jpeg.jpghdr.q,
+                                        jpeg_parser.qTablesLength,
+                                        has_restart);
+        if (payload_cap == 0U) {
+            return -1;
+        }
+
+        rtp_pl.jpeg.jpgfrm.data_len = (int)((bytes_left < payload_cap)
+                                                ? bytes_left
+                                                : payload_cap);
+        rtp_hdrp->m = ((unsigned int)rtp_pl.jpeg.jpgfrm.data_len >= bytes_left) ? 1 : 0;
+        if (produce_rtp_pkt(sessp, MEDIA_TYPE_VIDEO, rtp_hdrp, &rtp_pl) < 0) {
+            rtsp_drop_send_buf_tail(sessp, DATA_TYPE_RTP_V_PKT, enqueued_pkts);
+            return -1;
+        }
+        enqueued_pkts++;
+        rtp_pl.jpeg.jpghdr.off += (unsigned int)rtp_pl.jpeg.jpgfrm.data_len;
+        bytes_left -= (unsigned int)rtp_pl.jpeg.jpgfrm.data_len;
+        update_seq(rtp_hdrp->seq);
+    }
+
+    return 0;
 }
 
 
@@ -315,7 +448,9 @@ static int send_video_frm(struct rtsp_sess *sessp,
 
         nalu_sz = get_nalu_sz(ptr, end);
         last = (ptr + nalu_sz == end) ? 1 : 0;
-        send_h264_nalu(sessp, ptr, nalu_sz, last, timestamp);
+        if (send_h264_nalu(sessp, ptr, nalu_sz, last, timestamp) < 0) {
+            return -1;
+        }
         ptr += nalu_sz;
     }
 
@@ -346,7 +481,9 @@ static int send_audio_frm(struct rtsp_sess *sessp,
         }
 
         rtp_hdrp->ts = htonl((uint32_t)timestamp * (8000 / 1000));
-        produce_rtp_pkt(sessp, MEDIA_TYPE_AUDIO, rtp_hdrp, &rtp_pl);
+        if (produce_rtp_pkt(sessp, MEDIA_TYPE_AUDIO, rtp_hdrp, &rtp_pl) < 0) {
+            return -1;
+        }
         update_seq(rtp_hdrp->seq);
         //rtp_hdrp->ts = htonl(timestamp * 8000 / 1000);
         //update_ts(rtp_hdrp->ts, MEDIA_TYPE_AUDIO);

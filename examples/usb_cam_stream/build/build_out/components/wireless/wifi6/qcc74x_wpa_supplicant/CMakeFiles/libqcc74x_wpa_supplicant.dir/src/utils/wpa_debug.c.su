@@ -1,0 +1,10 @@
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\utils\wpa_debug.c:626:6:wpa_msg_register_cb	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\utils\wpa_debug.c:634:6:wpa_msg_register_ifname_cb	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\utils\wpa_debug.c:640:6:wpa_msg	208	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\utils\wpa_debug.c:678:6:wpa_msg_ctrl	96	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\utils\wpa_debug.c:706:6:wpa_msg_global	80	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\utils\wpa_debug.c:733:6:wpa_msg_global_ctrl	96	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\utils\wpa_debug.c:761:6:wpa_msg_no_global	80	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\utils\wpa_debug.c:788:6:wpa_msg_global_only	96	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\utils\wpa_debug.c:859:14:debug_level_str	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\utils\wpa_debug.c:880:5:str_to_debug_level	16	static

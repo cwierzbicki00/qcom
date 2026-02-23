@@ -5,16 +5,21 @@ include(proj.conf)
 find_package(qcc74x_sdk REQUIRED HINTS $ENV{QCC74x_SDK_BASE})
 
 # Capture git tag at configure time for boot log
-execute_process(
-    COMMAND git describe --tags --always --dirty
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    OUTPUT_VARIABLE GIT_TAG
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-    ERROR_QUIET
-    RESULT_VARIABLE GIT_RC
-)
-if(NOT GIT_RC EQUAL 0)
-    set(GIT_TAG "unknown")
+set(GIT_TAG "unknown")
+find_package(Git QUIET)
+if(GIT_FOUND AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/.git")
+    execute_process(
+        COMMAND "${GIT_EXECUTABLE}" describe --tags --always --dirty
+        WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+        OUTPUT_VARIABLE GIT_TAG_RAW
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+        ERROR_QUIET
+        RESULT_VARIABLE GIT_RC
+        TIMEOUT 2
+    )
+    if(GIT_RC EQUAL 0 AND NOT GIT_TAG_RAW STREQUAL "")
+        set(GIT_TAG "${GIT_TAG_RAW}")
+    endif()
 endif()
 
 sdk_add_compile_definitions(-DCONFIG_CLI_CMD_ENABLE)

@@ -1,0 +1,6 @@
+/mnt/c/Users/cwier/documents/github/qcom/components/shell/shell_freertos.c:109:13:shell_task	48	static
+/mnt/c/Users/cwier/documents/github/qcom/components/shell/shell_freertos.c:147:13:ps_cmd	32	static
+/mnt/c/Users/cwier/documents/github/qcom/components/shell/shell_freertos.c:75:6:shell_release_sem	32	static
+/mnt/c/Users/cwier/documents/github/qcom/components/shell/shell_freertos.c:91:6:uart_shell_isr	16	static
+/mnt/c/Users/cwier/documents/github/qcom/components/shell/shell_freertos.c:124:6:shell_init_with_task	16	static
+/mnt/c/Users/cwier/documents/github/qcom/components/shell/shell_freertos.c:141:6:shell_exe_cmd	16	static

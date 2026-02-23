@@ -2,6 +2,8 @@
 #include <lwip/inet.h>
 #include <sys/types.h>
 #include <lwip/sockets.h>
+#include <errno.h>
+#include <string.h>
 #include "list.h"
 #include "util.h"
 #include "log.h"
@@ -244,7 +246,9 @@ static ssize_t send_buf_data(struct rtsp_sess *sessp, struct send_buf *sendp)
         sd = sessp->rtsp_sd;
         next_ev = RTSP_SD_DFL_EV;
         ns = send(sd, sendp->buf, sendp->sz, 0);
-        if (ns < 0 || ns != sendp->sz) {
+        if (ns < 0 && errno != EWOULDBLOCK && errno != EAGAIN) {
+            printf("send_buf_data ns = %zd errno=%d\r\n", ns, errno);
+        } else if (ns > 0 && (unsigned int)ns != sendp->sz) {
             printf("send_buf_data ns = %zd\r\n", ns);
         }
     } else {
@@ -295,12 +299,20 @@ static ssize_t send_buf_data(struct rtsp_sess *sessp, struct send_buf *sendp)
 int consume_send_buf(struct rtsp_sess *sessp, enum data_type type)
 {
     struct send_buf *sendp = NULL; /* Send buffer pointer. */
+    ssize_t ns = 0;
 
     if (!list_empty(&sessp->send_queue)) {
         sendp = list_first_entry(&sessp->send_queue, struct send_buf, entry);
         if (sendp->type & type) {
-            if (send_buf_data(sessp, sendp) < 0) {
-//                return -1;
+            ns = send_buf_data(sessp, sendp);
+            if (ns < 0) {
+                return 0;
+            }
+
+            if ((unsigned int)ns < sendp->sz) {
+                memmove(sendp->buf, sendp->buf + ns, sendp->sz - (unsigned int)ns);
+                sendp->sz -= (unsigned int)ns;
+                return 0;
             }
             del_send_buf(sendp);
             destroy_send_buf(sendp);
@@ -511,6 +523,31 @@ int check_send_queue(void)
     return 0;
 }
 
+void rtsp_drop_send_buf_tail(struct rtsp_sess *sessp,
+                             enum data_type type,
+                             unsigned int count)
+{
+    struct list_head *node = NULL;
+
+    if (!sessp || count == 0U) {
+        return;
+    }
+
+    node = sessp->send_queue.prev;
+    while (node != &sessp->send_queue && count > 0U) {
+        struct send_buf *sendp = list_entry(node, struct send_buf, entry);
+        node = node->prev;
+
+        if ((sendp->type & type) == 0U) {
+            continue;
+        }
+
+        del_send_buf(sendp);
+        destroy_send_buf(sendp);
+        count--;
+    }
+}
+
 void init_rtsp_sess_list(void)
 {
     INIT_LIST_HEAD(&rtsp_srv.rtsp_sess_list);
@@ -526,4 +563,19 @@ void deinit_rtsp_sess_list(void)
         destroy_rtsp_sess(sessp);
     }
     return;
+}
+
+unsigned int rtsp_send_buf_allocated(void)
+{
+    return gAllocCnt;
+}
+
+unsigned int rtsp_send_buf_limit(void)
+{
+    return BUF_ALLOC_LIMIT;
+}
+
+unsigned int rtsp_send_buf_free_slots(void)
+{
+    return (gAllocCnt < BUF_ALLOC_LIMIT) ? (BUF_ALLOC_LIMIT - gAllocCnt) : 0U;
 }

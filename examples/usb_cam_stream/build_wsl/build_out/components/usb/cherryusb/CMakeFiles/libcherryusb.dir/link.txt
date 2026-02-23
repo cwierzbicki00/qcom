@@ -1,0 +1,1 @@
+riscv64-unknown-elf-ar crD ../../../lib/libcherryusb.a CMakeFiles/libcherryusb.dir/core/usbh_core.c.o CMakeFiles/libcherryusb.dir/class/hub/usbh_hub.c.o CMakeFiles/libcherryusb.dir/class/video/usbh_video.c.o CMakeFiles/libcherryusb.dir/port/ehci/usb_hc_ehci.c.o CMakeFiles/libcherryusb.dir/osal/usb_osal_freertos.c.o

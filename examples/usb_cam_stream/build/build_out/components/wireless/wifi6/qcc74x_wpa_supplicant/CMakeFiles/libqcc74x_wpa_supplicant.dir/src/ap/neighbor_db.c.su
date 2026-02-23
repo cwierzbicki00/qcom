@@ -1,0 +1,8 @@
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\ap\neighbor_db.c:92:13:hostapd_neighbor_clear_entry	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src/utils/wpabuf.h:118:20:wpabuf_put_u8	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\ap\neighbor_db.c:20:1:hostapd_neighbor_get	32	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\ap\neighbor_db.c:38:5:hostapd_neighbor_show	1744	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\ap\neighbor_db.c:168:5:hostapd_neighbor_remove	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\ap\neighbor_db.c:121:5:hostapd_neighbor_set	48	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\ap\neighbor_db.c:185:6:hostapd_free_neighbor_db	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\ap\neighbor_db.c:223:6:hostapd_neighbor_set_own_report	80	static

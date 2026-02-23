@@ -1,0 +1,21 @@
+CMakeFiles/app.dir/rtsp_bridge.c.obj: \
+ C:\Users\cwier\Documents\GitHub\qcom\examples\solutions\rtsp_softap_cam\rtsp_bridge.c \
+ C:\Users\cwier\Documents\GitHub\qcom\examples\solutions\rtsp_softap_cam\rtsp_bridge.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\include/FreeRTOS.h \
+ c:\users\cwier\documents\github\qcom\examples\solutions\rtsp_softap_cam\freertosconfig.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\include/projdefs.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\include/portable.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\include/deprecated_definitions.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\portable\GCC\RISC-V\common/portmacro.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\include/mpu_wrappers.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\include/task.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\include/list.h \
+ c:\users\cwier\documents\github\qcom\components\net\lib\rtsp\inc\librtspsrv.h \
+ C:\Users\cwier\Documents\GitHub\qcom\examples\solutions\rtsp_softap_cam\uvc_capture.h \
+ C:\Users\cwier\Documents\GitHub\qcom\examples\solutions\rtsp_softap_cam\frame_pool.h \
+ C:\Users\cwier\Documents\GitHub\qcom\examples\solutions\rtsp_softap_cam\wifi_ap.h \
+ C:\Users\cwier\Documents\GitHub\qcom\examples\solutions\rtsp_softap_cam\http_server.h \
+ c:\users\cwier\documents\github\qcom\components\shell\shell.h \
+ c:\users\cwier\documents\github\qcom\components\shell\shell_config.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\utils\log/log.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\utils\log/qcc74x_dbg.h

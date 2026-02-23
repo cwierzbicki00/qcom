@@ -1,0 +1,13 @@
+C:\Users\cwier\Documents\GitHub\qcom\components\shell\shell.c:40:5:shell_help	32	static
+C:\Users\cwier\Documents\GitHub\qcom\components\shell\shell.c:915:28:shell_abort_exec	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\shell\shell.c:64:12:shell_memtrace	48	static
+C:\Users\cwier\Documents\GitHub\qcom\components\shell\shell.c:118:14:shell_get_prompt	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\shell\shell.c:153:13:shell_handle_history	32	static
+C:\Users\cwier\Documents\GitHub\qcom\components\shell\shell.c:837:5:shell_set_prompt	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\shell\shell.c:856:5:shell_set_print	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\shell\shell.c:870:6:shell_init	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\shell\shell.c:897:20:shell_signal	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\shell\shell.c:919:27:shell_start_exec	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\shell\shell.c:923:28:shell_dup_line	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\shell\shell.c:578:5:shell_exec	112	static
+C:\Users\cwier\Documents\GitHub\qcom\components\shell\shell.c:632:6:shell_handler	48	static

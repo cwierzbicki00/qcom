@@ -1,0 +1,7 @@
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/utils/os.h:99:19:os_reltime_expired	0	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/wpa_supplicant/bssid_ignore.c:117:5:wpa_bssid_ignore_del	48	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/wpa_supplicant/bssid_ignore.c:169:6:wpa_bssid_ignore_clear	16	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/wpa_supplicant/bssid_ignore.c:190:6:wpa_bssid_ignore_update	48	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/wpa_supplicant/bssid_ignore.c:21:27:wpa_bssid_ignore_get	16	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/wpa_supplicant/bssid_ignore.c:65:5:wpa_bssid_ignore_add	32	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/wpa_supplicant/bssid_ignore.c:150:5:wpa_bssid_ignore_is_listed	32	static

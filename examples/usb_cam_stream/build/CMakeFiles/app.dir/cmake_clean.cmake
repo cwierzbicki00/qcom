@@ -1,0 +1,35 @@
+file(REMOVE_RECURSE
+  "CMakeFiles/app.dir/C_/Users/cwier/Documents/GitHub/qcom/bsp/board/qcc74xdk/board.c.obj"
+  "CMakeFiles/app.dir/C_/Users/cwier/Documents/GitHub/qcom/bsp/board/qcc74xdk/board.c.obj.d"
+  "CMakeFiles/app.dir/C_/Users/cwier/Documents/GitHub/qcom/bsp/board/qcc74xdk/board_flash_psram.c.obj"
+  "CMakeFiles/app.dir/C_/Users/cwier/Documents/GitHub/qcom/bsp/board/qcc74xdk/board_flash_psram.c.obj.d"
+  "CMakeFiles/app.dir/C_/Users/cwier/Documents/GitHub/qcom/bsp/board/qcc74xdk/board_gpio.c.obj"
+  "CMakeFiles/app.dir/C_/Users/cwier/Documents/GitHub/qcom/bsp/board/qcc74xdk/board_gpio.c.obj.d"
+  "CMakeFiles/app.dir/C_/Users/cwier/Documents/GitHub/qcom/bsp/board/qcc74xdk/board_rf.c.obj"
+  "CMakeFiles/app.dir/C_/Users/cwier/Documents/GitHub/qcom/bsp/board/qcc74xdk/board_rf.c.obj.d"
+  "CMakeFiles/app.dir/C_/Users/cwier/Documents/GitHub/qcom/bsp/board/qcc74xdk/fw_header.c.obj"
+  "CMakeFiles/app.dir/C_/Users/cwier/Documents/GitHub/qcom/bsp/board/qcc74xdk/fw_header.c.obj.d"
+  "CMakeFiles/app.dir/C_/Users/cwier/Documents/GitHub/qcom/bsp/board/qcc74xdk/wireless_regdb.c.obj"
+  "CMakeFiles/app.dir/C_/Users/cwier/Documents/GitHub/qcom/bsp/board/qcc74xdk/wireless_regdb.c.obj.d"
+  "CMakeFiles/app.dir/C_/Users/cwier/Documents/GitHub/qcom/bsp/sdk_version.c.obj"
+  "CMakeFiles/app.dir/C_/Users/cwier/Documents/GitHub/qcom/bsp/sdk_version.c.obj.d"
+  "CMakeFiles/app.dir/frame_pool.c.obj"
+  "CMakeFiles/app.dir/frame_pool.c.obj.d"
+  "CMakeFiles/app.dir/http_server.c.obj"
+  "CMakeFiles/app.dir/http_server.c.obj.d"
+  "CMakeFiles/app.dir/metrics.c.obj"
+  "CMakeFiles/app.dir/metrics.c.obj.d"
+  "CMakeFiles/app.dir/usb_ehci_iso_stub.c.obj"
+  "CMakeFiles/app.dir/usb_ehci_iso_stub.c.obj.d"
+  "CMakeFiles/app.dir/uvc_capture.c.obj"
+  "CMakeFiles/app.dir/uvc_capture.c.obj.d"
+  "CMakeFiles/app.dir/wifi_ap.c.obj"
+  "CMakeFiles/app.dir/wifi_ap.c.obj.d"
+  "build_out/lib/libapp.a"
+  "build_out/lib/libapp.pdb"
+)
+
+# Per-language clean rules from dependency scanning.
+foreach(lang C)
+  include(CMakeFiles/app.dir/cmake_clean_${lang}.cmake OPTIONAL)
+endforeach()

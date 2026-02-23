@@ -1,0 +1,6 @@
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\eap_server\eap_server_methods.c:25:27:eap_server_get_eap_method	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\eap_server\eap_server_methods.c:46:15:eap_server_get_type	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\eap_server\eap_server_methods.c:72:21:eap_server_method_alloc	32	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\eap_server\eap_server_methods.c:108:5:eap_server_method_register	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\eap_server\eap_server_methods.c:143:6:eap_server_unregister_methods	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\eap_server\eap_server_methods.c:168:14:eap_server_get_name	0	static

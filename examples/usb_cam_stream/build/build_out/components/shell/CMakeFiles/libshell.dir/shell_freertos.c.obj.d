@@ -1,0 +1,29 @@
+build_out/components/shell/CMakeFiles/libshell.dir/shell_freertos.c.obj: \
+ C:\Users\cwier\Documents\GitHub\qcom\components\shell\shell_freertos.c \
+ C:\Users\cwier\Documents\GitHub\qcom\components\shell\shell.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\shell\shell_config.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\include/FreeRTOS.h \
+ c:\users\cwier\documents\github\qcom\examples\usb_cam_stream\freertosconfig.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\include/projdefs.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\include/portable.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\include/deprecated_definitions.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\portable\GCC\RISC-V\common/portmacro.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\include/mpu_wrappers.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\include/semphr.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\include/queue.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\include/task.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\include/list.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\utils\ring_buffer/ring_buffer.h \
+ C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\include/qcc74x_core.h \
+ C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\include\arch/risc-v/csr.h \
+ C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\include\arch/risc-v/riscv_arch.h \
+ C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\include/compiler/compiler_gcc.h \
+ C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\include/compiler/compiler_ld.h \
+ C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\include/qcc74x_name.h \
+ C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\include/qcc74x_common.h \
+ C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\include/qcc74x_mtimer.h \
+ C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\include/qcc74x_irq.h \
+ C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\include/qcc74x_l1c.h \
+ C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\include/qcc74x_uart.h \
+ C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\include/qcc74x_core.h \
+ c:\users\cwier\documents\github\qcom\components\mm\mem.h

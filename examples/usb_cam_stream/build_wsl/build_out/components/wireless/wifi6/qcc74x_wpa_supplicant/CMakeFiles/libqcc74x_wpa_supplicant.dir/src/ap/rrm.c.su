@@ -1,0 +1,12 @@
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/ap/rrm.c:26:13:hostapd_lci_rep_timeout_handler	0	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/ap/rrm.c:50:13:hostapd_range_rep_timeout_handler	0	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/ap/rrm.c:75:13:hostapd_handle_beacon_report	560	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/utils/wpabuf.h:118:20:wpabuf_put_u8	16	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/utils/wpabuf.h:173:20:wpabuf_put_buf	32	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/utils/wpabuf.h:124:20:wpabuf_put_le16	16	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/ap/rrm.c:338:6:hostapd_handle_radio_measurement	128	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/ap/rrm.c:368:5:hostapd_send_lci_req	32	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/ap/rrm.c:441:5:hostapd_send_range_req	48	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/ap/rrm.c:560:6:hostapd_clean_rrm	16	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/ap/rrm.c:570:5:hostapd_send_beacon_req	32	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/ap/rrm.c:666:6:hostapd_rrm_beacon_req_tx_status	32	static

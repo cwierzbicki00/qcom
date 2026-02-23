@@ -1,0 +1,17 @@
+C:\Users\cwier\Documents\GitHub\qcom\components\crypto\mbedtls\mbedtls\library\oid.c:424:29:oid_sig_alg_from_asn1.part.0	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\crypto\mbedtls\mbedtls\library\oid.c:231:5:mbedtls_oid_get_attr_short_name	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\crypto\mbedtls\mbedtls\library\oid.c:283:5:mbedtls_oid_get_x509_ext_type	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\crypto\mbedtls\mbedtls\library\oid.c:301:5:mbedtls_oid_get_extended_key_usage	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\crypto\mbedtls\mbedtls\library\oid.c:314:5:mbedtls_oid_get_certificate_policies	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\crypto\mbedtls\mbedtls\library\oid.c:425:5:mbedtls_oid_get_sig_alg_desc	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\crypto\mbedtls\mbedtls\library\oid.c:430:5:mbedtls_oid_get_sig_alg	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\crypto\mbedtls\mbedtls\library\oid.c:437:5:mbedtls_oid_get_oid_by_sig_alg	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\crypto\mbedtls\mbedtls\library\oid.c:475:5:mbedtls_oid_get_pk_alg	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\crypto\mbedtls\mbedtls\library\oid.c:476:5:mbedtls_oid_get_oid_by_pk_alg	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\crypto\mbedtls\mbedtls\library\oid.c:566:5:mbedtls_oid_get_ec_grp	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\crypto\mbedtls\mbedtls\library\oid.c:567:5:mbedtls_oid_get_oid_by_ec_grp	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\crypto\mbedtls\mbedtls\library\oid.c:600:5:mbedtls_oid_get_cipher_alg	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\crypto\mbedtls\mbedtls\library\oid.c:675:5:mbedtls_oid_get_md_alg	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\crypto\mbedtls\mbedtls\library\oid.c:676:5:mbedtls_oid_get_oid_by_md	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\crypto\mbedtls\mbedtls\library\oid.c:725:5:mbedtls_oid_get_md_hmac	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\crypto\mbedtls\mbedtls\library\oid.c:767:5:mbedtls_oid_get_numeric_string	48	static

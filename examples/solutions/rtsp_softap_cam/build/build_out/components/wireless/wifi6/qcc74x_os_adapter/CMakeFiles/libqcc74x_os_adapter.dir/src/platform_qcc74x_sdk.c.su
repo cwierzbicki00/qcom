@@ -1,0 +1,9 @@
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_os_adapter\src\platform_qcc74x_sdk.c:107:13:async_event_handler	32	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_os_adapter\src\platform_qcc74x_sdk.c:46:5:platform_get_mac	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_os_adapter\src\platform_qcc74x_sdk.c:54:5:platform_get_random	32	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_os_adapter\src\platform_qcc74x_sdk.c:69:7:rtos_malloc	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_os_adapter\src\platform_qcc74x_sdk.c:82:7:rtos_calloc	32	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_os_adapter\src\platform_qcc74x_sdk.c:91:6:rtos_free	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_os_adapter\src\platform_qcc74x_sdk.c:96:7:platform_malloc	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_os_adapter\src\platform_qcc74x_sdk.c:101:6:platform_free	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_os_adapter\src\platform_qcc74x_sdk.c:126:6:platform_post_event	48	static

@@ -1,0 +1,6 @@
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lib\rtsp\src\rtsp_parser.c:65:12:get_word_sz	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lib\rtsp\src\rtsp_parser.c:74:13:parse_rtsp_uri	304	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lib\rtsp\src\rtsp_parser.c:12:20:get_next_word.part.0	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lib\rtsp\src\rtsp_parser.c:38:20:get_next_line.part.0	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lib\rtsp\src\rtsp_parser.c:228:21:match_sscanf64	1072	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lib\rtsp\src\rtsp_parser.c:314:6:parse_rtsp_req	80	static

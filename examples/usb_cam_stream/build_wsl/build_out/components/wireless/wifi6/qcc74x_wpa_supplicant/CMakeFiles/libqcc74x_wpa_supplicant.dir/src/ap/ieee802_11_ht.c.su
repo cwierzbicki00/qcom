@@ -1,0 +1,10 @@
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/ap/ieee802_11_ht.c:529:6:ap_ht2040_timeout	0	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/ap/ieee802_11_ht.c:24:6:hostapd_eid_ht_capabilities	16	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/ap/ieee802_11_ht.c:82:6:hostapd_eid_ht_operation	16	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/ap/ieee802_11_ht.c:123:5:hostapd_ht_operation_update	0	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/ap/ieee802_11_ht.c:207:6:hostapd_2040_coex_action	80	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/ap/ieee802_11_ht.c:357:5:copy_sta_ht_capab	32	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/ap/ieee802_11_ht.c:388:6:ht40_intolerant_add	16	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/ap/ieee802_11_ht.c:411:6:ht40_intolerant_remove	32	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/ap/ieee802_11_ht.c:482:6:update_ht_state	16	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/ap/ieee802_11_ht.c:494:6:hostapd_get_ht_capab	16	static

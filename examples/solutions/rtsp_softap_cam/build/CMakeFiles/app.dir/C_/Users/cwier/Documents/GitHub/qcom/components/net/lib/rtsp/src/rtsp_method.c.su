@@ -1,0 +1,11 @@
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lib\rtsp\src\rtsp_method.c:34:5:get_rtsp_method	48	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lib\rtsp\src\rtsp_method.c:49:7:rtsp_encodeBase64	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lib\rtsp\src\rtsp_method.c:264:6:handle_method_options	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lib\rtsp\src\rtsp_method.c:271:6:handle_method_describe	96	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lib\rtsp\src\rtsp_method.c:300:6:handle_method_setup	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lib\rtsp\src\rtsp_method.c:314:6:handle_method_play	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lib\rtsp\src\rtsp_method.c:329:6:handle_method_pause	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lib\rtsp\src\rtsp_method.c:339:6:handle_method_get_parameter	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lib\rtsp\src\rtsp_method.c:345:6:handle_method_set_parameter	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lib\rtsp\src\rtsp_method.c:351:6:handle_method_teardown	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lib\rtsp\src\rtsp_method.c:430:5:handle_rtsp_req	16	static

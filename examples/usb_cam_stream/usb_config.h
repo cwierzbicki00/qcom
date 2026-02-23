@@ -21,13 +21,16 @@
 /* attribute data into no cache ram */
 #define USB_NOCACHE_RAM_SECTION __attribute__((section(".noncacheable")))
 
+/* Post-reset settling time — some cameras need >200ms (SDK default) */
+#define DELAY_TIME_AFTER_RESET 400
+
 /* ================ USB HOST Stack Configuration ================ */
 
 #define CONFIG_USBHOST_MAX_RHPORTS          1
 #define CONFIG_USBHOST_MAX_EXTHUBS          1
 #define CONFIG_USBHOST_MAX_EHPORTS          4
 #define CONFIG_USBHOST_MAX_INTERFACES       8
-#define CONFIG_USBHOST_MAX_INTF_ALTSETTINGS 8
+#define CONFIG_USBHOST_MAX_INTF_ALTSETTINGS 16
 #define CONFIG_USBHOST_MAX_ENDPOINTS        4
 
 #define CONFIG_USBHOST_MAX_CDC_ACM_CLASS 0
@@ -46,11 +49,11 @@
 #endif
 
 #ifndef CONFIG_USBHOST_REQUEST_BUFFER_LEN
-#define CONFIG_USBHOST_REQUEST_BUFFER_LEN 2048
+#define CONFIG_USBHOST_REQUEST_BUFFER_LEN 4096
 #endif
 
 #ifndef CONFIG_USBHOST_CONTROL_TRANSFER_TIMEOUT
-#define CONFIG_USBHOST_CONTROL_TRANSFER_TIMEOUT 500
+#define CONFIG_USBHOST_CONTROL_TRANSFER_TIMEOUT 1500
 #endif
 
 /* enable advance desc register api */

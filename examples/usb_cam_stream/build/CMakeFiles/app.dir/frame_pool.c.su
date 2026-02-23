@@ -1,0 +1,13 @@
+C:\Users\cwier\Documents\GitHub\qcom\examples\usb_cam_stream\frame_pool.c:61:13:pool_sem_put	0	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\usb_cam_stream\frame_pool.c:51:13:pool_mtx_put	0	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\usb_cam_stream\frame_pool.c:56:12:pool_sem_get	16	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\usb_cam_stream\frame_pool.c:46:12:pool_mtx_get	16	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\usb_cam_stream\frame_pool.c:70:5:frame_pool_init	32	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\usb_cam_stream\frame_pool.c:119:5:frame_alloc	32	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\usb_cam_stream\frame_pool.c:137:6:frame_free	16	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\usb_cam_stream\frame_pool.c:146:6:frame_queue_push	64	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\usb_cam_stream\frame_pool.c:167:5:frame_queue_pop	16	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\usb_cam_stream\frame_pool.c:177:5:frame_queue_pop_latest	48	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\usb_cam_stream\frame_pool.c:204:6:frame_queue_drain	32	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\usb_cam_stream\frame_pool.c:219:5:frame_queue_drop_oldest	32	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\usb_cam_stream\frame_pool.c:235:6:frame_pool_stats	32	static

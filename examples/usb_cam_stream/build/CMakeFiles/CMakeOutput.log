@@ -1,0 +1,426 @@
+The target system is: Generic - 1 - RISCV
+The host system is: Windows - 10.0.26100 - AMD64
+Compiling the C compiler identification source file "CMakeCCompilerId.c" succeeded.
+Compiler: C:/QCCSDK-QCC74x/toolchain/windows_x86_64/bin/riscv64-unknown-elf-gcc.exe 
+Build flags: 
+Id flags:  
+
+The output was:
+0
+
+
+Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "a.out"
+
+The C compiler identification is GNU, found in "C:/Users/cwier/Documents/GitHub/qcom/examples/usb_cam_stream/build/CMakeFiles/3.25.1/CompilerIdC/a.out"
+
+Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" succeeded.
+Compiler: C:/QCCSDK-QCC74x/toolchain/windows_x86_64/bin/riscv64-unknown-elf-g++.exe 
+Build flags: 
+Id flags:  
+
+The output was:
+0
+
+
+Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "a.out"
+
+The CXX compiler identification is GNU, found in "C:/Users/cwier/Documents/GitHub/qcom/examples/usb_cam_stream/build/CMakeFiles/3.25.1/CompilerIdCXX/a.out"
+
+Checking whether the ASM compiler is GNU using "--version" matched "(GNU assembler)|(GCC)|(Free Software Foundation)":
+riscv64-unknown-elf-gcc.exe (GCC) 10.4.0
+Copyright (C) 2020 Free Software Foundation, Inc.
+This is free software; see the source for copying conditions.  There is NO
+warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+Detecting C compiler ABI info compiled with the following output:
+Change Dir: C:/Users/cwier/Documents/GitHub/qcom/examples/usb_cam_stream/build/CMakeFiles/CMakeScratch/TryCompile-ohall9
+
+Run Build Command(s):C:/QCCSDK-QCC74x/tools/make/mingw32-make.exe -f Makefile cmTC_8a3f1/fast && mingw32-make.exe[1]: Entering directory 'C:/Users/cwier/Documents/GitHub/qcom/examples/usb_cam_stream/build/CMakeFiles/CMakeScratch/TryCompile-ohall9'
+C:/QCCSDK-QCC74x/tools/make/mingw32-make.exe  -f CMakeFiles\cmTC_8a3f1.dir\build.make CMakeFiles/cmTC_8a3f1.dir/build
+mingw32-make.exe[2]: Entering directory 'C:/Users/cwier/Documents/GitHub/qcom/examples/usb_cam_stream/build/CMakeFiles/CMakeScratch/TryCompile-ohall9'
+Building C object CMakeFiles/cmTC_8a3f1.dir/CMakeCCompilerABI.c.obj
+C:\QCCSDK-QCC74x\toolchain\windows_x86_64\bin\riscv64-unknown-elf-gcc.exe   -v -o CMakeFiles\cmTC_8a3f1.dir\CMakeCCompilerABI.c.obj -c C:\Users\cwier\Documents\GitHub\qcom\tools\cmake\share\cmake-3.25\Modules\CMakeCCompilerABI.c
+Using built-in specs.
+COLLECT_GCC=C:\QCCSDK-QCC74x\toolchain\windows_x86_64\bin\riscv64-unknown-elf-gcc.exe
+Target: riscv64-unknown-elf
+Configured with: /local/mnt/workspace/ganeshk/windows_tool_chain/xuantie-gnu-toolchain/riscv-gcc/configure --target=riscv64-unknown-elf --host=x86_64-w64-mingw32 CXXFLAGS='-g -O2 ' --disable-libgcctf --prefix=/opt/riscv --disable-shared --enable-threads=posix --enable-languages=c,c++ --without-system-zlib --enable-tls --with-newlib --with-sysroot=/opt/riscv/riscv64-unknown-elf --with-native-system-header-dir=/include --disable-libmudflap --disable-libssp --disable-libquadmath --disable-libgomp --disable-nls --disable-tm-clone-registry --src=.././riscv-gcc --enable-multilib --with-abi=lp64d --with-arch=rv64imafdc 'CFLAGS_FOR_TARGET=-Os   -mcmodel=medlow' 'CXXFLAGS_FOR_TARGET=-Os   -mcmodel=medlow'
+Thread model: posix
+Supported LTO compression algorithms: zlib
+gcc version 10.4.0 (GCC) 
+COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles\cmTC_8a3f1.dir\CMakeCCompilerABI.c.obj' '-c' '-march=rv64imafdc' '-mabi=lp64d' '-march=rv64imafdc'
+ c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../libexec/gcc/riscv64-unknown-elf/10.4.0/cc1.exe -quiet -v -imultilib . -iprefix c:\qccsdk-qcc74x\toolchain\windows_x86_64\bin\../lib/gcc/riscv64-unknown-elf/10.4.0/ -isysroot c:\qccsdk-qcc74x\toolchain\windows_x86_64\bin\../riscv64-unknown-elf C:\Users\cwier\Documents\GitHub\qcom\tools\cmake\share\cmake-3.25\Modules\CMakeCCompilerABI.c -quiet -dumpbase CMakeCCompilerABI.c -march=rv64imafdc -mabi=lp64d -march=rv64imafdc -auxbase-strip CMakeFiles\cmTC_8a3f1.dir\CMakeCCompilerABI.c.obj -version -o C:\Users\cwier\AppData\Local\Temp\ccmULOMf.s
+GNU C17 (GCC) version 10.4.0 (riscv64-unknown-elf)
+	compiled by GNU C version 9.3-win32 20200320, GMP version 6.1.0, MPFR version 3.1.6, MPC version 1.0.3, isl version isl-0.18-GMP
+
+GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072
+ignoring duplicate directory "c:/qccsdk-qcc74x/toolchain/windows_x86_64/lib/gcc/../../lib/gcc/riscv64-unknown-elf/10.4.0/include"
+ignoring nonexistent directory "c:\qccsdk-qcc74x\toolchain\windows_x86_64\bin\../riscv64-unknown-elf/opt/riscv/lib/gcc/riscv64-unknown-elf/10.4.0/../../../../include"
+ignoring duplicate directory "c:/qccsdk-qcc74x/toolchain/windows_x86_64/lib/gcc/../../lib/gcc/riscv64-unknown-elf/10.4.0/include-fixed"
+ignoring duplicate directory "c:/qccsdk-qcc74x/toolchain/windows_x86_64/lib/gcc/../../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/include"
+ignoring duplicate directory "c:\qccsdk-qcc74x\toolchain\windows_x86_64\bin\../riscv64-unknown-elf/include"
+#include "..." search starts here:
+#include <...> search starts here:
+ c:\qccsdk-qcc74x\toolchain\windows_x86_64\bin\../lib/gcc/riscv64-unknown-elf/10.4.0/include
+ c:\qccsdk-qcc74x\toolchain\windows_x86_64\bin\../lib/gcc/riscv64-unknown-elf/10.4.0/include-fixed
+ c:\qccsdk-qcc74x\toolchain\windows_x86_64\bin\../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/include
+End of search list.
+GNU C17 (GCC) version 10.4.0 (riscv64-unknown-elf)
+	compiled by GNU C version 9.3-win32 20200320, GMP version 6.1.0, MPFR version 3.1.6, MPC version 1.0.3, isl version isl-0.18-GMP
+
+GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072
+Compiler executable checksum: 1c68a092ef9cf8b09b705975afabedb4
+COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles\cmTC_8a3f1.dir\CMakeCCompilerABI.c.obj' '-c' '-march=rv64imafdc' '-mabi=lp64d' '-march=rv64imafdc'
+ c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/bin/as.exe -v --traditional-format -march=rv64imafdc -march=rv64imafdc -mabi=lp64d -o CMakeFiles\cmTC_8a3f1.dir\CMakeCCompilerABI.c.obj C:\Users\cwier\AppData\Local\Temp\ccmULOMf.s
+GNU assembler version 2.35 (riscv64-unknown-elf) using BFD version (GNU Binutils) 2.35
+COMPILER_PATH=c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../libexec/gcc/riscv64-unknown-elf/10.4.0/;c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../libexec/gcc/;c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/bin/
+LIBRARY_PATH=c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/;c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/;c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/lib/;c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../riscv64-unknown-elf/lib/
+COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles\cmTC_8a3f1.dir\CMakeCCompilerABI.c.obj' '-c' '-march=rv64imafdc' '-mabi=lp64d' '-march=rv64imafdc'
+Linking C executable cmTC_8a3f1
+C:\Users\cwier\Documents\GitHub\qcom\tools\cmake\bin\cmake.exe -E cmake_link_script CMakeFiles\cmTC_8a3f1.dir\link.txt --verbose=1
+C:\QCCSDK-QCC74x\toolchain\windows_x86_64\bin\riscv64-unknown-elf-gcc.exe  -v CMakeFiles/cmTC_8a3f1.dir/CMakeCCompilerABI.c.obj -o cmTC_8a3f1 
+Using built-in specs.
+COLLECT_GCC=C:\QCCSDK-QCC74x\toolchain\windows_x86_64\bin\riscv64-unknown-elf-gcc.exe
+COLLECT_LTO_WRAPPER=c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../libexec/gcc/riscv64-unknown-elf/10.4.0/lto-wrapper.exe
+Target: riscv64-unknown-elf
+Configured with: /local/mnt/workspace/ganeshk/windows_tool_chain/xuantie-gnu-toolchain/riscv-gcc/configure --target=riscv64-unknown-elf --host=x86_64-w64-mingw32 CXXFLAGS='-g -O2 ' --disable-libgcctf --prefix=/opt/riscv --disable-shared --enable-threads=posix --enable-languages=c,c++ --without-system-zlib --enable-tls --with-newlib --with-sysroot=/opt/riscv/riscv64-unknown-elf --with-native-system-header-dir=/include --disable-libmudflap --disable-libssp --disable-libquadmath --disable-libgomp --disable-nls --disable-tm-clone-registry --src=.././riscv-gcc --enable-multilib --with-abi=lp64d --with-arch=rv64imafdc 'CFLAGS_FOR_TARGET=-Os   -mcmodel=medlow' 'CXXFLAGS_FOR_TARGET=-Os   -mcmodel=medlow'
+Thread model: posix
+Supported LTO compression algorithms: zlib
+gcc version 10.4.0 (GCC) 
+COMPILER_PATH=c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../libexec/gcc/riscv64-unknown-elf/10.4.0/;c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../libexec/gcc/;c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/bin/
+LIBRARY_PATH=c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/;c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/;c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/lib/;c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../riscv64-unknown-elf/lib/
+COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_8a3f1' '-march=rv64imafdc' '-mabi=lp64d' '-march=rv64imafdc'
+ c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../libexec/gcc/riscv64-unknown-elf/10.4.0/collect2.exe -plugin c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../libexec/gcc/riscv64-unknown-elf/10.4.0/liblto_plugin-0.dll -plugin-opt=c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../libexec/gcc/riscv64-unknown-elf/10.4.0/lto-wrapper.exe -plugin-opt=-fresolution=C:\Users\cwier\AppData\Local\Temp\ccFPOeFd.res -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgloss -plugin-opt=-pass-through=-lgcc --sysroot=c:\qccsdk-qcc74x\toolchain\windows_x86_64\bin\../riscv64-unknown-elf -melf64lriscv -o cmTC_8a3f1 c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/lib/crt0.o c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/crtbegin.o -Lc:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0 -Lc:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc -Lc:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/lib -Lc:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../riscv64-unknown-elf/lib CMakeFiles/cmTC_8a3f1.dir/CMakeCCompilerABI.c.obj -lgcc --start-group -lc -lgloss --end-group -lgcc c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/crtend.o
+COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_8a3f1' '-march=rv64imafdc' '-mabi=lp64d' '-march=rv64imafdc'
+mingw32-make.exe[2]: Leaving directory 'C:/Users/cwier/Documents/GitHub/qcom/examples/usb_cam_stream/build/CMakeFiles/CMakeScratch/TryCompile-ohall9'
+mingw32-make.exe[1]: Leaving directory 'C:/Users/cwier/Documents/GitHub/qcom/examples/usb_cam_stream/build/CMakeFiles/CMakeScratch/TryCompile-ohall9'
+
+
+
+Parsed C implicit include dir info from above output: rv=done
+  found start of include info
+  found start of implicit include info
+    add: [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/include]
+    add: [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/include-fixed]
+    add: [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/include]
+  end of search list found
+  collapse include dir [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/include] ==> [C:/QCCSDK-QCC74x/toolchain/windows_x86_64/lib/gcc/riscv64-unknown-elf/10.4.0/include]
+  collapse include dir [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/include-fixed] ==> [C:/QCCSDK-QCC74x/toolchain/windows_x86_64/lib/gcc/riscv64-unknown-elf/10.4.0/include-fixed]
+  collapse include dir [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/include] ==> [C:/QCCSDK-QCC74x/toolchain/windows_x86_64/riscv64-unknown-elf/include]
+  implicit include dirs: [C:/QCCSDK-QCC74x/toolchain/windows_x86_64/lib/gcc/riscv64-unknown-elf/10.4.0/include;C:/QCCSDK-QCC74x/toolchain/windows_x86_64/lib/gcc/riscv64-unknown-elf/10.4.0/include-fixed;C:/QCCSDK-QCC74x/toolchain/windows_x86_64/riscv64-unknown-elf/include]
+
+
+Parsed C implicit link information from above output:
+  link line regex: [^( *|.*[/\])(riscv64-unknown-elf-ld\.exe|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\]+-)?ld|collect2)[^/\]*( |$)]
+  ignore line: [Change Dir: C:/Users/cwier/Documents/GitHub/qcom/examples/usb_cam_stream/build/CMakeFiles/CMakeScratch/TryCompile-ohall9]
+  ignore line: []
+  ignore line: [Run Build Command(s):C:/QCCSDK-QCC74x/tools/make/mingw32-make.exe -f Makefile cmTC_8a3f1/fast && mingw32-make.exe[1]: Entering directory 'C:/Users/cwier/Documents/GitHub/qcom/examples/usb_cam_stream/build/CMakeFiles/CMakeScratch/TryCompile-ohall9']
+  ignore line: [C:/QCCSDK-QCC74x/tools/make/mingw32-make.exe  -f CMakeFiles\cmTC_8a3f1.dir\build.make CMakeFiles/cmTC_8a3f1.dir/build]
+  ignore line: [mingw32-make.exe[2]: Entering directory 'C:/Users/cwier/Documents/GitHub/qcom/examples/usb_cam_stream/build/CMakeFiles/CMakeScratch/TryCompile-ohall9']
+  ignore line: [Building C object CMakeFiles/cmTC_8a3f1.dir/CMakeCCompilerABI.c.obj]
+  ignore line: [C:\QCCSDK-QCC74x\toolchain\windows_x86_64\bin\riscv64-unknown-elf-gcc.exe   -v -o CMakeFiles\cmTC_8a3f1.dir\CMakeCCompilerABI.c.obj -c C:\Users\cwier\Documents\GitHub\qcom\tools\cmake\share\cmake-3.25\Modules\CMakeCCompilerABI.c]
+  ignore line: [Using built-in specs.]
+  ignore line: [COLLECT_GCC=C:\QCCSDK-QCC74x\toolchain\windows_x86_64\bin\riscv64-unknown-elf-gcc.exe]
+  ignore line: [Target: riscv64-unknown-elf]
+  ignore line: [Configured with: /local/mnt/workspace/ganeshk/windows_tool_chain/xuantie-gnu-toolchain/riscv-gcc/configure --target=riscv64-unknown-elf --host=x86_64-w64-mingw32 CXXFLAGS='-g -O2 ' --disable-libgcctf --prefix=/opt/riscv --disable-shared --enable-threads=posix --enable-languages=c c++ --without-system-zlib --enable-tls --with-newlib --with-sysroot=/opt/riscv/riscv64-unknown-elf --with-native-system-header-dir=/include --disable-libmudflap --disable-libssp --disable-libquadmath --disable-libgomp --disable-nls --disable-tm-clone-registry --src=.././riscv-gcc --enable-multilib --with-abi=lp64d --with-arch=rv64imafdc 'CFLAGS_FOR_TARGET=-Os   -mcmodel=medlow' 'CXXFLAGS_FOR_TARGET=-Os   -mcmodel=medlow']
+  ignore line: [Thread model: posix]
+  ignore line: [Supported LTO compression algorithms: zlib]
+  ignore line: [gcc version 10.4.0 (GCC) ]
+  ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles\cmTC_8a3f1.dir\CMakeCCompilerABI.c.obj' '-c' '-march=rv64imafdc' '-mabi=lp64d' '-march=rv64imafdc']
+  ignore line: [ c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../libexec/gcc/riscv64-unknown-elf/10.4.0/cc1.exe -quiet -v -imultilib . -iprefix c:\qccsdk-qcc74x\toolchain\windows_x86_64\bin\../lib/gcc/riscv64-unknown-elf/10.4.0/ -isysroot c:\qccsdk-qcc74x\toolchain\windows_x86_64\bin\../riscv64-unknown-elf C:\Users\cwier\Documents\GitHub\qcom\tools\cmake\share\cmake-3.25\Modules\CMakeCCompilerABI.c -quiet -dumpbase CMakeCCompilerABI.c -march=rv64imafdc -mabi=lp64d -march=rv64imafdc -auxbase-strip CMakeFiles\cmTC_8a3f1.dir\CMakeCCompilerABI.c.obj -version -o C:\Users\cwier\AppData\Local\Temp\ccmULOMf.s]
+  ignore line: [GNU C17 (GCC) version 10.4.0 (riscv64-unknown-elf)]
+  ignore line: [	compiled by GNU C version 9.3-win32 20200320  GMP version 6.1.0  MPFR version 3.1.6  MPC version 1.0.3  isl version isl-0.18-GMP]
+  ignore line: []
+  ignore line: [GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072]
+  ignore line: [ignoring duplicate directory "c:/qccsdk-qcc74x/toolchain/windows_x86_64/lib/gcc/../../lib/gcc/riscv64-unknown-elf/10.4.0/include"]
+  ignore line: [ignoring nonexistent directory "c:\qccsdk-qcc74x\toolchain\windows_x86_64\bin\../riscv64-unknown-elf/opt/riscv/lib/gcc/riscv64-unknown-elf/10.4.0/../../../../include"]
+  ignore line: [ignoring duplicate directory "c:/qccsdk-qcc74x/toolchain/windows_x86_64/lib/gcc/../../lib/gcc/riscv64-unknown-elf/10.4.0/include-fixed"]
+  ignore line: [ignoring duplicate directory "c:/qccsdk-qcc74x/toolchain/windows_x86_64/lib/gcc/../../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/include"]
+  ignore line: [ignoring duplicate directory "c:\qccsdk-qcc74x\toolchain\windows_x86_64\bin\../riscv64-unknown-elf/include"]
+  ignore line: [#include "..." search starts here:]
+  ignore line: [#include <...> search starts here:]
+  ignore line: [ c:\qccsdk-qcc74x\toolchain\windows_x86_64\bin\../lib/gcc/riscv64-unknown-elf/10.4.0/include]
+  ignore line: [ c:\qccsdk-qcc74x\toolchain\windows_x86_64\bin\../lib/gcc/riscv64-unknown-elf/10.4.0/include-fixed]
+  ignore line: [ c:\qccsdk-qcc74x\toolchain\windows_x86_64\bin\../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/include]
+  ignore line: [End of search list.]
+  ignore line: [GNU C17 (GCC) version 10.4.0 (riscv64-unknown-elf)]
+  ignore line: [	compiled by GNU C version 9.3-win32 20200320  GMP version 6.1.0  MPFR version 3.1.6  MPC version 1.0.3  isl version isl-0.18-GMP]
+  ignore line: []
+  ignore line: [GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072]
+  ignore line: [Compiler executable checksum: 1c68a092ef9cf8b09b705975afabedb4]
+  ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles\cmTC_8a3f1.dir\CMakeCCompilerABI.c.obj' '-c' '-march=rv64imafdc' '-mabi=lp64d' '-march=rv64imafdc']
+  ignore line: [ c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/bin/as.exe -v --traditional-format -march=rv64imafdc -march=rv64imafdc -mabi=lp64d -o CMakeFiles\cmTC_8a3f1.dir\CMakeCCompilerABI.c.obj C:\Users\cwier\AppData\Local\Temp\ccmULOMf.s]
+  ignore line: [GNU assembler version 2.35 (riscv64-unknown-elf) using BFD version (GNU Binutils) 2.35]
+  ignore line: [COMPILER_PATH=c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../libexec/gcc/riscv64-unknown-elf/10.4.0/]
+  ignore line: [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../libexec/gcc/]
+  ignore line: [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/bin/]
+  ignore line: [LIBRARY_PATH=c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/]
+  ignore line: [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/]
+  ignore line: [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/lib/]
+  ignore line: [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../riscv64-unknown-elf/lib/]
+  ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles\cmTC_8a3f1.dir\CMakeCCompilerABI.c.obj' '-c' '-march=rv64imafdc' '-mabi=lp64d' '-march=rv64imafdc']
+  ignore line: [Linking C executable cmTC_8a3f1]
+  ignore line: [C:\Users\cwier\Documents\GitHub\qcom\tools\cmake\bin\cmake.exe -E cmake_link_script CMakeFiles\cmTC_8a3f1.dir\link.txt --verbose=1]
+  ignore line: [C:\QCCSDK-QCC74x\toolchain\windows_x86_64\bin\riscv64-unknown-elf-gcc.exe  -v CMakeFiles/cmTC_8a3f1.dir/CMakeCCompilerABI.c.obj -o cmTC_8a3f1 ]
+  ignore line: [Using built-in specs.]
+  ignore line: [COLLECT_GCC=C:\QCCSDK-QCC74x\toolchain\windows_x86_64\bin\riscv64-unknown-elf-gcc.exe]
+  ignore line: [COLLECT_LTO_WRAPPER=c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../libexec/gcc/riscv64-unknown-elf/10.4.0/lto-wrapper.exe]
+  ignore line: [Target: riscv64-unknown-elf]
+  ignore line: [Configured with: /local/mnt/workspace/ganeshk/windows_tool_chain/xuantie-gnu-toolchain/riscv-gcc/configure --target=riscv64-unknown-elf --host=x86_64-w64-mingw32 CXXFLAGS='-g -O2 ' --disable-libgcctf --prefix=/opt/riscv --disable-shared --enable-threads=posix --enable-languages=c c++ --without-system-zlib --enable-tls --with-newlib --with-sysroot=/opt/riscv/riscv64-unknown-elf --with-native-system-header-dir=/include --disable-libmudflap --disable-libssp --disable-libquadmath --disable-libgomp --disable-nls --disable-tm-clone-registry --src=.././riscv-gcc --enable-multilib --with-abi=lp64d --with-arch=rv64imafdc 'CFLAGS_FOR_TARGET=-Os   -mcmodel=medlow' 'CXXFLAGS_FOR_TARGET=-Os   -mcmodel=medlow']
+  ignore line: [Thread model: posix]
+  ignore line: [Supported LTO compression algorithms: zlib]
+  ignore line: [gcc version 10.4.0 (GCC) ]
+  ignore line: [COMPILER_PATH=c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../libexec/gcc/riscv64-unknown-elf/10.4.0/]
+  ignore line: [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../libexec/gcc/]
+  ignore line: [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/bin/]
+  ignore line: [LIBRARY_PATH=c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/]
+  ignore line: [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/]
+  ignore line: [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/lib/]
+  ignore line: [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../riscv64-unknown-elf/lib/]
+  ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_8a3f1' '-march=rv64imafdc' '-mabi=lp64d' '-march=rv64imafdc']
+  link line: [ c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../libexec/gcc/riscv64-unknown-elf/10.4.0/collect2.exe -plugin c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../libexec/gcc/riscv64-unknown-elf/10.4.0/liblto_plugin-0.dll -plugin-opt=c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../libexec/gcc/riscv64-unknown-elf/10.4.0/lto-wrapper.exe -plugin-opt=-fresolution=C:\Users\cwier\AppData\Local\Temp\ccFPOeFd.res -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgloss -plugin-opt=-pass-through=-lgcc --sysroot=c:\qccsdk-qcc74x\toolchain\windows_x86_64\bin\../riscv64-unknown-elf -melf64lriscv -o cmTC_8a3f1 c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/lib/crt0.o c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/crtbegin.o -Lc:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0 -Lc:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc -Lc:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/lib -Lc:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../riscv64-unknown-elf/lib CMakeFiles/cmTC_8a3f1.dir/CMakeCCompilerABI.c.obj -lgcc --start-group -lc -lgloss --end-group -lgcc c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/crtend.o]
+    arg [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../libexec/gcc/riscv64-unknown-elf/10.4.0/collect2.exe] ==> ignore
+    arg [-plugin] ==> ignore
+    arg [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../libexec/gcc/riscv64-unknown-elf/10.4.0/liblto_plugin-0.dll] ==> ignore
+    arg [-plugin-opt=c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../libexec/gcc/riscv64-unknown-elf/10.4.0/lto-wrapper.exe] ==> ignore
+    arg [-plugin-opt=-fresolution=C:\Users\cwier\AppData\Local\Temp\ccFPOeFd.res] ==> ignore
+    arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
+    arg [-plugin-opt=-pass-through=-lc] ==> ignore
+    arg [-plugin-opt=-pass-through=-lgloss] ==> ignore
+    arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
+    arg [--sysroot=c:\qccsdk-qcc74x\toolchain\windows_x86_64\bin\../riscv64-unknown-elf] ==> ignore
+    arg [-melf64lriscv] ==> ignore
+    arg [-o] ==> ignore
+    arg [cmTC_8a3f1] ==> ignore
+    arg [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/lib/crt0.o] ==> obj [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/lib/crt0.o]
+    arg [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/crtbegin.o] ==> obj [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/crtbegin.o]
+    arg [-Lc:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0] ==> dir [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0]
+    arg [-Lc:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc] ==> dir [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc]
+    arg [-Lc:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/lib] ==> dir [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/lib]
+    arg [-Lc:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../riscv64-unknown-elf/lib] ==> dir [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../riscv64-unknown-elf/lib]
+    arg [CMakeFiles/cmTC_8a3f1.dir/CMakeCCompilerABI.c.obj] ==> ignore
+    arg [-lgcc] ==> lib [gcc]
+    arg [--start-group] ==> ignore
+    arg [-lc] ==> lib [c]
+    arg [-lgloss] ==> lib [gloss]
+    arg [--end-group] ==> ignore
+    arg [-lgcc] ==> lib [gcc]
+    arg [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/crtend.o] ==> obj [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/crtend.o]
+  collapse obj [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/lib/crt0.o] ==> [C:/QCCSDK-QCC74x/toolchain/windows_x86_64/riscv64-unknown-elf/lib/crt0.o]
+  collapse obj [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/crtbegin.o] ==> [C:/QCCSDK-QCC74x/toolchain/windows_x86_64/lib/gcc/riscv64-unknown-elf/10.4.0/crtbegin.o]
+  collapse obj [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/crtend.o] ==> [C:/QCCSDK-QCC74x/toolchain/windows_x86_64/lib/gcc/riscv64-unknown-elf/10.4.0/crtend.o]
+  collapse library dir [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0] ==> [C:/QCCSDK-QCC74x/toolchain/windows_x86_64/lib/gcc/riscv64-unknown-elf/10.4.0]
+  collapse library dir [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc] ==> [C:/QCCSDK-QCC74x/toolchain/windows_x86_64/lib/gcc]
+  collapse library dir [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/lib] ==> [C:/QCCSDK-QCC74x/toolchain/windows_x86_64/riscv64-unknown-elf/lib]
+  collapse library dir [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../riscv64-unknown-elf/lib] ==> [C:/QCCSDK-QCC74x/toolchain/windows_x86_64/riscv64-unknown-elf/lib]
+  implicit libs: [gcc;c;gloss;gcc]
+  implicit objs: [C:/QCCSDK-QCC74x/toolchain/windows_x86_64/riscv64-unknown-elf/lib/crt0.o;C:/QCCSDK-QCC74x/toolchain/windows_x86_64/lib/gcc/riscv64-unknown-elf/10.4.0/crtbegin.o;C:/QCCSDK-QCC74x/toolchain/windows_x86_64/lib/gcc/riscv64-unknown-elf/10.4.0/crtend.o]
+  implicit dirs: [C:/QCCSDK-QCC74x/toolchain/windows_x86_64/lib/gcc/riscv64-unknown-elf/10.4.0;C:/QCCSDK-QCC74x/toolchain/windows_x86_64/lib/gcc;C:/QCCSDK-QCC74x/toolchain/windows_x86_64/riscv64-unknown-elf/lib]
+  implicit fwks: []
+
+
+Detecting CXX compiler ABI info compiled with the following output:
+Change Dir: C:/Users/cwier/Documents/GitHub/qcom/examples/usb_cam_stream/build/CMakeFiles/CMakeScratch/TryCompile-xf2jhe
+
+Run Build Command(s):C:/QCCSDK-QCC74x/tools/make/mingw32-make.exe -f Makefile cmTC_50304/fast && mingw32-make.exe[1]: Entering directory 'C:/Users/cwier/Documents/GitHub/qcom/examples/usb_cam_stream/build/CMakeFiles/CMakeScratch/TryCompile-xf2jhe'
+C:/QCCSDK-QCC74x/tools/make/mingw32-make.exe  -f CMakeFiles\cmTC_50304.dir\build.make CMakeFiles/cmTC_50304.dir/build
+mingw32-make.exe[2]: Entering directory 'C:/Users/cwier/Documents/GitHub/qcom/examples/usb_cam_stream/build/CMakeFiles/CMakeScratch/TryCompile-xf2jhe'
+Building CXX object CMakeFiles/cmTC_50304.dir/CMakeCXXCompilerABI.cpp.obj
+C:\QCCSDK-QCC74x\toolchain\windows_x86_64\bin\riscv64-unknown-elf-g++.exe   -v -o CMakeFiles\cmTC_50304.dir\CMakeCXXCompilerABI.cpp.obj -c C:\Users\cwier\Documents\GitHub\qcom\tools\cmake\share\cmake-3.25\Modules\CMakeCXXCompilerABI.cpp
+Using built-in specs.
+COLLECT_GCC=C:\QCCSDK-QCC74x\toolchain\windows_x86_64\bin\riscv64-unknown-elf-g++.exe
+Target: riscv64-unknown-elf
+Configured with: /local/mnt/workspace/ganeshk/windows_tool_chain/xuantie-gnu-toolchain/riscv-gcc/configure --target=riscv64-unknown-elf --host=x86_64-w64-mingw32 CXXFLAGS='-g -O2 ' --disable-libgcctf --prefix=/opt/riscv --disable-shared --enable-threads=posix --enable-languages=c,c++ --without-system-zlib --enable-tls --with-newlib --with-sysroot=/opt/riscv/riscv64-unknown-elf --with-native-system-header-dir=/include --disable-libmudflap --disable-libssp --disable-libquadmath --disable-libgomp --disable-nls --disable-tm-clone-registry --src=.././riscv-gcc --enable-multilib --with-abi=lp64d --with-arch=rv64imafdc 'CFLAGS_FOR_TARGET=-Os   -mcmodel=medlow' 'CXXFLAGS_FOR_TARGET=-Os   -mcmodel=medlow'
+Thread model: posix
+Supported LTO compression algorithms: zlib
+gcc version 10.4.0 (GCC) 
+COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles\cmTC_50304.dir\CMakeCXXCompilerABI.cpp.obj' '-c' '-march=rv64imafdc' '-mabi=lp64d' '-march=rv64imafdc'
+ c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../libexec/gcc/riscv64-unknown-elf/10.4.0/cc1plus.exe -quiet -v -imultilib . -iprefix c:\qccsdk-qcc74x\toolchain\windows_x86_64\bin\../lib/gcc/riscv64-unknown-elf/10.4.0/ -isysroot c:\qccsdk-qcc74x\toolchain\windows_x86_64\bin\../riscv64-unknown-elf C:\Users\cwier\Documents\GitHub\qcom\tools\cmake\share\cmake-3.25\Modules\CMakeCXXCompilerABI.cpp -quiet -dumpbase CMakeCXXCompilerABI.cpp -march=rv64imafdc -mabi=lp64d -march=rv64imafdc -auxbase-strip CMakeFiles\cmTC_50304.dir\CMakeCXXCompilerABI.cpp.obj -version -o C:\Users\cwier\AppData\Local\Temp\ccvEc5VJ.s
+GNU C++14 (GCC) version 10.4.0 (riscv64-unknown-elf)
+	compiled by GNU C version 9.3-win32 20200320, GMP version 6.1.0, MPFR version 3.1.6, MPC version 1.0.3, isl version isl-0.18-GMP
+
+GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072
+ignoring duplicate directory "c:/qccsdk-qcc74x/toolchain/windows_x86_64/lib/gcc/../../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/include/c++/10.4.0"
+ignoring duplicate directory "c:/qccsdk-qcc74x/toolchain/windows_x86_64/lib/gcc/../../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/include/c++/10.4.0/riscv64-unknown-elf/."
+ignoring duplicate directory "c:/qccsdk-qcc74x/toolchain/windows_x86_64/lib/gcc/../../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/include/c++/10.4.0/backward"
+ignoring duplicate directory "c:/qccsdk-qcc74x/toolchain/windows_x86_64/lib/gcc/../../lib/gcc/riscv64-unknown-elf/10.4.0/include"
+ignoring nonexistent directory "c:\qccsdk-qcc74x\toolchain\windows_x86_64\bin\../riscv64-unknown-elf/opt/riscv/lib/gcc/riscv64-unknown-elf/10.4.0/../../../../include"
+ignoring duplicate directory "c:/qccsdk-qcc74x/toolchain/windows_x86_64/lib/gcc/../../lib/gcc/riscv64-unknown-elf/10.4.0/include-fixed"
+ignoring duplicate directory "c:/qccsdk-qcc74x/toolchain/windows_x86_64/lib/gcc/../../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/include"
+ignoring duplicate directory "c:\qccsdk-qcc74x\toolchain\windows_x86_64\bin\../riscv64-unknown-elf/include"
+#include "..." search starts here:
+#include <...> search starts here:
+ c:\qccsdk-qcc74x\toolchain\windows_x86_64\bin\../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/include/c++/10.4.0
+ c:\qccsdk-qcc74x\toolchain\windows_x86_64\bin\../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/include/c++/10.4.0/riscv64-unknown-elf/.
+ c:\qccsdk-qcc74x\toolchain\windows_x86_64\bin\../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/include/c++/10.4.0/backward
+ c:\qccsdk-qcc74x\toolchain\windows_x86_64\bin\../lib/gcc/riscv64-unknown-elf/10.4.0/include
+ c:\qccsdk-qcc74x\toolchain\windows_x86_64\bin\../lib/gcc/riscv64-unknown-elf/10.4.0/include-fixed
+ c:\qccsdk-qcc74x\toolchain\windows_x86_64\bin\../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/include
+End of search list.
+GNU C++14 (GCC) version 10.4.0 (riscv64-unknown-elf)
+	compiled by GNU C version 9.3-win32 20200320, GMP version 6.1.0, MPFR version 3.1.6, MPC version 1.0.3, isl version isl-0.18-GMP
+
+GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072
+Compiler executable checksum: 8f60081ea2f991bc793f29c6c2041fa3
+COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles\cmTC_50304.dir\CMakeCXXCompilerABI.cpp.obj' '-c' '-march=rv64imafdc' '-mabi=lp64d' '-march=rv64imafdc'
+ c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/bin/as.exe -v --traditional-format -march=rv64imafdc -march=rv64imafdc -mabi=lp64d -o CMakeFiles\cmTC_50304.dir\CMakeCXXCompilerABI.cpp.obj C:\Users\cwier\AppData\Local\Temp\ccvEc5VJ.s
+GNU assembler version 2.35 (riscv64-unknown-elf) using BFD version (GNU Binutils) 2.35
+COMPILER_PATH=c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../libexec/gcc/riscv64-unknown-elf/10.4.0/;c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../libexec/gcc/;c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/bin/
+LIBRARY_PATH=c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/;c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/;c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/lib/;c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../riscv64-unknown-elf/lib/
+COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles\cmTC_50304.dir\CMakeCXXCompilerABI.cpp.obj' '-c' '-march=rv64imafdc' '-mabi=lp64d' '-march=rv64imafdc'
+Linking CXX executable cmTC_50304
+C:\Users\cwier\Documents\GitHub\qcom\tools\cmake\bin\cmake.exe -E cmake_link_script CMakeFiles\cmTC_50304.dir\link.txt --verbose=1
+C:\QCCSDK-QCC74x\toolchain\windows_x86_64\bin\riscv64-unknown-elf-g++.exe  -v CMakeFiles/cmTC_50304.dir/CMakeCXXCompilerABI.cpp.obj -o cmTC_50304 
+Using built-in specs.
+COLLECT_GCC=C:\QCCSDK-QCC74x\toolchain\windows_x86_64\bin\riscv64-unknown-elf-g++.exe
+COLLECT_LTO_WRAPPER=c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../libexec/gcc/riscv64-unknown-elf/10.4.0/lto-wrapper.exe
+Target: riscv64-unknown-elf
+Configured with: /local/mnt/workspace/ganeshk/windows_tool_chain/xuantie-gnu-toolchain/riscv-gcc/configure --target=riscv64-unknown-elf --host=x86_64-w64-mingw32 CXXFLAGS='-g -O2 ' --disable-libgcctf --prefix=/opt/riscv --disable-shared --enable-threads=posix --enable-languages=c,c++ --without-system-zlib --enable-tls --with-newlib --with-sysroot=/opt/riscv/riscv64-unknown-elf --with-native-system-header-dir=/include --disable-libmudflap --disable-libssp --disable-libquadmath --disable-libgomp --disable-nls --disable-tm-clone-registry --src=.././riscv-gcc --enable-multilib --with-abi=lp64d --with-arch=rv64imafdc 'CFLAGS_FOR_TARGET=-Os   -mcmodel=medlow' 'CXXFLAGS_FOR_TARGET=-Os   -mcmodel=medlow'
+Thread model: posix
+Supported LTO compression algorithms: zlib
+gcc version 10.4.0 (GCC) 
+COMPILER_PATH=c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../libexec/gcc/riscv64-unknown-elf/10.4.0/;c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../libexec/gcc/;c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/bin/
+LIBRARY_PATH=c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/;c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/;c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/lib/;c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../riscv64-unknown-elf/lib/
+COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_50304' '-march=rv64imafdc' '-mabi=lp64d' '-march=rv64imafdc'
+ c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../libexec/gcc/riscv64-unknown-elf/10.4.0/collect2.exe -plugin c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../libexec/gcc/riscv64-unknown-elf/10.4.0/liblto_plugin-0.dll -plugin-opt=c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../libexec/gcc/riscv64-unknown-elf/10.4.0/lto-wrapper.exe -plugin-opt=-fresolution=C:\Users\cwier\AppData\Local\Temp\cctpDOWW.res -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgloss -plugin-opt=-pass-through=-lgcc --sysroot=c:\qccsdk-qcc74x\toolchain\windows_x86_64\bin\../riscv64-unknown-elf -melf64lriscv -o cmTC_50304 c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/lib/crt0.o c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/crtbegin.o -Lc:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0 -Lc:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc -Lc:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/lib -Lc:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../riscv64-unknown-elf/lib CMakeFiles/cmTC_50304.dir/CMakeCXXCompilerABI.cpp.obj -lstdc++ -lm -lgcc --start-group -lc -lgloss --end-group -lgcc c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/crtend.o
+COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_50304' '-march=rv64imafdc' '-mabi=lp64d' '-march=rv64imafdc'
+mingw32-make.exe[2]: Leaving directory 'C:/Users/cwier/Documents/GitHub/qcom/examples/usb_cam_stream/build/CMakeFiles/CMakeScratch/TryCompile-xf2jhe'
+mingw32-make.exe[1]: Leaving directory 'C:/Users/cwier/Documents/GitHub/qcom/examples/usb_cam_stream/build/CMakeFiles/CMakeScratch/TryCompile-xf2jhe'
+
+
+
+Parsed CXX implicit include dir info from above output: rv=done
+  found start of include info
+  found start of implicit include info
+    add: [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/include/c++/10.4.0]
+    add: [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/include/c++/10.4.0/riscv64-unknown-elf/.]
+    add: [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/include/c++/10.4.0/backward]
+    add: [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/include]
+    add: [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/include-fixed]
+    add: [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/include]
+  end of search list found
+  collapse include dir [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/include/c++/10.4.0] ==> [C:/QCCSDK-QCC74x/toolchain/windows_x86_64/riscv64-unknown-elf/include/c++/10.4.0]
+  collapse include dir [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/include/c++/10.4.0/riscv64-unknown-elf/.] ==> [C:/QCCSDK-QCC74x/toolchain/windows_x86_64/riscv64-unknown-elf/include/c++/10.4.0/riscv64-unknown-elf]
+  collapse include dir [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/include/c++/10.4.0/backward] ==> [C:/QCCSDK-QCC74x/toolchain/windows_x86_64/riscv64-unknown-elf/include/c++/10.4.0/backward]
+  collapse include dir [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/include] ==> [C:/QCCSDK-QCC74x/toolchain/windows_x86_64/lib/gcc/riscv64-unknown-elf/10.4.0/include]
+  collapse include dir [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/include-fixed] ==> [C:/QCCSDK-QCC74x/toolchain/windows_x86_64/lib/gcc/riscv64-unknown-elf/10.4.0/include-fixed]
+  collapse include dir [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/include] ==> [C:/QCCSDK-QCC74x/toolchain/windows_x86_64/riscv64-unknown-elf/include]
+  implicit include dirs: [C:/QCCSDK-QCC74x/toolchain/windows_x86_64/riscv64-unknown-elf/include/c++/10.4.0;C:/QCCSDK-QCC74x/toolchain/windows_x86_64/riscv64-unknown-elf/include/c++/10.4.0/riscv64-unknown-elf;C:/QCCSDK-QCC74x/toolchain/windows_x86_64/riscv64-unknown-elf/include/c++/10.4.0/backward;C:/QCCSDK-QCC74x/toolchain/windows_x86_64/lib/gcc/riscv64-unknown-elf/10.4.0/include;C:/QCCSDK-QCC74x/toolchain/windows_x86_64/lib/gcc/riscv64-unknown-elf/10.4.0/include-fixed;C:/QCCSDK-QCC74x/toolchain/windows_x86_64/riscv64-unknown-elf/include]
+
+
+Parsed CXX implicit link information from above output:
+  link line regex: [^( *|.*[/\])(riscv64-unknown-elf-ld\.exe|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\]+-)?ld|collect2)[^/\]*( |$)]
+  ignore line: [Change Dir: C:/Users/cwier/Documents/GitHub/qcom/examples/usb_cam_stream/build/CMakeFiles/CMakeScratch/TryCompile-xf2jhe]
+  ignore line: []
+  ignore line: [Run Build Command(s):C:/QCCSDK-QCC74x/tools/make/mingw32-make.exe -f Makefile cmTC_50304/fast && mingw32-make.exe[1]: Entering directory 'C:/Users/cwier/Documents/GitHub/qcom/examples/usb_cam_stream/build/CMakeFiles/CMakeScratch/TryCompile-xf2jhe']
+  ignore line: [C:/QCCSDK-QCC74x/tools/make/mingw32-make.exe  -f CMakeFiles\cmTC_50304.dir\build.make CMakeFiles/cmTC_50304.dir/build]
+  ignore line: [mingw32-make.exe[2]: Entering directory 'C:/Users/cwier/Documents/GitHub/qcom/examples/usb_cam_stream/build/CMakeFiles/CMakeScratch/TryCompile-xf2jhe']
+  ignore line: [Building CXX object CMakeFiles/cmTC_50304.dir/CMakeCXXCompilerABI.cpp.obj]
+  ignore line: [C:\QCCSDK-QCC74x\toolchain\windows_x86_64\bin\riscv64-unknown-elf-g++.exe   -v -o CMakeFiles\cmTC_50304.dir\CMakeCXXCompilerABI.cpp.obj -c C:\Users\cwier\Documents\GitHub\qcom\tools\cmake\share\cmake-3.25\Modules\CMakeCXXCompilerABI.cpp]
+  ignore line: [Using built-in specs.]
+  ignore line: [COLLECT_GCC=C:\QCCSDK-QCC74x\toolchain\windows_x86_64\bin\riscv64-unknown-elf-g++.exe]
+  ignore line: [Target: riscv64-unknown-elf]
+  ignore line: [Configured with: /local/mnt/workspace/ganeshk/windows_tool_chain/xuantie-gnu-toolchain/riscv-gcc/configure --target=riscv64-unknown-elf --host=x86_64-w64-mingw32 CXXFLAGS='-g -O2 ' --disable-libgcctf --prefix=/opt/riscv --disable-shared --enable-threads=posix --enable-languages=c c++ --without-system-zlib --enable-tls --with-newlib --with-sysroot=/opt/riscv/riscv64-unknown-elf --with-native-system-header-dir=/include --disable-libmudflap --disable-libssp --disable-libquadmath --disable-libgomp --disable-nls --disable-tm-clone-registry --src=.././riscv-gcc --enable-multilib --with-abi=lp64d --with-arch=rv64imafdc 'CFLAGS_FOR_TARGET=-Os   -mcmodel=medlow' 'CXXFLAGS_FOR_TARGET=-Os   -mcmodel=medlow']
+  ignore line: [Thread model: posix]
+  ignore line: [Supported LTO compression algorithms: zlib]
+  ignore line: [gcc version 10.4.0 (GCC) ]
+  ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles\cmTC_50304.dir\CMakeCXXCompilerABI.cpp.obj' '-c' '-march=rv64imafdc' '-mabi=lp64d' '-march=rv64imafdc']
+  ignore line: [ c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../libexec/gcc/riscv64-unknown-elf/10.4.0/cc1plus.exe -quiet -v -imultilib . -iprefix c:\qccsdk-qcc74x\toolchain\windows_x86_64\bin\../lib/gcc/riscv64-unknown-elf/10.4.0/ -isysroot c:\qccsdk-qcc74x\toolchain\windows_x86_64\bin\../riscv64-unknown-elf C:\Users\cwier\Documents\GitHub\qcom\tools\cmake\share\cmake-3.25\Modules\CMakeCXXCompilerABI.cpp -quiet -dumpbase CMakeCXXCompilerABI.cpp -march=rv64imafdc -mabi=lp64d -march=rv64imafdc -auxbase-strip CMakeFiles\cmTC_50304.dir\CMakeCXXCompilerABI.cpp.obj -version -o C:\Users\cwier\AppData\Local\Temp\ccvEc5VJ.s]
+  ignore line: [GNU C++14 (GCC) version 10.4.0 (riscv64-unknown-elf)]
+  ignore line: [	compiled by GNU C version 9.3-win32 20200320  GMP version 6.1.0  MPFR version 3.1.6  MPC version 1.0.3  isl version isl-0.18-GMP]
+  ignore line: []
+  ignore line: [GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072]
+  ignore line: [ignoring duplicate directory "c:/qccsdk-qcc74x/toolchain/windows_x86_64/lib/gcc/../../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/include/c++/10.4.0"]
+  ignore line: [ignoring duplicate directory "c:/qccsdk-qcc74x/toolchain/windows_x86_64/lib/gcc/../../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/include/c++/10.4.0/riscv64-unknown-elf/."]
+  ignore line: [ignoring duplicate directory "c:/qccsdk-qcc74x/toolchain/windows_x86_64/lib/gcc/../../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/include/c++/10.4.0/backward"]
+  ignore line: [ignoring duplicate directory "c:/qccsdk-qcc74x/toolchain/windows_x86_64/lib/gcc/../../lib/gcc/riscv64-unknown-elf/10.4.0/include"]
+  ignore line: [ignoring nonexistent directory "c:\qccsdk-qcc74x\toolchain\windows_x86_64\bin\../riscv64-unknown-elf/opt/riscv/lib/gcc/riscv64-unknown-elf/10.4.0/../../../../include"]
+  ignore line: [ignoring duplicate directory "c:/qccsdk-qcc74x/toolchain/windows_x86_64/lib/gcc/../../lib/gcc/riscv64-unknown-elf/10.4.0/include-fixed"]
+  ignore line: [ignoring duplicate directory "c:/qccsdk-qcc74x/toolchain/windows_x86_64/lib/gcc/../../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/include"]
+  ignore line: [ignoring duplicate directory "c:\qccsdk-qcc74x\toolchain\windows_x86_64\bin\../riscv64-unknown-elf/include"]
+  ignore line: [#include "..." search starts here:]
+  ignore line: [#include <...> search starts here:]
+  ignore line: [ c:\qccsdk-qcc74x\toolchain\windows_x86_64\bin\../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/include/c++/10.4.0]
+  ignore line: [ c:\qccsdk-qcc74x\toolchain\windows_x86_64\bin\../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/include/c++/10.4.0/riscv64-unknown-elf/.]
+  ignore line: [ c:\qccsdk-qcc74x\toolchain\windows_x86_64\bin\../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/include/c++/10.4.0/backward]
+  ignore line: [ c:\qccsdk-qcc74x\toolchain\windows_x86_64\bin\../lib/gcc/riscv64-unknown-elf/10.4.0/include]
+  ignore line: [ c:\qccsdk-qcc74x\toolchain\windows_x86_64\bin\../lib/gcc/riscv64-unknown-elf/10.4.0/include-fixed]
+  ignore line: [ c:\qccsdk-qcc74x\toolchain\windows_x86_64\bin\../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/include]
+  ignore line: [End of search list.]
+  ignore line: [GNU C++14 (GCC) version 10.4.0 (riscv64-unknown-elf)]
+  ignore line: [	compiled by GNU C version 9.3-win32 20200320  GMP version 6.1.0  MPFR version 3.1.6  MPC version 1.0.3  isl version isl-0.18-GMP]
+  ignore line: []
+  ignore line: [GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072]
+  ignore line: [Compiler executable checksum: 8f60081ea2f991bc793f29c6c2041fa3]
+  ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles\cmTC_50304.dir\CMakeCXXCompilerABI.cpp.obj' '-c' '-march=rv64imafdc' '-mabi=lp64d' '-march=rv64imafdc']
+  ignore line: [ c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/bin/as.exe -v --traditional-format -march=rv64imafdc -march=rv64imafdc -mabi=lp64d -o CMakeFiles\cmTC_50304.dir\CMakeCXXCompilerABI.cpp.obj C:\Users\cwier\AppData\Local\Temp\ccvEc5VJ.s]
+  ignore line: [GNU assembler version 2.35 (riscv64-unknown-elf) using BFD version (GNU Binutils) 2.35]
+  ignore line: [COMPILER_PATH=c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../libexec/gcc/riscv64-unknown-elf/10.4.0/]
+  ignore line: [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../libexec/gcc/]
+  ignore line: [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/bin/]
+  ignore line: [LIBRARY_PATH=c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/]
+  ignore line: [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/]
+  ignore line: [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/lib/]
+  ignore line: [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../riscv64-unknown-elf/lib/]
+  ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles\cmTC_50304.dir\CMakeCXXCompilerABI.cpp.obj' '-c' '-march=rv64imafdc' '-mabi=lp64d' '-march=rv64imafdc']
+  ignore line: [Linking CXX executable cmTC_50304]
+  ignore line: [C:\Users\cwier\Documents\GitHub\qcom\tools\cmake\bin\cmake.exe -E cmake_link_script CMakeFiles\cmTC_50304.dir\link.txt --verbose=1]
+  ignore line: [C:\QCCSDK-QCC74x\toolchain\windows_x86_64\bin\riscv64-unknown-elf-g++.exe  -v CMakeFiles/cmTC_50304.dir/CMakeCXXCompilerABI.cpp.obj -o cmTC_50304 ]
+  ignore line: [Using built-in specs.]
+  ignore line: [COLLECT_GCC=C:\QCCSDK-QCC74x\toolchain\windows_x86_64\bin\riscv64-unknown-elf-g++.exe]
+  ignore line: [COLLECT_LTO_WRAPPER=c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../libexec/gcc/riscv64-unknown-elf/10.4.0/lto-wrapper.exe]
+  ignore line: [Target: riscv64-unknown-elf]
+  ignore line: [Configured with: /local/mnt/workspace/ganeshk/windows_tool_chain/xuantie-gnu-toolchain/riscv-gcc/configure --target=riscv64-unknown-elf --host=x86_64-w64-mingw32 CXXFLAGS='-g -O2 ' --disable-libgcctf --prefix=/opt/riscv --disable-shared --enable-threads=posix --enable-languages=c c++ --without-system-zlib --enable-tls --with-newlib --with-sysroot=/opt/riscv/riscv64-unknown-elf --with-native-system-header-dir=/include --disable-libmudflap --disable-libssp --disable-libquadmath --disable-libgomp --disable-nls --disable-tm-clone-registry --src=.././riscv-gcc --enable-multilib --with-abi=lp64d --with-arch=rv64imafdc 'CFLAGS_FOR_TARGET=-Os   -mcmodel=medlow' 'CXXFLAGS_FOR_TARGET=-Os   -mcmodel=medlow']
+  ignore line: [Thread model: posix]
+  ignore line: [Supported LTO compression algorithms: zlib]
+  ignore line: [gcc version 10.4.0 (GCC) ]
+  ignore line: [COMPILER_PATH=c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../libexec/gcc/riscv64-unknown-elf/10.4.0/]
+  ignore line: [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../libexec/gcc/]
+  ignore line: [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/bin/]
+  ignore line: [LIBRARY_PATH=c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/]
+  ignore line: [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/]
+  ignore line: [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/lib/]
+  ignore line: [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../riscv64-unknown-elf/lib/]
+  ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_50304' '-march=rv64imafdc' '-mabi=lp64d' '-march=rv64imafdc']
+  link line: [ c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../libexec/gcc/riscv64-unknown-elf/10.4.0/collect2.exe -plugin c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../libexec/gcc/riscv64-unknown-elf/10.4.0/liblto_plugin-0.dll -plugin-opt=c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../libexec/gcc/riscv64-unknown-elf/10.4.0/lto-wrapper.exe -plugin-opt=-fresolution=C:\Users\cwier\AppData\Local\Temp\cctpDOWW.res -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgloss -plugin-opt=-pass-through=-lgcc --sysroot=c:\qccsdk-qcc74x\toolchain\windows_x86_64\bin\../riscv64-unknown-elf -melf64lriscv -o cmTC_50304 c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/lib/crt0.o c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/crtbegin.o -Lc:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0 -Lc:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc -Lc:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/lib -Lc:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../riscv64-unknown-elf/lib CMakeFiles/cmTC_50304.dir/CMakeCXXCompilerABI.cpp.obj -lstdc++ -lm -lgcc --start-group -lc -lgloss --end-group -lgcc c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/crtend.o]
+    arg [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../libexec/gcc/riscv64-unknown-elf/10.4.0/collect2.exe] ==> ignore
+    arg [-plugin] ==> ignore
+    arg [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../libexec/gcc/riscv64-unknown-elf/10.4.0/liblto_plugin-0.dll] ==> ignore
+    arg [-plugin-opt=c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../libexec/gcc/riscv64-unknown-elf/10.4.0/lto-wrapper.exe] ==> ignore
+    arg [-plugin-opt=-fresolution=C:\Users\cwier\AppData\Local\Temp\cctpDOWW.res] ==> ignore
+    arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
+    arg [-plugin-opt=-pass-through=-lc] ==> ignore
+    arg [-plugin-opt=-pass-through=-lgloss] ==> ignore
+    arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
+    arg [--sysroot=c:\qccsdk-qcc74x\toolchain\windows_x86_64\bin\../riscv64-unknown-elf] ==> ignore
+    arg [-melf64lriscv] ==> ignore
+    arg [-o] ==> ignore
+    arg [cmTC_50304] ==> ignore
+    arg [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/lib/crt0.o] ==> obj [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/lib/crt0.o]
+    arg [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/crtbegin.o] ==> obj [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/crtbegin.o]
+    arg [-Lc:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0] ==> dir [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0]
+    arg [-Lc:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc] ==> dir [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc]
+    arg [-Lc:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/lib] ==> dir [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/lib]
+    arg [-Lc:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../riscv64-unknown-elf/lib] ==> dir [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../riscv64-unknown-elf/lib]
+    arg [CMakeFiles/cmTC_50304.dir/CMakeCXXCompilerABI.cpp.obj] ==> ignore
+    arg [-lstdc++] ==> lib [stdc++]
+    arg [-lm] ==> lib [m]
+    arg [-lgcc] ==> lib [gcc]
+    arg [--start-group] ==> ignore
+    arg [-lc] ==> lib [c]
+    arg [-lgloss] ==> lib [gloss]
+    arg [--end-group] ==> ignore
+    arg [-lgcc] ==> lib [gcc]
+    arg [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/crtend.o] ==> obj [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/crtend.o]
+  collapse obj [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/lib/crt0.o] ==> [C:/QCCSDK-QCC74x/toolchain/windows_x86_64/riscv64-unknown-elf/lib/crt0.o]
+  collapse obj [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/crtbegin.o] ==> [C:/QCCSDK-QCC74x/toolchain/windows_x86_64/lib/gcc/riscv64-unknown-elf/10.4.0/crtbegin.o]
+  collapse obj [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/crtend.o] ==> [C:/QCCSDK-QCC74x/toolchain/windows_x86_64/lib/gcc/riscv64-unknown-elf/10.4.0/crtend.o]
+  collapse library dir [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0] ==> [C:/QCCSDK-QCC74x/toolchain/windows_x86_64/lib/gcc/riscv64-unknown-elf/10.4.0]
+  collapse library dir [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc] ==> [C:/QCCSDK-QCC74x/toolchain/windows_x86_64/lib/gcc]
+  collapse library dir [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../lib/gcc/riscv64-unknown-elf/10.4.0/../../../../riscv64-unknown-elf/lib] ==> [C:/QCCSDK-QCC74x/toolchain/windows_x86_64/riscv64-unknown-elf/lib]
+  collapse library dir [c:/qccsdk-qcc74x/toolchain/windows_x86_64/bin/../riscv64-unknown-elf/lib] ==> [C:/QCCSDK-QCC74x/toolchain/windows_x86_64/riscv64-unknown-elf/lib]
+  implicit libs: [stdc++;m;gcc;c;gloss;gcc]
+  implicit objs: [C:/QCCSDK-QCC74x/toolchain/windows_x86_64/riscv64-unknown-elf/lib/crt0.o;C:/QCCSDK-QCC74x/toolchain/windows_x86_64/lib/gcc/riscv64-unknown-elf/10.4.0/crtbegin.o;C:/QCCSDK-QCC74x/toolchain/windows_x86_64/lib/gcc/riscv64-unknown-elf/10.4.0/crtend.o]
+  implicit dirs: [C:/QCCSDK-QCC74x/toolchain/windows_x86_64/lib/gcc/riscv64-unknown-elf/10.4.0;C:/QCCSDK-QCC74x/toolchain/windows_x86_64/lib/gcc;C:/QCCSDK-QCC74x/toolchain/windows_x86_64/riscv64-unknown-elf/lib]
+  implicit fwks: []
+
+

@@ -1,0 +1,2 @@
+/mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/mbedtls/library/base64.c:27:5:mbedtls_base64_encode	64	static
+/mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/mbedtls/library/base64.c:94:5:mbedtls_base64_decode	80	static

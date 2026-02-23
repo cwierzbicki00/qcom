@@ -1,0 +1,15 @@
+/mnt/c/Users/cwier/documents/github/qcom/components/usb/cherryusb/core/usbh_core.c:754:14:usbh_list_all_interface_name	48	static
+/mnt/c/Users/cwier/documents/github/qcom/components/usb/cherryusb/core/usbh_core.c:852:29:usbh_list_all_hubport	48	static
+/mnt/c/Users/cwier/documents/github/qcom/components/usb/cherryusb/core/usbh_core.c:785:13:usbh_list_all_interface_driver	96	static
+/mnt/c/Users/cwier/documents/github/qcom/components/usb/cherryusb/core/usbh_core.c:820:13:usbh_list_all_interface_desc	80	static
+/mnt/c/Users/cwier/documents/github/qcom/components/usb/cherryusb/common/usb_memcpy.h:22:21:usb_memcpy.isra	0	static
+/mnt/c/Users/cwier/documents/github/qcom/components/usb/cherryusb/core/usbh_core.c:599:6:usbh_hubport_release	16	static
+/mnt/c/Users/cwier/documents/github/qcom/components/usb/cherryusb/core/usbh_core.c:630:5:usbh_initialize	16	static
+/mnt/c/Users/cwier/documents/github/qcom/components/usb/cherryusb/core/usbh_core.c:662:5:usbh_deinitialize	16	static
+/mnt/c/Users/cwier/documents/github/qcom/components/usb/cherryusb/core/usbh_core.c:681:5:usbh_control_transfer	32	static
+/mnt/c/Users/cwier/documents/github/qcom/components/usb/cherryusb/core/usbh_core.c:352:5:usbh_enumerate	80	static
+/mnt/c/Users/cwier/documents/github/qcom/components/usb/cherryusb/core/usbh_core.c:706:5:usbh_get_string_desc	16	static
+/mnt/c/Users/cwier/documents/github/qcom/components/usb/cherryusb/core/usbh_core.c:741:5:usbh_set_interface	0	static
+/mnt/c/Users/cwier/documents/github/qcom/components/usb/cherryusb/core/usbh_core.c:888:7:usbh_find_class_instance	32	static
+/mnt/c/Users/cwier/documents/github/qcom/components/usb/cherryusb/core/usbh_core.c:912:22:usbh_find_hubport	32	static
+/mnt/c/Users/cwier/documents/github/qcom/components/usb/cherryusb/core/usbh_core.c:929:5:lsusb	32	static

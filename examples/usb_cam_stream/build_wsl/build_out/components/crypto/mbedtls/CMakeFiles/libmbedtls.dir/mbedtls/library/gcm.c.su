@@ -1,0 +1,9 @@
+/mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/mbedtls/library/gcm.c:175:13:gcm_mult	32	static
+/mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/mbedtls/library/gcm.c:45:6:mbedtls_gcm_init	0	static
+/mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/mbedtls/library/gcm.c:118:5:mbedtls_gcm_setkey	64	static
+/mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/mbedtls/library/gcm.c:229:5:mbedtls_gcm_starts	80	static
+/mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/mbedtls/library/gcm.c:314:5:mbedtls_gcm_update	80	static
+/mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/mbedtls/library/gcm.c:378:5:mbedtls_gcm_finish	64	static
+/mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/mbedtls/library/gcm.c:421:5:mbedtls_gcm_crypt_and_tag	48	static
+/mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/mbedtls/library/gcm.c:457:5:mbedtls_gcm_auth_decrypt	64	static
+/mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/mbedtls/library/gcm.c:496:6:mbedtls_gcm_free	16	static

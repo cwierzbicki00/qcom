@@ -1,0 +1,29 @@
+build_out/components/shell/CMakeFiles/libshell.dir/shell_freertos.c.o: \
+ /mnt/c/Users/cwier/documents/github/qcom/components/shell/shell_freertos.c \
+ /mnt/c/Users/cwier/documents/github/qcom/components/shell/shell.h \
+ /mnt/c/Users/cwier/documents/github/qcom/components/shell/shell_config.h \
+ /mnt/c/Users/cwier/documents/github/qcom/components/os/freertos/include/FreeRTOS.h \
+ /mnt/c/Users/cwier/documents/github/qcom/examples/usb_cam_stream/./FreeRTOSConfig.h \
+ /mnt/c/Users/cwier/documents/github/qcom/components/os/freertos/include/projdefs.h \
+ /mnt/c/Users/cwier/documents/github/qcom/components/os/freertos/include/portable.h \
+ /mnt/c/Users/cwier/documents/github/qcom/components/os/freertos/include/deprecated_definitions.h \
+ /mnt/c/Users/cwier/documents/github/qcom/components/os/freertos/portable/GCC/RISC-V/common/portmacro.h \
+ /mnt/c/Users/cwier/documents/github/qcom/components/os/freertos/include/mpu_wrappers.h \
+ /mnt/c/Users/cwier/documents/github/qcom/components/os/freertos/include/semphr.h \
+ /mnt/c/Users/cwier/documents/github/qcom/components/os/freertos/include/queue.h \
+ /mnt/c/Users/cwier/documents/github/qcom/components/os/freertos/include/task.h \
+ /mnt/c/Users/cwier/documents/github/qcom/components/os/freertos/include/list.h \
+ /mnt/c/Users/cwier/documents/github/qcom/components/utils/ring_buffer/ring_buffer.h \
+ /mnt/c/Users/cwier/documents/github/qcom/drivers/lhal/include/qcc74x_core.h \
+ /mnt/c/Users/cwier/documents/github/qcom/drivers/lhal/include/arch/risc-v/csr.h \
+ /mnt/c/Users/cwier/documents/github/qcom/drivers/lhal/include/arch/risc-v/riscv_arch.h \
+ /mnt/c/Users/cwier/documents/github/qcom/drivers/lhal/include/compiler/compiler_gcc.h \
+ /mnt/c/Users/cwier/documents/github/qcom/drivers/lhal/include/compiler/compiler_ld.h \
+ /mnt/c/Users/cwier/documents/github/qcom/drivers/lhal/include/qcc74x_name.h \
+ /mnt/c/Users/cwier/documents/github/qcom/drivers/lhal/include/qcc74x_common.h \
+ /mnt/c/Users/cwier/documents/github/qcom/drivers/lhal/include/qcc74x_mtimer.h \
+ /mnt/c/Users/cwier/documents/github/qcom/drivers/lhal/include/qcc74x_irq.h \
+ /mnt/c/Users/cwier/documents/github/qcom/drivers/lhal/include/qcc74x_l1c.h \
+ /mnt/c/Users/cwier/documents/github/qcom/drivers/lhal/include/qcc74x_uart.h \
+ /mnt/c/Users/cwier/documents/github/qcom/drivers/lhal/include/qcc74x_core.h \
+ /mnt/c/Users/cwier/documents/github/qcom/components/mm/./mem.h

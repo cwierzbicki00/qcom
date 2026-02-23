@@ -1,0 +1,5 @@
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/utils/wpabuf.h:142:20:wpabuf_put_be16	16	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/wps/wps_enrollee.c:528:12:wps_process_enrollee_nonce	16	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/utils/wpabuf.h:166:20:wpabuf_put_data	32	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/wps/wps_enrollee.c:452:17:wps_enrollee_get_msg	144	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/wps/wps_enrollee.c:1488:22:wps_enrollee_process_msg	1360	static

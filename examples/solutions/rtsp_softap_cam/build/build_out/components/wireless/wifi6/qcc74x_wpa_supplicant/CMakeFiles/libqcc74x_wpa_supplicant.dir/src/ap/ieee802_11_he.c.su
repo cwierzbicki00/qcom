@@ -1,0 +1,10 @@
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\ap\ieee802_11_he.c:23:11:ieee80211_he_ppet_size.part.0	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\ap\ieee802_11_he.c:86:6:hostapd_eid_he_capab	48	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\ap\ieee802_11_he.c:169:6:hostapd_eid_he_operation	32	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\ap\ieee802_11_he.c:264:6:hostapd_eid_he_mu_edca_parameter_set	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\ap\ieee802_11_he.c:295:6:hostapd_eid_spatial_reuse	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\ap\ieee802_11_he.c:342:6:hostapd_eid_he_6ghz_band_cap	32	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\ap\ieee802_11_he.c:382:6:hostapd_get_he_capab	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\ap\ieee802_11_he.c:458:5:copy_sta_he_capab	32	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\ap\ieee802_11_he.c:489:5:copy_sta_he_6ghz_capab	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\ap\ieee802_11_he.c:516:5:hostapd_get_he_twt_responder	0	static

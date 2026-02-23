@@ -1,0 +1,10 @@
+/mnt/c/Users/cwier/documents/github/qcom/examples/usb_cam_stream/http_server.c:129:13:on_camera_state_change	0	static
+/mnt/c/Users/cwier/documents/github/qcom/examples/usb_cam_stream/http_server.c:525:12:cmd_stream_status	16	static
+/mnt/c/Users/cwier/documents/github/qcom/examples/usb_cam_stream/http_server.c:70:12:send_all	32	static
+/mnt/c/Users/cwier/documents/github/qcom/examples/usb_cam_stream/http_server.c:86:13:send_response	272	static
+/mnt/c/Users/cwier/documents/github/qcom/examples/usb_cam_stream/http_server.c:144:13:stream_task	336	static
+/mnt/c/Users/cwier/documents/github/qcom/examples/usb_cam_stream/http_server.c:105:13:send_error	32	static
+/mnt/c/Users/cwier/documents/github/qcom/examples/usb_cam_stream/http_server.c:399:12:handle_client	1200	static
+/mnt/c/Users/cwier/documents/github/qcom/examples/usb_cam_stream/http_server.c:447:13:http_server_task	80	static
+/mnt/c/Users/cwier/documents/github/qcom/examples/usb_cam_stream/http_server.c:48:24:http_get_counters	0	static
+/mnt/c/Users/cwier/documents/github/qcom/examples/usb_cam_stream/http_server.c:514:6:http_server_start	16	static

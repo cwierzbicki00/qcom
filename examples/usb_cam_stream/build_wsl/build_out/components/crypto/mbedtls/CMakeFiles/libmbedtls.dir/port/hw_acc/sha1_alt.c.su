@@ -1,0 +1,11 @@
+/mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/port/hw_acc/sha1_alt.c:45:6:mbedtls_sha1_init	16	static
+/mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/port/hw_acc/sha1_alt.c:60:6:mbedtls_sha1_free	0	static
+/mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/port/hw_acc/sha1_alt.c:68:6:mbedtls_sha1_clone	16	static
+/mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/port/hw_acc/sha1_alt.c:80:5:mbedtls_sha1_starts_ret	16	static
+/mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/port/hw_acc/sha1_alt.c:98:6:mbedtls_sha1_starts	0	static
+/mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/port/hw_acc/sha1_alt.c:107:5:mbedtls_sha1_update_ret	48	static
+/mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/port/hw_acc/sha1_alt.c:128:6:mbedtls_sha1_update	0	static
+/mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/port/hw_acc/sha1_alt.c:139:5:mbedtls_sha1_finish_ret	16	static
+/mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/port/hw_acc/sha1_alt.c:155:6:mbedtls_sha1_finish	0	static
+/mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/port/hw_acc/sha1_alt.c:162:6:mbedtls_sha1_once_padded_init	32	static
+/mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/port/hw_acc/sha1_alt.c:172:5:mbedtls_sha1_once_padded	32	static

@@ -1,0 +1,13 @@
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\apps\http\http_client.c:385:1:httpc_tcp_sent	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\apps\http\http_client.c:419:1:httpc_get_internal_addr	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\apps\http\http_client.c:157:1:httpc_free_state	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\apps\http\http_client.c:192:1:httpc_close	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\apps\http\http_client.c:280:1:httpc_tcp_recv	64	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\apps\http\http_client.c:442:1:httpc_dns_found	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\apps\http\http_client.c:367:1:httpc_tcp_poll	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\apps\http\http_client.c:355:1:httpc_tcp_err	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\apps\http\http_client.c:396:1:httpc_tcp_connected	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\apps\http\http_client.c:489:1:httpc_create_request_string.constprop.isra	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\apps\http\http_client.c:509:1:httpc_init_connection_common.constprop	48	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\apps\http\http_client.c:634:1:httpc_get_file	64	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\apps\http\http_client.c:679:1:httpc_get_file_dns	64	static

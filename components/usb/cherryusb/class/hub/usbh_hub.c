@@ -15,7 +15,17 @@
 #define HUB_DEBOUNCE_TIMEOUT   1500
 #define HUB_DEBOUNCE_STEP      25
 #define HUB_DEBOUNCE_STABLE    100
+#ifndef DELAY_TIME_AFTER_RESET
 #define DELAY_TIME_AFTER_RESET 200
+#endif
+
+#ifndef CONFIG_USBHOST_ENUMERATE_RETRIES
+#define CONFIG_USBHOST_ENUMERATE_RETRIES 3
+#endif
+
+#ifndef CONFIG_USBHOST_ENUMERATE_RETRY_DELAY
+#define CONFIG_USBHOST_ENUMERATE_RETRY_DELAY 500
+#endif
 
 #define EXTHUB_FIRST_INDEX 2
 
@@ -618,10 +628,23 @@ static void usbh_hub_events(struct usbh_hub *hub)
 
                     USB_LOG_INFO("New %s device on Bus %u, Hub %u, Port %u connected\r\n", speed_table[speed], hub->bus->busid, hub->index, port + 1);
 
-                    if (usbh_enumerate(child) < 0) {
-                        /** release child sources */
-                        usbh_hubport_release(child);
-                        USB_LOG_ERR("Port %u enumerate fail\r\n", child->port);
+                    {
+                        int enum_ret = -1;
+                        for (int retry = 0; retry < CONFIG_USBHOST_ENUMERATE_RETRIES; retry++) {
+                            if (retry > 0) {
+                                USB_LOG_WRN("Port %u enumerate retry %d/%d\r\n", port + 1, retry, CONFIG_USBHOST_ENUMERATE_RETRIES - 1);
+                                usb_osal_msleep(CONFIG_USBHOST_ENUMERATE_RETRY_DELAY);
+                            }
+                            enum_ret = usbh_enumerate(child);
+                            if (enum_ret >= 0) {
+                                break;
+                            }
+                        }
+                        if (enum_ret < 0) {
+                            /** release child sources */
+                            usbh_hubport_release(child);
+                            USB_LOG_ERR("Port %u enumerate fail\r\n", child->port);
+                        }
                     }
                 } else {
                     child = &hub->child[port];

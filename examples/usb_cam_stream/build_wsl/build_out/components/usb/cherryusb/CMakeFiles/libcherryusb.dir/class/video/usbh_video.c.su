@@ -1,0 +1,15 @@
+/mnt/c/Users/cwier/documents/github/qcom/components/usb/cherryusb/class/video/usbh_video.c:582:12:usbh_video_streaming_connect	0	static
+/mnt/c/Users/cwier/documents/github/qcom/components/usb/cherryusb/class/video/usbh_video.c:589:12:usbh_video_streaming_disconnect	0	static
+/mnt/c/Users/cwier/documents/github/qcom/components/usb/cherryusb/common/usb_memcpy.h:22:21:usb_memcpy.isra	0	static
+/mnt/c/Users/cwier/documents/github/qcom/components/usb/cherryusb/class/video/usbh_video.c:61:5:usbh_video_get	32	static
+/mnt/c/Users/cwier/documents/github/qcom/components/usb/cherryusb/class/video/usbh_video.c:98:5:usbh_video_set	16	static
+/mnt/c/Users/cwier/documents/github/qcom/components/usb/cherryusb/class/video/usbh_video.c:121:5:usbh_videostreaming_get_cur_probe	0	static
+/mnt/c/Users/cwier/documents/github/qcom/components/usb/cherryusb/class/video/usbh_video.c:126:5:usbh_videostreaming_set_cur_probe	0	static
+/mnt/c/Users/cwier/documents/github/qcom/components/usb/cherryusb/class/video/usbh_video.c:137:5:usbh_videostreaming_set_cur_commit	32	static
+/mnt/c/Users/cwier/documents/github/qcom/components/usb/cherryusb/class/video/usbh_video.c:146:5:usbh_video_open	64	static
+/mnt/c/Users/cwier/documents/github/qcom/components/usb/cherryusb/class/video/usbh_video.c:284:5:usbh_video_close	32	static
+/mnt/c/Users/cwier/documents/github/qcom/components/usb/cherryusb/class/video/usbh_video.c:319:6:usbh_video_list_info	80	static
+/mnt/c/Users/cwier/documents/github/qcom/components/usb/cherryusb/class/video/usbh_video.c:596:28:usbh_video_run	0	static
+/mnt/c/Users/cwier/documents/github/qcom/components/usb/cherryusb/class/video/usbh_video.c:369:12:usbh_video_ctrl_connect	80	static
+/mnt/c/Users/cwier/documents/github/qcom/components/usb/cherryusb/class/video/usbh_video.c:601:28:usbh_video_stop	0	static
+/mnt/c/Users/cwier/documents/github/qcom/components/usb/cherryusb/class/video/usbh_video.c:557:12:usbh_video_ctrl_disconnect	16	static

@@ -1,0 +1,17 @@
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/rsn_supp/pmksa_cache.c:97:13:pmksa_cache_reauth	0	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/rsn_supp/pmksa_cache.c:44:13:pmksa_cache_free_entry	16	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/rsn_supp/pmksa_cache.c:173:1:pmksa_cache_add	0	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/rsn_supp/pmksa_cache.c:401:32:pmksa_cache_get	32	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/rsn_supp/pmksa_cache.c:105:13:pmksa_cache_set_expiration	32	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/rsn_supp/pmksa_cache.c:58:13:pmksa_cache_expire	48	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/rsn_supp/pmksa_cache.c:335:6:pmksa_cache_flush	48	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/rsn_supp/pmksa_cache.c:221:1:pmksa_cache_add_entry	48	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/rsn_supp/pmksa_cache.c:373:6:pmksa_cache_deinit	16	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/rsn_supp/pmksa_cache.c:464:1:pmksa_cache_get_opportunistic	48	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/rsn_supp/pmksa_cache.c:526:32:pmksa_cache_get_current	0	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/rsn_supp/pmksa_cache.c:538:6:pmksa_cache_clear_current	0	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/rsn_supp/pmksa_cache.c:559:5:pmksa_cache_set_current	48	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/rsn_supp/pmksa_cache.c:628:5:pmksa_cache_list	80	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/rsn_supp/pmksa_cache.c:686:32:pmksa_cache_head	0	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/rsn_supp/pmksa_cache.c:700:1:pmksa_cache_init	32	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/rsn_supp/pmksa_cache.c:720:6:pmksa_cache_reconfig	48	static

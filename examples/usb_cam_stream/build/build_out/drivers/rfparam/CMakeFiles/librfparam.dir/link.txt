@@ -1,0 +1,1 @@
+riscv64-unknown-elf-ar.exe crD ..\..\lib\librfparam.a CMakeFiles/librfparam.dir/Src/rfparam_adapter.c.obj CMakeFiles/librfparam.dir/Src/rfparam_rftlv.c.obj

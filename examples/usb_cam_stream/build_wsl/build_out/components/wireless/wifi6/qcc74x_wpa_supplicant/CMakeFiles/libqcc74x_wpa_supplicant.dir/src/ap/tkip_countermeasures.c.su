@@ -1,0 +1,4 @@
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/ap/ap_drv_ops.h:151:19:hostapd_drv_set_countermeasures.isra	0	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/ap/tkip_countermeasures.c:23:13:ieee80211_tkip_countermeasures_stop	0	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/ap/tkip_countermeasures.c:63:6:ieee80211_tkip_countermeasures_deinit	0	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/ap/tkip_countermeasures.c:69:5:michael_mic_failure	32	static

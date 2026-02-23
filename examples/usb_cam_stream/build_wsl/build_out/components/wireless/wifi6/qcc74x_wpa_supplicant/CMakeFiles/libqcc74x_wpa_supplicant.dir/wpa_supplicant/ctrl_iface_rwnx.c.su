@@ -1,0 +1,7 @@
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/wpa_supplicant/ctrl_iface_rwnx.c:77:13:wpa_supplicant_ctrl_iface_msg_cb	48	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/wpa_supplicant/ctrl_iface_rwnx.c:137:13:wpa_supplicant_global_ctrl_iface_receive	288	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/wpa_supplicant/ctrl_iface_rwnx.c:122:1:wpa_supplicant_ctrl_iface_init	0	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/wpa_supplicant/ctrl_iface_rwnx.c:128:6:wpa_supplicant_ctrl_iface_deinit	0	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/wpa_supplicant/ctrl_iface_rwnx.c:133:6:wpa_supplicant_ctrl_iface_wait	0	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/wpa_supplicant/ctrl_iface_rwnx.c:168:1:wpa_supplicant_global_ctrl_iface_init	32	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/wpa_supplicant/ctrl_iface_rwnx.c:191:1:wpa_supplicant_global_ctrl_iface_deinit	16	static

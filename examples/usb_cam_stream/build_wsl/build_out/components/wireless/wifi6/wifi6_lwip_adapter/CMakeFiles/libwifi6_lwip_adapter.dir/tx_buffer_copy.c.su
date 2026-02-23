@@ -1,0 +1,6 @@
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/wifi6_lwip_adapter/tx_buffer_copy.c:61:13:bc_tx_buf_free	16	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/wifi6_lwip_adapter/tx_buffer_copy.c:33:6:bc_tx_init_tx_pool	32	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/wifi6_lwip_adapter/tx_buffer_copy.c:71:6:bc_try_tx_queued_pkts	64	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/wifi6_lwip_adapter/tx_buffer_copy.c:97:23:bc_tx_buf_alloc	16	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/wifi6_lwip_adapter/tx_buffer_copy.c:113:6:bc_tx_queue_release_sta	32	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/wifi6_lwip_adapter/tx_buffer_copy.c:130:6:bc_tx_enqueue	16	static

@@ -1,0 +1,8 @@
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\ap\ieee802_11_vht.c:23:6:hostapd_eid_vht_capabilities	32	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\ap\ieee802_11_vht.c:74:6:hostapd_eid_vht_operation	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\ap\ieee802_11_vht.c:170:5:copy_sta_vht_capab	32	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\ap\ieee802_11_vht.c:198:5:copy_sta_vht_oper	32	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\ap\ieee802_11_vht.c:221:5:copy_sta_vendor_vht	32	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\ap\ieee802_11_vht.c:259:6:hostapd_eid_vendor_vht	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\ap\ieee802_11_vht.c:283:5:set_sta_vht_opmode	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\ap\ieee802_11_vht.c:297:6:hostapd_get_vht_capab	16	static

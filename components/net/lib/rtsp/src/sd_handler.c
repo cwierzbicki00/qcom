@@ -11,6 +11,15 @@
 #include "sd_handler.h"
 #include "rtcp.h"
 
+static int looks_like_rtsp_req(const char *buf)
+{
+    if (!buf) {
+        return 0;
+    }
+
+    return (buf[0] >= 'A' && buf[0] <= 'Z');
+}
+
 
 /**
  * Handle listening socket.
@@ -85,9 +94,12 @@ try:
     } else if (sessp->recv_buf[0] == '$') { /* Completed RTCP packet. */
         handle_rtcp_pkt(sessp);
         sessp->recv_buf[0] = '\0';
-    } else {                    /* RTSP request message. */
+    } else if (looks_like_rtsp_req(sessp->recv_buf)) { /* RTSP request message. */
         /* Handle the RTSP method. */
         create_delay_task((delay_task_proc_t)handle_rtsp_req, sessp, 0);
+    } else {
+        /* Ignore non-RTSP binary interleaved data (e.g. TCP RTCP packets). */
+        sessp->recv_buf[0] = '\0';
     }
 
     return 0;

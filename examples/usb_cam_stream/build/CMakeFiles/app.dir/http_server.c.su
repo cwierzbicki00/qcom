@@ -1,0 +1,12 @@
+C:\Users\cwier\Documents\GitHub\qcom\examples\usb_cam_stream\http_server.c:238:13:on_camera_state_change	0	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\usb_cam_stream\http_server.c:790:12:cmd_stream_status	16	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\usb_cam_stream\http_server.c:78:12:send_all	48	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\usb_cam_stream\http_server.c:111:13:send_response	272	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\usb_cam_stream\http_server.c:130:13:send_error	32	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\usb_cam_stream\http_server.c:176:12:frame_extract_valid_jpeg	0	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\usb_cam_stream\http_server.c:224:13:stop_capture_for_session	32	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\usb_cam_stream\http_server.c:254:13:stream_task	368	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\usb_cam_stream\http_server.c:649:12:handle_client	1728	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\usb_cam_stream\http_server.c:712:13:http_server_task	80	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\usb_cam_stream\http_server.c:56:24:http_get_counters	0	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\usb_cam_stream\http_server.c:779:6:http_server_start	16	static

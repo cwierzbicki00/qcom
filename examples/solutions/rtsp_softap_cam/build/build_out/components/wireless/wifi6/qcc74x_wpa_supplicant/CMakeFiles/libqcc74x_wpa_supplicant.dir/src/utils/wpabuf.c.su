@@ -1,0 +1,13 @@
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\utils\wpabuf.c:113:17:wpabuf_alloc	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\utils\wpabuf.c:47:5:wpabuf_resize	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\utils\wpabuf.c:135:17:wpabuf_alloc_ext_data	32	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\utils\wpabuf.c:182:6:wpabuf_free	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\utils\wpabuf.c:208:6:wpabuf_clear_free	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\utils\wpabuf.c:217:8:wpabuf_put	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\utils\wpabuf.h:166:20:wpabuf_put_data	32	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\utils\wpabuf.c:160:17:wpabuf_alloc_copy	32	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\utils\wpabuf.c:169:17:wpabuf_dup	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\utils\wpabuf.c:237:17:wpabuf_concat	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\utils\wpabuf.c:275:17:wpabuf_zeropad	32	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\utils\wpabuf.c:298:6:wpabuf_printf	64	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\utils\wpabuf.c:320:17:wpabuf_parse_bin	16	static

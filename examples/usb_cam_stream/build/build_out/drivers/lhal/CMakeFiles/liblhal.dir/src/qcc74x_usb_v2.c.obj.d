@@ -1,0 +1,29 @@
+build_out/drivers/lhal/CMakeFiles/liblhal.dir/src/qcc74x_usb_v2.c.obj: \
+ C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\src\qcc74x_usb_v2.c \
+ C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\include/qcc74x_core.h \
+ C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\include\arch/risc-v/csr.h \
+ C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\include\arch/risc-v/riscv_arch.h \
+ C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\include/compiler/compiler_gcc.h \
+ C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\include/compiler/compiler_ld.h \
+ C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\include/qcc74x_name.h \
+ C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\include/qcc74x_common.h \
+ C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\include/qcc74x_mtimer.h \
+ C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\include/qcc74x_irq.h \
+ C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\include/qcc74x_l1c.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\usb\cherryusb\core/usbd_core.h \
+ c:\users\cwier\documents\github\qcom\examples\usb_cam_stream\usb_config.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\usb\cherryusb\common/usb_util.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\usb\cherryusb\common/usb_errno.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\usb\cherryusb\common/usb_def.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\usb\cherryusb\common/usb_list.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\usb\cherryusb\common/usb_log.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\usb\cherryusb\common/usb_dc.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\usb\cherryusb\common/usb_osal.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\usb\cherryusb\common/usb_memcpy.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\usb\cherryusb\common/usb_dcache.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\usb\cherryusb\common/usb_version.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\usb\cherryusb\core/usbh_core.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\usb\cherryusb\common/usb_hc.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\usb\cherryusb\class\hub/usbh_hub.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\usb\cherryusb\class\hub/usb_hub.h \
+ C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\include/hardware/usb_v2_reg.h

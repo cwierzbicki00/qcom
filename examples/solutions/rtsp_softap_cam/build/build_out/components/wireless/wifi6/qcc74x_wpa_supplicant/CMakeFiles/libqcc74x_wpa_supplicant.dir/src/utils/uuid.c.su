@@ -1,0 +1,4 @@
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\utils\uuid.c:15:5:uuid_str2bin	32	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\utils\uuid.c:50:5:uuid_bin2str	64	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\utils\uuid.c:65:5:is_nil_uuid	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\utils\uuid.c:75:5:uuid_random	64	static

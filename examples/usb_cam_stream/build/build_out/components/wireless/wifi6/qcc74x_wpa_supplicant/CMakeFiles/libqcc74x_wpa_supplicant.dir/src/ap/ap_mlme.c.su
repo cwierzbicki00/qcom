@@ -1,0 +1,7 @@
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\ap\ap_mlme.c:172:6:mlme_michaelmicfailure_indication	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\ap\ap_mlme.c:182:6:mlme_deletekeys_request	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\ap\ap_mlme.c:53:6:mlme_authenticate_indication	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\ap\ap_mlme.c:82:6:mlme_deauthenticate_indication	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\ap\ap_mlme.c:106:6:mlme_associate_indication	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\ap\ap_mlme.c:133:6:mlme_reassociate_indication	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\ap\ap_mlme.c:161:6:mlme_disassociate_indication	0	static

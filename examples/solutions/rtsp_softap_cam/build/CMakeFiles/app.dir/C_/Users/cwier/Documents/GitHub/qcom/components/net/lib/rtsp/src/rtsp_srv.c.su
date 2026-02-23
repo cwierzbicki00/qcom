@@ -1,0 +1,7 @@
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lib\rtsp\src\rtsp_srv.c:29:5:monitor_sd_event	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lib\rtsp\src\rtsp_srv.c:41:5:unmonitor_sd_event	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lib\rtsp\src\rtsp_srv.c:57:6:cleanup_sd_event	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lib\rtsp\src\rtsp_srv.c:85:13:rtsp_srv_thrd	64	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lib\rtsp\src\rtsp_srv.c:73:5:update_sd_event	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lib\rtsp\src\rtsp_srv.c:195:5:start_rtsp_srv	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lib\rtsp\src\rtsp_srv.c:212:5:stop_rtsp_srv	16	static

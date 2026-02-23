@@ -1,0 +1,13 @@
+C:\Users\cwier\Documents\GitHub\qcom\examples\solutions\rtsp_softap_cam\frame_pool.c:61:13:pool_sem_put	0	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\solutions\rtsp_softap_cam\frame_pool.c:51:13:pool_mtx_put	0	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\solutions\rtsp_softap_cam\frame_pool.c:56:12:pool_sem_get	16	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\solutions\rtsp_softap_cam\frame_pool.c:46:12:pool_mtx_get	16	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\solutions\rtsp_softap_cam\frame_pool.c:70:5:frame_pool_init	32	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\solutions\rtsp_softap_cam\frame_pool.c:119:5:frame_alloc	32	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\solutions\rtsp_softap_cam\frame_pool.c:139:6:frame_free	16	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\solutions\rtsp_softap_cam\frame_pool.c:154:6:frame_queue_push	64	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\solutions\rtsp_softap_cam\frame_pool.c:175:5:frame_queue_pop	16	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\solutions\rtsp_softap_cam\frame_pool.c:185:5:frame_queue_pop_latest	48	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\solutions\rtsp_softap_cam\frame_pool.c:212:6:frame_queue_drain	32	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\solutions\rtsp_softap_cam\frame_pool.c:227:5:frame_queue_drop_oldest	32	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\solutions\rtsp_softap_cam\frame_pool.c:243:6:frame_pool_stats	32	static

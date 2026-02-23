@@ -1,0 +1,7 @@
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\core\ipv4\ip4.c:426:1:ip4_input_accept	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\core\ipv4\ip4.c:118:1:ip4_set_default_multicast_netif	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\core\ipv4\ip4.c:153:1:ip4_route	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\core\ipv4\ip4.c:478:1:ip4_input	48	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\core\ipv4\ip4.c:893:1:ip4_output_if_src	64	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\core\ipv4\ip4.c:853:1:ip4_output_if	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\core\ipv4\ip4.c:1099:1:ip4_output	48	static

@@ -1,0 +1,13 @@
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\apps\lwip_dhcpd\dhcp_server_raw.c:294:1:dhcp_server_option_find	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\apps\lwip_dhcpd\dhcp_server_raw.c:763:14:dhcp_server_op_dns_server	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\apps\lwip_dhcpd\dhcp_server_raw.c:674:1:dhcp_server_start	32	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\apps\lwip_dhcpd\dhcp_server_raw.c:132:1:dhcp_client_find_by_ip	32	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\apps\lwip_dhcpd\dhcp_server_raw.c:312:1:dhcp_server_recv	160	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\apps\lwip_dhcpd\dhcp_server_raw.c:735:7:dhcp_server_stop	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\apps\lwip_dhcpd\dhcp_server_raw.c:915:6:dhcpd_stop	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\apps\lwip_dhcpd\dhcp_server_raw.c:813:6:dhcpd_clear_dns_server	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\apps\lwip_dhcpd\dhcp_server_raw.c:826:7:dhcpd_add_dns_server	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\apps\lwip_dhcpd\dhcp_server_raw.c:831:7:dhcpd_remove_dns_server	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\apps\lwip_dhcpd\dhcp_server_raw.c:837:6:dhcpd_start	96	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\apps\lwip_dhcpd\dhcp_server_raw.c:951:6:dhcpd_stop_with_netif	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\apps\lwip_dhcpd\dhcp_server_raw.c:968:7:dhcpd_status_callback_set	16	static

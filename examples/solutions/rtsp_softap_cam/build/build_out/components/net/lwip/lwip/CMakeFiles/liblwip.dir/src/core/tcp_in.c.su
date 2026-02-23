@@ -1,0 +1,8 @@
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\core\tcp_in.c:1947:1:tcp_get_next_optbyte	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\core\tcp_in.c:1101:1:tcp_oos_insert_segment	32	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\core\tcp_in.c:1968:1:tcp_parseopt	48	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\core\tcp_in.c:627:1:tcp_input_delayed_close	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\core\tcp_in.c:1138:1:tcp_free_acked_segments.constprop	32	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\core\tcp_in.c:1191:1:tcp_receive	48	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\core\tcp_in.c:123:1:tcp_input	96	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\core\tcp_in.c:2088:1:tcp_trigger_input_pcb_close	0	static

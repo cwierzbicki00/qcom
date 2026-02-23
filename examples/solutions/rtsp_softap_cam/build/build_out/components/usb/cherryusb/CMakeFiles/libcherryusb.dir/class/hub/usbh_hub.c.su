@@ -1,0 +1,12 @@
+C:\Users\cwier\Documents\GitHub\qcom\components\usb\cherryusb\class\hub\usbh_hub.c:438:12:usbh_hub_disconnect	32	static
+C:\Users\cwier\Documents\GitHub\qcom\components\usb\cherryusb\class\hub\usbh_hub.c:316:13:hub_int_timeout	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\usb\cherryusb\common/usb_memcpy.h:22:21:usb_memcpy.isra	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\usb\cherryusb\class\hub\usbh_hub.c:229:12:usbh_hub_get_portstatus	48	static
+C:\Users\cwier\Documents\GitHub\qcom\components\usb\cherryusb\class\hub\usbh_hub.c:247:5:usbh_hub_set_feature	32	static
+C:\Users\cwier\Documents\GitHub\qcom\components\usb\cherryusb\class\hub\usbh_hub.c:324:12:usbh_hub_connect	64	static
+C:\Users\cwier\Documents\GitHub\qcom\components\usb\cherryusb\class\hub\usbh_hub.c:265:5:usbh_hub_clear_feature	32	static
+C:\Users\cwier\Documents\GitHub\qcom\components\usb\cherryusb\class\hub\usbh_hub.c:674:13:usbh_hub_thread	96	static
+C:\Users\cwier\Documents\GitHub\qcom\components\usb\cherryusb\class\hub\usbh_hub.c:691:6:usbh_hub_thread_wakeup	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\usb\cherryusb\class\hub\usbh_hub.c:302:13:hub_int_complete_callback	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\usb\cherryusb\class\hub\usbh_hub.c:696:5:usbh_hub_initialize	48	static
+C:\Users\cwier\Documents\GitHub\qcom\components\usb\cherryusb\class\hub\usbh_hub.c:726:5:usbh_hub_deinitialize	32	static

@@ -26,6 +26,86 @@
 static USB_NOCACHE_RAM_SECTION struct ehci_iso_hw
     g_iso_pool[CONFIG_USBHOST_MAX_BUS][CONFIG_USB_EHCI_ISO_NUM]
     __attribute__((aligned(CONFIG_USB_EHCI_ALIGN_SIZE)));
+static volatile uint8_t g_iso_expected_pkts[CONFIG_USBHOST_MAX_BUS][CONFIG_USB_EHCI_ISO_NUM];
+static uint16_t g_iso_next_start_frame[CONFIG_USBHOST_MAX_BUS];
+static uint32_t g_iso_submit_count[CONFIG_USBHOST_MAX_BUS];
+static uint32_t g_iso_complete_count[CONFIG_USBHOST_MAX_BUS];
+
+/* App-owned ISO completion router (defined in uvc_capture.c). */
+extern void uvc_iso_complete_router(void *arg, int nbytes);
+
+static int iso_group_index(struct usbh_bus *bus, struct ehci_iso_hw *iso)
+{
+    for (int i = 0; i < CONFIG_USB_EHCI_ISO_NUM; i++) {
+        if (&g_iso_pool[bus->hcd.hcd_id][i] == iso) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+static bool iso_any_group_in_use(struct usbh_bus *bus)
+{
+    for (int i = 0; i < CONFIG_USB_EHCI_ISO_NUM; i++) {
+        if (g_ehci_hcd[bus->hcd.hcd_id].ehci_iso_used[i]) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/* Pick a monotonic start frame so ISO URBs do not overlap/gap under load.
+ * Repeatedly submitting at current+2 can collide URBs and corrupt payload
+ * continuity; maintain a rolling cursor per bus instead. */
+static uint16_t iso_pick_start_frame(struct usbh_bus *bus, uint32_t itds_needed)
+{
+    const uint16_t frame_mask = (uint16_t)(CONFIG_USB_EHCI_FRAME_LIST_SIZE - 1U);
+    const uint16_t half_wrap = (uint16_t)(CONFIG_USB_EHCI_FRAME_LIST_SIZE / 2U);
+    const uint16_t cur_frame = (uint16_t)(usbh_get_frame_number(bus) & frame_mask);
+    const uint16_t earliest = (uint16_t)((cur_frame + 2U) & frame_mask);
+    uint16_t start_frame = earliest;
+    size_t flags = usb_osal_enter_critical_section();
+
+    uint16_t cursor = (uint16_t)(g_iso_next_start_frame[bus->hcd.hcd_id] & frame_mask);
+    uint16_t cursor_ahead = (uint16_t)((cursor - cur_frame) & frame_mask);
+    uint16_t earliest_ahead = (uint16_t)((earliest - cur_frame) & frame_mask);
+
+    if (cursor_ahead > earliest_ahead && cursor_ahead < half_wrap) {
+        start_frame = cursor;
+    }
+
+    g_iso_next_start_frame[bus->hcd.hcd_id] =
+        (uint16_t)((start_frame + itds_needed) & frame_mask);
+    usb_osal_leave_critical_section(flags);
+    return start_frame;
+}
+
+static uint32_t iso_group_pkt_limit_from_itd(const struct ehci_iso_hw *iso)
+{
+    uint32_t max_pkt = 0;
+
+    if (!iso) {
+        return 0;
+    }
+
+    for (uint32_t i = 0; i < iso->itd_num; i++) {
+        const struct ehci_itd_hw *itd_hw = &iso->itd_pool[i];
+        uint8_t mask = itd_hw->mf_unmask;
+
+        for (uint32_t mf = 0; mf < 8; mf++) {
+            if (!(mask & (1U << mf))) {
+                continue;
+            }
+
+            uint32_t pkt_i = itd_hw->pkt_idx[mf];
+            if ((pkt_i + 1U) > max_pkt) {
+                max_pkt = pkt_i + 1U;
+            }
+        }
+    }
+
+    return max_pkt;
+}
 
 /* ------------------------------------------------------------------ */
 /* ITD pool helpers                                                    */
@@ -38,6 +118,7 @@ static struct ehci_iso_hw *iso_group_alloc(struct usbh_bus *bus)
             g_ehci_hcd[bus->hcd.hcd_id].ehci_iso_used[i] = true;
             struct ehci_iso_hw *iso = &g_iso_pool[bus->hcd.hcd_id][i];
             memset(iso, 0, sizeof(*iso));
+            g_iso_expected_pkts[bus->hcd.hcd_id][i] = 0;
             return iso;
         }
     }
@@ -49,8 +130,12 @@ static void iso_group_free(struct usbh_bus *bus, struct ehci_iso_hw *iso)
     for (int i = 0; i < CONFIG_USB_EHCI_ISO_NUM; i++) {
         if (&g_iso_pool[bus->hcd.hcd_id][i] == iso) {
             g_ehci_hcd[bus->hcd.hcd_id].ehci_iso_used[i] = false;
+            g_iso_expected_pkts[bus->hcd.hcd_id][i] = 0;
             break;
         }
+    }
+    if (!iso_any_group_in_use(bus)) {
+        g_iso_next_start_frame[bus->hcd.hcd_id] = 0;
     }
 }
 
@@ -112,6 +197,7 @@ static void itd_fill_bpl(struct ehci_itd *itd,
 int ehci_iso_urb_init(struct usbh_bus *bus, struct usbh_urb *urb)
 {
     struct ehci_iso_hw *iso;
+    int iso_idx;
     uint8_t dev_addr;
     uint8_t ep_num;
     uint16_t mps;
@@ -125,8 +211,17 @@ int ehci_iso_urb_init(struct usbh_bus *bus, struct usbh_urb *urb)
     }
 
     num_pkts = urb->num_of_iso_packets;
-    if (num_pkts == 0) {
+    if (num_pkts == 0 || num_pkts > 64) {
         return -USB_ERR_INVAL;
+    }
+    g_iso_submit_count[bus->hcd.hcd_id]++;
+    if ((g_iso_submit_count[bus->hcd.hcd_id] & 0xFFU) == 0U) {
+        uint32_t first_buf = (uint32_t)(uintptr_t)urb->iso_packet[0].transfer_buffer;
+        USB_LOG_INFO("ISO submit=%lu pkts=%lu first_buf=0x%08lx off=0x%03lx\r\n",
+                     (unsigned long)g_iso_submit_count[bus->hcd.hcd_id],
+                     (unsigned long)num_pkts,
+                     (unsigned long)first_buf,
+                     (unsigned long)(first_buf & 0x0FFFU));
     }
 
     iso = iso_group_alloc(bus);
@@ -134,6 +229,12 @@ int ehci_iso_urb_init(struct usbh_bus *bus, struct usbh_urb *urb)
         USB_LOG_ERR("No free ISO group\r\n");
         return -USB_ERR_NOMEM;
     }
+    iso_idx = iso_group_index(bus, iso);
+    if (iso_idx < 0) {
+        iso_group_free(bus, iso);
+        return -USB_ERR_INVAL;
+    }
+    g_iso_expected_pkts[bus->hcd.hcd_id][iso_idx] = (uint8_t)num_pkts;
 
     dev_addr = urb->hport->dev_addr;
     ep_num   = urb->ep->bEndpointAddress & 0x0F;
@@ -158,10 +259,9 @@ int ehci_iso_urb_init(struct usbh_bus *bus, struct usbh_urb *urb)
         return -USB_ERR_NOMEM;
     }
 
-    /* Get current frame number for scheduling */
-    uint16_t cur_frame = usbh_get_frame_number(bus);
-    /* Start a few frames ahead to avoid races */
-    uint16_t start_frame = (cur_frame + 2) & (CONFIG_USB_EHCI_FRAME_LIST_SIZE - 1);
+    /* Start a few frames ahead, but keep a monotonic per-bus schedule cursor
+     * so resubmitted URBs stay contiguous instead of overlapping. */
+    uint16_t start_frame = iso_pick_start_frame(bus, itds_needed);
 
     urb->start_frame = start_frame;
 
@@ -183,16 +283,15 @@ int ehci_iso_urb_init(struct usbh_bus *bus, struct usbh_urb *urb)
 
         /* Fill buffer page pointers using first packet's buffer */
         uint32_t buf_base = (uint32_t)(uintptr_t)urb->iso_packet[pkt_idx].transfer_buffer;
+        uint32_t base_page = buf_base & ~0xFFFU;
         uint32_t total_span = 0;
 
         /* Calculate total buffer span for this ITD */
         uint32_t first_pkt = pkt_idx;
-        uint32_t slots_this_itd = 0;
         for (uint32_t s = 0; s < 8 && (first_pkt + s) < num_pkts; s++) {
             total_span = (uint32_t)(uintptr_t)urb->iso_packet[first_pkt + s].transfer_buffer
                          + urb->iso_packet[first_pkt + s].transfer_buffer_length
                          - buf_base;
-            slots_this_itd++;
         }
 
         itd_fill_bpl(itd, dev_addr, ep_num, mps, dir_in, mult + 1,
@@ -202,9 +301,23 @@ int ehci_iso_urb_init(struct usbh_bus *bus, struct usbh_urb *urb)
         for (uint32_t mf = 0; mf < 8 && pkt_idx < num_pkts; mf++, pkt_idx++) {
             struct usbh_iso_frame_packet *pkt = &urb->iso_packet[pkt_idx];
             uint32_t buf_phys = (uint32_t)(uintptr_t)pkt->transfer_buffer;
-            uint32_t offset = buf_phys - buf_base;
-            uint32_t page = offset / 0x1000;
-            uint32_t xoffs = offset & 0xFFF;
+            uint32_t page = (buf_phys - base_page) / 0x1000U;
+            uint32_t xoffs = buf_phys & 0xFFFU;
+
+            if (page > 6U) {
+                USB_LOG_ERR("ISO pkt page overflow: page=%u buf=0x%08lx base_page=0x%08lx idx=%lu\r\n",
+                            (unsigned)page, (unsigned long)buf_phys,
+                            (unsigned long)base_page, (unsigned long)pkt_idx);
+                iso_group_free(bus, iso);
+                return -USB_ERR_INVAL;
+            }
+            if (pkt->transfer_buffer_length > 0x0FFFU) {
+                USB_LOG_ERR("ISO pkt length overflow: len=%lu idx=%lu\r\n",
+                            (unsigned long)pkt->transfer_buffer_length,
+                            (unsigned long)pkt_idx);
+                iso_group_free(bus, iso);
+                return -USB_ERR_INVAL;
+            }
 
             uint32_t tscl = ITD_TSCL_STATUS_ACTIVE;
             tscl |= (xoffs & ITD_TSCL_XOFFS_MASK);
@@ -322,6 +435,26 @@ void ehci_scan_isochronous_list(struct usbh_bus *bus)
         if (!urb) {
             continue;
         }
+        uint32_t pkt_limit = (uint32_t)g_iso_expected_pkts[bus->hcd.hcd_id][g];
+        if (pkt_limit == 0 || pkt_limit > 64) {
+            uint32_t fallback_limit = urb->num_of_iso_packets;
+            if (fallback_limit == 0 || fallback_limit > 64) {
+                fallback_limit = iso_group_pkt_limit_from_itd(iso);
+            }
+
+            if (fallback_limit == 0 || fallback_limit > 64) {
+                USB_LOG_WRN("Invalid ISO pkt_limit=%u for group %d (urb=%u itd=%u)\r\n",
+                            (unsigned)pkt_limit, g,
+                            (unsigned)urb->num_of_iso_packets,
+                            (unsigned)iso->itd_num);
+                continue;
+            }
+
+            USB_LOG_WRN("Recovered ISO pkt_limit=%u for group %d (cached=%u)\r\n",
+                        (unsigned)fallback_limit, g, (unsigned)pkt_limit);
+            pkt_limit = fallback_limit;
+            g_iso_expected_pkts[bus->hcd.hcd_id][g] = (uint8_t)pkt_limit;
+        }
 
         /* Scan all ITDs in this group */
         bool all_done = true;
@@ -346,7 +479,7 @@ void ehci_scan_isochronous_list(struct usbh_bus *bus)
 
                 /* Transaction completed — extract results */
                 uint32_t pkt_i = itd_hw->pkt_idx[mf];
-                if (pkt_i >= urb->num_of_iso_packets) {
+                if (pkt_i >= pkt_limit) {
                     continue;
                 }
 
@@ -415,16 +548,28 @@ void ehci_scan_isochronous_list(struct usbh_bus *bus)
             urb->hcpriv = NULL;
             urb->actual_length = total_actual;
             urb->errorcode = any_error ? -USB_ERR_IO : 0;
+            urb->num_of_iso_packets = pkt_limit;
+            urb->arg = urb;
+            if (urb->complete != uvc_iso_complete_router) {
+                USB_LOG_WRN("Unexpected ISO cb=%p, forcing router\r\n", (void *)urb->complete);
+                urb->complete = uvc_iso_complete_router;
+            }
 
             iso_group_free(bus, iso);
+            g_iso_complete_count[bus->hcd.hcd_id]++;
+            if ((g_iso_complete_count[bus->hcd.hcd_id] & 0xFFU) == 0U) {
+                USB_LOG_INFO("ISO complete=%lu pkt_limit=%lu total_actual=%lu err=%lu\r\n",
+                             (unsigned long)g_iso_complete_count[bus->hcd.hcd_id],
+                             (unsigned long)pkt_limit,
+                             (unsigned long)total_actual,
+                             (unsigned long)(any_error ? 1U : 0U));
+            }
 
-            /* Fire completion callback */
-            if (urb->complete) {
-                if (urb->errorcode < 0) {
-                    urb->complete(urb->arg, urb->errorcode);
-                } else {
-                    urb->complete(urb->arg, (int)urb->actual_length);
-                }
+            /* Fire completion callback through the app-owned router directly. */
+            if (urb->errorcode < 0) {
+                uvc_iso_complete_router(urb, urb->errorcode);
+            } else {
+                uvc_iso_complete_router(urb, (int)urb->actual_length);
             }
         }
     }

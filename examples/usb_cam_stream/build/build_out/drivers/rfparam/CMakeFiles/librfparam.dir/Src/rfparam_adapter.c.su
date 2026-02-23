@@ -1,0 +1,11 @@
+C:\Users\cwier\Documents\GitHub\qcom\drivers\rfparam\Src\rfparam_adapter.c:385:6:rfparam_set_capcode	0	static
+C:\Users\cwier\Documents\GitHub\qcom\drivers\rfparam\Src\rfparam_adapter.c:380:6:rfparam_get_capcode	32	static
+C:\Users\cwier\Documents\GitHub\qcom\drivers\rfparam\Src\rfparam_adapter.c:32:6:rfparam_array_printf	48	static
+C:\Users\cwier\Documents\GitHub\qcom\drivers\rfparam\Src\rfparam_adapter.c:83:9:rfparam_get_wlan_pwroffset_with_option	112	static
+C:\Users\cwier\Documents\GitHub\qcom\drivers\rfparam\Src\rfparam_adapter.c:167:9:rfparam_get_wlan_pwroffset_lp_with_option	112	static
+C:\Users\cwier\Documents\GitHub\qcom\drivers\rfparam\Src\rfparam_adapter.c:250:9:rfparam_get_bz_pwroffset_with_option	96	static
+C:\Users\cwier\Documents\GitHub\qcom\drivers\rfparam\Src\rfparam_adapter.c:332:9:rfparam_get_cap_code_with_option	128	static
+C:\Users\cwier\Documents\GitHub\qcom\drivers\rfparam\Src\rfparam_adapter.c:408:8:rfparam_load	112	static
+C:\Users\cwier\Documents\GitHub\qcom\drivers\rfparam\Src\rfparam_adapter.c:724:19:rfparam_cfg_get	0	static
+C:\Users\cwier\Documents\GitHub\qcom\drivers\rfparam\Src\rfparam_adapter.c:729:10:rfparam_tlv_base_addr_get	0	static
+C:\Users\cwier\Documents\GitHub\qcom\drivers\rfparam\Src\rfparam_adapter.c:744:9:rfparam_init	32	static

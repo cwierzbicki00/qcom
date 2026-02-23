@@ -1,0 +1,10 @@
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/ap/drv_callbacks.c:1580:38:hostapd_get_mode_channel	32	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/ap/drv_callbacks.c:108:12:check_sa_query_need	16	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/ap/drv_callbacks.c:134:5:hostapd_notif_assoc	1552	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/ap/drv_callbacks.c:744:6:hostapd_notif_disassoc	16	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/ap/drv_callbacks.c:782:6:hostapd_event_sta_low_ack	32	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/ap/drv_callbacks.c:797:6:hostapd_event_sta_opmode_changed	64	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/ap/drv_callbacks.c:864:6:hostapd_event_ch_switch	96	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/ap/drv_callbacks.c:1049:6:hostapd_event_connect_failed_reason	32	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/ap/drv_callbacks.c:1182:5:hostapd_probe_req_rx	48	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/ap/drv_callbacks.c:1653:6:hostapd_event_get_survey	32	static

@@ -1,0 +1,1 @@
+riscv64-unknown-elf-ar.exe crD ..\..\..\lib\libmbedtls.a @CMakeFiles\libmbedtls.dir\objects1

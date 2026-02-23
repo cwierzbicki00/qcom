@@ -1,0 +1,6 @@
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/wpa_supplicant/op_classes.c:20:26:allow_channel	0	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/wpa_supplicant/op_classes.c:72:26:verify_80mhz	96	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/wpa_supplicant/op_classes.c:199:19:verify_channel	96	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/wpa_supplicant/op_classes.c:252:12:wpas_op_class_supported	64	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/wpa_supplicant/op_classes.c:457:8:wpas_supp_op_class_ie	64	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/wpa_supplicant/op_classes.c:516:7:wpas_supp_op_classes	32	static

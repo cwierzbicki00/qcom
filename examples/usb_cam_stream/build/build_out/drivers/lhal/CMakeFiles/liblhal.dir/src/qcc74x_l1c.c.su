@@ -1,0 +1,11 @@
+C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\src\qcc74x_l1c.c:6:6:qcc74x_l1c_icache_enable	0	static
+C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\src\qcc74x_l1c.c:15:6:qcc74x_l1c_icache_disable	0	static
+C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\src\qcc74x_l1c.c:24:88:qcc74x_l1c_icache_invalid_all	0	static
+C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\src\qcc74x_l1c.c:33:6:qcc74x_l1c_dcache_enable	0	static
+C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\src\qcc74x_l1c.c:42:6:qcc74x_l1c_dcache_disable	0	static
+C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\src\qcc74x_l1c.c:51:88:qcc74x_l1c_dcache_clean_all	0	static
+C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\src\qcc74x_l1c.c:60:88:qcc74x_l1c_dcache_invalidate_all	0	static
+C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\src\qcc74x_l1c.c:69:88:qcc74x_l1c_dcache_clean_invalidate_all	0	static
+C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\src\qcc74x_l1c.c:78:88:qcc74x_l1c_dcache_clean_range	32	static
+C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\src\qcc74x_l1c.c:89:88:qcc74x_l1c_dcache_invalidate_range	32	static
+C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\src\qcc74x_l1c.c:100:89:qcc74x_l1c_dcache_clean_invalidate_range	32	static

@@ -1,0 +1,7 @@
+C:\Users\cwier\Documents\GitHub\qcom\examples\solutions\rtsp_softap_cam\rtsp_bridge.c:181:12:cmd_rtsp_info	16	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\solutions\rtsp_softap_cam\rtsp_bridge.c:31:13:release_inflight.part.0	16	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\solutions\rtsp_softap_cam\rtsp_bridge.c:44:13:clear_owner	16	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\solutions\rtsp_softap_cam\rtsp_bridge.c:55:13:rtsp_report_handler	16	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\solutions\rtsp_softap_cam\rtsp_bridge.c:63:12:rtsp_get_frame	48	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\solutions\rtsp_softap_cam\rtsp_bridge.c:136:5:rtsp_bridge_start	16	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\solutions\rtsp_softap_cam\rtsp_bridge.c:169:6:rtsp_bridge_stop	16	static

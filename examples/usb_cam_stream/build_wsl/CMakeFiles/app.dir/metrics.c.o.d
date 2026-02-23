@@ -1,0 +1,22 @@
+CMakeFiles/app.dir/metrics.c.o: \
+ /mnt/c/Users/cwier/documents/github/qcom/examples/usb_cam_stream/metrics.c \
+ /mnt/c/Users/cwier/documents/github/qcom/examples/usb_cam_stream/metrics.h \
+ /mnt/c/Users/cwier/documents/github/qcom/examples/usb_cam_stream/http_server.h \
+ /mnt/c/Users/cwier/documents/github/qcom/examples/usb_cam_stream/uvc_capture.h \
+ /mnt/c/Users/cwier/documents/github/qcom/examples/usb_cam_stream/frame_pool.h \
+ /mnt/c/Users/cwier/documents/github/qcom/examples/usb_cam_stream/wifi_ap.h \
+ /mnt/c/Users/cwier/documents/github/qcom/components/os/freertos/include/FreeRTOS.h \
+ /mnt/c/Users/cwier/documents/github/qcom/examples/usb_cam_stream/./FreeRTOSConfig.h \
+ /mnt/c/Users/cwier/documents/github/qcom/components/os/freertos/include/projdefs.h \
+ /mnt/c/Users/cwier/documents/github/qcom/components/os/freertos/include/portable.h \
+ /mnt/c/Users/cwier/documents/github/qcom/components/os/freertos/include/deprecated_definitions.h \
+ /mnt/c/Users/cwier/documents/github/qcom/components/os/freertos/portable/GCC/RISC-V/common/portmacro.h \
+ /mnt/c/Users/cwier/documents/github/qcom/components/os/freertos/include/mpu_wrappers.h \
+ /mnt/c/Users/cwier/documents/github/qcom/components/os/freertos/include/timers.h \
+ /mnt/c/Users/cwier/documents/github/qcom/components/os/freertos/include/task.h \
+ /mnt/c/Users/cwier/documents/github/qcom/components/os/freertos/include/list.h \
+ /mnt/c/Users/cwier/documents/github/qcom/components/mm/./mem.h \
+ /mnt/c/Users/cwier/documents/github/qcom/components/shell/./shell.h \
+ /mnt/c/Users/cwier/documents/github/qcom/components/shell/./shell_config.h \
+ /mnt/c/Users/cwier/documents/github/qcom/components/utils/log/log.h \
+ /mnt/c/Users/cwier/documents/github/qcom/components/utils/log/qcc74x_dbg.h

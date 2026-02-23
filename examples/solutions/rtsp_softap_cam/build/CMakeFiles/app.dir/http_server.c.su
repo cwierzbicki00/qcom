@@ -1,0 +1,15 @@
+C:\Users\cwier\Documents\GitHub\qcom\examples\solutions\rtsp_softap_cam\http_server.c:258:13:snapshot_log_hex	224	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\solutions\rtsp_softap_cam\http_server.c:127:12:send_all	48	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\solutions\rtsp_softap_cam\http_server.c:165:12:send_response	400	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\solutions\rtsp_softap_cam\http_server.c:193:13:send_error	32	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\solutions\rtsp_softap_cam\http_server.c:328:17:crc32_ieee	0	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\solutions\rtsp_softap_cam\http_server.c:290:13:snapshot_log_reject_raw	32	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\solutions\rtsp_softap_cam\http_server.c:1302:13:handle_client	2480	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\solutions\rtsp_softap_cam\http_server.c:1359:13:http_server_task	80	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\solutions\rtsp_softap_cam\http_server.c:82:24:http_get_counters	0	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\solutions\rtsp_softap_cam\http_server.c:87:6:http_stream_set_connected	0	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\solutions\rtsp_softap_cam\http_server.c:92:6:http_stream_note_dequeued	0	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\solutions\rtsp_softap_cam\http_server.c:97:6:http_stream_note_sent	0	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\solutions\rtsp_softap_cam\http_server.c:102:6:http_stream_note_dropped	0	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\solutions\rtsp_softap_cam\http_server.c:107:6:http_stream_reset	0	static
+C:\Users\cwier\Documents\GitHub\qcom\examples\solutions\rtsp_softap_cam\http_server.c:1414:6:http_server_start	16	static

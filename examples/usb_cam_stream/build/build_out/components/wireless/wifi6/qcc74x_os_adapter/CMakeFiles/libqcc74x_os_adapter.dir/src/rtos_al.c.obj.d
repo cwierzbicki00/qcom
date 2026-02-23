@@ -1,0 +1,19 @@
+build_out/components/wireless/wifi6/qcc74x_os_adapter/CMakeFiles/libqcc74x_os_adapter.dir/src/rtos_al.c.obj: \
+ C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_os_adapter\src\rtos_al.c \
+ C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_os_adapter\include/rtos_def.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\include/FreeRTOS.h \
+ c:\users\cwier\documents\github\qcom\examples\usb_cam_stream\freertosconfig.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\include/projdefs.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\include/portable.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\include/deprecated_definitions.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\portable\GCC\RISC-V\common/portmacro.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\include/mpu_wrappers.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\include/task.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\include/list.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_os_adapter\include/rtos_al.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_os_adapter\include/rtos_def.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\include/timers.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\include/task.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\include/queue.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\include/semphr.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\include/queue.h

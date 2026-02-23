@@ -1,0 +1,1 @@
+riscv64-unknown-elf-ar.exe crD ..\..\..\..\lib\libqcc74x_os_adapter.a CMakeFiles/libqcc74x_os_adapter.dir/src/rtos_al.c.obj CMakeFiles/libqcc74x_os_adapter.dir/src/platform_qcc74x_sdk.c.obj

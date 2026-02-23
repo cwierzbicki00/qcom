@@ -35,6 +35,7 @@ static qcc74x_block_pool_t  blk_pool;
 static QueueHandle_t         frame_queue;
 static SemaphoreHandle_t     pool_mtx;
 static SemaphoreHandle_t     pool_sem;
+static volatile uint32_t     stale_drop_total;
 
 static volatile bool         initialised;
 
@@ -104,12 +105,13 @@ int frame_pool_init(void)
           total, FRAME_MAX_SIZE / 1024, free_cnt);
 
     /* Ready queue: holds completed frame descriptors */
-    frame_queue = xQueueCreate(FRAME_POOL_COUNT, sizeof(frame_t));
+    frame_queue = xQueueCreate(FRAME_QUEUE_DEPTH, sizeof(frame_t));
     if (!frame_queue) {
         LOG_E("frame queue create failed\r\n");
         return -1;
     }
 
+    stale_drop_total = 0;
     initialised = true;
     return 0;
 }
@@ -143,23 +145,22 @@ void frame_free(frame_t *frame)
 
 void frame_queue_push(const frame_t *frame)
 {
-    /* Try non-blocking send first */
-    if (xQueueSend(frame_queue, frame, 0) == pdTRUE) {
-        return;
+    /* Freshness policy: keep only the newest completed frame. */
+    frame_t stale;
+    uint32_t dropped = 0U;
+    while (xQueueReceive(frame_queue, &stale, 0) == pdTRUE) {
+        frame_free(&stale);
+        dropped++;
+    }
+    if (dropped > 0U) {
+        stale_drop_total += dropped;
     }
 
-    /* Queue full — drop oldest frame (receive head, free it, then re-send) */
-    frame_t oldest;
-    if (xQueueReceive(frame_queue, &oldest, 0) == pdTRUE) {
-        frame_free(&oldest);
-    }
-
-    /* Now there is space; this should always succeed */
     if (xQueueSend(frame_queue, frame, 0) != pdTRUE) {
-        /* Should not happen — defensive: free the frame we were about to queue */
+        /* Defensive: free producer-owned frame if queue unexpectedly rejects it. */
         frame_t tmp = *frame;
         frame_free(&tmp);
-        LOG_E("frame queue push failed after drop\r\n");
+        LOG_E("frame queue push failed\r\n");
     }
 }
 
@@ -171,6 +172,33 @@ int frame_queue_pop(frame_t *frame, uint32_t timeout_ms)
         return 0;
     }
     return -1;
+}
+
+int frame_queue_pop_latest(frame_t *frame, uint32_t timeout_ms)
+{
+    TickType_t ticks = (timeout_ms == 0) ? 0 : pdMS_TO_TICKS(timeout_ms);
+    frame_t newer;
+    uint32_t dropped = 0;
+
+    if (xQueueReceive(frame_queue, frame, ticks) != pdTRUE) {
+        return -1;
+    }
+
+    while (xQueueReceive(frame_queue, &newer, 0) == pdTRUE) {
+        frame_free(frame);
+        *frame = newer;
+        dropped++;
+    }
+
+    if (dropped > 0) {
+        stale_drop_total += dropped;
+        if ((stale_drop_total % 64U) == 0U) {
+            LOG_W("dropped %u stale queued frames (total=%u)\r\n",
+                  (unsigned)dropped, (unsigned)stale_drop_total);
+        }
+    }
+
+    return 0;
 }
 
 void frame_queue_drain(void)
@@ -186,6 +214,22 @@ void frame_queue_drain(void)
     if (drained > 0) {
         LOG_I("drained %u queued frames\r\n", (unsigned)drained);
     }
+}
+
+bool frame_queue_drop_oldest(void)
+{
+    frame_t oldest;
+
+    if (!frame_queue) {
+        return false;
+    }
+
+    if (xQueueReceive(frame_queue, &oldest, 0) != pdTRUE) {
+        return false;
+    }
+
+    frame_free(&oldest);
+    return true;
 }
 
 void frame_pool_stats(uint32_t *total, uint32_t *free_count,

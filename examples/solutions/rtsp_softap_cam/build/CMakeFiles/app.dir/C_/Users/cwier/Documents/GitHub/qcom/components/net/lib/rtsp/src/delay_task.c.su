@@ -1,0 +1,11 @@
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lib\rtsp\src\delay_task.c:33:13:sync_delay_time	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lib\rtsp\src\delay_task.c:80:13:add_delay_task	32	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lib\rtsp\src\delay_task.c:105:13:del_delay_task	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lib\rtsp\src\delay_task.c:68:5:get_min_delay_time	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lib\rtsp\src\delay_task.c:120:20:create_delay_task	32	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lib\rtsp\src\delay_task.c:139:6:destroy_delay_task	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lib\rtsp\src\delay_task.c:154:6:update_delay_time	32	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lib\rtsp\src\delay_task.c:162:6:do_delay_task	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lib\rtsp\src\delay_task.c:198:6:destroy_sess_task	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lib\rtsp\src\delay_task.c:211:6:init_delay_task_queue	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lib\rtsp\src\delay_task.c:218:6:deinit_delay_task_queue	0	static

@@ -1,0 +1,24 @@
+build_out/components/net/lwip/lwip/CMakeFiles/liblwip.dir/src/core/sys.c.obj: \
+ C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\core\sys.c \
+ C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\include/lwip/opt.h \
+ c:\users\cwier\documents\github\qcom\examples\solutions\rtsp_softap_cam\lwipopts_user.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\include/lwip/debug.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\include/lwip/arch.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\lwip-port/arch/cc.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\lwip-port/arch/cpu.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\include/lwip/sys.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\include/lwip/err.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\lwip-port/arch/sys_arch.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\include/FreeRTOS.h \
+ c:\users\cwier\documents\github\qcom\examples\solutions\rtsp_softap_cam\freertosconfig.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\include/projdefs.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\include/portable.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\include/deprecated_definitions.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\portable\GCC\RISC-V\common/portmacro.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\include/mpu_wrappers.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\include/task.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\include/list.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\include/queue.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\include/task.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\include/semphr.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\include/queue.h

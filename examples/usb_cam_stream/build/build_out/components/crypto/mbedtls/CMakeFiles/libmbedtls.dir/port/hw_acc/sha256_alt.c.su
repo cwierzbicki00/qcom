@@ -1,0 +1,9 @@
+C:\Users\cwier\Documents\GitHub\qcom\components\crypto\mbedtls\port\hw_acc\sha256_alt.c:44:6:mbedtls_sha256_init	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\crypto\mbedtls\port\hw_acc\sha256_alt.c:59:6:mbedtls_sha256_free	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\crypto\mbedtls\port\hw_acc\sha256_alt.c:67:6:mbedtls_sha256_clone	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\crypto\mbedtls\port\hw_acc\sha256_alt.c:79:5:mbedtls_sha256_starts_ret	32	static
+C:\Users\cwier\Documents\GitHub\qcom\components\crypto\mbedtls\port\hw_acc\sha256_alt.c:98:6:mbedtls_sha256_starts	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\crypto\mbedtls\port\hw_acc\sha256_alt.c:108:5:mbedtls_sha256_update_ret	48	static
+C:\Users\cwier\Documents\GitHub\qcom\components\crypto\mbedtls\port\hw_acc\sha256_alt.c:130:6:mbedtls_sha256_update	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\crypto\mbedtls\port\hw_acc\sha256_alt.c:141:5:mbedtls_sha256_finish_ret	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\crypto\mbedtls\port\hw_acc\sha256_alt.c:157:6:mbedtls_sha256_finish	0	static

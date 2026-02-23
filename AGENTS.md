@@ -2,6 +2,12 @@
 
 Assume we are working in a fork/branch of QCCSDK-QCC74x.
 
+### Agent execution policy (important)
+- The coding agent must not run project build/flash commands unless explicitly asked in that turn.
+- Default behavior: provide exact commands for the user to run in PowerShell and wait for logs/results.
+- Commands to avoid by default: `make`, `make flash`, `make clean`, or any command that writes firmware images.
+- Agent should focus on code edits, static analysis, and troubleshooting from user-provided logs.
+
 ### Pin SDK version
 Prefer building from a tagged release (example: 2.0.97). If using master, record the commit hash in logs.
 

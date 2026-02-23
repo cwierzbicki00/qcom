@@ -1,0 +1,20 @@
+build_out/components/usb/cherryusb/CMakeFiles/libcherryusb.dir/osal/usb_osal_freertos.c.obj: \
+ C:\Users\cwier\Documents\GitHub\qcom\components\usb\cherryusb\osal\usb_osal_freertos.c \
+ C:\Users\cwier\Documents\GitHub\qcom\components\usb\cherryusb\common/usb_osal.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\usb\cherryusb\common/usb_errno.h \
+ c:\users\cwier\documents\github\qcom\examples\usb_cam_stream\usb_config.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\usb\cherryusb\common/usb_log.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\include/FreeRTOS.h \
+ c:\users\cwier\documents\github\qcom\examples\usb_cam_stream\freertosconfig.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\include/projdefs.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\include/portable.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\include/deprecated_definitions.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\portable\GCC\RISC-V\common/portmacro.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\include/mpu_wrappers.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\include/semphr.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\include/queue.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\include/task.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\include/list.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\include/timers.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\include/event_groups.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\include/timers.h

@@ -1,0 +1,7 @@
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/ap/wnm_ap.c:450:6:ap_sta_reset_steer_flag_timer	0	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/ap/wnm_ap.c:716:13:set_disassoc_timer	32	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/ap/wnm_ap.c:638:5:ieee802_11_rx_wnm_action_ap	144	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/ap/wnm_ap.c:680:5:wnm_send_disassoc_imminent	1040	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/ap/wnm_ap.c:744:5:wnm_send_ess_disassoc_imminent	1056	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/ap/wnm_ap.c:794:5:wnm_send_bss_tm_req	80	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/ap/wnm_ap.c:874:5:wnm_send_coloc_intf_req	160	static

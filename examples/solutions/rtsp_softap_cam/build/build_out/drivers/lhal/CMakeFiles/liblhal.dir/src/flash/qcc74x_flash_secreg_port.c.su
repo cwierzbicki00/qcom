@@ -1,0 +1,5 @@
+C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\src\flash\qcc74x_flash_secreg_port.c:198:116:sflash_general_get_lock	32	static
+C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\src\flash\qcc74x_flash_secreg_port.c:231:116:sflash_general_set_lock	48	static
+C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\src\flash\qcc74x_flash_secreg_port.c:147:116:sflash_general_erase	64	static
+C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\src\flash\qcc74x_flash_secreg_port.c:78:115:sflash_general_write	96	static
+C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\src\flash\qcc74x_flash_secreg_port.c:12:115:sflash_general_read	96	static

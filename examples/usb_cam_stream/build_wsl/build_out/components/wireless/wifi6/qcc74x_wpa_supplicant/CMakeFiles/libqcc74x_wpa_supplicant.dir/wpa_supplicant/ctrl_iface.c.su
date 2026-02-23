@@ -1,0 +1,9 @@
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/wpa_supplicant/ctrl_iface.c:8670:13:wpas_ctrl_radio_work_timeout	16	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/wpa_supplicant/ctrl_iface.c:7458:14:freq_range_to_channel_list	64	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/wpa_supplicant/ctrl_iface.c:2782:15:wpa_supplicant_ie_txt	96	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/wpa_supplicant/ctrl_iface.c:1336:12:wpa_supplicant_ctrl_iface_wps_pbc	48	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/wpa_supplicant/ctrl_iface.c:8869:13:wpas_ctrl_scan.constprop	160	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/wpa_supplicant/ctrl_iface.c:493:12:wpa_supplicant_ctrl_iface_set	256	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/wpa_supplicant/ctrl_iface.c:8813:6:wpas_ctrl_radio_work_flush	32	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/wpa_supplicant/ctrl_iface.c:12547:8:wpa_supplicant_ctrl_iface_process	352	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/wpa_supplicant/ctrl_iface.c:13475:8:wpa_supplicant_global_ctrl_iface_process	112	static

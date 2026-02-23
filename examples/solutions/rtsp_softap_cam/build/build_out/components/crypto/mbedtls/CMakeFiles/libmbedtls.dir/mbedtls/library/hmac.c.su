@@ -1,0 +1,4 @@
+C:\Users\cwier\Documents\GitHub\qcom\components\crypto\mbedtls\mbedtls\library\hmac.c:50:13:pad_buf	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\crypto\mbedtls\mbedtls\library\hmac.c:16:5:mbedtls_hmac_iter_init	48	static
+C:\Users\cwier\Documents\GitHub\qcom\components\crypto\mbedtls\mbedtls\library\hmac.c:66:5:mbedtls_hmac_iter_ret	32	static
+C:\Users\cwier\Documents\GitHub\qcom\components\crypto\mbedtls\mbedtls\library\hmac.c:128:6:mbedtls_hmac	320	static

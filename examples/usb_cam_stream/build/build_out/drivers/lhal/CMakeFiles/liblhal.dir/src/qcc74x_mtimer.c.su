@@ -1,0 +1,8 @@
+C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\src\qcc74x_mtimer.c:24:13:systick_isr	0	static
+C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\src\qcc74x_mtimer.c:34:6:qcc74x_mtimer_config	32	static
+C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\src\qcc74x_mtimer.c:50:117:qcc74x_mtimer_get_freq	0	static
+C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\src\qcc74x_mtimer.c:55:95:qcc74x_mtimer_get_time_us	64	static
+C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\src\qcc74x_mtimer.c:88:117:__div64_32	0	static
+C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\src\qcc74x_mtimer.c:119:96:qcc74x_mtimer_get_time_ms	16	static
+C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\src\qcc74x_mtimer.c:134:92:qcc74x_mtimer_delay_us	16	static
+C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\src\qcc74x_mtimer.c:146:92:qcc74x_mtimer_delay_ms	32	static

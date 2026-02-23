@@ -1,0 +1,7 @@
+C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\freertos_port.c:5:28:vAssertCalled	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\freertos_port.c:13:28:vApplicationTickHook	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\freertos_port.c:18:28:vApplicationStackOverflowHook	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\freertos_port.c:26:28:vApplicationMallocFailedHook	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\freertos_port.c:31:28:vApplicationGetIdleTaskMemory	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\freertos_port.c:55:28:vApplicationGetTimerTaskMemory	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\freertos_port.c:77:6:__errno	0	static

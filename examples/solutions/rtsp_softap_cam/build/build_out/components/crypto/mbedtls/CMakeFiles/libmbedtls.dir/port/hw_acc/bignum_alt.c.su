@@ -1,0 +1,2 @@
+C:\Users\cwier\Documents\GitHub\qcom\components\crypto\mbedtls\port\hw_acc\bignum_alt.c:48:5:qcc74x_mpi_exp_mod_wo_lock	128	static
+C:\Users\cwier\Documents\GitHub\qcom\components\crypto\mbedtls\port\hw_acc\bignum_alt.c:211:5:mbedtls_mpi_exp_mod	32	static

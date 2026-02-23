@@ -1,0 +1,17 @@
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/wpa_supplicant/rrm.c:22:13:wpas_rrm_neighbor_rep_timeout_handler	16	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/utils/wpabuf.h:118:20:wpabuf_put_u8	16	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/utils/wpabuf.h:166:20:wpabuf_put_data	32	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/wpa_supplicant/rrm.c:289:12:wpas_rrm_report_elem	32	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/wpa_supplicant/rrm.c:504:14:wpas_add_channels	96	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/wpa_supplicant/rrm.c:449:13:wpas_rrm_send_msr_report	80	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/wpa_supplicant/rrm.c:63:6:wpas_rrm_process_neighbor_rep	48	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/wpa_supplicant/rrm.c:141:5:wpas_rrm_send_neighbor_rep_request	64	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/wpa_supplicant/rrm.c:709:5:wpas_get_op_chan_phy	48	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/wpa_supplicant/rrm.c:928:12:wpas_add_beacon_rep	128	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/wpa_supplicant/rrm.c:1420:6:wpas_rrm_handle_link_measurement_request	64	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/wpa_supplicant/rrm.c:1589:6:wpas_clear_beacon_rep_data	16	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/wpa_supplicant/rrm.c:44:6:wpas_rrm_reset	16	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/wpa_supplicant/rrm.c:1001:6:wpas_rrm_refuse_request	32	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/wpa_supplicant/rrm.c:1022:13:wpas_rrm_scan_timeout	32	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/wpa_supplicant/rrm.c:1382:6:wpas_rrm_handle_radio_measurement_request	144	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/wpa_supplicant/rrm.c:1488:5:wpas_beacon_rep_scan_process	64	static

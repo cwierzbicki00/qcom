@@ -1,0 +1,10 @@
+/mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/mbedtls/library/cipher_wrap.c:82:13:gcm_ctx_free	32	static
+/mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/mbedtls/library/cipher_wrap.c:71:14:gcm_ctx_alloc	16	static
+/mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/mbedtls/library/cipher_wrap.c:501:12:gcm_aes_setkey_wrap	0	static
+/mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/mbedtls/library/cipher_wrap.c:206:13:aes_ctx_free	32	static
+/mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/mbedtls/library/cipher_wrap.c:193:14:aes_ctx_alloc	16	static
+/mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/mbedtls/library/cipher_wrap.c:181:12:aes_setkey_dec_wrap	0	static
+/mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/mbedtls/library/cipher_wrap.c:187:12:aes_setkey_enc_wrap	0	static
+/mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/mbedtls/library/cipher_wrap.c:146:12:aes_crypt_ctr_wrap	0	static
+/mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/mbedtls/library/cipher_wrap.c:118:12:aes_crypt_cbc_wrap	0	static
+/mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/mbedtls/library/cipher_wrap.c:111:12:aes_crypt_ecb_wrap	0	static

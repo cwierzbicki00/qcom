@@ -13,6 +13,15 @@ typedef enum {
     CAMERA_UNAVAILABLE,
 } camera_state_t;
 
+/* Capture controller state (session-owned start/stop FSM). */
+typedef enum {
+    CAPTURE_CTRL_STOPPED = 0,
+    CAPTURE_CTRL_STARTING,
+    CAPTURE_CTRL_RUNNING,
+    CAPTURE_CTRL_RESTARTING,
+    CAPTURE_CTRL_STOPPING,
+} capture_ctrl_state_t;
+
 /* Negotiated mode info (read-only after negotiation) */
 typedef struct {
     uint16_t vid;
@@ -44,13 +53,43 @@ camera_state_t uvc_get_camera_state(void);
 const uvc_mode_t *uvc_get_mode(void);
 
 /*
- * Get total frames captured since last streaming start.
+ * Get total frames captured since boot.
  */
 uint64_t uvc_get_frames_captured(void);
 
 /*
+ * Allocate a unique capture session ID (never returns 0).
+ */
+uint32_t uvc_alloc_session_id(void);
+
+/*
+ * Start capture for a specific session.
+ * Exactly one active session may own capture at a time.
+ * Returns 0 on success, -1 if unavailable/busy/error.
+ */
+int uvc_start_capture_session(uint32_t session_id);
+
+/*
+ * Stop capture for a specific session.
+ * Stale session IDs are ignored (idempotent stop semantics).
+ * Returns 0 on success/ignored stale, -1 on hard error.
+ */
+int uvc_stop_capture_session(uint32_t session_id);
+
+/*
+ * Query capture controller state for watchdog coordination.
+ */
+capture_ctrl_state_t uvc_get_capture_ctrl_state(void);
+
+/*
+ * Return true only when the given session is actively restarting transport.
+ */
+bool uvc_session_is_restarting(uint32_t session_id);
+
+/*
  * Start capture: open UVC stream and begin ISO transfers.
  * Requires camera in CAMERA_ATTACHED state.
+ * Legacy/sessionless helper used by CLI paths.
  * Returns 0 on success, -1 on error.
  */
 int uvc_start_capture(void);
@@ -58,6 +97,7 @@ int uvc_start_capture(void);
 /*
  * Stop capture: stop ISO transfers and close UVC stream.
  * Transitions camera from STREAMING back to ATTACHED.
+ * Legacy/sessionless helper used by CLI paths.
  * Returns 0 on success, -1 on error.
  */
 int uvc_stop_capture(void);
@@ -68,6 +108,13 @@ int uvc_stop_capture(void);
  * Caller must call uvc_frame_release() when done with the frame.
  */
 int uvc_dequeue_frame(frame_t *frame, uint32_t timeout_ms);
+
+/*
+ * Dequeue the newest completed frame and drop any stale queued frames.
+ * Blocks up to timeout_ms waiting for first frame. Returns 0 on success,
+ * -1 on timeout.
+ */
+int uvc_dequeue_latest_frame(frame_t *frame, uint32_t timeout_ms);
 
 /*
  * Release a dequeued frame back to the buffer pool.

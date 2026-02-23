@@ -1,0 +1,4 @@
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/crypto/dh_group5.c:16:8:dh5_init	16	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/crypto/dh_group5.c:26:8:dh5_init_fixed	0	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/crypto/dh_group5.c:32:17:dh5_derive_shared	32	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/qcc74x_wpa_supplicant/src/crypto/dh_group5.c:39:6:dh5_free	0	static

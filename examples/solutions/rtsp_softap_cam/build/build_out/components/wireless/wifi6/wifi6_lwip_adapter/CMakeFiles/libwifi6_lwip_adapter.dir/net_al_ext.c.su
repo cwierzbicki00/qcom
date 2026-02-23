@@ -1,0 +1,13 @@
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\wifi6_lwip_adapter\net_al_ext.c:154:12:net_get_dns.isra	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\wifi6_lwip_adapter\net_al_ext.c:170:12:fhost_dhcp_stop.isra	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\wifi6_lwip_adapter\net_al_ext.c:89:5:net_if_get_ip	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\wifi6_lwip_adapter\net_al_ext.c:225:5:net_al_ext_set_vif_ip	48	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\wifi6_lwip_adapter\net_al_ext.c:308:5:net_al_ext_get_vif_ip	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\wifi6_lwip_adapter\net_al_ext.c:409:13:fhost_wpa_connected_task	176	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\wifi6_lwip_adapter\net_al_ext.c:426:5:net_al_dhcpd_start	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\wifi6_lwip_adapter\net_al_ext.c:436:5:net_al_gw_service_enable	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\wifi6_lwip_adapter\net_al_ext.c:462:5:net_al_gw_service_disable	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\wifi6_lwip_adapter\net_al_ext.c:583:5:net_al_set_ipv6_enable	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\wifi6_lwip_adapter\net_al_ext.c:594:6:net_al_ext_dhcp_connect	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\wifi6_lwip_adapter\net_al_ext.c:623:6:net_al_ext_dhcp_disconnect	48	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\wifi6_lwip_adapter\net_al_ext.c:639:6:net_al_ext_netif_status_callback	16	static

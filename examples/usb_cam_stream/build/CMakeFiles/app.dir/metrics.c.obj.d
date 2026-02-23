@@ -1,0 +1,22 @@
+CMakeFiles/app.dir/metrics.c.obj: \
+ C:\Users\cwier\Documents\GitHub\qcom\examples\usb_cam_stream\metrics.c \
+ C:\Users\cwier\Documents\GitHub\qcom\examples\usb_cam_stream\metrics.h \
+ C:\Users\cwier\Documents\GitHub\qcom\examples\usb_cam_stream\http_server.h \
+ C:\Users\cwier\Documents\GitHub\qcom\examples\usb_cam_stream\uvc_capture.h \
+ C:\Users\cwier\Documents\GitHub\qcom\examples\usb_cam_stream\frame_pool.h \
+ C:\Users\cwier\Documents\GitHub\qcom\examples\usb_cam_stream\wifi_ap.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\include/FreeRTOS.h \
+ c:\users\cwier\documents\github\qcom\examples\usb_cam_stream\freertosconfig.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\include/projdefs.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\include/portable.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\include/deprecated_definitions.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\portable\GCC\RISC-V\common/portmacro.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\include/mpu_wrappers.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\include/timers.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\include/task.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\include/list.h \
+ c:\users\cwier\documents\github\qcom\components\mm\mem.h \
+ c:\users\cwier\documents\github\qcom\components\shell\shell.h \
+ c:\users\cwier\documents\github\qcom\components\shell\shell_config.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\utils\log/log.h \
+ C:\Users\cwier\Documents\GitHub\qcom\components\utils\log/qcc74x_dbg.h

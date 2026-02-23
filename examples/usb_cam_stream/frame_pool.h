@@ -4,11 +4,17 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-/* Maximum JPEG frame size (100 KB covers 640x480 MJPEG) */
-#define FRAME_MAX_SIZE      (100 * 1024)
+/* Maximum JPEG frame size.
+ * 320 KB avoids truncating large 640x480 MJPEG frames from high-quality webcams. */
+#define FRAME_MAX_SIZE      (320 * 1024)
 
-/* Number of frame buffers in the pool */
+/* Number of frame buffers in the pool.
+ * 4 keeps full-frame headroom while preserving PSRAM for USB/Wi-Fi stacks
+ * on lower-available-memory builds. */
 #define FRAME_POOL_COUNT    4
+
+/* Keep queue single-entry so consumers always get the newest completed frame. */
+#define FRAME_QUEUE_DEPTH   1
 
 /* Frame descriptor passed through the queue */
 typedef struct {
@@ -52,10 +58,25 @@ void frame_queue_push(const frame_t *frame);
 int frame_queue_pop(frame_t *frame, uint32_t timeout_ms);
 
 /*
+ * Pop the most recent frame from the ready queue.
+ * Blocks up to timeout_ms waiting for first frame, then drains any newer
+ * frames immediately and returns only the newest one (older drained frames
+ * are freed back to pool).
+ * Returns 0 on success, -1 on timeout.
+ */
+int frame_queue_pop_latest(frame_t *frame, uint32_t timeout_ms);
+
+/*
  * Drain all frames from the ready queue, freeing each back to the pool.
  * Call when stopping the capture pipeline to prevent pool block leaks.
  */
 void frame_queue_drain(void);
+
+/*
+ * Drop the oldest queued frame (if any) and free its backing buffer.
+ * Returns true if a frame was dropped, false if queue was empty.
+ */
+bool frame_queue_drop_oldest(void);
 
 /*
  * Query pool statistics.

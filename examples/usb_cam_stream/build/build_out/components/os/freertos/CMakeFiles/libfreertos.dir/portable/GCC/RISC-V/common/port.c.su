@@ -1,0 +1,3 @@
+C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\portable\GCC\RISC-V\common\port.c:139:10:vPortSetupTimerInterrupt	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\portable\GCC\RISC-V\common\port.c:168:12:xPortStartScheduler	32	static
+C:\Users\cwier\Documents\GitHub\qcom\components\os\freertos\portable\GCC\RISC-V\common\port.c:223:6:vPortEndScheduler	0	static

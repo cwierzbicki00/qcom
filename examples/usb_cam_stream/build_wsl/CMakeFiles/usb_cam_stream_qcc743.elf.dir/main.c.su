@@ -1,0 +1,4 @@
+/mnt/c/Users/cwier/documents/github/qcom/examples/usb_cam_stream/main.c:79:13:app_task	48	static
+/mnt/c/Users/cwier/documents/github/qcom/examples/usb_cam_stream/main.c:50:5:wifi_start_firmware_task	16	static
+/mnt/c/Users/cwier/documents/github/qcom/examples/usb_cam_stream/main.c:110:6:wifi_event_handler	32	static
+/mnt/c/Users/cwier/documents/github/qcom/examples/usb_cam_stream/main.c:154:5:main	80	static

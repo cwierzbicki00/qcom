@@ -11,6 +11,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <inttypes.h>
+#include <errno.h>
 
 #include "shell.h"
 
@@ -24,18 +25,35 @@
 #define HTTP_PORT           80
 #define HTTP_LISTEN_BACKLOG 2
 #define HTTP_TASK_STACK     2048
-#define HTTP_TASK_PRIO      12
+#define HTTP_TASK_PRIO      8
 #define HTTP_RECV_BUF_SIZE  512
 #define HTTP_HDR_BUF_SIZE   256
-#define STREAM_TASK_STACK   2048
-#define STREAM_TASK_PRIO    12
+#define STREAM_TASK_STACK   4096
+#define STREAM_TASK_PRIO    9
 
 /* Send timeout for streaming client (ms) */
-#define STREAM_SEND_TIMEOUT_MS 5000
+#define STREAM_SEND_TIMEOUT_MS 3000
 
-/* Target stream pacing: 10 fps → 100 ms minimum between frames */
-#define STREAM_FRAME_INTERVAL_MS 100
+/* Optional extra pacing in sender path; 0 disables sender-side throttling. */
+#define STREAM_FRAME_INTERVAL_MS 0
 
+/* Keep socket writes bounded for lwIP send path stability on embedded targets. */
+#define STREAM_SEND_CHUNK_BYTES 1460
+
+/* End stream if no frame arrives for this long.
+ * Keep this above UVC stall-detect/restart windows so brief transport recovery
+ * does not force unnecessary HTTP reconnect churn. */
+#define STREAM_NO_FRAME_TIMEOUT_MS 12000
+/* Drop stale frames so stream favors freshness over lag buildup. */
+#define STREAM_MAX_FRAME_AGE_MS    800
+
+/* Snapshot tuning: prioritize returning a complete, non-garbled frame quickly. */
+#define SNAPSHOT_TIMEOUT_MS        2500
+#define SNAPSHOT_DEQUEUE_MS         120
+#define SNAPSHOT_WARMUP_FRAMES        2
+#define SNAPSHOT_MIN_VALID_FRAMES     2
+#define SNAPSHOT_MIN_JPEG_BYTES    8192
+#define SNAPSHOT_TARGET_JPEG_BYTES 24000
 /* ------------------------------------------------------------------ */
 /* Global counters                                                     */
 /* ------------------------------------------------------------------ */
@@ -56,7 +74,7 @@ static const char landing_page[] =
     "<h1>QCC748M-CAM</h1>"
     "<p>IP: " AP_IP_ADDR "</p>"
     "<img src=\"/stream\">"
-    "<p><a href=\"/snapshot.jpg\">Snapshot</a> | "
+    "<p><a href=\"/snapshot\">Snapshot</a> | "
     "<a href=\"/status.json\">Status</a></p>"
     "</body></html>";
 
@@ -68,14 +86,31 @@ static int send_all(int sock, const void *buf, int len)
 {
     const uint8_t *p = (const uint8_t *)buf;
     int remaining = len;
+    TickType_t last_progress_tick = xTaskGetTickCount();
+    TickType_t send_timeout_ticks = pdMS_TO_TICKS(STREAM_SEND_TIMEOUT_MS);
+    if (send_timeout_ticks == 0) {
+        send_timeout_ticks = 1;
+    }
 
     while (remaining > 0) {
-        int n = send(sock, p, remaining, 0);
+        int chunk = (remaining > STREAM_SEND_CHUNK_BYTES) ? STREAM_SEND_CHUNK_BYTES : remaining;
+        int n = send(sock, p, chunk, 0);
         if (n <= 0) {
+            int err = errno;
+            if (err == EAGAIN || err == EWOULDBLOCK) {
+                TickType_t now = xTaskGetTickCount();
+                if ((now - last_progress_tick) >= send_timeout_ticks) {
+                    errno = ETIMEDOUT;
+                    return -1;
+                }
+                vTaskDelay(pdMS_TO_TICKS(2));
+                continue;
+            }
             return -1;
         }
         p += n;
         remaining -= n;
+        last_progress_tick = xTaskGetTickCount();
     }
     return len;
 }
@@ -104,6 +139,76 @@ static void send_error(int sock, const char *status, const char *message)
     send_response(sock, status, "text/plain", message, (int)strlen(message));
 }
 
+static bool frame_has_jpeg_markers(const frame_t *frame)
+{
+    if (!frame || !frame->data || frame->len < 4U) {
+        return false;
+    }
+    if (frame->data[0] != 0xFFU || frame->data[1] != 0xD8U) {
+        return false;
+    }
+    return true;
+}
+
+static int32_t find_jpeg_eoi(const uint8_t *buf, uint32_t len)
+{
+    if (!buf || len < 4U) {
+        return -1;
+    }
+
+    for (uint32_t i = 2U; i + 1U < len; i++) {
+        if (buf[i] == 0xFFU && buf[i + 1U] == 0xD9U) {
+            return (int32_t)i;
+        }
+    }
+    return -1;
+}
+
+static int32_t find_jpeg_sos(const uint8_t *buf, uint32_t len)
+{
+    if (!buf || len < 4U) {
+        return -1;
+    }
+    for (uint32_t i = 2U; i + 1U < len; i++) {
+        if (buf[i] == 0xFFU && buf[i + 1U] == 0xDAU) {
+            return (int32_t)i;
+        }
+    }
+    return -1;
+}
+
+/* Validate boundaries and return safe payload length to send.
+ * Capture-side parser already enforces SOI/SOS/EOI integrity; keep this check
+ * lightweight to avoid false negatives on valid frames. */
+static bool frame_extract_valid_jpeg(const frame_t *frame, uint32_t *out_len)
+{
+    if (!frame_has_jpeg_markers(frame)) {
+        return false;
+    }
+
+    int32_t eoi = find_jpeg_eoi(frame->data, frame->len);
+    int32_t sos;
+    if (eoi < 0) {
+        return false;
+    }
+    uint32_t eoi_end = (uint32_t)eoi + 2U;
+    if (eoi_end < 4U || eoi_end > frame->len) {
+        return false;
+    }
+
+    /* Require SOS marker before EOI; prevents returning malformed buffers
+     * as snapshot/stream payloads when parser loses sync under load. */
+    sos = find_jpeg_sos(frame->data, eoi_end);
+    if (sos < 0 || (uint32_t)sos >= (uint32_t)eoi) {
+        return false;
+    }
+
+    if (out_len) {
+        *out_len = eoi_end;
+    }
+    return true;
+}
+
 /* ------------------------------------------------------------------ */
 /* GET / — Landing page                                                */
 /* ------------------------------------------------------------------ */
@@ -119,15 +224,29 @@ static void handle_root(int sock)
 /* ------------------------------------------------------------------ */
 
 static volatile bool g_stream_active;
-static volatile bool g_camera_gone;   /* Set by UVC state callback */
+static volatile bool g_camera_gone = true;   /* Set by UVC state callback */
+static volatile uint32_t g_stream_session_id;
 static char          g_stream_client_ip[16];
+
+static void stop_capture_for_session(uint32_t session_id, const char *reason)
+{
+    if (session_id == 0U) {
+        return;
+    }
+
+    if (uvc_stop_capture_session(session_id) == 0) {
+        LOG_I("[HTTP] Capture stop requested (session=%lu, %s)\r\n",
+              (unsigned long)session_id,
+              reason ? reason : "none");
+    }
+}
 
 /* Camera state change callback — sets flag so stream task can exit promptly */
 static void on_camera_state_change(camera_state_t new_state)
 {
     if (new_state == CAMERA_DETACHED || new_state == CAMERA_UNAVAILABLE) {
         g_camera_gone = true;
-    } else if (new_state == CAMERA_STREAMING) {
+    } else {
         g_camera_gone = false;
     }
 }
@@ -136,12 +255,14 @@ static void on_camera_state_change(camera_state_t new_state)
 typedef struct {
     int                sock;
     struct sockaddr_in client_addr;
+    uint32_t           session_id;
 } stream_task_ctx_t;
 
 static void stream_task(void *arg)
 {
     stream_task_ctx_t *ctx = (stream_task_ctx_t *)arg;
     int sock = ctx->sock;
+    uint32_t session_id = ctx->session_id;
 
     /* Record client IP */
     inet_ntoa_r(ctx->client_addr.sin_addr, g_stream_client_ip,
@@ -149,7 +270,8 @@ static void stream_task(void *arg)
     vPortFree(ctx);
     ctx = NULL;
 
-    LOG_I("[HTTP] Stream client connected: %s\r\n", g_stream_client_ip);
+    LOG_I("[HTTP] Stream client connected: %s (session=%lu)\r\n",
+          g_stream_client_ip, (unsigned long)session_id);
 
     /* Set send timeout to avoid blocking forever on slow client */
     struct timeval tv = { .tv_sec = STREAM_SEND_TIMEOUT_MS / 1000,
@@ -170,53 +292,88 @@ static void stream_task(void *arg)
 
     TickType_t last_send = 0;
     char part_hdr[HTTP_HDR_BUF_SIZE];
+    uint32_t empty_polls = 0;
+    const uint32_t empty_poll_limit =
+        (STREAM_NO_FRAME_TIMEOUT_MS / 200U) ? (STREAM_NO_FRAME_TIMEOUT_MS / 200U) : 1U;
 
     for (;;) {
         frame_t frame;
-        if (uvc_dequeue_frame(&frame, 200) != 0) {
-            /* No frame available; check if camera still alive */
-            if (g_camera_gone) {
-                LOG_I("[HTTP] Camera unavailable — ending stream\r\n");
+        uint32_t jpeg_len = 0U;
+        if (uvc_dequeue_latest_frame(&frame, 200) != 0) {
+            /* No frame available; end stream on detach/unavailable or long starvation. */
+            camera_state_t st = uvc_get_camera_state();
+            if (g_camera_gone ||
+                st == CAMERA_DETACHED ||
+                st == CAMERA_UNAVAILABLE) {
+                LOG_I("[HTTP] Camera unavailable - ending stream\r\n");
+                break;
+            }
+
+            if (++empty_polls >= empty_poll_limit) {
+                if (uvc_session_is_restarting(session_id)) {
+                    LOG_W("[HTTP] No frames for %u ms, waiting for UVC restart (session=%lu)\r\n",
+                          (unsigned)STREAM_NO_FRAME_TIMEOUT_MS,
+                          (unsigned long)session_id);
+                    empty_polls = empty_poll_limit / 2U;
+                    continue;
+                }
+                LOG_W("[HTTP] No frames for %u ms - ending stream\r\n",
+                      (unsigned)STREAM_NO_FRAME_TIMEOUT_MS);
                 break;
             }
             continue;
         }
+        empty_polls = 0;
 
         g_counters.frames_dequeued++;
 
-        /* 10 fps pacing: skip frame if too soon */
+        if (!frame_extract_valid_jpeg(&frame, &jpeg_len)) {
+            g_counters.frames_dropped++;
+            LOG_W("[HTTP] Drop invalid JPEG frame (len=%u)\r\n", (unsigned)frame.len);
+            uvc_frame_release(&frame);
+            continue;
+        }
+
         TickType_t now = xTaskGetTickCount();
-        if (last_send != 0 &&
+        uint32_t now_ms = (uint32_t)(now * portTICK_PERIOD_MS);
+        uint32_t age_ms = now_ms - frame.timestamp_ms;
+        if (age_ms > STREAM_MAX_FRAME_AGE_MS) {
+            g_counters.frames_dropped++;
+            uvc_frame_release(&frame);
+            continue;
+        }
+        if (STREAM_FRAME_INTERVAL_MS > 0 &&
+            last_send != 0 &&
             (now - last_send) < pdMS_TO_TICKS(STREAM_FRAME_INTERVAL_MS)) {
             g_counters.frames_dropped++;
             uvc_frame_release(&frame);
             continue;
         }
 
-        /* Build multipart part header */
         int phlen = snprintf(part_hdr, sizeof(part_hdr),
                              "--frame\r\n"
                              "Content-Type: image/jpeg\r\n"
                              "Content-Length: %u\r\n"
                              "X-Timestamp-Ms: %u\r\n"
                              "\r\n",
-                             (unsigned)frame.len,
+                             (unsigned)jpeg_len,
                              (unsigned)frame.timestamp_ms);
 
-        /* Send part header */
         if (send_all(sock, part_hdr, phlen) < 0) {
+            LOG_W("[HTTP] Stream header send failed (errno=%d)\r\n", errno);
             uvc_frame_release(&frame);
             break;
         }
 
-        /* Send JPEG data (zero-copy from frame pool) */
-        if (send_all(sock, frame.data, (int)frame.len) < 0) {
+        if (send_all(sock, frame.data, (int)jpeg_len) < 0) {
+            LOG_W("[HTTP] Stream data send failed (len=%u errno=%d)\r\n",
+                  (unsigned)jpeg_len, errno);
             uvc_frame_release(&frame);
             break;
         }
 
-        /* Send trailing CRLF */
         if (send_all(sock, "\r\n", 2) < 0) {
+            LOG_W("[HTTP] Stream trailer send failed (errno=%d)\r\n", errno);
             uvc_frame_release(&frame);
             break;
         }
@@ -230,8 +387,10 @@ cleanup:
     LOG_I("[HTTP] Stream client disconnected: %s\r\n", g_stream_client_ip);
     closesocket(sock);
     g_stream_active = false;
+    g_stream_session_id = 0U;
     g_counters.stream_client_connected = false;
     g_stream_client_ip[0] = '\0';
+    stop_capture_for_session(session_id, "stream ended");
     vTaskDelete(NULL);
 }
 
@@ -242,6 +401,13 @@ cleanup:
  */
 static bool handle_stream(int sock, struct sockaddr_in *client_addr)
 {
+    camera_state_t st = uvc_get_camera_state();
+
+    if (st == CAMERA_DETACHED || st == CAMERA_UNAVAILABLE) {
+        send_error(sock, "503 Service Unavailable", "Camera unavailable");
+        return false;
+    }
+
     /* Single-client enforcement */
     if (g_stream_active) {
         send_error(sock, "503 Service Unavailable",
@@ -249,17 +415,26 @@ static bool handle_stream(int sock, struct sockaddr_in *client_addr)
         return false;
     }
 
+    uint32_t session_id = uvc_alloc_session_id();
+    if (uvc_start_capture_session(session_id) != 0) {
+        send_error(sock, "503 Service Unavailable", "Camera start failed");
+        return false;
+    }
+
     stream_task_ctx_t *ctx = pvPortMalloc(sizeof(stream_task_ctx_t));
     if (!ctx) {
-        send_error(sock, "503 Service Unavailable",
-                   "Out of memory");
+        stop_capture_for_session(session_id, "stream alloc failed");
+        send_error(sock, "503 Service Unavailable", "Out of memory");
         return false;
     }
 
     ctx->sock = sock;
     ctx->client_addr = *client_addr;
+    ctx->session_id = session_id;
 
+    g_camera_gone = false;
     g_stream_active = true;
+    g_stream_session_id = session_id;
     g_counters.stream_client_connected = true;
 
     BaseType_t ret = xTaskCreate(stream_task, "mjpeg", STREAM_TASK_STACK,
@@ -267,7 +442,9 @@ static bool handle_stream(int sock, struct sockaddr_in *client_addr)
     if (ret != pdPASS) {
         vPortFree(ctx);
         g_stream_active = false;
+        g_stream_session_id = 0U;
         g_counters.stream_client_connected = false;
+        stop_capture_for_session(session_id, "stream task create failed");
         send_error(sock, "503 Service Unavailable",
                    "Cannot create stream task");
         return false;
@@ -277,26 +454,114 @@ static bool handle_stream(int sock, struct sockaddr_in *client_addr)
 }
 
 /* ------------------------------------------------------------------ */
-/* GET /snapshot.jpg — Single JPEG frame                               */
+/* GET /snapshot(.jpg) — Single JPEG frame                             */
 /* ------------------------------------------------------------------ */
 
 static void handle_snapshot(int sock)
 {
     camera_state_t st = uvc_get_camera_state();
-    if (st != CAMERA_ATTACHED && st != CAMERA_STREAMING) {
-        send_error(sock, "503 Service Unavailable", "Camera unavailable");
+    bool started_here = false;
+    uint32_t session_id = 0U;
+    TickType_t start_tick;
+    TickType_t timeout;
+    uint32_t warmup_remaining;
+    uint32_t valid_seen = 0U;
+    uint32_t dequeued = 0U;
+    uint32_t invalid = 0U;
+    uint32_t too_small = 0U;
+    frame_t best_frame = {0};
+    uint32_t best_len = 0U;
+
+    if (!g_stream_active) {
+        if (st == CAMERA_DETACHED || st == CAMERA_UNAVAILABLE) {
+            send_error(sock, "503 Service Unavailable", "Camera unavailable");
+            return;
+        }
+
+        session_id = uvc_alloc_session_id();
+        if (uvc_start_capture_session(session_id) != 0) {
+            send_error(sock, "503 Service Unavailable", "Camera start failed");
+            return;
+        }
+        started_here = true;
+    }
+
+    start_tick = xTaskGetTickCount();
+    timeout = pdMS_TO_TICKS(SNAPSHOT_TIMEOUT_MS);
+    warmup_remaining = started_here ? SNAPSHOT_WARMUP_FRAMES : 0U;
+
+    while ((xTaskGetTickCount() - start_tick) < timeout) {
+        frame_t frame = {0};
+        uint32_t jpeg_len = 0U;
+
+        if (uvc_dequeue_latest_frame(&frame, SNAPSHOT_DEQUEUE_MS) != 0) {
+            continue;
+        }
+        dequeued++;
+
+        if (!frame_extract_valid_jpeg(&frame, &jpeg_len)) {
+            invalid++;
+            uvc_frame_release(&frame);
+            continue;
+        }
+
+        if (jpeg_len < SNAPSHOT_MIN_JPEG_BYTES) {
+            too_small++;
+            uvc_frame_release(&frame);
+            continue;
+        }
+
+        if (warmup_remaining > 0U) {
+            warmup_remaining--;
+            uvc_frame_release(&frame);
+            continue;
+        }
+
+        valid_seen++;
+
+        if (!best_frame.data || jpeg_len > best_len) {
+            if (best_frame.data) {
+                uvc_frame_release(&best_frame);
+            }
+            best_frame = frame;
+            best_len = jpeg_len;
+        } else {
+            uvc_frame_release(&frame);
+        }
+
+        if (best_frame.data &&
+            valid_seen >= SNAPSHOT_MIN_VALID_FRAMES &&
+            best_len >= SNAPSHOT_TARGET_JPEG_BYTES) {
+            break;
+        }
+    }
+
+    if (best_frame.data && best_len > 0U) {
+        send_response(sock, "200 OK", "image/jpeg", best_frame.data, (int)best_len);
+        LOG_I("[HTTP] Snapshot served len=%u valid=%u dequeued=%u invalid=%u small=%u warmup_left=%u\r\n",
+              (unsigned)best_len,
+              (unsigned)valid_seen,
+              (unsigned)dequeued,
+              (unsigned)invalid,
+              (unsigned)too_small,
+              (unsigned)warmup_remaining);
+        uvc_frame_release(&best_frame);
+        if (started_here) {
+            stop_capture_for_session(session_id, "snapshot complete");
+        }
         return;
     }
 
-    /* Try to grab a frame with short timeout */
-    frame_t frame;
-    if (uvc_dequeue_frame(&frame, 500) != 0) {
-        send_error(sock, "503 Service Unavailable", "No frame available");
-        return;
+    LOG_W("[HTTP] Snapshot timeout dequeued=%u invalid=%u small=%u valid=%u warmup_left=%u\r\n",
+          (unsigned)dequeued,
+          (unsigned)invalid,
+          (unsigned)too_small,
+          (unsigned)valid_seen,
+          (unsigned)warmup_remaining);
+    send_error(sock, "503 Service Unavailable", "No valid frame available");
+    if (started_here) {
+        stop_capture_for_session(session_id, "snapshot timeout");
     }
-
-    send_response(sock, "200 OK", "image/jpeg", frame.data, (int)frame.len);
-    uvc_frame_release(&frame);
 }
 
 /* ------------------------------------------------------------------ */
@@ -357,6 +622,86 @@ static void handle_status(int sock)
     send_response(sock, "200 OK", "application/json", json, jlen);
 }
 
+static int recv_request_line(int sock, char *buf, int buf_len)
+{
+    int n = 0;
+
+    while (n < (buf_len - 1)) {
+        int r = recv(sock, buf + n, (size_t)(buf_len - 1 - n), 0);
+        if (r <= 0) {
+            return (n > 0) ? n : r;
+        }
+
+        n += r;
+        buf[n] = '\0';
+
+        if (strstr(buf, "\r\n") || strchr(buf, '\n')) {
+            break;
+        }
+    }
+
+    return n;
+}
+
+static bool normalize_request_path(const char *target, int target_len,
+                                   char *path, size_t path_size, int *path_len)
+{
+    const char *p = target;
+    int len = target_len;
+
+    if (!target || target_len <= 0 || !path || path_size < 2) {
+        return false;
+    }
+
+    /* Accept absolute-form requests: "GET http://host/path HTTP/1.1". */
+    if (len >= 7 && strncmp(p, "http://", 7) == 0) {
+        const char *slash = memchr(p + 7, '/', (size_t)(len - 7));
+        if (!slash) {
+            p = "/";
+            len = 1;
+        } else {
+            len -= (int)(slash - p);
+            p = slash;
+        }
+    } else if (len >= 8 && strncmp(p, "https://", 8) == 0) {
+        const char *slash = memchr(p + 8, '/', (size_t)(len - 8));
+        if (!slash) {
+            p = "/";
+            len = 1;
+        } else {
+            len -= (int)(slash - p);
+            p = slash;
+        }
+    }
+
+    if (len <= 0 || p[0] != '/') {
+        return false;
+    }
+
+    /* Strip query/fragment so /stream?x=1 still maps to /stream. */
+    for (int i = 0; i < len; i++) {
+        if (p[i] == '?' || p[i] == '#') {
+            len = i;
+            break;
+        }
+    }
+
+    while (len > 1 && p[len - 1] == '/') {
+        len--;
+    }
+
+    if ((size_t)len >= path_size) {
+        return false;
+    }
+
+    memcpy(path, p, (size_t)len);
+    path[len] = '\0';
+    if (path_len) {
+        *path_len = len;
+    }
+    return true;
+}
+
 /* ------------------------------------------------------------------ */
 /* Request parsing and routing                                         */
 /* ------------------------------------------------------------------ */
@@ -369,16 +714,24 @@ static void handle_status(int sock)
 static bool handle_client(int sock, struct sockaddr_in *client_addr)
 {
     char buf[HTTP_RECV_BUF_SIZE];
+    char path_buf[HTTP_RECV_BUF_SIZE];
 
     /* Set receive timeout so we don't block forever on a bad client */
     struct timeval tv = { .tv_sec = 5, .tv_usec = 0 };
     setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
 
-    int n = recv(sock, buf, sizeof(buf) - 1, 0);
+    int n = recv_request_line(sock, buf, sizeof(buf));
     if (n <= 0) {
         return false;
     }
-    buf[n] = '\0';
+
+    char *line_end = strstr(buf, "\r\n");
+    if (!line_end) {
+        line_end = strchr(buf, '\n');
+    }
+    if (line_end) {
+        *line_end = '\0';
+    }
 
     /* Parse first line: "GET /path HTTP/1.x" */
     if (strncmp(buf, "GET ", 4) != 0) {
@@ -393,14 +746,21 @@ static bool handle_client(int sock, struct sockaddr_in *client_addr)
         return false;
     }
 
-    int path_len = (int)(path_end - path);
+    int path_len = 0;
+    if (!normalize_request_path(path, (int)(path_end - path),
+                                path_buf, sizeof(path_buf), &path_len)) {
+        send_error(sock, "400 Bad Request", "Unsupported request target");
+        return false;
+    }
+    path = path_buf;
 
     /* Route */
     if (path_len == 1 && path[0] == '/') {
         handle_root(sock);
     } else if (path_len == 7 && strncmp(path, "/stream", 7) == 0) {
         return handle_stream(sock, client_addr);
-    } else if (path_len == 13 && strncmp(path, "/snapshot.jpg", 13) == 0) {
+    } else if ((path_len == 13 && strncmp(path, "/snapshot.jpg", 13) == 0) ||
+               (path_len == 9 && strncmp(path, "/snapshot", 9) == 0)) {
         handle_snapshot(sock);
     } else if (path_len == 12 && strncmp(path, "/status.json", 12) == 0) {
         handle_status(sock);

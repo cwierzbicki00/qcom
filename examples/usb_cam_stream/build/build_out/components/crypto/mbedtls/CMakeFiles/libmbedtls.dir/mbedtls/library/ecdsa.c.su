@@ -1,0 +1,14 @@
+C:\Users\cwier\Documents\GitHub\qcom\components\crypto\mbedtls\mbedtls\library\ecdsa.c:209:12:derive_mpi	32	static
+C:\Users\cwier\Documents\GitHub\qcom\components\crypto\mbedtls\mbedtls\library\ecdsa.c:581:12:ecdsa_verify_restartable.constprop	128	static
+C:\Users\cwier\Documents\GitHub\qcom\components\crypto\mbedtls\mbedtls\library\ecdsa.c:249:12:ecdsa_sign_restartable.constprop	160	static
+C:\Users\cwier\Documents\GitHub\qcom\components\crypto\mbedtls\mbedtls\library\ecdsa.c:231:5:mbedtls_ecdsa_can_do	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\crypto\mbedtls\mbedtls\library\ecdsa.c:386:5:mbedtls_ecdsa_sign	32	static
+C:\Users\cwier\Documents\GitHub\qcom\components\crypto\mbedtls\mbedtls\library\ecdsa.c:688:5:mbedtls_ecdsa_verify	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\crypto\mbedtls\mbedtls\library\ecdsa.c:732:5:mbedtls_ecdsa_write_signature_restartable	176	static
+C:\Users\cwier\Documents\GitHub\qcom\components\crypto\mbedtls\mbedtls\library\ecdsa.c:782:5:mbedtls_ecdsa_write_signature	32	static
+C:\Users\cwier\Documents\GitHub\qcom\components\crypto\mbedtls\mbedtls\library\ecdsa.c:830:5:mbedtls_ecdsa_read_signature_restartable	64	static
+C:\Users\cwier\Documents\GitHub\qcom\components\crypto\mbedtls\mbedtls\library\ecdsa.c:816:5:mbedtls_ecdsa_read_signature	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\crypto\mbedtls\mbedtls\library\ecdsa.c:896:5:mbedtls_ecdsa_genkey	32	static
+C:\Users\cwier\Documents\GitHub\qcom\components\crypto\mbedtls\mbedtls\library\ecdsa.c:934:6:mbedtls_ecdsa_init	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\crypto\mbedtls\mbedtls\library\ecdsa.c:944:6:mbedtls_ecdsa_free	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\crypto\mbedtls\mbedtls\library\ecdsa.c:916:5:mbedtls_ecdsa_from_keypair	16	static

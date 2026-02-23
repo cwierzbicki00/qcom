@@ -29,7 +29,7 @@ struct transport {
     unsigned short rtcp_cli_port;
     unsigned short rtp_srv_port;
     unsigned short rtcp_srv_port;
-} transport;
+};
 
 /* RTSP request. */
 struct rtsp_req {
@@ -127,6 +127,13 @@ void destroy_rtsp_sess_contain_sd(int sd);
 int rtsp_sess_id_exist(unsigned long long sess_id);
 int rtsp_sess_exist(struct rtsp_sess *sessp);
 int check_send_queue(void);
+
+unsigned int rtsp_send_buf_allocated(void);
+unsigned int rtsp_send_buf_limit(void);
+unsigned int rtsp_send_buf_free_slots(void);
+void rtsp_drop_send_buf_tail(struct rtsp_sess *sessp,
+                             enum data_type type,
+                             unsigned int count);
 
 
 #endif /* __RTSP_SESS_H__ */

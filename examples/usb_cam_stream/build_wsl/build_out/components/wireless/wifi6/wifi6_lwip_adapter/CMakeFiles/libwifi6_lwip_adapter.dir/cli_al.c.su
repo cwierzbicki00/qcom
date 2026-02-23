@@ -1,0 +1,14 @@
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/wifi6_lwip_adapter/cli_al.c:695:13:_print_sta_pwr	32	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/wifi6_lwip_adapter/cli_al.c:653:6:wifi_sta_static_ipv4	48	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/wifi6_lwip_adapter/cli_al.c:704:6:wifi_sta_info_cmd	160	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/wifi6_lwip_adapter/cli_al.c:870:6:wifi_mgmr_ap_stop_cmd	0	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/wifi6_lwip_adapter/cli_al.c:33:6:utils_al_parse_number_adv	0	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/wifi6_lwip_adapter/cli_al.c:38:6:utils_al_parse_number	0	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/wifi6_lwip_adapter/cli_al.c:43:5:utils_al_getopt_init	0	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/wifi6_lwip_adapter/cli_al.c:58:6:cmd_iperf	192	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/wifi6_lwip_adapter/cli_al.c:775:6:wifi_mgmr_ap_start_cmd	144	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/wifi6_lwip_adapter/cli_al.c:48:5:utils_al_getopt	0	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/wifi6_lwip_adapter/cli_al.c:53:7:utils_al_bin2hex	0	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/wifi6_lwip_adapter/cli_al.c:309:6:cmd_tg	192	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/wifi6_lwip_adapter/cli_al.c:510:6:cmd_fhost_ping	112	static
+/mnt/c/Users/cwier/documents/github/qcom/components/wireless/wifi6/wifi6_lwip_adapter/cli_al.c:1126:5:qcc74x_wifi6_cli_init	0	static

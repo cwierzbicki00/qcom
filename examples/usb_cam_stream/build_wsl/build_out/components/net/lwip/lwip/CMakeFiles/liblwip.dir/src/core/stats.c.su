@@ -1,0 +1,8 @@
+/mnt/c/Users/cwier/documents/github/qcom/components/net/lwip/lwip/src/core/stats.c:222:1:netstat_tcp_pcbs_dump	272	static
+/mnt/c/Users/cwier/documents/github/qcom/components/net/lwip/lwip/src/core/stats.c:64:1:stats_init	0	static
+/mnt/c/Users/cwier/documents/github/qcom/components/net/lwip/lwip/src/core/stats.c:75:1:stats_display_proto	16	static
+/mnt/c/Users/cwier/documents/github/qcom/components/net/lwip/lwip/src/core/stats.c:116:1:stats_display_mem	16	static
+/mnt/c/Users/cwier/documents/github/qcom/components/net/lwip/lwip/src/core/stats.c:127:1:stats_display_memp	0	static
+/mnt/c/Users/cwier/documents/github/qcom/components/net/lwip/lwip/src/core/stats.c:138:1:stats_display_sys	16	static
+/mnt/c/Users/cwier/documents/github/qcom/components/net/lwip/lwip/src/core/stats.c:165:1:stats_display	16	static
+/mnt/c/Users/cwier/documents/github/qcom/components/net/lwip/lwip/src/core/stats.c:324:1:stats_netstat	240	static

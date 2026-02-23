@@ -1,0 +1,7 @@
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\ap\wpa_auth_ie.c:574:12:wpa_auth_okc_iter	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\ap\wpa_auth_ie.c:121:5:wpa_write_rsn_ie	32	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\ap\wpa_auth_ie.c:391:5:wpa_write_rsnxe	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\ap\wpa_auth_ie.c:482:5:wpa_auth_gen_wpa_ie	160	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\ap\wpa_auth_ie.c:549:6:wpa_add_kde	32	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\ap\wpa_auth_ie.c:586:1:wpa_validate_wpa_ie	128	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\ap\wpa_auth_ie.c:1071:5:wpa_auth_uses_mfp	0	static

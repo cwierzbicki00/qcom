@@ -1,5 +1,6 @@
 #include "FreeRTOS.h"
 #include "task.h"
+#include "queue.h"
 #include "timers.h"
 #include "mem.h"
 
@@ -24,6 +25,7 @@
 #include "uvc_capture.h"
 #include "http_server.h"
 #include "metrics.h"
+#include "frame_pool.h"
 
 #include "qcc74x_efuse.h"
 
@@ -36,9 +38,12 @@
 
 #define WIFI_STACK_SIZE  (1536)
 #define TASK_PRIORITY_FW (16)
+#define APP_STACK_SIZE   (1024)
+#define APP_EVT_QUEUE_LEN (8)
 
 static struct qcc74x_device_s *uart0;
 static TaskHandle_t wifi_fw_task;
+static QueueHandle_t app_evt_queue;
 
 extern void shell_init_with_task(struct qcc74x_device_s *shell);
 
@@ -55,9 +60,53 @@ int wifi_start_firmware_task(void)
     qcc74x_irq_attach(WIFI_IRQn, (irq_callback)interrupt0_handler, NULL);
     qcc74x_irq_enable(WIFI_IRQn);
 
-    xTaskCreate(wifi_main, (char *)"fw", WIFI_STACK_SIZE, NULL, TASK_PRIORITY_FW, &wifi_fw_task);
+    if (xTaskCreate(wifi_main, (char *)"fw", WIFI_STACK_SIZE, NULL,
+                    TASK_PRIORITY_FW, &wifi_fw_task) != pdPASS) {
+        LOG_E("wifi fw task create failed\r\n");
+        return -1;
+    }
 
     return 0;
+}
+
+/*
+ * App task - processes wifi events outside the suspended-scheduler context.
+ * The SDK's async_event_handler wraps wifi_event_handler() in
+ * vTaskSuspendAll()/xTaskResumeAll(), so any blocking call (semaphore,
+ * mutex, socket) from the event handler hits a FreeRTOS assert.
+ * We relay heavy events here via a queue with zero-tick (non-blocking) send.
+ */
+static void app_task(void *arg)
+{
+    (void)arg;
+    uint32_t code;
+
+    for (;;) {
+        if (xQueueReceive(app_evt_queue, &code, portMAX_DELAY) == pdTRUE) {
+            switch (code) {
+                case CODE_WIFI_ON_MGMR_DONE:
+                    wifi_ap_start();
+                    break;
+
+                case CODE_WIFI_ON_AP_STARTED:
+                    wifi_ap_event_handler(code);
+                    http_server_start();
+                    metrics_init();
+                    LOG_I("[CONNECT] SSID=%s IP=%s URL=http://%s/ SNAPSHOT=http://%s/snapshot.jpg\r\n",
+                          AP_SSID, AP_IP_ADDR, AP_IP_ADDR, AP_IP_ADDR);
+                    break;
+
+                case CODE_WIFI_ON_AP_STOPPED:
+                case CODE_WIFI_ON_AP_STA_ADD:
+                case CODE_WIFI_ON_AP_STA_DEL:
+                    wifi_ap_event_handler(code);
+                    break;
+
+                default:
+                    break;
+            }
+        }
+    }
 }
 
 void wifi_event_handler(uint32_t code)
@@ -66,11 +115,6 @@ void wifi_event_handler(uint32_t code)
         case CODE_WIFI_ON_INIT_DONE:
             LOG_I("[APP] [EVT] WIFI_ON_INIT_DONE\r\n");
             wifi_mgmr_init();
-            break;
-
-        case CODE_WIFI_ON_MGMR_DONE:
-            LOG_I("[APP] [EVT] WIFI_ON_MGMR_DONE\r\n");
-            wifi_ap_start();
             break;
 
         case CODE_WIFI_ON_SCAN_DONE:
@@ -90,16 +134,17 @@ void wifi_event_handler(uint32_t code)
             LOG_I("[APP] [EVT] WIFI_ON_DISCONNECT\r\n");
             break;
 
-        case CODE_WIFI_ON_AP_STARTED:
-            wifi_ap_event_handler(code);
-            http_server_start();
-            metrics_init();
+        /* Events that require blocking work - defer to app task */
+        case CODE_WIFI_ON_MGMR_DONE:
+            LOG_I("[APP] [EVT] WIFI_ON_MGMR_DONE\r\n");
+            xQueueSend(app_evt_queue, &code, 0);
             break;
 
+        case CODE_WIFI_ON_AP_STARTED:
         case CODE_WIFI_ON_AP_STOPPED:
         case CODE_WIFI_ON_AP_STA_ADD:
         case CODE_WIFI_ON_AP_STA_DEL:
-            wifi_ap_event_handler(code);
+            xQueueSend(app_evt_queue, &code, 0);
             break;
 
         default:
@@ -137,8 +182,27 @@ int main(void)
     }
     LOG_I("PHY RF init success!\r\n");
 
+    app_evt_queue = xQueueCreate(APP_EVT_QUEUE_LEN, sizeof(uint32_t));
+    if (!app_evt_queue) {
+        LOG_E("app event queue create failed\r\n");
+        return 0;
+    }
+
+    if (xTaskCreate(app_task, "app", APP_STACK_SIZE, NULL,
+                    TASK_PRIORITY_FW - 1, NULL) != pdPASS) {
+        LOG_E("app task create failed\r\n");
+        return 0;
+    }
+
+    if (frame_pool_init() != 0) {
+        LOG_E("frame pool init failed\r\n");
+        return 0;
+    }
+
     tcpip_init(NULL, NULL);
-    wifi_start_firmware_task();
+    if (wifi_start_firmware_task() != 0) {
+        return 0;
+    }
 
     uvc_capture_init();
     LOG_I("Camera: not attached (USB enumeration pending)\r\n");

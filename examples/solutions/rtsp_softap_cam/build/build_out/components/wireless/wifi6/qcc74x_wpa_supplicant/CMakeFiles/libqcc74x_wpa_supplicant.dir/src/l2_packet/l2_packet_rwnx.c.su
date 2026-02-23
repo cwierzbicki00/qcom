@@ -1,0 +1,9 @@
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\l2_packet\l2_packet_rwnx.c:27:13:l2_packet_receive	528	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\l2_packet\l2_packet_rwnx.c:49:25:l2_packet_init	32	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\l2_packet\l2_packet_rwnx.c:82:25:l2_packet_init_bridge	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\l2_packet\l2_packet_rwnx.c:93:6:l2_packet_deinit	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\l2_packet\l2_packet_rwnx.c:103:5:l2_packet_get_own_addr	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\l2_packet\l2_packet_rwnx.c:109:5:l2_packet_send	32	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\l2_packet\l2_packet_rwnx.c:127:5:l2_packet_get_ip_addr	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\l2_packet\l2_packet_rwnx.c:133:6:l2_packet_notify_auth_start	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\wireless\wifi6\qcc74x_wpa_supplicant\src\l2_packet\l2_packet_rwnx.c:138:5:l2_packet_set_packet_filter	0	static

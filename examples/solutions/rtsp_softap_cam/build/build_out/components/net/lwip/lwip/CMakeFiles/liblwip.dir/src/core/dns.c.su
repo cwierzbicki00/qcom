@@ -1,0 +1,10 @@
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\core\dns.c:985:1:dns_call_found	48	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\core\dns.c:791:1:dns_send.isra	80	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\core\dns.c:1090:1:dns_check_entry	32	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\core\dns.c:1213:1:dns_recv	112	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\core\dns.c:316:1:dns_init	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\core\dns.c:362:1:dns_setserver	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\core\dns.c:382:1:dns_getserver	0	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\core\dns.c:411:1:dns_tmr	16	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\core\dns.c:1598:1:dns_gethostbyname_addrtype	64	static
+C:\Users\cwier\Documents\GitHub\qcom\components\net\lwip\lwip\src\core\dns.c:1577:1:dns_gethostbyname	0	static

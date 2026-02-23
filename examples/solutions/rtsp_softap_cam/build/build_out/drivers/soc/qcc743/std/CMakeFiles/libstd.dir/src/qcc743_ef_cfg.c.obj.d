@@ -1,0 +1,25 @@
+build_out/drivers/soc/qcc743/std/CMakeFiles/libstd.dir/src/qcc743_ef_cfg.c.obj: \
+ C:\Users\cwier\Documents\GitHub\qcom\drivers\soc\qcc743\std\src\qcc743_ef_cfg.c \
+ C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\include/qcc74x_efuse.h \
+ C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\include/qcc74x_core.h \
+ C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\include\arch/risc-v/csr.h \
+ C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\include\arch/risc-v/riscv_arch.h \
+ C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\include/compiler/compiler_gcc.h \
+ C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\include/compiler/compiler_ld.h \
+ C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\include/qcc74x_name.h \
+ C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\include/qcc74x_common.h \
+ C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\include/qcc74x_mtimer.h \
+ C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\include/qcc74x_irq.h \
+ C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\include/qcc74x_l1c.h \
+ C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\include/qcc74x_ef_ctrl.h \
+ C:\Users\cwier\Documents\GitHub\qcom\drivers\soc\qcc743\std\include/qcc743_ef_cfg.h \
+ C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\include/qcc74x_ef_ctrl.h \
+ C:\Users\cwier\Documents\GitHub\qcom\drivers\soc\qcc743\std\include/qcc743_common.h \
+ C:\Users\cwier\Documents\GitHub\qcom\drivers\soc\qcc743\std\include\hardware/qcc743.h \
+ C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\include\arch\risc-v\t-head\Core\Include/csi_core.h \
+ C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\include\arch\risc-v\t-head\Core\Include/core_rv32.h \
+ C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\include\arch\risc-v\t-head\Core\Include/csi_rv32_gcc.h \
+ C:\Users\cwier\Documents\GitHub\qcom\drivers\lhal\include/qcc74x_core.h \
+ C:\Users\cwier\Documents\GitHub\qcom\drivers\soc\qcc743\std\include/hardware/ef_data_reg.h \
+ C:\Users\cwier\Documents\GitHub\qcom\drivers\soc\qcc743\std\include/hardware/qcc743.h \
+ C:\Users\cwier\Documents\GitHub\qcom\drivers\soc\qcc743\std\include/hardware/glb_reg.h

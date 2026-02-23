@@ -1,0 +1,11 @@
+/mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/port/hw_acc/aes_alt.c:62:6:mbedtls_aes_init	16	static
+/mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/port/hw_acc/aes_alt.c:77:6:mbedtls_aes_free	0	static
+/mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/port/hw_acc/aes_alt.c:107:5:mbedtls_aes_setkey_enc	16	static
+/mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/port/hw_acc/aes_alt.c:139:5:mbedtls_aes_setkey_dec	16	static
+/mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/port/hw_acc/aes_alt.c:296:5:mbedtls_internal_aes_encrypt	32	static
+/mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/port/hw_acc/aes_alt.c:315:6:mbedtls_aes_encrypt	0	static
+/mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/port/hw_acc/aes_alt.c:326:5:mbedtls_internal_aes_decrypt	0	static
+/mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/port/hw_acc/aes_alt.c:345:6:mbedtls_aes_decrypt	0	static
+/mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/port/hw_acc/aes_alt.c:356:5:mbedtls_aes_crypt_ecb	0	static
+/mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/port/hw_acc/aes_alt.c:394:5:mbedtls_aes_crypt_cbc	32	static
+/mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/port/hw_acc/aes_alt.c:749:5:mbedtls_aes_crypt_ctr	32	static

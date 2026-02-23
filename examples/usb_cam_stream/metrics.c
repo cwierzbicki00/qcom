@@ -9,6 +9,7 @@
 #include "mem.h"
 
 #include <stdio.h>
+#include <inttypes.h>
 
 #include "shell.h"
 
@@ -33,19 +34,32 @@ static void metrics_timer_cb(TimerHandle_t xTimer)
     uint64_t fs = c->frames_sent;
     uint64_t fd = c->frames_dropped;
 
-    uint64_t dfi = fi - prev_frames_in;
-    uint64_t dfs = fs - prev_frames_sent;
-    uint64_t dfd = fd - prev_frames_dropped;
+    /* Keep deltas signed to avoid unsigned underflow on counter resets. */
+    int64_t dfi_signed = (int64_t)fi - (int64_t)prev_frames_in;
+    int64_t dfs_signed = (int64_t)fs - (int64_t)prev_frames_sent;
+    int64_t dfd_signed = (int64_t)fd - (int64_t)prev_frames_dropped;
+
+    uint64_t dfi = (dfi_signed > 0) ? (uint64_t)dfi_signed : 0U;
+    uint64_t dfs = (dfs_signed > 0) ? (uint64_t)dfs_signed : 0U;
+    uint64_t dfd = (dfd_signed > 0) ? (uint64_t)dfd_signed : 0U;
 
     prev_frames_in      = fi;
     prev_frames_sent    = fs;
     prev_frames_dropped = fd;
 
-    int clients = wifi_ap_get_sta_count() + (c->stream_client_connected ? 1 : 0);
+    int sta_clients = wifi_ap_get_sta_count();
+    int stream_clients = c->stream_client_connected ? 1 : 0;
+    int clients = sta_clients + stream_clients;
+    uint32_t pool_total = 0;
+    uint32_t pool_free = 0;
+    uint32_t pool_queued = 0;
+    frame_pool_stats(&pool_total, &pool_free, &pool_queued);
 
-    printf("[METRICS] frames_in=%u frames_sent=%u frames_dropped=%u clients=%d heap=%u psram=%u\r\n",
+    printf("[METRICS] frames_in=%u frames_sent=%u frames_dropped=%u clients=%d sta=%d stream=%d q=%u free=%u/%u heap=%u psram=%u\r\n",
            (unsigned)dfi, (unsigned)dfs, (unsigned)dfd,
-           clients, (unsigned)kfree_size(), (unsigned)pfree_size());
+           clients, sta_clients, stream_clients,
+           (unsigned)pool_queued, (unsigned)pool_free, (unsigned)pool_total,
+           (unsigned)kfree_size(), (unsigned)pfree_size());
 }
 
 void metrics_init(void)

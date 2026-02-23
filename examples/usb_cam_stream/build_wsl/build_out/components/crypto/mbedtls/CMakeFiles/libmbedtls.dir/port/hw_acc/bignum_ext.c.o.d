@@ -1,0 +1,23 @@
+build_out/components/crypto/mbedtls/CMakeFiles/libmbedtls.dir/port/hw_acc/bignum_ext.c.o: \
+ /mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/port/hw_acc/bignum_ext.c \
+ /mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/mbedtls/library/common.h \
+ /mnt/c/Users/cwier/documents/github/qcom/examples/usb_cam_stream/./mbedtls_sample_config.h \
+ /mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/mbedtls/include/mbedtls/check_config.h \
+ /mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/mbedtls/include/mbedtls/platform.h \
+ /mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/port/mbedtls_port_qcc74x_sdk.h \
+ /mnt/c/Users/cwier/documents/github/qcom/components/mm/./mem.h \
+ /mnt/c/Users/cwier/documents/github/qcom/drivers/lhal/include/qcc74x_sec_pka.h \
+ /mnt/c/Users/cwier/documents/github/qcom/drivers/lhal/include/qcc74x_core.h \
+ /mnt/c/Users/cwier/documents/github/qcom/drivers/lhal/include/arch/risc-v/csr.h \
+ /mnt/c/Users/cwier/documents/github/qcom/drivers/lhal/include/arch/risc-v/riscv_arch.h \
+ /mnt/c/Users/cwier/documents/github/qcom/drivers/lhal/include/compiler/compiler_gcc.h \
+ /mnt/c/Users/cwier/documents/github/qcom/drivers/lhal/include/compiler/compiler_ld.h \
+ /mnt/c/Users/cwier/documents/github/qcom/drivers/lhal/include/qcc74x_name.h \
+ /mnt/c/Users/cwier/documents/github/qcom/drivers/lhal/include/qcc74x_common.h \
+ /mnt/c/Users/cwier/documents/github/qcom/drivers/lhal/include/qcc74x_mtimer.h \
+ /mnt/c/Users/cwier/documents/github/qcom/drivers/lhal/include/qcc74x_irq.h \
+ /mnt/c/Users/cwier/documents/github/qcom/drivers/lhal/include/qcc74x_l1c.h \
+ /mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/port/hw_acc/bignum_ext.h \
+ /mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/mbedtls/include/mbedtls/bignum.h \
+ /mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/port/sec_mutex.h \
+ /mnt/c/Users/cwier/documents/github/qcom/drivers/lhal/include/qcc74x_core.h

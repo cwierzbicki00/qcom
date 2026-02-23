@@ -1,0 +1,5 @@
+/mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/mbedtls/library/rsa_internal.c:50:5:mbedtls_rsa_deduce_primes	128	static
+/mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/mbedtls/library/rsa_internal.c:182:5:mbedtls_rsa_deduce_private_exponent	64	static
+/mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/mbedtls/library/rsa_internal.c:228:5:mbedtls_rsa_validate_crt	64	static
+/mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/mbedtls/library/rsa_internal.c:306:5:mbedtls_rsa_validate_params	64	static
+/mnt/c/Users/cwier/documents/github/qcom/components/crypto/mbedtls/mbedtls/library/rsa_internal.c:416:5:mbedtls_rsa_deduce_crt	48	static
