@@ -643,6 +643,13 @@
 - **Fix:** Changed detach log to `"[UVC] Camera detached  VID=0x%04X  PID=0x%04X"` using `g_cam_mode.vid` and `g_cam_mode.pid`, which are valid at detach time (populated during attach, not cleared until after detach handler runs).
 - **Test:** Host tests 19/19 passing. Build succeeds at 877 KB.
 
+### 5.23 Spec compliance: STA rejection log includes rejected MAC ✅ DONE
+- **Spec:** 20-wifi-softap (single client limit: "log that an extra client was rejected"), 40-observability ("Wi-Fi station connect/disconnect and MAC")
+- **Files:** `wifi_ap.c`
+- **Bug:** `CODE_WIFI_ON_AP_STA_ADD` handler logged `"Rejecting extra STA (limit=1)"` without the MAC address of the rejected station. The `sta_info` struct was already populated with the new STA's MAC at that point but wasn't included in the log message.
+- **Fix:** Changed rejection log to include the MAC address: `"Rejecting extra STA: %02x:%02x:%02x:%02x:%02x:%02x (limit=1)"`.
+- **Test:** Host tests 19/19 passing. Build succeeds at 877 KB.
+
 ---
 
 ## Dependency Graph (Build Order)
